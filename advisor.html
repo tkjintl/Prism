@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a0a'/><rect x='4' y='4' width='24' height='24' fill='none' stroke='%23C5A572' stroke-width='1.2'/><text x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='15' font-style='italic' fill='%23C5A572'>Au</text></svg>"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aurum Prism · Advisor Portal</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400;1,600&family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:#060605;color:#ede8df;font-family:"JetBrains Mono",monospace;font-size:13px;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+input,select,textarea{font-family:"JetBrains Mono",monospace;background:#09090a;color:#ede8df;border:1px solid rgba(255,255,255,.07);outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:rgba(197,165,114,.5)}
+select option{background:#111}
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-thumb{background:#282523}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ROOT */
+:root{--gold:#C5A572;--goldB:#DEB97A;--goldD:#8a7c68;--goldBd:rgba(197,165,114,.22);--goldW:rgba(197,165,114,.06);--goldBdS:rgba(197,165,114,.5);--goldGlow:rgba(197,165,114,.35);--green:#5a9e72;--greenBd:rgba(90,158,114,.28);--greenW:rgba(90,158,114,.07);--amber:#b8833a;--amberBd:rgba(184,131,58,.28);--amberW:rgba(184,131,58,.07);--red:#b05e56;--redBd:rgba(176,94,86,.26);--redW:rgba(176,94,86,.07);--blue:#5a98ec;--blueBd:rgba(90,152,236,.28);--blueW:rgba(90,152,236,.07);--wire:rgba(255,255,255,.06);--dim:#282523;--serif:"Cormorant Garamond",serif;--cond:"Barlow Condensed",sans-serif;--mono:"JetBrains Mono",monospace}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes glow{0%,100%{box-shadow:0 0 8px var(--goldGlow)}50%{box-shadow:0 0 18px var(--goldGlow)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SESSION EXPIRY OVERLAY ── */
+#session-expired{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center}
+#session-expired.on{display:flex}
+.se-box{background:#0e0d0c;border:1px solid var(--goldBd);padding:28px 32px;text-align:center;max-width:320px}
+.se-title{font-family:var(--cond);font-size:18px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.se-text{font-family:var(--mono);font-size:8px;color:#635e58;line-height:1.7;margin-bottom:16px}
+.se-btn{font-family:var(--cond);font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#060605;padding:10px 22px;background:var(--gold);border:none;cursor:pointer}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111;border:1px solid var(--goldBd);padding:8px 16px;font-family:var(--mono);font-size:9px;color:#a89f94;z-index:9999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;box-shadow:0 0 18px rgba(197,165,114,.15)}
+.toast.show{opacity:1}.toast.ok{color:var(--gold);border-color:var(--goldBd)}.toast.err{color:var(--red);border-color:var(--redBd)}
+
+/* ── NAV — responsive (hamburger below 900px) ── */
+.nav{height:50px;background:rgba(6,6,5,.97);border-bottom:1px solid var(--wire);display:flex;align-items:center;padding:0 16px;flex-shrink:0;position:relative;backdrop-filter:blur(14px)}
+.nav::after{content:"";position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);opacity:.25}
+.nav-mark{width:30px;height:30px;border:1px solid var(--goldBd);background:var(--goldW);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold);flex-shrink:0;margin-right:10px;animation:glow 3s ease-in-out infinite}
+.nav-brand{flex-shrink:0;margin-right:14px}
+.nav-brand-name{font-family:var(--mono);font-size:8px;letter-spacing:.38em;color:#ede8df;text-transform:uppercase}
+.nav-brand-name span{color:var(--gold)}
+.nav-brand-tag{font-family:var(--mono);font-size:6px;letter-spacing:.18em;color:var(--goldD);text-transform:uppercase;margin-top:2px}
+.nav-tabs{display:flex;border-left:1px solid var(--wire)}
+.ntab{padding:0 14px;height:50px;font-family:var(--cond);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#635e58;border-right:1px solid var(--wire);cursor:pointer;transition:all .14s;background:transparent;white-space:nowrap;position:relative}
+.ntab.on{color:var(--gold);background:var(--goldW)}
+.ntab.on::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--gold);box-shadow:0 0 6px var(--goldGlow)}
+.ntab:hover:not(.on){color:#a89f94}
+.ntab .dot{position:absolute;top:4px;right:4px;width:4px;height:4px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.nav-status{display:flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid var(--goldBd);background:var(--goldW)}
+.nav-status-dot{width:4px;height:4px;border-radius:50%;background:var(--gold)}
+.nav-status-txt{font-family:var(--mono);font-size:6px;letter-spacing:.1em;color:var(--goldD);text-transform:uppercase;white-space:nowrap}
+.nav-chip{font-family:var(--mono);font-size:7px;color:var(--goldD);padding:3px 9px;border:1px solid var(--goldBd);background:var(--goldW);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.nav-btn{font-family:var(--cond);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#060605;padding:7px 14px;background:var(--gold);border:none;cursor:pointer;transition:all .14s;white-space:nowrap}
+.nav-btn:hover{background:var(--goldB)}
+.nav-ghost{font-family:var(--mono);font-size:6.5px;color:#635e58;padding:5px 8px;border:1px solid var(--wire);cursor:pointer;transition:all .14s;white-space:nowrap}
+.nav-ghost:hover{color:var(--gold);border-color:var(--goldBd)}
+.nav-hamburger{display:none;flex-direction:column;gap:5px;padding:8px;cursor:pointer;flex-shrink:0}
+.nav-hamburger span{display:block;width:20px;height:1.5px;background:var(--gold);transition:all .2s}
+/* Mobile nav drawer */
+.mobile-nav-drawer{display:none;position:fixed;top:50px;left:0;right:0;background:#0a0908;border-bottom:1px solid var(--goldBd);z-index:100;padding:12px 16px;flex-direction:column;gap:0}
+.mobile-nav-drawer.on{display:flex}
+.mob-tab{padding:12px 14px;font-family:var(--cond);font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#635e58;border-bottom:1px solid var(--wire);cursor:pointer;transition:color .14s;min-height:44px;display:flex;align-items:center}
+.mob-tab.on{color:var(--gold)}
+.mob-tab:hover{color:#a89f94}
+
+/* ── METRIC STRIP — fix: overflow-x:auto; mobile grid ── */
+.metric-strip{display:flex;border-bottom:1px solid var(--wire);background:#09090a;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.metric-strip::-webkit-scrollbar{display:none}
+.metric{padding:9px 16px;border-right:1px solid var(--wire);flex-shrink:0;min-width:112px;position:relative;cursor:default;transition:background .14s}
+.metric:hover{background:rgba(197,165,114,.025)}
+.metric-lbl{font-family:var(--mono);font-size:6px;letter-spacing:.2em;color:#635e58;text-transform:uppercase;margin-bottom:4px}
+.metric-val{font-family:var(--cond);font-size:26px;font-weight:700;line-height:1;margin-bottom:2px;letter-spacing:-.01em}
+.metric-val.gold{color:var(--gold)}.metric-val.green{color:var(--green)}.metric-val.amber{color:var(--amber)}.metric-val.white{color:#ede8df}
+.metric-sub{font-family:var(--mono);font-size:6.5px;color:#635e58}
+.metric-sub.up{color:var(--green)}.metric-sub.warn{color:var(--amber)}
+.metric-bar{position:absolute;bottom:0;left:0;height:2px;background:var(--gold);box-shadow:0 0 5px var(--goldGlow)}
+
+/* ── BODY ── */
+#app{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR — fix: stacks below 900px ── */
+.sidebar{width:196px;flex-shrink:0;border-right:1px solid var(--wire);background:#09090a;display:flex;flex-direction:column;transition:transform .25s ease}
+.sb-hd{padding:8px 11px;border-bottom:1px solid var(--wire);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sb-lbl{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}
+.sb-ct{font-family:var(--mono);font-size:7px;color:#635e58}
+.sb-filters{display:flex;padding:5px 7px;gap:3px;border-bottom:1px solid var(--wire);flex-wrap:wrap}
+.spill{font-family:var(--mono);font-size:5.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;cursor:pointer;transition:all .12s;border:1px solid;border-radius:2px;min-height:24px;display:flex;align-items:center}
+.spill.on{color:#060605;background:var(--gold);border-color:var(--gold)}
+.spill.off{background:transparent;border-color:var(--wire);color:#635e58}
+.spill.off:hover{border-color:var(--goldBd);color:var(--goldD)}
+.sb-search{padding:5px 7px;border-bottom:1px solid var(--wire);flex-shrink:0}
+.sb-inp{width:100%;padding:5px 8px;font-size:10px}
+.sb-list{overflow-y:auto;flex:1}
+.sb-item{padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:all .12s;border-left:2px solid transparent;min-height:44px;display:flex;flex-direction:column;justify-content:center}
+.sb-item:hover{background:var(--goldW);border-left-color:var(--goldD)}
+.sb-item.on{background:var(--goldW);border-left-color:var(--gold)}
+.sb-item-name{font-family:var(--cond);font-size:14px;font-weight:600;margin-bottom:3px;line-height:1.1}
+.sb-item-meta{display:flex;gap:5px;align-items:center}
+.stage-badge{font-family:var(--mono);font-size:5px;letter-spacing:.1em;text-transform:uppercase;padding:2px 5px;border:1px solid}
+.sb-review{color:#635e58;border-color:var(--dim)}.sb-live{color:var(--green);border-color:var(--greenBd);background:var(--greenW)}.sb-ioi{color:var(--gold);border-color:var(--goldBd);background:var(--goldW)}.sb-dd{color:var(--blue);border-color:var(--blueBd);background:var(--blueW)}.sb-terms{color:var(--amber);border-color:var(--amberBd);background:var(--amberW)}
+.sb-alloc{font-family:var(--mono);font-size:7px;color:var(--gold)}
+.sb-ioi-bar{height:1px;background:var(--dim);margin-top:5px;overflow:hidden}
+.sb-ioi-fill{height:100%;background:linear-gradient(to right,var(--gold),var(--goldB));box-shadow:0 0 3px var(--goldGlow)}
+/* Mobile sidebar toggle */
+.sb-toggle-btn{display:none;font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);padding:10px 14px;border:1px solid var(--goldBd);background:var(--goldW);cursor:pointer;min-height:44px;margin:8px 10px;align-items:center;justify-content:space-between}
+
+/* ── DEAL PANEL ── */
+.deal-panel{flex:1;overflow:hidden;background:#060605;display:flex;flex-direction:column}
+.deal-panel-inner{display:flex;flex-direction:column;height:100%}
+.deal-hdr{padding:12px 18px;border-bottom:1px solid var(--wire);flex-shrink:0;background:#09090a}
+.deal-id-bar{display:flex;align-items:center;gap:7px;margin-bottom:8px;flex-wrap:wrap}
+.deal-id-tag{font-family:var(--mono);font-size:7px;letter-spacing:.2em;color:#635e58;background:#0c0c0a;padding:2px 7px;border:1px solid var(--wire)}
+.deal-type-tag{font-family:var(--cond);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border:1px solid}
+.live-badge{font-family:var(--mono);font-size:5.5px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--greenBd);color:var(--green);background:var(--greenW);display:flex;align-items:center;gap:4px}
+.live-dot{width:4px;height:4px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite}
+.deal-title{font-family:var(--cond);font-size:clamp(20px,3.5vw,32px);font-weight:800;letter-spacing:-.01em;line-height:1;margin-bottom:4px;color:#ede8df}
+.deal-title span{color:var(--gold)}
+.deal-meta{font-family:var(--mono);font-size:7px;color:#635e58;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+/* Stage progress — fix: text-free below 640px */
+.stage-prog{display:flex;height:22px;background:#0c0c0a;border:1px solid var(--wire);overflow:hidden;margin-top:6px}
+.stage-seg{flex:1;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:5.5px;letter-spacing:.1em;text-transform:uppercase;border-right:1px solid var(--wire);transition:all .14s}
+.stage-seg:last-child{border-right:0}
+.stage-seg.done{background:rgba(90,158,114,.1);color:var(--green)}
+.stage-seg.curr{background:rgba(197,165,114,.15);color:var(--gold);font-weight:600;box-shadow:inset 0 0 14px rgba(197,165,114,.1)}
+.stage-seg.todo{color:var(--dim)}
+
+/* Sub-tabs */
+.stabs{display:flex;border-bottom:1px solid var(--wire);flex-shrink:0;background:#09090a;overflow-x:auto;scrollbar-width:none}
+.stab{padding:9px 13px;font-family:var(--cond);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#635e58;border-right:1px solid var(--wire);cursor:pointer;transition:all .14s;white-space:nowrap;position:relative;min-height:44px;display:flex;align-items:center}
+.stab.on{color:var(--gold);background:var(--goldW)}
+.stab.on::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--gold)}
+.stab:hover:not(.on){color:#a89f94}
+/* Tab body — fix: overflow-y:auto */
+.tab-body{padding:14px 18px;overflow-y:auto;flex:1}
+
+/* Data grid */
+.data-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:8px;margin-bottom:14px}
+.dc{background:#0c0c0a;border:1px solid var(--wire);padding:9px 11px;position:relative;overflow:hidden;transition:border-color .14s}
+.dc:hover{border-color:var(--goldBd)}
+.dc::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,var(--gold),transparent);opacity:.18}
+.dc-lbl{font-family:var(--mono);font-size:6px;letter-spacing:.2em;color:#635e58;text-transform:uppercase;margin-bottom:4px}
+.dc-val{font-family:var(--cond);font-size:21px;font-weight:700;line-height:1;letter-spacing:-.01em;margin-bottom:2px}
+.dc-val.gold{color:var(--gold)}.dc-val.green{color:var(--green)}.dc-val.amber{color:var(--amber)}.dc-val.white{color:#ede8df}.dc-val.blue{color:var(--blue)}
+.dc-sub{font-family:var(--mono);font-size:6.5px;color:#635e58}
+.dc-bar{height:1px;background:var(--dim);margin-top:6px;overflow:hidden}
+.dc-bar-fill{height:100%;background:linear-gradient(to right,var(--gold),var(--goldB));box-shadow:0 0 3px var(--goldGlow)}
+
+/* Highlights block */
+.hl-block{background:#0c0c0a;border:1px solid var(--goldBd);padding:11px 13px;margin-bottom:12px;position:relative}
+.hl-block::before{content:"";position:absolute;top:0;left:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--gold),var(--goldD))}
+.hl-title{font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:9px;padding-bottom:5px;border-bottom:1px solid var(--goldBd)}
+.hl-item{display:flex;gap:8px;margin-bottom:6px}
+.hl-arrow{color:var(--gold);font-mono:var(--mono);font-size:10px;flex-shrink:0;margin-top:1px}
+.hl-text{font-family:var(--mono);font-size:8px;color:#a89f94;line-height:1.6}
+.hl-text strong{color:#ede8df}
+/* Deal notes */
+.deal-notes{font-family:var(--mono);font-size:10px;color:#a89f94;font-weight:300;line-height:1.7;padding:11px 13px;border:1px solid var(--wire);background:#0c0c0a;margin-bottom:12px}
+
+/* Fee calculator */
+.fee-calc{background:linear-gradient(135deg,rgba(197,165,114,.08),rgba(197,165,114,.04));border:1px solid var(--goldBd);padding:13px 15px;margin-bottom:13px;position:relative}
+.fee-calc::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,var(--gold),var(--goldD),transparent 70%);opacity:.5}
+.fc-title{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:11px;display:flex;align-items:center;gap:6px}
+.fc-title::before{content:"◆";font-size:8px;color:var(--goldD)}
+.fc-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:11px}
+.fc-kpi{background:rgba(0,0,0,.2);border:1px solid var(--goldBd);padding:9px 11px}
+.fc-kpi-lbl{font-family:var(--mono);font-size:6px;letter-spacing:.16em;color:var(--goldD);text-transform:uppercase;margin-bottom:4px}
+.fc-kpi-val{font-family:var(--cond);font-size:23px;font-weight:700;color:var(--gold);line-height:1}
+.fc-kpi-sub{font-family:var(--mono);font-size:6.5px;color:var(--goldD);margin-top:3px}
+/* Fix: stack inputs on mobile */
+.fc-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.fc-inp-lbl{font-family:var(--mono);font-size:7px;color:#635e58;width:120px;flex-shrink:0}
+.fc-inp{padding:6px 9px;font-size:11px;flex:1;background:rgba(0,0,0,.25);border:1px solid var(--goldBd);color:#ede8df}
+.fc-total-row{display:flex;align-items:baseline;gap:10px;padding-top:9px;border-top:1px solid var(--goldBd);margin-top:4px;flex-wrap:wrap}
+.fc-total-lbl{font-family:var(--mono);font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:var(--goldD)}
+.fc-total-val{font-family:var(--cond);font-size:28px;font-weight:800;color:var(--gold)}
+
+/* Econ panels */
+.econ-panels{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
+.ep{background:#0c0c0a;border:1px solid var(--wire)}
+.ep-hd{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:7px 11px;border-bottom:1px solid var(--wire);color:var(--gold);display:flex;align-items:center;gap:5px}
+.ep-hd::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.ep-body{padding:8px 11px}
+.ep-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.ep-l{font-family:var(--mono);font-size:7px;color:#635e58}
+.ep-v{font-family:var(--mono);font-size:9px;font-weight:500}
+.ep-v.gold{color:var(--gold)}.ep-v.green{color:var(--green)}.ep-v.amber{color:var(--amber)}.ep-v.blue{color:var(--blue)}.ep-v.muted{color:#635e58}
+
+/* Waterfall — fix: overflow-x:auto wrapper, responsive cols */
+.wf-wrap{overflow-x:auto;margin-bottom:13px}
+.wf-table{border:1px solid var(--wire);min-width:420px}
+.wf-hd,.wf-row{display:grid;grid-template-columns:1.7fr .8fr .9fr .9fr .9fr .9fr;padding:7px 11px;border-bottom:1px solid rgba(255,255,255,.03);font-family:var(--mono);font-size:8px}
+.wf-hd{background:#111;border-bottom:1px solid var(--wire);font-size:6.5px;color:#635e58;letter-spacing:.1em;text-transform:uppercase}
+.wf-row:last-child{border-bottom:0}
+.wf-row:hover{background:rgba(197,165,114,.03)}
+.wf-n{text-align:right;color:#a89f94}
+.wf-n.gold{color:var(--gold)}.wf-n.green{color:var(--green)}.wf-n.muted{color:#635e58}
+
+/* Doc table */
+.doc-tbl{border:1px solid var(--wire);margin-bottom:11px}
+.doc-tbl-hd{display:grid;grid-template-columns:2fr .7fr .7fr .8fr;padding:6px 11px;background:#111;border-bottom:1px solid var(--wire);font-family:var(--mono);font-size:6.5px;color:#635e58;letter-spacing:.1em;text-transform:uppercase}
+.doc-row{display:grid;grid-template-columns:2fr .7fr .7fr .8fr;padding:7px 11px;border-bottom:1px solid rgba(255,255,255,.03);align-items:center;font-family:var(--mono);font-size:8px;transition:background .12s}
+.doc-row:hover{background:rgba(197,165,114,.03)}
+.doc-row:last-child{border-bottom:0}
+.doc-name{color:#a89f94}.doc-type{color:#635e58}.doc-pub{color:var(--green);font-size:7px}.doc-gated{color:var(--amber);font-size:7px}
+.doc-dl{font-family:var(--mono);font-size:6px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--goldBd);color:var(--gold);cursor:pointer;transition:all .14s;min-height:28px}
+.doc-dl:hover{background:var(--goldW)}
+
+/* Messages */
+.msg-thread{max-height:200px;overflow-y:auto;border:1px solid var(--wire);background:#0c0c0a;margin-bottom:8px}
+.msg{display:flex;gap:8px;padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.03)}
+.msg:last-child{border-bottom:0}
+.msg-av{width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:7px;font-weight:600;border:1px solid}
+.msg-av.op{background:var(--goldW);border-color:var(--goldBd);color:var(--gold)}
+.msg-av.adv{background:#111;border-color:var(--wire);color:#635e58}
+.msg-who{font-family:var(--mono);font-size:6.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:2px}
+.msg-who.op{color:var(--gold)}
+.msg-text{font-family:var(--mono);font-size:10px;color:#a89f94;line-height:1.6;margin-bottom:2px;font-weight:300}
+.msg-ts{font-family:var(--mono);font-size:6.5px;color:#635e58}
+.msg-compose{display:flex;gap:7px}
+.msg-ta{flex:1;padding:8px 10px;font-size:11px;resize:none;height:54px;background:#09090a}
+.btn-send{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#060605;padding:8px 14px;background:var(--gold);border:none;cursor:pointer;flex-shrink:0;align-self:flex-end;transition:background .14s;min-height:44px}
+.btn-send:hover{background:var(--goldB)}
+
+/* Marketplace tab */
+.pub-status{border:1px solid;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;gap:10px;flex-wrap:wrap}
+.pub-on{border-color:var(--greenBd);background:var(--greenW)}
+.pub-off{border-color:var(--wire);background:#0c0c0a}
+.pub-info-lbl{font-family:var(--mono);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase}
+.pub-info-sub{font-family:var(--mono);font-size:7px;color:#635e58;margin-top:2px}
+.pub-toggle-btn{font-family:var(--cond);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:8px 14px;border:1px solid;cursor:pointer;transition:all .14s;min-height:44px}
+.pt-go{color:#060605;background:var(--green);border-color:var(--green)}
+.pt-off{color:#635e58;border-color:var(--wire);background:transparent}
+
+/* ── PIPELINE TAB ── */
+.pipeline-wrap{flex:1;overflow-y:auto;padding:14px 18px}
+.pipeline-card{background:#0c0c0a;border:1px solid var(--wire);margin-bottom:9px;cursor:pointer;transition:border-color .16s;overflow:hidden}
+.pipeline-card:hover{border-color:var(--goldBd)}
+.pc-hd{display:flex;align-items:baseline;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--wire);gap:10px}
+.pc-name{font-family:var(--cond);font-size:17px;font-weight:700}
+.pc-meta{font-family:var(--mono);font-size:7px;color:#635e58;padding:4px 13px;border-bottom:1px solid var(--wire);background:rgba(0,0,0,.06);display:flex;gap:8px}
+.pc-stage{display:flex;height:20px;overflow:hidden}
+.pc-seg{flex:1;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:5px;letter-spacing:.08em;text-transform:uppercase;border-right:1px solid var(--wire)}
+.pc-seg:last-child{border-right:0}
+.pc-seg.done{background:rgba(90,158,114,.1);color:var(--green)}.pc-seg.curr{background:rgba(197,165,114,.15);color:var(--gold)}.pc-seg.todo{color:var(--dim)}
+.pc-foot{display:flex;gap:12px;padding:7px 13px;font-family:var(--mono);font-size:8px;color:#a89f94}
+
+/* ── ECONOMICS OVERVIEW TAB ── */
+.econ-overview{flex:1;overflow-y:auto;padding:14px 18px}
+.eo-banner{background:var(--goldW);border:1px solid var(--goldBd);padding:10px 13px;margin-bottom:13px;font-family:var(--mono);font-size:7.5px;color:var(--goldD);line-height:1.8}
+.eo-table-wrap{overflow-x:auto}
+.eo-table{border:1px solid var(--wire);font-family:var(--mono);font-size:8px;min-width:500px}
+.eo-hd,.eo-row{display:grid;grid-template-columns:1.6fr .9fr .9fr .9fr .9fr;padding:7px 11px;border-bottom:1px solid rgba(255,255,255,.03);align-items:center}
+.eo-hd{background:#111;border-bottom:1px solid var(--wire);font-size:6.5px;color:#635e58;letter-spacing:.1em;text-transform:uppercase}
+.eo-row:hover{background:rgba(197,165,114,.025)}
+.eo-row:last-child{border-bottom:0}
+.eo-n{text-align:right}.eo-n.gold{color:var(--gold)}.eo-n.green{color:var(--green)}.eo-n.muted{color:#635e58}
+
+/* ── ADMIN MODE INDICATOR ── */
+.admin-mode-banner{background:rgba(184,131,58,.12);border:1px solid var(--amberBd);padding:6px 14px;font-family:var(--mono);font-size:7.5px;color:var(--amber);display:none;align-items:center;gap:8px;flex-shrink:0}
+.admin-mode-banner.on{display:flex}
+
+/* Button */
+.btn{font-family:var(--cond);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:8px 16px;cursor:pointer;transition:all .14s;min-height:44px;display:inline-flex;align-items:center}
+.btn-gold{color:#060605;background:var(--gold);border:none}.btn-gold:hover{background:var(--goldB)}
+.btn-ghost{color:#635e58;background:transparent;border:1px solid var(--wire)}.btn-ghost:hover{color:var(--gold);border-color:var(--goldBd)}
+
+/* Empty state */
+.empty-state{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#635e58}
+.empty-icon{font-family:var(--serif);font-style:italic;font-size:48px;color:var(--goldD);opacity:.2;animation:glow 3s ease-in-out infinite}
+
+/* ── RESPONSIVE FIXES ── */
+@media(max-width:900px){
+  .nav-tabs{display:none}
+  .nav-status,.nav-chip{display:none}
+  .nav-hamburger{display:flex}
+  .sidebar{position:fixed;top:50px;left:-100%;width:260px;height:calc(100% - 50px);z-index:50;transition:left .25s}
+  .sidebar.open{left:0;box-shadow:4px 0 20px rgba(0,0,0,.5)}
+  .sb-toggle-btn{display:flex}
+  .metric-strip{overflow-x:auto}
+}
+@media(max-width:640px){
+  .stage-seg{font-size:0}
+  .stage-seg::after{content:""}
+  .stage-seg.curr{font-size:0}
+  .econ-panels{grid-template-columns:1fr}
+  .fc-kpis{grid-template-columns:1fr 1fr}
+  .fc-row{flex-direction:column;align-items:flex-start;gap:4px}
+  .fc-inp-lbl{width:auto}
+  .fc-inp{width:100%}
+  .data-grid{grid-template-columns:1fr 1fr}
+  .wf-hd,.wf-row{grid-template-columns:1.6fr .8fr .9fr .9fr}
+  .wf-hd span:nth-child(5),.wf-row span:nth-child(5),.wf-hd span:nth-child(6),.wf-row span:nth-child(6){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- SESSION EXPIRY OVERLAY -->
+<div id="session-expired">
+  <div class="se-box">
+    <div class="se-title">Session Expired</div>
+    <div class="se-text">Your session has expired. Please sign in again to continue.</div>
+    <button class="se-btn" onclick="window.location.href='/login'">Sign In Again →</button>
+  </div>
+</div>
+
+<!-- ADMIN MODE BANNER -->
+<div class="admin-mode-banner" id="admin-banner">
+  ⬡ Admin View Active — You are viewing advisor portal as operator. Deal submissions will have no advisor attribution.
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-mark"><em style="font-family:Georgia,serif;font-style:italic;font-size:15px;letter-spacing:-.04em;font-weight:500">Au</em></div>
+  <div class="nav-brand">
+    <div class="nav-brand-name"><span>Prism</span></div>
+    <div class="nav-brand-tag">Advisor Deal Room</div>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab on" id="nt-deals" onclick="setTab('deals',this)">Pipeline<span class="dot" id="dot-review" style="display:none"></span></button>
+    <button class="ntab" id="nt-pipeline" onclick="setTab('pipeline',this)">Stage View</button>
+    <button class="ntab" id="nt-econ" onclick="setTab('econ',this)">Economics</button>
+  </div>
+  <div class="nav-r">
+    <div class="nav-status"><div class="nav-status-dot"></div><span class="nav-status-txt">Active</span></div>
+    <button class="nav-btn" onclick="openSubmitWizard()">+ Submit Deal</button>
+    <span class="nav-chip" id="firm-chip">Loading…</span>
+    <button class="nav-ghost" onclick="doLogout()">Exit →</button>
+  </div>
+  <div class="nav-hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </div>
+</div>
+
+<!-- MOBILE NAV DRAWER -->
+<div class="mobile-nav-drawer" id="mob-nav">
+  <div class="mob-tab on" onclick="setTab('deals',this);closeMobileNav()">Pipeline</div>
+  <div class="mob-tab" onclick="setTab('pipeline',this);closeMobileNav()">Stage View</div>
+  <div class="mob-tab" onclick="setTab('econ',this);closeMobileNav()">Economics</div>
+  <div class="mob-tab" onclick="openSubmitWizard();closeMobileNav()">+ Submit Deal</div>
+  <div class="mob-tab" onclick="doLogout()">Exit →</div>
+</div>
+
+<!-- METRIC STRIP -->
+<div class="metric-strip" id="metric-strip">
+  <div class="metric"><div class="metric-lbl">Pipeline Deals</div><div class="metric-val white" id="m-deals">—</div><div class="metric-sub" id="m-deals-sub">loading</div><div class="metric-bar" id="mb-deals" style="width:0%"></div></div>
+  <div class="metric"><div class="metric-lbl">Total Allocation</div><div class="metric-val gold" id="m-alloc">—</div><div class="metric-sub">target round</div></div>
+  <div class="metric"><div class="metric-lbl">Intro Fees (est.)</div><div class="metric-val gold" id="m-fees">—</div><div class="metric-sub warn">on close · 1% avg</div></div>
+  <div class="metric"><div class="metric-lbl">IOIs Received</div><div class="metric-val amber" id="m-iois">—</div><div class="metric-sub warn" id="m-ioi-agg">loading</div></div>
+  <div class="metric"><div class="metric-lbl">Live on Platform</div><div class="metric-val green" id="m-live">—</div><div class="metric-sub up">visible to investors</div></div>
+  <div class="metric"><div class="metric-lbl">Carry (est.)</div><div class="metric-val gold" id="m-carry">—</div><div class="metric-sub">not crystallised</div></div>
+</div>
+
+<!-- MOBILE SIDEBAR TOGGLE -->
+<button class="sb-toggle-btn" id="sb-toggle-btn" onclick="toggleSidebar()">
+  <span>◆ Deals</span><span id="sb-count-mob">…</span>
+</button>
+
+<!-- APP BODY -->
+<div id="app">
+  <div class="sidebar" id="sidebar">
+    <div class="sb-hd"><span class="sb-lbl">Pipeline</span><span class="sb-ct" id="sb-ct">…</span></div>
+    <div class="sb-filters">
+      <button class="spill on" onclick="setFilter('all',this)">ALL</button>
+      <button class="spill off" onclick="setFilter('review',this)">REV</button>
+      <button class="spill off" onclick="setFilter('live',this)">LIVE</button>
+      <button class="spill off" onclick="setFilter('ioi',this)">IOI</button>
+      <button class="spill off" onclick="setFilter('terms',this)">TERMS</button>
+    </div>
+    <div class="sb-search"><input class="sb-inp" type="text" placeholder="SEARCH…" oninput="S.q=this.value;renderSb()"></div>
+    <div class="sb-list" id="sb-list"></div>
+  </div>
+  <div class="deal-panel" id="deal-panel">
+    <div class="deal-panel-inner">
+      <div class="empty-state"><div class="empty-icon">◆</div><div style="font-family:var(--mono);font-size:7.5px;letter-spacing:.18em;text-transform:uppercase">Select a deal</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const fmU=n=>{if(!n||n<1)return"—";if(n>=1e9)return"$"+(n/1e9).toFixed(1)+"B";if(n>=1e6)return"$"+(n/1e6).toFixed(1)+"M";if(n>=1e3)return"$"+(n/1e3).toFixed(0)+"K";return"$"+n};
+function toast(msg,k=""){const t=document.getElementById("toast");t.textContent=msg;t.className="toast show "+k;clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2800)}
+function showSessionExpired(){document.getElementById("session-expired").classList.add("on")}
+
+// State
+const S={deals:[],sel:null,tab:"deals",filter:"all",q:"",isAdmin:false,advisor:null};
+
+// API
+// silent: won't show session-expired overlay (used for initial auth check)
+async function fetchSilent(url){
+  try{const r=await fetch(url,{credentials:"include"});if(!r.ok)return null;return r.json();}
+  catch{return null;}
+}
+async function api(method,url,body){
+  const opts={method,credentials:"include",headers:{}};
+  if(body){opts.headers["Content-Type"]="application/json";opts.body=JSON.stringify(body);}
+  try{
+    const r=await fetch(url,opts);
+    if(r.status===401){showSessionExpired();return null;}
+    return r.json();
+  }catch{toast("Connection error","err");return null;}
+}
+
+// Nav
+function toggleMobileNav(){document.getElementById("mob-nav").classList.toggle("on")}
+function closeMobileNav(){document.getElementById("mob-nav").classList.remove("on")}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open")}
+function setFilter(f,btn){S.filter=f;document.querySelectorAll(".sb-filters .spill").forEach(b=>{b.className="spill off"});btn.className="spill on";renderSb()}
+function setTab(tab,btn){
+  S.tab=tab;
+  document.querySelectorAll(".ntab").forEach(t=>t.classList.remove("on"));
+  document.querySelectorAll(".mob-tab").forEach(t=>t.classList.remove("on"));
+  if(btn){btn.classList.add("on");}
+  if(tab==="deals"){document.getElementById("app").style.display="";renderDealPanel();}
+  else if(tab==="pipeline"){document.getElementById("app").style.display="none";renderPipelineView();}
+  else if(tab==="econ"){document.getElementById("app").style.display="none";renderEconView();}
+}
+
+// Logout
+async function doLogout(){await api("POST","/api/logout");window.location.href="/login"}
+
+// Load — check role first silently, then branch. Never fires session-expired on initial check.
+async function load(){
+  const me=await fetchSilent("/api/me");
+  if(me?.ok&&me.role==="admin"){
+    S.isAdmin=true;
+    document.getElementById("admin-banner").classList.add("on");
+    loadAdmin();return;
+  }
+  if(me?.ok&&me.role==="advisor"){
+    const d=await api("GET","/api/v2?resource=advisor&op=me");
+    if(!d?.ok){window.location.href="/login";return;}
+    S.advisor=d.advisor;S.deals=d.deals||[];
+    document.getElementById("firm-chip").textContent=d.advisor.firm_name||d.advisor.email;
+    document.title="Aurum Prism · "+d.advisor.firm_name;
+    updateMetrics();renderSb();renderDealPanel();return;
+  }
+  window.location.href="/login";
+}
+
+async function loadAdmin(){
+  const d=await api("GET","/api/v2?resource=deals");
+  if(!d?.ok){window.location.href="/login";return;}
+  S.deals=d.deals||[];
+  document.getElementById("firm-chip").textContent="Operator";
+  updateMetrics();renderSb();renderDealPanel();
+}
+
+function updateMetrics(){
+  const deals=S.deals;
+  const alloc=deals.reduce((s,d)=>s+(d.target_alloc_usd||0),0);
+  const fees=deals.reduce((s,d)=>s+(d.target_alloc_usd||0)*0.01,0);
+  const iois=deals.reduce((s,d)=>s+(d.ioi_count||0),0);
+  const ioiAgg=deals.reduce((s,d)=>s+(d.ioi_agg_usd||0),0);
+  const live=deals.filter(d=>d.member_visible).length;
+  // Carry estimate
+  let carry=0;
+  deals.forEach(d=>{if(!d.target_alloc_usd||!d.target_irr)return;const yrs=(d.term_months||24)/12;const gain=d.target_alloc_usd*Math.pow(1+d.target_irr/100,yrs)-d.target_alloc_usd;const pref=d.target_alloc_usd*(Math.pow(1+(d.hurdle_rate||8)/100,yrs)-1);const cb=Math.max(0,gain-pref);carry+=cb*0.20*(d.tacc_carry_pct||12)/100;});
+  const review=deals.filter(d=>d.stage==="review").length;
+  document.getElementById("m-deals").textContent=deals.length;
+  document.getElementById("m-deals-sub").textContent=review>0?review+" in review":"active";
+  document.getElementById("m-deals-sub").className="metric-sub"+(review>0?" warn":"");
+  document.getElementById("m-alloc").textContent=fmU(alloc);
+  document.getElementById("m-fees").textContent=fmU(fees);
+  document.getElementById("m-iois").textContent=iois;
+  document.getElementById("m-ioi-agg").textContent=fmU(ioiAgg)+" aggregate";
+  document.getElementById("m-live").textContent=live;
+  document.getElementById("m-carry").textContent=fmU(carry);
+  if(review>0)document.getElementById("dot-review").style.display="block";
+  const totalCount=document.getElementById("sb-count-mob");
+  if(totalCount)totalCount.textContent=deals.length+" deals";
+}
+
+function renderSb(){
+  const items=S.deals.filter(d=>{
+    if(S.filter!=="all"&&d.stage!==S.filter)return false;
+    if(S.q&&!d.name.toLowerCase().includes(S.q.toLowerCase()))return false;
+    return true;
+  });
+  document.getElementById("sb-ct").textContent=items.length;
+  const sl=document.getElementById("sb-list");
+  if(!sl)return;
+  sl.innerHTML=items.map(d=>{
+    const pct=d.target_alloc_usd>0?Math.round((d.ioi_agg_usd||0)/d.target_alloc_usd*100):0;
+    const sc={review:"sb-review",live:"sb-live",ioi:"sb-ioi",dd:"sb-dd",terms:"sb-terms"}[d.stage]||"sb-review";
+    return`<div class="sb-item${S.sel===d.id?" on":""}" onclick="S.sel='${d.id}';renderSb();renderDealPanel()">
+      <div class="sb-item-name">${d.name}</div>
+      <div class="sb-item-meta"><span class="stage-badge ${sc}">${d.stage.toUpperCase()}</span>${d.target_alloc_usd?`<span class="sb-alloc">${fmU(d.target_alloc_usd)}</span>`:""}</div>
+      <div class="sb-ioi-bar"><div class="sb-ioi-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+}
+
+function renderDealPanel(){
+  const wrap=document.getElementById("deal-panel");
+  const d=S.deals.find(x=>x.id===S.sel);
+  if(!d){wrap.innerHTML=`<div class="deal-panel-inner"><div class="empty-state"><div class="empty-icon">◆</div><div style="font-family:var(--mono);font-size:7.5px;letter-spacing:.18em;text-transform:uppercase">Select a deal</div></div></div>`;return;}
+  const stages=["review","live","ioi","dd","terms","close"];
+  const ci=stages.indexOf(d.stage);
+  const segs=stages.map((s,i)=>`<div class="stage-seg ${i<ci?"done":i===ci?"curr":"todo"}">${s.toUpperCase()}</div>`).join("");
+  const tc={credit:"color:var(--blue);border-color:var(--blueBd);background:var(--blueW)",pe:"color:var(--gold);border-color:var(--goldBd);background:var(--goldW)",re:"color:var(--green);border-color:var(--greenBd);background:var(--greenW)",infra:"color:var(--sub);border-color:var(--wire)"};
+  const tn={credit:"PRIVATE CREDIT",pe:"PRE-IPO EQUITY",re:"REAL ESTATE",infra:"INFRASTRUCTURE"};
+  const tabs=["overview","economics","docs","messages","marketplace"];
+  const selTab=S.curTab||"overview";
+  wrap.innerHTML=`<div class="deal-panel-inner">
+    <div class="deal-hdr">
+      <div class="deal-id-bar">
+        <span class="deal-id-tag">◈ ${d.id}</span>
+        <span class="deal-type-tag" style="${tc[d.asset_class]||""}">${tn[d.asset_class]||d.asset_class||"DEAL"}</span>
+        ${d.member_visible?`<div class="live-badge"><div class="live-dot"></div>LIVE</div>`:""}
+      </div>
+      <div class="deal-title">${d.name.split(" ").slice(0,-1).join(" ")} <span>${d.name.split(" ").slice(-1)[0]}</span></div>
+      <div class="deal-meta">
+        <span>${d.geography||"—"}</span><span>·</span><span>${d.deal_structure||"—"}</span><span>·</span><span>${d.originator||"—"}</span>
+        ${d.ioi_count?`<span>·</span><span>${d.ioi_count} IOIs · ${fmU(d.ioi_agg_usd||0)}</span>`:""}
+      </div>
+      <div class="stage-prog">${segs}</div>
+    </div>
+    <div class="stabs">${tabs.map(t=>`<button class="stab${selTab===t?" on":""}" onclick="S.curTab='${t}';renderDealPanel()">${t.toUpperCase()}</button>`).join("")}</div>
+    <div class="tab-body" id="tab-content">${buildTab(d,selTab)}</div>
+  </div>`;
+}
+
+function buildTab(d,tab){
+  if(tab==="overview")return buildOverview(d);
+  if(tab==="economics")return buildEcon(d);
+  if(tab==="docs")return buildDocs(d);
+  if(tab==="messages")return buildMessages(d);
+  if(tab==="marketplace")return buildMarketplace(d);
+  return "";
+}
+
+function buildOverview(d){
+  const pct=d.target_alloc_usd>0?Math.min(100,Math.round((d.ioi_agg_usd||0)/d.target_alloc_usd*100)):0;
+  const deplPct=d.target_alloc_usd>0?Math.min(100,Math.round((d.deployed_usd||0)/d.target_alloc_usd*100)):0;
+  let hls="";
+  if(d.highlights&&d.highlights.length){hls=`<div class="hl-block"><div class="hl-title">◆ Key Highlights</div>${d.highlights.map(h=>`<div class="hl-item"><span class="hl-arrow">▸</span><span class="hl-text"><strong>${h.s}</strong> — ${h.b}</span></div>`).join("")}</div>`;}
+  return`<div class="data-grid">
+    <div class="dc"><div class="dc-lbl">Allocation</div><div class="dc-val gold">${fmU(d.target_alloc_usd)}</div><div class="dc-sub">Target round</div></div>
+    <div class="dc"><div class="dc-lbl">Target IRR</div><div class="dc-val gold">${d.target_irr||"—"}%</div><div class="dc-sub">Annualised</div><div class="dc-bar"><div class="dc-bar-fill" style="width:${Math.min(100,(d.target_irr||0)*3)}%"></div></div></div>
+    <div class="dc"><div class="dc-lbl">Term</div><div class="dc-val white">${d.term_months||"—"}<span style="font-size:13px;font-weight:400;color:#635e58">mo</span></div><div class="dc-sub">${d.term_months?((d.term_months)/12).toFixed(1)+" yr":"—"}</div></div>
+    <div class="dc"><div class="dc-lbl">Hurdle</div><div class="dc-val amber">${d.hurdle_rate||8}%</div><div class="dc-sub">Preferred return</div></div>
+    <div class="dc"><div class="dc-lbl">IOIs</div><div class="dc-val amber">${d.ioi_count||0}</div><div class="dc-sub">${fmU(d.ioi_agg_usd||0)} indicated</div><div class="dc-bar"><div class="dc-bar-fill" style="width:${pct}%;background:var(--amber)"></div></div></div>
+    <div class="dc"><div class="dc-lbl">Deployed</div><div class="dc-val green">${fmU(d.deployed_usd)||"—"}</div><div class="dc-sub">${deplPct}% of round</div></div>
+    <div class="dc"><div class="dc-lbl">Min Ticket</div><div class="dc-val gold">${fmU(d.min_ticket_usd||50000)}</div><div class="dc-sub">USD hard capital</div></div>
+    <div class="dc"><div class="dc-lbl">Structure</div><div class="dc-val white" style="font-size:13px;font-weight:600;margin-top:5px">${d.deal_structure||"—"}</div></div>
+  </div>
+  ${hls}
+  ${d.mk_notes?`<div class="deal-notes">${d.mk_notes}</div>`:""}`;
+}
+
+function buildEcon(d){
+  const yrs=(d.term_months||24)/12;
+  const alloc=d.target_alloc_usd||0;
+  const irr=d.target_irr||0;
+  const hurdle=d.hurdle_rate||8;
+  const fee=d.tacc_platform_fee_pct||1;
+  const carry=d.tacc_carry_pct||12;
+  const advFee=alloc*0.01;
+  const taccFee=alloc*fee/100;
+  const gain=alloc*Math.pow(1+irr/100,yrs)-alloc;
+  const pref=alloc*(Math.pow(1+hurdle/100,yrs)-1);
+  const cb=Math.max(0,gain-pref);
+  const pool=cb*0.20;
+  const taccCarry=pool*carry/100;
+  return`<div class="fee-calc">
+    <div class="fc-title">Live Fee Calculator</div>
+    <div class="fc-kpis">
+      <div class="fc-kpi"><div class="fc-kpi-lbl">Your Intro Fee</div><div class="fc-kpi-val" id="calc-your">${fmU(advFee)}</div><div class="fc-kpi-sub">1% of allocation</div></div>
+      <div class="fc-kpi"><div class="fc-kpi-lbl">Platform Fee</div><div class="fc-kpi-val" style="color:var(--goldB)">${fmU(taccFee)}</div><div class="fc-kpi-sub">${fee}% · separate</div></div>
+      <div class="fc-kpi"><div class="fc-kpi-lbl">Carry Pool (est.)</div><div class="fc-kpi-val" style="color:var(--amber)">${cb>0?fmU(pool):"—"}</div><div class="fc-kpi-sub">${cb>0?"20% above hurdle":"Below hurdle at base IRR"}</div></div>
+    </div>
+    <div class="fc-row"><span class="fc-inp-lbl">Override Fee %</span><input class="fc-inp" type="number" value="1.0" id="fo-${d.id}" step="0.1" oninput="recalc('${d.id}',${alloc})"></div>
+    <div class="fc-row"><span class="fc-inp-lbl">Override Alloc. (USD)</span><input class="fc-inp" type="number" value="${alloc}" id="ao-${d.id}" step="100000" oninput="recalc('${d.id}',${alloc})"></div>
+    <div class="fc-total-row">
+      <span class="fc-total-lbl">Total Intro Est.</span>
+      <span class="fc-total-val" id="fc-tot-${d.id}">${fmU(advFee)}</span>
+      <span style="font-family:var(--mono);font-size:7px;color:#635e58">+ ${fmU(taccCarry)} platform carry if hurdle met</span>
+    </div>
+  </div>
+  <div class="econ-panels">
+    <div class="ep"><div class="ep-hd">Platform Economics</div><div class="ep-body">
+      <div class="ep-row"><span class="ep-l">Alloc. fee rate</span><span class="ep-v amber">${fee}%</span></div>
+      <div class="ep-row"><span class="ep-l">Fee at close</span><span class="ep-v gold">${fmU(taccFee)}</span></div>
+      <div class="ep-row"><span class="ep-l">Carry participation</span><span class="ep-v amber">${carry}% of pool</span></div>
+      <div class="ep-row"><span class="ep-l">Hurdle rate</span><span class="ep-v muted">${hurdle}%</span></div>
+      <div class="ep-row"><span class="ep-l">Preferred return</span><span class="ep-v muted">${fmU(pref)}</span></div>
+      <div class="ep-row"><span class="ep-l">Platform carry est.</span><span class="ep-v gold">${cb>0?fmU(taccCarry):"—"}</span></div>
+    </div></div>
+    <div class="ep"><div class="ep-hd">Your Economics · Separate</div><div class="ep-body">
+      <div class="ep-row"><span class="ep-l">Intro fee rate</span><span class="ep-v blue">1% of allocation</span></div>
+      <div class="ep-row"><span class="ep-l">Intro fee at close</span><span class="ep-v green">${fmU(advFee)}</span></div>
+      <div class="ep-row"><span class="ep-l">Carry share</span><span class="ep-v muted">N/A</span></div>
+      <div class="ep-row"><span class="ep-l">Total est. (base)</span><span class="ep-v green">${fmU(advFee)}</span></div>
+    </div></div>
+  </div>
+  <div style="font-family:var(--cond);font-size:10px;font-weight:700;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--goldBd)">◆ Waterfall Scenarios</div>
+  <div class="wf-wrap"><div class="wf-table">
+    <div class="wf-hd"><span>Scenario</span><span class="wf-n">IRR</span><span class="wf-n">Gain</span><span class="wf-n">Carry Pool</span><span class="wf-n">Plat. Carry</span><span class="wf-n">Your Fee</span></div>
+    ${[["Base",irr],["Mid +3%",irr+3],["Upside +6%",irr+6],["Conservative",Math.max(0,irr-4)]].map(([l,r])=>{const g=alloc*Math.pow(1+r/100,yrs)-alloc,p=Math.max(0,g-pref)*0.20,tc=p*carry/100;return`<div class="wf-row"><span>${l}</span><span class="wf-n ${r>=irr?"gold":"muted"}">${r}%</span><span class="wf-n">${fmU(g)}</span><span class="wf-n ${p>0?"gold":"muted"}">${p>0?fmU(p):"—"}</span><span class="wf-n gold">${tc>0?fmU(tc):"—"}</span><span class="wf-n green">${fmU(advFee)}</span></div>`;}).join("")}
+  </div></div>`;
+}
+
+function recalc(did,origAlloc){
+  const fp=parseFloat(document.getElementById("fo-"+did)?.value||1);
+  const ap=parseFloat(document.getElementById("ao-"+did)?.value||origAlloc)||origAlloc;
+  const el=document.getElementById("fc-tot-"+did);
+  if(el)el.textContent=fmU(ap*fp/100);
+}
+
+function buildDocs(d){
+  const docs=d.docs||[];
+  if(!docs.length)return`<div style="font-family:var(--mono);font-size:8px;color:#635e58;padding:20px;text-align:center">No documents uploaded yet.</div>`;
+  return`<div class="doc-tbl">
+    <div class="doc-tbl-hd"><span>Document</span><span>Type</span><span>Access</span><span>Action</span></div>
+    ${docs.map(doc=>`<div class="doc-row"><span class="doc-name">${doc.n||doc.name||"—"}</span><span class="doc-type">${doc.t||doc.type||"—"}</span><span class="${(doc.acc||doc.access)==="pub"?"doc-pub":"doc-gated"}">${(doc.acc||doc.access)==="pub"?"● Public":"○ Gated"}</span>${doc.url?`<button class="doc-dl" onclick="window.open('${doc.url}','_blank')">↓ Download</button>`:`<span style="font-family:var(--mono);font-size:6.5px;color:#635e58;padding:3px 8px;border:1px solid var(--wire)">No file</span>`}</div>`).join("")}
+  </div>
+  <div style="font-family:var(--mono);font-size:7px;color:#635e58;padding:8px 10px;border:1px solid var(--wire);border-top:0;background:#0c0c0a;line-height:1.7">Gated documents require IOI approval. All downloads watermarked with investor identity. Contact platform operator to upload documents.</div>`;
+}
+
+function buildMessages(d){
+  const qa=d.qa||[];
+  return`<div class="msg-thread">${qa.map(m=>`<div class="msg"><div class="msg-av ${m.from&&m.from.includes("@")&&!m.from.startsWith("adv")?"op":"adv"}">${m.from?m.from.slice(0,2).toUpperCase():"?"}</div><div style="flex:1"><div class="msg-who ${m.from&&!m.from.startsWith("adv")?"op":""}">${m.from||"—"}</div><div class="msg-text">${m.text||""}</div><div class="msg-ts">${m.at?new Date(m.at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"—"}</div></div></div>`).join("")||`<div style="padding:12px;font-family:var(--mono);font-size:8px;color:#635e58">// No messages yet</div>`}</div>
+  <div class="msg-compose"><textarea class="msg-ta" id="msg-input-${d.id}" placeholder="// Message to platform operators…"></textarea><button class="btn-send" onclick="sendMsg('${d.id}')">Send →</button></div>`;
+}
+
+async function sendMsg(dealId){
+  const input=document.getElementById("msg-input-"+dealId);
+  const text=input?.value?.trim();
+  if(!text){toast("Enter a message","err");return;}
+  const r=await api("POST","/api/v2?resource=advisor&op=deals",{action:"update",id:dealId,qa_message:text});
+  if(r?.ok){
+    // Update local deal
+    const d=S.deals.find(x=>x.id===dealId);
+    if(d){d.qa=d.qa||[];d.qa.push({from:S.advisor?.email||"Advisor",text,at:new Date().toISOString()});}
+    input.value="";toast("Message sent","ok");renderDealPanel();
+  }else{toast(r?.error||"Failed to send","err");}
+}
+
+function buildMarketplace(d){
+  const pct=d.target_alloc_usd>0?Math.min(100,Math.round((d.ioi_agg_usd||0)/d.target_alloc_usd*100)):0;
+  const overSub=pct>=100;
+  return`<div class="pub-status ${d.member_visible?"pub-on":"pub-off"}">
+    <div><div class="pub-info-lbl" style="color:${d.member_visible?"var(--green)":"#635e58"}">${d.member_visible?"● Live on Marketplace":"○ Not Published"}</div><div class="pub-info-sub">${d.member_visible?"Visible to all admitted investors":"Operator approval required to publish"}</div></div>
+  </div>
+  ${d.member_visible?`<div style="font-family:var(--mono);font-size:7.5px;color:#635e58;margin-bottom:4px">Allocation progress — ${overSub?"OVERSUBSCRIBED":pct+"%"}</div>
+  <div style="width:100%;height:6px;background:var(--dim);border-radius:3px;overflow:hidden;margin-bottom:4px"><div style="height:100%;background:${overSub?"var(--green)":"var(--gold)"};width:${pct}%;transition:width .4s;box-shadow:0 0 5px var(--goldGlow)"></div></div>
+  <div style="font-family:var(--mono);font-size:7.5px;color:#635e58">${fmU(d.ioi_agg_usd||0)} indicated of ${fmU(d.target_alloc_usd)} · ${d.ioi_count||0} IOIs${overSub?" · Deal oversubscribed":""}</div>`:""}
+  <div style="margin-top:12px;font-family:var(--mono);font-size:7.5px;color:#635e58;line-height:1.7">Publishing is controlled by platform operators. Contact operators via the Messages tab to request changes to deal visibility, pricing, or allocation.</div>`;
+}
+
+function renderPipelineView(){
+  const main=document.querySelector("main")||document.getElementById("app").parentNode;
+  document.getElementById("app").outerHTML=`<div class="pipeline-wrap" id="pipeline-view">
+    ${S.deals.map(d=>{
+      const stages=["review","live","ioi","dd","terms","close"];
+      const ci=stages.indexOf(d.stage);
+      const segs=stages.map((s,i)=>`<div class="pc-seg ${i<ci?"done":i===ci?"curr":"todo"}">${s.slice(0,3).toUpperCase()}</div>`).join("");
+      return`<div class="pipeline-card" onclick="S.sel='${d.id}';setTab('deals',document.getElementById('nt-deals'))">
+        <div class="pc-hd"><span class="sb-item-name" style="font-size:17px">${d.name}</span><span class="stage-badge ${{"review":"sb-review","live":"sb-live","ioi":"sb-ioi","terms":"sb-terms","dd":"sb-dd","close":"sb-live"}[d.stage]||"sb-review"}">${d.stage.toUpperCase()}</span></div>
+        <div class="pc-meta"><span>${{"credit":"Private Credit","pe":"Pre-IPO","re":"Real Estate","infra":"Infrastructure"}[d.asset_class]||d.asset_class||"—"}</span><span>·</span><span>${d.geography||"—"}</span>${d.target_irr?`<span>·</span><span>${d.target_irr}% IRR</span>`:""}</div>
+        <div class="pc-stage">${segs}</div>
+        <div class="pc-foot"><span>Alloc: <strong style="color:var(--gold)">${fmU(d.target_alloc_usd)}</strong></span><span>IOIs: <strong style="color:var(--amber)">${d.ioi_count||0}</strong></span>${d.member_visible?`<span style="color:var(--green)">● Live</span>`:""}</div>
+      </div>`;
+    }).join("")||`<div style="padding:32px;text-align:center;font-family:var(--mono);font-size:8px;color:#635e58">No deals yet</div>`}
+  </div>`;
+}
+
+function renderEconView(){
+  document.getElementById("app").outerHTML=`<div class="econ-overview" id="econ-view">
+    <div class="eo-banner">Platform fee: ${S.advisor?.intro_fee_pct||1}% at close · Carry: ${S.advisor?.carry_pct||"see per-deal"} % of pool above hurdle · Your intro fee: 1% of allocation · Carry share: N/A for this account</div>
+    <div style="font-family:var(--cond);font-size:14px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">◆ Per-Deal Economics</div>
+    <div class="eo-table-wrap"><div class="eo-table">
+      <div class="eo-hd"><span>Deal</span><span class="eo-n">Stage</span><span class="eo-n">Allocation</span><span class="eo-n">Your Fee</span><span class="eo-n">Status</span></div>
+      ${S.deals.map(d=>`<div class="eo-row" onclick="S.sel='${d.id}';setTab('deals',document.getElementById('nt-deals'));S.curTab='economics';renderDealPanel()">
+        <span style="font-family:var(--cond);font-size:14px;font-weight:600">${d.name}</span>
+        <span class="eo-n"><span class="stage-badge ${{review:"sb-review",live:"sb-live",ioi:"sb-ioi",terms:"sb-terms",dd:"sb-dd"}[d.stage]||"sb-review"}">${d.stage}</span></span>
+        <span class="eo-n gold">${fmU(d.target_alloc_usd)}</span>
+        <span class="eo-n green">${fmU((d.target_alloc_usd||0)*0.01)}</span>
+        <span class="eo-n" style="color:${d.member_visible?"var(--green)":"#635e58"}">${d.member_visible?"● Live":"Draft"}</span>
+      </div>`).join("")||`<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:8px;color:#635e58">No deals</div>`}
+    </div></div>
+  </div>`;
+}
+
+function openSubmitWizard(){toast("Deal submission wizard — enter details in the control panel or contact operators to submit a deal","ok")}
+
+// Init
+load();
+</script>
+</body>
+</html>
