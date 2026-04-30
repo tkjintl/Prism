@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a0a'/><rect x='4' y='4' width='24' height='24' fill='none' stroke='%23C5A572' stroke-width='1.2'/><text x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='15' font-style='italic' fill='%23C5A572'>Au</text></svg>">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aurum Prism · Private Deal Platform</title>
+<meta name="description" content="Aurum Prism is a private deal platform for qualified institutional investors and deal advisors — curating credit, pre-IPO equity, real estate, and infrastructure across the US and Asia.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070706;--bg2:#0a0908;--bg3:#0c0b09;--bg4:#0f0e0b;
+  --card:#111009;--card2:#141310;
+  --text:#ece6da;--sub:#a89f94;--muted:#655f58;--dim:#2a2725;
+  --gold:#C5A572;--goldB:#DEB97A;--goldC:#F0CF9A;--goldD:#8a7c68;
+  --goldBd:rgba(197,165,114,0.22);--goldBdS:rgba(197,165,114,0.45);
+  --goldW:rgba(197,165,114,0.04);--goldWS:rgba(197,165,114,0.09);
+  --border:rgba(255,255,255,0.065);--b2:rgba(255,255,255,0.11);
+  --lift:rgba(255,255,255,0.018);
+  --green:#5a9e72;--greenW:rgba(90,158,114,0.07);--greenBd:rgba(90,158,114,0.28);
+  --amber:#b8833a;--amberW:rgba(184,131,58,0.07);--amberBd:rgba(184,131,58,0.28);
+  --red:#b05e56;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Outfit',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:58px;background:rgba(7,7,6,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);display:flex;align-items:center;padding:0 48px;gap:0;transition:background .3s}
+.n-seal{width:30px;height:30px;border:1px solid var(--goldBd);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold);margin-right:14px;flex-shrink:0}
+.n-brand{font-family:var(--mono);font-size:8px;letter-spacing:.28em;color:var(--sub);text-transform:uppercase;margin-right:auto}
+.n-tag{font-family:var(--mono);font-size:6px;letter-spacing:.18em;color:var(--goldD);text-transform:uppercase;padding:2px 8px;border:1px solid var(--goldBd);margin-right:16px}
+.n-links{display:flex;gap:0}
+.n-link{font-family:var(--mono);font-size:7.5px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;padding:0 16px;height:58px;display:flex;align-items:center;transition:color .14s;border-right:1px solid var(--border)}
+.n-link:hover{color:var(--gold)}
+.n-link:first-child{border-left:1px solid var(--border)}
+.btn-nav{font-family:var(--mono);font-size:7.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--bg);background:var(--gold);padding:9px 18px;transition:background .14s;border:none;margin-left:8px}
+.btn-nav:hover{background:var(--goldB)}
+.btn-nav.ghost{color:var(--goldD);background:transparent;border:1px solid var(--goldBd)}
+.btn-nav.ghost:hover{color:var(--gold);background:var(--goldW);border-color:var(--goldBdS)}
+
+/* HERO */
+.hero{min-height:100vh;position:relative;overflow:hidden;display:flex;align-items:center;padding:100px 48px 80px}
+canvas#c{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.55}
+.hero-vign{position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 25% 50%,transparent 30%,rgba(7,7,6,.75) 100%);pointer-events:none}
+.hero-inner{max-width:1240px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:80px;position:relative;z-index:2;align-items:center}
+
+.hero-left{}
+.hero-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:22px}
+.hero-eyebrow-line{width:28px;height:1px;background:var(--goldD)}
+.hero-eyebrow-txt{font-family:var(--mono);font-size:7px;letter-spacing:.32em;color:var(--goldD);text-transform:uppercase}
+.hero-label{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:7px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;padding:5px 12px;border:1px solid var(--amberBd);background:var(--amberW);margin-bottom:22px}
+.hero-label-dot{width:5px;height:5px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(42px,5vw,70px);color:var(--text);line-height:1.04;letter-spacing:-.01em;margin-bottom:20px}
+h1 em{color:var(--goldB);font-style:italic}
+.hero-sub{font-family:var(--serif);font-size:17px;font-weight:300;color:var(--sub);line-height:1.75;margin-bottom:36px;max-width:480px}
+.hero-ctas{display:flex;align-items:center;gap:10px;margin-bottom:36px;flex-wrap:wrap}
+.btn-primary{font-family:var(--mono);font-size:8px;letter-spacing:.20em;text-transform:uppercase;color:var(--bg);background:var(--gold);padding:13px 26px;border:none;transition:all .16s}
+.btn-primary:hover{background:var(--goldB);transform:translateY(-1px)}
+.btn-member{font-family:var(--mono);font-size:8px;letter-spacing:.20em;text-transform:uppercase;color:var(--goldD);padding:12px 22px;border:1px solid var(--goldBd);background:var(--goldW);transition:all .16s}
+.btn-member:hover{color:var(--gold);border-color:var(--goldBdS);background:var(--goldWS)}
+.hero-note{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.12em}
+.hero-note span{color:var(--goldD)}
+
+/* Hero right — platform preview stack */
+.hero-right{position:relative;height:480px}
+.preview-stack{position:relative;width:100%;height:100%}
+.preview-card{position:absolute;background:var(--card);border:1px solid var(--goldBd);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 0 1px rgba(197,165,114,.06);transition:transform .3s}
+.preview-card:nth-child(1){top:0;right:0;width:380px;z-index:3;animation:pf1 8s ease-in-out infinite}
+.preview-card:nth-child(2){top:200px;right:40px;width:340px;z-index:2;animation:pf2 10s ease-in-out infinite;opacity:.85}
+@keyframes pf1{0%,100%{transform:rotate(-1deg) translateY(0)}50%{transform:rotate(-1deg) translateY(-10px)}}
+@keyframes pf2{0%,100%{transform:rotate(.8deg) translateY(0)}50%{transform:rotate(.8deg) translateY(-8px)}}
+
+/* Preview card internals */
+.pv-nav{display:flex;align-items:center;gap:0;height:32px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.pv-seal{width:32px;height:32px;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:11px;color:var(--gold)}
+.pv-name{font-family:var(--mono);font-size:6.5px;letter-spacing:.24em;color:var(--sub);text-transform:uppercase;padding:0 10px}
+.pv-tab{font-family:var(--mono);font-size:6px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;padding:0 10px;height:32px;display:flex;align-items:center;border-bottom:2px solid transparent;transition:all .14s}
+.pv-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.pv-body{padding:10px 12px}
+.pv-deal-badge{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.pv-badge{font-family:var(--mono);font-size:5px;letter-spacing:.10em;text-transform:uppercase;padding:2px 5px;border:1px solid}
+.pv-deal-name{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text);margin-bottom:2px}
+.pv-deal-orig{font-family:var(--mono);font-size:6px;color:var(--muted);margin-bottom:8px}
+.pv-metrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg2)}
+.pv-m{padding:5px 7px;border-right:1px solid var(--border)}
+.pv-m:last-child{border-right:0}
+.pv-m-l{font-family:var(--mono);font-size:5px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+.pv-m-v{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--goldB);line-height:1}
+.pv-alloc{padding:7px 12px}
+.pv-alloc-hdr{display:flex;justify-content:space-between;font-family:var(--mono);font-size:5.5px;color:var(--muted);margin-bottom:4px}
+.pv-bar{height:3px;background:var(--dim);border-radius:2px;overflow:hidden}
+.pv-fill{height:100%;background:linear-gradient(90deg,var(--goldD),var(--goldB));border-radius:2px}
+.pv-foot{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--bg3)}
+.pv-foot-cd{font-family:var(--mono);font-size:6px;color:var(--amber)}
+.pv-ioi-btn{font-family:var(--mono);font-size:6px;letter-spacing:.12em;text-transform:uppercase;color:var(--goldD);padding:4px 9px;border:1px solid var(--goldBd);background:var(--goldW)}
+
+/* Advisor preview */
+.pv-adv-hd{display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.pv-adv-chip{font-family:var(--mono);font-size:6px;letter-spacing:.12em;text-transform:uppercase;color:var(--purple);padding:2px 6px;border:1px solid rgba(139,107,191,.28);background:rgba(139,107,191,.06)}
+.pv-adv-stage{display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid var(--border)}
+.pv-stage-dot{width:8px;height:8px;border-radius:50%;background:var(--goldB);flex-shrink:0}
+.pv-econ-row{display:flex;justify-content:space-between;align-items:center;padding:4px 10px;border-bottom:1px solid var(--border)}
+.pv-econ-lbl{font-family:var(--mono);font-size:6.5px;color:var(--muted)}
+.pv-econ-val{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--goldB)}
+
+/* STATS BAR */
+.stats{background:var(--bg3);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:32px 48px;position:relative;overflow:hidden}
+.stats::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(197,165,114,.012) 2px,rgba(197,165,114,.012) 4px);pointer-events:none}
+.stats-inner{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+.stat{padding:0 32px;border-right:1px solid var(--border)}
+.stat:last-child{border-right:0}
+.stat-lbl{font-family:var(--mono);font-size:6.5px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.stat-n{font-family:var(--serif);font-style:italic;font-size:40px;color:var(--goldB);line-height:1;margin-bottom:4px}
+.stat-sub{font-family:var(--mono);font-size:7px;color:var(--muted)}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .6s,transform .6s}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-d1{transition-delay:.08s}.reveal-d2{transition-delay:.16s}.reveal-d3{transition-delay:.24s}
+
+/* SECTION */
+.section{max-width:1240px;margin:0 auto;padding:100px 48px}
+.sec-eye{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sec-eye-line{width:26px;height:1px;background:var(--goldD)}
+.sec-eye-txt{font-family:var(--mono);font-size:7px;letter-spacing:.30em;color:var(--goldD);text-transform:uppercase}
+h2{font-family:var(--serif);font-weight:400;font-size:clamp(28px,3.5vw,46px);color:var(--text);line-height:1.1;margin-bottom:12px}
+h2 em{color:var(--goldB);font-style:italic}
+.sec-sub{font-family:var(--serif);font-size:16px;font-weight:300;color:var(--sub);line-height:1.75;max-width:560px;margin-bottom:48px}
+
+/* PLATFORM PREVIEW SECTION */
+.platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:56px}
+.platform-frame{border:1px solid var(--border);overflow:hidden;background:var(--card);display:flex;flex-direction:column;transition:border-color .2s}
+.platform-frame:hover{border-color:var(--goldBd)}
+.pf-caption{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--bg4);border-bottom:1px solid var(--goldBd);flex-shrink:0}
+.pf-cap-tag{font-family:var(--mono);font-size:7px;letter-spacing:.20em;text-transform:uppercase;color:var(--goldD)}
+.pf-cap-note{font-family:var(--mono);font-size:6.5px;color:var(--muted)}
+.pf-caption-bottom{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--bg4);border-top:1px solid var(--border);font-family:var(--mono);font-size:7px;color:var(--muted);flex-shrink:0}
+.pf-viewport{height:440px;overflow:hidden;position:relative;flex:1}
+.pf-scaled{transform:scale(0.52);transform-origin:top left;width:calc(100%/0.52);background:var(--bg)}
+
+/* Deal card preview in screen */
+.scr-nav{display:flex;align-items:center;height:28px;background:var(--bg4);border-bottom:1px solid var(--border);padding:0 8px;gap:6px;flex-shrink:0}
+.scr-seal{width:18px;height:18px;border:1px solid var(--goldBd);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:8px;color:var(--gold)}
+.scr-title{font-family:var(--mono);font-size:5.5px;letter-spacing:.22em;color:var(--sub);text-transform:uppercase}
+.scr-tab{font-family:var(--mono);font-size:5px;letter-spacing:.12em;text-transform:uppercase;padding:0 8px;height:28px;display:flex;align-items:center;color:var(--muted);border-bottom:2px solid transparent}
+.scr-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.scr-body{padding:8px;display:flex;flex-direction:column;gap:6px}
+.scr-filter{display:flex;gap:4px;padding:0 0 6px;border-bottom:1px solid var(--border)}
+.scr-pill{font-family:var(--mono);font-size:4.5px;letter-spacing:.10em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--border);color:var(--muted)}
+.scr-pill.on{color:var(--gold);border-color:var(--goldBd);background:var(--goldW)}
+.scr-deal{background:var(--bg2);border:1px solid var(--border);padding:7px;margin-bottom:5px}
+.scr-deal-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5px}
+.scr-deal-name{font-family:var(--serif);font-style:italic;font-size:10px;color:var(--text)}
+.scr-deal-badge{font-family:var(--mono);font-size:4px;letter-spacing:.08em;text-transform:uppercase;padding:1px 4px;border:1px solid}
+.scr-mets{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:5px}
+.scr-met{padding:3px 5px;border-right:1px solid var(--border)}
+.scr-met:last-child{border-right:0}
+.scr-met-l{font-family:var(--mono);font-size:4px;color:var(--muted)}
+.scr-met-v{font-family:var(--serif);font-style:italic;font-size:9px;color:var(--goldB);line-height:1}
+.scr-bar-w{height:2px;background:var(--dim);border-radius:1px;overflow:hidden;margin-bottom:3px}
+.scr-bar-f{height:100%;border-radius:1px}
+.scr-act{font-family:var(--mono);font-size:4.5px;letter-spacing:.10em;text-transform:uppercase;padding:3px 7px;border:1px solid var(--goldBd);color:var(--goldD);background:var(--goldW);display:inline-block}
+
+/* Advisor screen */
+.scr-adv-deal{background:var(--bg2);border:1px solid var(--goldBd);padding:7px;margin-bottom:5px}
+.scr-adv-name{font-family:var(--serif);font-style:italic;font-size:11px;color:var(--text);margin-bottom:3px}
+.scr-adv-stage{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.scr-adv-dot{width:6px;height:6px;border-radius:50%;background:var(--goldB)}
+.scr-adv-stage-lbl{font-family:var(--mono);font-size:5px;color:var(--goldD)}
+.scr-adv-prog{height:2px;background:var(--dim);border-radius:1px;overflow:hidden}
+.scr-adv-prog-f{height:100%;background:linear-gradient(90deg,var(--goldD),var(--goldB));border-radius:1px}
+.scr-econ{background:var(--bg);border:1px solid var(--border);padding:7px;margin-top:6px}
+.scr-econ-row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:5px}
+.scr-econ-row:last-child{border-bottom:0}
+.scr-econ-lbl{color:var(--muted)}.scr-econ-val{color:var(--goldB)}
+
+/* WHAT/HOW */
+.features-bg{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--border)}
+.feat{padding:36px 28px;border-right:1px solid var(--border)}
+.feat:last-child{border-right:0}
+.feat-num{font-family:var(--serif);font-style:italic;font-size:40px;color:var(--goldBd);line-height:1;margin-bottom:14px}
+.feat-title{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--text);text-transform:uppercase;margin-bottom:10px}
+.feat-text{font-family:var(--serif);font-size:14px;font-weight:300;color:var(--sub);line-height:1.7}
+
+/* ACCESS TIERS */
+.tiers-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:48px}
+.tier{border:1px solid var(--border);padding:28px;background:var(--card);position:relative;overflow:hidden;transition:border-color .2s}
+.tier:hover{border-color:var(--goldBdS)}
+.tier-badge{font-family:var(--mono);font-size:7px;letter-spacing:.18em;text-transform:uppercase;padding:3px 9px;border:1px solid;display:inline-block;margin-bottom:16px}
+.tier-badge.member{color:var(--green);border-color:var(--greenBd);background:var(--greenW)}
+.tier-badge.inst{color:#5a98ec;border-color:rgba(90,152,236,.28);background:rgba(90,152,236,.06)}
+.tier-title{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--text);margin-bottom:8px}
+.tier-desc{font-family:var(--serif);font-size:14px;font-weight:300;color:var(--sub);line-height:1.7;margin-bottom:20px}
+.tier-items{display:flex;flex-direction:column;gap:5px;margin-bottom:24px}
+.tier-item{display:flex;align-items:flex-start;gap:7px;font-family:var(--mono);font-size:7.5px;color:var(--muted);line-height:1.5}
+.tier-item-dot{width:4px;height:4px;border-radius:50%;background:var(--goldD);flex-shrink:0;margin-top:5px}
+.tier-cta{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;padding:11px 20px;border:1px solid;display:inline-block;transition:all .14s}
+.tier-cta.member{color:var(--green);border-color:var(--greenBd);background:var(--greenW)}
+.tier-cta.member:hover{background:rgba(90,158,114,.14)}
+.tier-cta.inst{color:var(--bg);background:var(--gold);border-color:var(--gold)}
+.tier-cta.inst:hover{background:var(--goldB)}
+.tier-watermark{position:absolute;right:-20px;bottom:-20px;font-family:var(--serif);font-style:italic;font-size:80px;color:rgba(197,165,114,.04);line-height:1;pointer-events:none}
+
+/* REQUEST FORM */
+.access-section{background:var(--bg3);border-top:1px solid var(--border)}
+.access-inner{max-width:1240px;margin:0 auto;padding:100px 48px;display:grid;grid-template-columns:1fr 1fr;gap:80px}
+.access-label{font-family:var(--mono);font-size:7px;letter-spacing:.24em;color:var(--goldD);text-transform:uppercase;margin-bottom:10px}
+.access-h2{font-family:var(--serif);font-weight:400;font-size:40px;color:var(--text);line-height:1.05;margin-bottom:16px}
+.access-h2 em{color:var(--goldB);font-style:italic}
+.access-p{font-family:var(--serif);font-size:15px;font-weight:300;color:var(--sub);line-height:1.75;margin-bottom:24px}
+.crit{display:flex;align-items:flex-start;gap:8px;font-family:var(--mono);font-size:7.5px;color:var(--muted);line-height:1.6;margin-bottom:6px}
+.crit-dot{width:4px;height:4px;border-radius:50%;background:var(--goldD);flex-shrink:0;margin-top:5px}
+.form-box{background:var(--card);border:1px solid var(--goldBd);padding:32px}
+.form-title{font-family:var(--mono);font-size:8px;letter-spacing:.24em;color:var(--gold);text-transform:uppercase;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--goldBd)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:9px}
+.form-lbl{font-family:var(--mono);font-size:6.5px;letter-spacing:.20em;color:var(--goldD);text-transform:uppercase}
+input,select{font-family:var(--mono);font-size:12px;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:9px 11px;outline:none;width:100%;transition:border-color .15s;appearance:none}
+input:focus,select:focus{border-color:var(--goldBdS)}
+select{background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a7c68'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.form-submit{width:100%;margin-top:14px;padding:13px;font-family:var(--mono);font-size:8px;letter-spacing:.20em;text-transform:uppercase;color:var(--bg);background:var(--gold);border:none;cursor:pointer;transition:background .14s}
+.form-submit:hover{background:var(--goldB)}
+.form-note{font-family:var(--mono);font-size:7px;color:var(--muted);text-align:center;margin-top:9px;line-height:1.65}
+
+/* FOOTER */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:48px 48px 32px}
+.foot-inner{max-width:1240px;margin:0 auto}
+.foot-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:36px}
+.foot-seal{width:34px;height:34px;border:1px solid var(--goldBd);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--gold);margin-bottom:10px}
+.foot-name{font-family:var(--mono);font-size:8px;letter-spacing:.26em;color:var(--text);text-transform:uppercase;margin-bottom:3px}
+.foot-desc{font-family:var(--serif);font-size:13px;color:var(--muted);font-weight:300;line-height:1.7;max-width:260px;margin-top:8px}
+.foot-col-hd{font-family:var(--mono);font-size:7px;letter-spacing:.24em;color:var(--goldD);text-transform:uppercase;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.foot-link{display:block;font-family:var(--mono);font-size:7.5px;color:var(--muted);padding:3px 0;transition:color .14s;letter-spacing:.08em}
+.foot-link:hover{color:var(--goldD)}
+.foot-bottom{border-top:1px solid var(--border);padding-top:20px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.foot-legal{font-family:var(--mono);font-size:7px;color:var(--muted);line-height:1.8;max-width:580px}
+.foot-sg{font-family:var(--mono);font-size:7px;color:var(--muted);text-align:right;line-height:1.8;flex-shrink:0}
+.foot-sg strong{color:var(--goldD)}
+
+/* TOAST */
+.toast-box{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(10px);font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;padding:10px 20px;background:var(--card2);border:1px solid var(--greenBd);color:var(--green);opacity:0;transition:all .28s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast-box.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:900px){
+  .hero-inner,.platform-grid,.tiers-grid,.access-inner,.foot-top{grid-template-columns:1fr}
+  .hero-right,.stats-inner{display:none}
+  .features-grid{grid-template-columns:1fr}
+  .feat{border-right:0;border-bottom:1px solid var(--border)}
+  nav{padding:0 20px}
+  .section{padding:70px 20px}
+  .stats{padding:24px 20px}
+  .stat{padding:0 16px;border-right:none;}
+  .stats-inner{grid-template-columns:1fr 1fr;gap:24px;display:grid}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="sitenav">
+  <div class="n-seal" style="font-family:Georgia,serif;font-style:italic;font-size:15px;letter-spacing:-.04em;font-weight:500">Au</div>
+  <div class="n-brand">Aurum Prism</div>
+  <div class="n-links">
+    <a class="n-link" href="#platform">Platform</a>
+    <a class="n-link" href="#platform">Platform</a><a class="n-link" href="#access">Access Tiers</a>
+    <a class="n-link" href="#request">Request Access</a>
+  </div>
+  <button class="btn-nav ghost" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">Member Login</button>
+  <button class="btn-nav" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Access →</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <canvas id="c"></canvas>
+  <div class="hero-vign"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-eyebrow"><div class="hero-eyebrow-line"></div><span class="hero-eyebrow-txt">Aurum Prism · prism.theaurumcc.com</span></div>
+      <div class="hero-label"><span class="hero-label-dot"></span>Now Accepting Applications · Early Access Open</div>
+      <h1>Where private deals<br>meet <em>qualified capital.</em></h1>
+      <p class="hero-sub">Aurum Prism is a private deal platform for qualified institutional investors and deal advisors — curating credit, pre-IPO equity, real estate, and infrastructure across the US and Asia-Pacific. Apply for early access.</p>
+      <div class="hero-ctas">
+        <button class="btn-primary" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Institutional Access →</button>
+        <button class="btn-member" onclick="window.location.href='/login'">Member Login →</button>
+      </div>
+      <div class="hero-note">Returning investors log in directly · Institutions apply below</div>
+    </div>
+    <div class="hero-right">
+      <div class="preview-stack">
+        <!-- Marketplace deal card preview -->
+        <div class="preview-card">
+          <div class="pv-nav">
+            <div class="pv-seal"><em>Au</em></div>
+            <span class="pv-name">Deal Marketplace</span>
+            <span class="pv-tab on">Browse Deals</span>
+            <span class="pv-tab">My Portfolio</span>
+          </div>
+          <div style="display:flex;gap:3px;padding:6px 8px;border-bottom:1px solid var(--border);background:var(--bg2)">
+            <span class="pv-badge" style="color:var(--gold);border-color:var(--goldBd);background:var(--goldW)">All</span>
+            <span class="pv-badge" style="color:#5a98ec;border-color:rgba(90,152,236,.28);background:rgba(90,152,236,.06)">Credit</span>
+            <span class="pv-badge" style="color:var(--muted);border-color:var(--border)">Pre-IPO</span>
+            <span class="pv-badge" style="color:var(--muted);border-color:var(--border)">Real Estate</span>
+            <span class="pv-badge" style="color:var(--green);border-color:var(--greenBd);background:var(--greenW)">East Asia</span>
+            <span class="pv-badge" style="color:var(--muted);border-color:var(--border)">SE Asia</span>
+          </div>
+          <div class="pv-body">
+            <div class="pv-deal-badge">
+              <span class="pv-badge" style="color:#5a98ec;border-color:rgba(90,152,236,.28);background:rgba(90,152,236,.06)">Private Credit</span>
+              <span class="pv-badge" style="color:var(--muted);border-color:var(--border)">East Asia</span>
+              <span class="pv-badge" style="color:var(--goldB);border-color:var(--goldBd);background:var(--goldW)">New</span>
+              <span class="pv-badge" style="color:var(--amber);border-color:var(--amberBd);background:var(--amberW);animation:pulse 2s infinite">↑ 153%</span>
+            </div>
+            <div class="pv-deal-name">Senior Secured Credit Facility</div>
+            <div class="pv-deal-orig">Private Credit · East Asia · Prism-Vetted</div>
+          </div>
+          <div class="pv-metrics">
+            <div class="pv-m"><div class="pv-m-l">Return Type</div><div class="pv-m-v">Fixed</div></div>
+            <div class="pv-m"><div class="pv-m-l">Duration</div><div class="pv-m-v">Short</div></div>
+            <div class="pv-m"><div class="pv-m-l">Round</div><div class="pv-m-v">$1–3M</div></div>
+          </div>
+          <div class="pv-alloc">
+            <div class="pv-alloc-hdr"><span>IOI window open</span><span>—</span></div>
+            <div class="pv-bar"><div class="pv-fill" style="width:0%"></div></div>
+          </div>
+          <div class="pv-foot">
+            <span class="pv-foot-cd">Closing date TBD</span>
+            <span class="pv-ioi-btn">Express Interest →</span>
+          </div>
+        </div>
+
+        <!-- Advisor deal room preview -->
+        <div class="preview-card">
+          <div class="pv-adv-hd">
+            <div class="pv-seal"><em>Au</em></div>
+            <span style="font-family:var(--mono);font-size:6.5px;letter-spacing:.22em;color:var(--sub);text-transform:uppercase;margin-right:auto;padding:0 8px">Advisor Deal Room</span>
+            <span class="pv-adv-chip">Apex Capital Partners</span>
+          </div>
+          <div style="padding:8px 10px">
+            <div class="scr-adv-deal">
+              <div class="scr-adv-name">Senior Secured Credit Facility</div>
+              <div class="scr-adv-stage">
+                <div class="scr-adv-dot"></div>
+                <span class="scr-adv-stage-lbl">LIVE · IOI OPEN</span>
+              </div>
+              <div class="scr-adv-prog"><div class="scr-adv-prog-f" style="width:40%"></div></div>
+            </div>
+            <div class="scr-econ">
+              <div style="font-family:var(--mono);font-size:5.5px;letter-spacing:.18em;color:var(--goldD);text-transform:uppercase;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--border)">Deal Economics</div>
+              <div class="scr-econ-row"><span class="scr-econ-lbl">Platform allocation fee</span><span class="scr-econ-val">1% · on close</span></div>
+              <div class="scr-econ-row"><span class="scr-econ-lbl">Carry participation</span><span class="scr-econ-val">12% of carry</span></div>
+              <div class="scr-econ-row"><span class="scr-econ-lbl">Your intro fee</span><span style="color:var(--green);font-family:var(--mono);font-size:5px">$15,000 at close</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- PLATFORM PREVIEW -->
+<section class="section" id="platform">
+  <div class="sec-eye reveal"><div class="sec-eye-line"></div><span class="sec-eye-txt">The Platform</span></div>
+  <h2 class="reveal">Built for the full<br><em>deal lifecycle.</em></h2>
+  <p class="sec-sub reveal">From first indication to deployed capital — gated data rooms, digital subscription documents, wire confirmation, and live position tracking. One platform, end to end.</p>
+
+  <div class="platform-grid">
+
+    <!-- MARKETPLACE SCREENSHOT -->
+    <div class="platform-frame reveal">
+      <div class="pf-caption">
+        <span class="pf-cap-tag">Investor Marketplace · /marketplace</span>
+        <span class="pf-cap-note">Browse Deals · Illustrative</span>
+      </div>
+      <div class="pf-viewport">
+        <div class="pf-scaled">
+          <!-- Full-size marketplace UI rendered at 1060px, scaled to fit -->
+
+          <!-- Nav -->
+          <div style="display:flex;align-items:center;height:42px;background:#0a0908;border-bottom:1px solid rgba(255,255,255,.065);padding:0 14px;gap:0;flex-shrink:0">
+            <div style="width:28px;height:28px;border:1px solid rgba(197,165,114,.22);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#C5A572;margin-right:10px">Au</div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.28em;color:#a89f94;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.065);padding-right:14px;margin-right:0">Deal Marketplace</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;padding:0 16px;height:42px;display:flex;align-items:center;border-bottom:2px solid #C5A572">Browse Deals</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#655f58;padding:0 16px;height:42px;display:flex;align-items:center;border-bottom:2px solid transparent">My Portfolio</span>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#5a9e72;padding:4px 10px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07)">Member</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a89f94">Lee WS · #F-014</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#655f58">Sign out</span>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div style="display:flex;align-items:center;gap:0;padding:8px 14px;background:#070706;border-bottom:1px solid rgba(255,255,255,.065);flex-wrap:wrap;gap:6px">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.14em;color:#655f58;text-transform:uppercase;margin-right:4px">CLASS</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(197,165,114,.45);color:#C5A572;background:rgba(197,165,114,.04)">All</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(90,152,236,.28);color:#5a98ec;background:rgba(90,152,236,.06)">Credit</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">Pre-IPO</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">Real Estate</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">Infra</span>
+            <div style="width:1px;height:16px;background:rgba(255,255,255,.065);margin:0 4px"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.14em;color:#655f58;text-transform:uppercase;margin-right:4px">GEO</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(197,165,114,.45);color:#C5A572;background:rgba(197,165,114,.04)">All</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">United States</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">East Asia</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">SE Asia</span>
+          </div>
+
+          <!-- Deals header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;background:#070706">
+            <div>
+              <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:#ece6da">Current Deals</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#655f58;margin-left:10px">5 deals open</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:8px;color:#5a9e72">
+              <span style="width:6px;height:6px;border-radius:50%;background:#5a9e72;animation:pulse 2s infinite;display:inline-block"></span>
+              Live · IOI window open
+            </div>
+          </div>
+
+          <!-- 3-column deal grid -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 14px 14px;background:#070706">
+
+            <!-- Deal 1 -->
+            <div style="background:#111009;border:1px solid rgba(255,255,255,.065);overflow:hidden">
+              <div style="display:flex;gap:4px;flex-wrap:wrap;padding:10px 10px 0">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(90,152,236,.28);color:#5a98ec;background:rgba(90,152,236,.06);text-transform:uppercase;letter-spacing:.10em">Private Credit</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase;letter-spacing:.10em">East Asia</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(197,165,114,.28);color:#DEB97A;background:rgba(197,165,114,.04);text-transform:uppercase;letter-spacing:.10em">New</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(184,131,58,.28);color:#b8833a;background:rgba(184,131,58,.07);text-transform:uppercase;letter-spacing:.10em;animation:pulse 2s infinite">↑ 153%</span>
+              </div>
+              <div style="padding:8px 10px 6px">
+                <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:#ece6da;margin-bottom:2px">Senior Secured Credit</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58">Private Credit · Prism-Vetted</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
+                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Type</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#DEB97A">Fixed</div></div>
+                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">Short</div></div>
+                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Round</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#5a9e72">$1–3M</div></div>
+                <div style="padding:7px 8px"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">$50K</div></div>
+              </div>
+              <div style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.065)">
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:5px"><span>Indicated demand · —</span><span>—</span></div>
+                <div style="height:4px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:0%;height:100%;background:linear-gradient(90deg,#8a7c68,#DEB97A);border-radius:2px"></div></div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#655f58;margin-top:4px">IOI progress shown here at close</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0c0b09">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#b8833a">Closing date TBD</span>
+                <button style="font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a7c68;padding:5px 11px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">Express Interest →</button>
+              </div>
+            </div>
+
+            <!-- Deal 2 -->
+            <div style="background:#111009;border:1px solid rgba(255,255,255,.065);overflow:hidden">
+              <div style="display:flex;gap:4px;flex-wrap:wrap;padding:10px 10px 0">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(197,165,114,.22);color:#8a7c68;background:rgba(197,165,114,.04);text-transform:uppercase;letter-spacing:.10em">Pre-IPO</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase;letter-spacing:.10em">SE Asia</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(184,131,58,.28);color:#b8833a;background:rgba(184,131,58,.07);text-transform:uppercase;letter-spacing:.10em">↑ 160% OVS</span>
+              </div>
+              <div style="padding:8px 10px 6px">
+                <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:#ece6da;margin-bottom:2px">Pre-IPO Tech Secondary</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58">Pre-IPO Equity · Prism SPV</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
+                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Type</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#DEB97A">Equity</div></div>
+                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">Med</div></div>
+                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Round</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#5a9e72">$1–3M</div></div>
+                <div style="padding:7px 8px"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">$100K</div></div>
+              </div>
+              <div style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.065)">
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:5px"><span>Confirmed 10% · $200K / $2M</span><span>7 IOIs</span></div>
+                <div style="height:4px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:10%;height:100%;background:linear-gradient(90deg,#8a7c68,#DEB97A);border-radius:2px"></div></div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#655f58;margin-top:4px">Strong indication momentum · pro-rata</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0c0b09">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#b8833a">Closes in 46d</span>
+                <button style="font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a7c68;padding:5px 11px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">Express Interest →</button>
+              </div>
+            </div>
+
+            <!-- Deal 3 -->
+            <div style="background:#111009;border:1px solid rgba(90,158,114,.28);overflow:hidden">
+              <div style="display:flex;gap:4px;flex-wrap:wrap;padding:10px 10px 0">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(90,158,114,.28);color:#5a9e72;background:rgba(90,158,114,.07);text-transform:uppercase;letter-spacing:.10em">RE Debt</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase;letter-spacing:.10em">SE Asia</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(184,131,58,.28);color:#b8833a;background:rgba(184,131,58,.07);text-transform:uppercase;letter-spacing:.10em;animation:pulse 2s infinite">● Closing Soon</span>
+              </div>
+              <div style="padding:8px 10px 6px">
+                <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:#ece6da;margin-bottom:2px">Grade A Commercial Bridge</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58">Real Estate Debt · Prism-Approved</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
+                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Type</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#DEB97A">Fixed</div></div>
+                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">Short</div></div>
+                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Round</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#5a9e72">$500K+</div></div>
+                <div style="padding:7px 8px"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">$25K</div></div>
+              </div>
+              <div style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.065)">
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:5px"><span>Confirmed 65% · $550K / $850K</span><span>9 IOIs</span></div>
+                <div style="height:4px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:65%;height:100%;background:linear-gradient(90deg,rgba(90,158,114,.6),rgba(90,158,114,.9));border-radius:2px"></div></div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#5a9e72;margin-top:4px">Hard close deadline · $300K remaining</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0c0b09">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#b8833a;font-weight:600">⚠ Closes in 24d</span>
+                <button style="font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a7c68;padding:5px 11px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">Express Interest →</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="pf-caption-bottom">
+        <span>Illustrative deal flow · <span style="color:var(--goldD)">prism.theaurumcc.com</span></span>
+        <span style="color:var(--green);display:flex;align-items:center;gap:5px"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite"></span>IOI windows open</span>
+      </div>
+    </div>
+
+    <!-- ADVISOR PORTAL SCREENSHOT -->
+    <div class="platform-frame reveal reveal-d1">
+      <div class="pf-caption">
+        <span class="pf-cap-tag">Advisor Deal Room</span>
+        <span class="pf-cap-note">Deal Submission · Economics · Illustrative</span>
+      </div>
+      <div class="pf-viewport">
+        <div class="pf-scaled">
+
+          <!-- Advisor Nav -->
+          <div style="display:flex;align-items:center;height:42px;background:#0a0908;border-bottom:1px solid rgba(255,255,255,.065);padding:0 14px;gap:0;flex-shrink:0">
+            <div style="width:28px;height:28px;border:1px solid rgba(197,165,114,.22);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#C5A572;margin-right:10px">Au</div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.28em;color:#a89f94;text-transform:uppercase;margin-right:16px">Deal Room</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;padding:0 14px;height:42px;display:flex;align-items:center;border-bottom:2px solid #C5A572">My Deals</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#655f58;padding:0 14px;height:42px;display:flex;align-items:center;border-bottom:2px solid transparent">Submit New</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#655f58;padding:0 14px;height:42px;display:flex;align-items:center;border-bottom:2px solid transparent">Marketplace</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#655f58;padding:0 14px;height:42px;display:flex;align-items:center;border-bottom:2px solid transparent">Economics</span>
+            <div style="margin-left:auto"><span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#8b6bbf;padding:4px 10px;border:1px solid rgba(139,107,191,.28);background:rgba(139,107,191,.06)">Apex Capital Partners</span></div>
+          </div>
+
+          <!-- Deal card: Pacific Credit V active -->
+          <div style="padding:12px 14px;background:#070706">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.22em;color:#8a7c68;text-transform:uppercase;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.065)">My Deals · 3 Active</div>
+
+            <!-- Deal row 1 — active -->
+            <div style="background:#111009;border:1px solid rgba(197,165,114,.22);margin-bottom:9px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#0a0908;border-bottom:1px solid rgba(255,255,255,.065)">
+                <div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#ece6da">Senior Secured Credit Facility</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58;margin-top:2px">deal_pc5 · Private Credit · East Asia · $1.2M round</div>
+                </div>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#5a9e72;padding:3px 9px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07)">Live · IOI Open</span>
+              </div>
+
+              <!-- Stage progress -->
+              <div style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.065)">
+                <div style="display:flex;align-items:center;gap:0;position:relative;margin-bottom:6px">
+                  <div style="width:10px;height:10px;border-radius:50%;background:#DEB97A;border:2px solid #DEB97A;flex-shrink:0;z-index:1"></div>
+                  <div style="flex:1;height:2px;background:linear-gradient(90deg,#DEB97A 100%,#2a2725 0%)"></div>
+                  <div style="width:10px;height:10px;border-radius:50%;background:#DEB97A;border:2px solid #DEB97A;flex-shrink:0;z-index:1"></div>
+                  <div style="flex:1;height:2px;background:linear-gradient(90deg,#DEB97A 100%,#2a2725 0%)"></div>
+                  <div style="width:10px;height:10px;border-radius:50%;background:#DEB97A;border:2px solid #DEB97A;box-shadow:0 0 10px rgba(222,185,122,.5);flex-shrink:0;z-index:1"></div>
+                  <div style="flex:1;height:2px;background:#2a2725"></div>
+                  <div style="width:10px;height:10px;border-radius:50%;background:#2a2725;border:2px solid #2a2725;flex-shrink:0;z-index:1"></div>
+                  <div style="flex:1;height:2px;background:#2a2725"></div>
+                  <div style="width:10px;height:10px;border-radius:50%;background:#2a2725;border:2px solid #2a2725;flex-shrink:0;z-index:1"></div>
+                  <div style="flex:1;height:2px;background:#2a2725"></div>
+                  <div style="width:10px;height:10px;border-radius:50%;background:#2a2725;border:2px solid #2a2725;flex-shrink:0;z-index:1"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58">
+                  <span>Review</span><span>Live</span><span style="color:#DEB97A">IOI ●</span><span>DD</span><span>Terms</span><span>Close</span>
+                </div>
+              </div>
+
+              <!-- IOI stats -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;padding:10px 12px;gap:0;border-bottom:1px solid rgba(255,255,255,.065)">
+                <div style="border-right:1px solid rgba(255,255,255,.065);padding-right:12px">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:3px">IOIs Received</div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#5a9e72">11</div>
+                </div>
+                <div style="padding:0 12px;border-right:1px solid rgba(255,255,255,.065)">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:3px">Total Indicated</div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#DEB97A">$1.84M</div>
+                </div>
+                <div style="padding:0 12px;border-right:1px solid rgba(255,255,255,.065)">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:3px">Confirmed</div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#ece6da">40%</div>
+                  <div style="height:2px;background:#2a2725;border-radius:1px;overflow:hidden;margin-top:3px"><div style="width:0%;height:100%;background:linear-gradient(90deg,#8a7c68,#DEB97A)"></div></div>
+                </div>
+                <div style="padding:0 0 0 12px">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:3px">Closes</div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#b8833a">31d</div>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:6px;padding:8px 12px">
+                <button style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;color:#8a7c68;padding:5px 11px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">View IOIs</button>
+                <button style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;color:#655f58;padding:5px 11px;border:1px solid rgba(255,255,255,.065);background:transparent;cursor:pointer">Documents</button>
+                <button style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;color:#655f58;padding:5px 11px;border:1px solid rgba(255,255,255,.065);background:transparent;cursor:pointer">Economics</button>
+                <span style="margin-left:auto;display:flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:#5a9e72">● Live on Marketplace</span>
+              </div>
+            </div>
+
+            <!-- Economics mini-panel -->
+            <div style="background:#111009;border:1px solid rgba(255,255,255,.065);padding:10px 12px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.18em;color:#8a7c68;text-transform:uppercase;margin-bottom:9px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.065);display:flex;justify-content:space-between">
+                <span>Deal Economics · At Close</span>
+                <span style="color:#655f58">Based on $1.2M allocation</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div style="background:#0a0908;border:1px solid rgba(255,255,255,.065);padding:8px">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#8a7c68;text-transform:uppercase;margin-bottom:7px">Prism Platform</div>
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.065)"><span style="color:#655f58">Platform fee 1%</span><span style="color:#DEB97A">$12,000</span></div>
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.065)"><span style="color:#655f58">Carry 12% pool</span><span style="color:#b8833a">—</span></div>
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600"><span style="color:#DEB97A">Total Economics</span><span style="color:#DEB97A">—</span></div>
+                </div>
+                <div style="background:#0a0908;border:1px solid rgba(90,158,114,.15);padding:8px">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#5a9e72;text-transform:uppercase;margin-bottom:7px">Your Economics</div>
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.065)"><span style="color:#655f58">Intro fee 1%</span><span style="color:#5a9e72">$12,000</span></div>
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.065)"><span style="color:#655f58">Carry share</span><span style="color:#655f58">—</span></div>
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600"><span style="color:#5a9e72">Your Total</span><span style="color:#5a9e72">$12,000</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pf-caption-bottom">
+        <span>Advisor Deal Room · Illustrative</span>
+        <span style="color:var(--purple)">Advisors push deals → marketplace + member pipeline</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<div class="features-bg">
+  <div class="section">
+    <div class="sec-eye reveal"><div class="sec-eye-line"></div><span class="sec-eye-txt">How It Works</span></div>
+    <h2 class="reveal">Three parties.<br><em>One pipeline.</em></h2>
+    <p class="sec-sub reveal">Advisors source and submit deals. Prism operators vet and publish. Members and institutions access curated deal flow — all on one platform at prism.theaurumcc.com.</p>
+    <div class="features-grid" style="margin-top:48px">
+      <div class="feat reveal">
+        <div class="feat-num">01</div>
+        <div class="feat-title">Advisors Submit Deals</div>
+        <div class="feat-text">Prism-approved advisors source deals and submit via the Advisor Deal Room. Each deal goes through Prism's investment committee before being published. Documents staged by deal phase — teaser through audited financials.</div>
+      </div>
+      <div class="feat reveal reveal-d1">
+        <div class="feat-num">02</div>
+        <div class="feat-title">Prism Vets and Publishes</div>
+        <div class="feat-text">Partners review, approve, and publish deals to the marketplace. Admitted investors see live deal flow in their marketplace portfolio. Qualified institutional investors access via the marketplace. Partner approval gate controls data room access.</div>
+      </div>
+      <div class="feat reveal reveal-d2">
+        <div class="feat-num">03</div>
+        <div class="feat-title">Capital Deploys Digitally</div>
+        <div class="feat-text">Submit IOI, unlock the data room, review watermarked documents. Subscription docs issued in-platform. Wire instructions delivered digitally. Position tracked from deployment through to exit and distribution — no paper, no friction.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACCESS TIERS -->
+<section class="section" id="access">
+  <div class="sec-eye reveal"><div class="sec-eye-line"></div><span class="sec-eye-txt">Access Tiers</span></div>
+  <h2 class="reveal">Two ways<br><em>to access.</em></h2>
+  <p class="sec-sub reveal">Existing investors log in directly. Qualified institutional investors apply below and are credentialed before marketplace access is granted.</p>
+  <div class="tiers-grid">
+    <div class="tier reveal">
+      <span class="tier-badge member">Existing Investors</span>
+      <div class="tier-title">Direct access with your credentials</div>
+      <div class="tier-desc">Prism members log in directly to the marketplace at prism.theaurumcc.com. Deal flow from your member portal pipeline is sourced directly from the marketplace — one unified feed.</div>
+      <div class="tier-items">
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Full marketplace deal browse</span></div>
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Track all IOIs and data room access in your portfolio tab</span></div>
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Submit IOI → partner reviews → data room access granted</span></div>
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Gold position, LTV facility, and positions tracked in parallel</span></div>
+      </div>
+      <a href="/login" class="tier-cta member">Log In →</a>
+      <div class="tier-watermark">Au</div>
+    </div>
+    <div class="tier reveal reveal-d1">
+      <span class="tier-badge inst">Institutional Investors</span>
+      <div class="tier-title">Apply for credentialed access</div>
+      <div class="tier-desc">Family offices, fund of funds, PE secondaries, endowments, and corporate treasuries apply for institutional access. Approved investors receive credentials to the Prism marketplace with institutional-grade deal flow.</div>
+      <div class="tier-items">
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Minimum deployment: $250,000 USD per position</span></div>
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Qualified institutional investor or equivalent in your jurisdiction</span></div>
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Prism operator review within 5 business days</span></div>
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Platform NDA signed on credentialing · All USD</span></div>
+      </div>
+      <button class="tier-cta inst" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Institutional Access →</button>
+      <div class="tier-watermark">§</div>
+    </div>
+  </div>
+</section>
+
+<!-- REQUEST ACCESS FORM -->
+<div class="access-section" id="request">
+  <div class="access-inner">
+    <div>
+      <div class="access-label reveal">Institutional Access</div>
+      <div class="access-h2 reveal">Apply for<br><em>early access.</em></div>
+      <p class="access-p reveal">Aurum Prism is launching in 2026. Institutional investors who apply now will be among the first credentialed — with access to deal flow from day one of launch.</p>
+      <div class="reveal">
+        <div class="crit"><div class="crit-dot"></div><span>Family offices, fund of funds, PE secondaries, endowments, corporate treasuries</span></div>
+        <div class="crit"><div class="crit-dot"></div><span>$250,000 USD minimum deployment capacity per position</span></div>
+        <div class="crit"><div class="crit-dot"></div><span>Qualified or accredited investor under applicable securities laws</span></div>
+        <div class="crit"><div class="crit-dot"></div><span>Mandate covers private credit, equity, real estate, or infrastructure across US and Asia</span></div>
+        <div class="crit" style="margin-top:16px"><div class="crit-dot" style="background:var(--green)"></div><span style="color:var(--goldD)">Existing investors: log in directly at <a href="/login" style="color:var(--goldB);text-decoration:underline">/login</a></span></div>
+      </div>
+    </div>
+    <div class="form-box reveal">
+      <div class="form-title">Request Early Access</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Your Name *</label><input type="text" id="f-name" placeholder="Full name"></div>
+        <div class="form-group"><label class="form-lbl">Role / Title *</label><input type="text" id="f-role" placeholder="CIO, Portfolio Manager…"></div>
+      </div>
+      <div class="form-group"><label class="form-lbl">Institution / Firm *</label><input type="text" id="f-firm" placeholder="Family office, fund, or entity name"></div>
+      <div class="form-group"><label class="form-lbl">Email Address *</label><input type="email" id="f-email" placeholder="you@institution.com"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-lbl">Institution Type *</label>
+          <select id="f-type"><option value="">Select…</option><option>Family Office</option><option>Fund of Funds</option><option>PE Secondaries</option><option>Endowment / Foundation</option><option>Corporate Treasury</option><option>Asset Manager</option><option>Other Institutional</option></select>
+        </div>
+        <div class="form-group"><label class="form-lbl">Deployment Capacity</label>
+          <select id="f-aum"><option value="">Per deal range…</option><option>$250K – $1M</option><option>$1M – $5M</option><option>$5M – $20M</option><option>$20M+</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-lbl">Asset Focus</label>
+        <select id="f-focus"><option value="">Primary interest…</option><option>Private Credit</option><option>Pre-IPO / Growth Equity</option><option>Real Estate Debt</option><option>Infrastructure</option><option>All of the above</option></select>
+      </div>
+      <button class="form-submit" onclick="submitForm()">Submit Application →</button>
+      <div class="form-note">Prism operators review all applications within 5 business days. Early applicants receive priority credentialing.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-inner">
+    <div class="foot-top">
+      <div>
+        <div class="foot-seal"><em>Au</em></div>
+        <div class="foot-name">Aurum Prism</div>
+        <p class="foot-desc">Private fund vehicle providing curated access to alternative investments across the United States and Asia. TACC Pte Ltd · Singapore. Deal Marketplace launching 2026.</p>
+      </div>
+      <div>
+        <div class="foot-col-hd">Marketplace</div>
+        <a class="foot-link" href="#platform">Platform Preview</a>
+        <a class="foot-link" href="#access">Access Tiers</a>
+        <a class="foot-link" href="#request">Request Access</a>
+        <a class="foot-link" href="/login">Investor Login</a>
+      </div>
+      <div>
+        <div class="foot-col-hd">Asset Classes</div>
+        <a class="foot-link" href="#access">Private Credit</a>
+        <a class="foot-link" href="#access">Pre-IPO Equity</a>
+        <a class="foot-link" href="#access">Real Estate Debt</a>
+        <a class="foot-link" href="#access">Infrastructure</a>
+      </div>
+      <div>
+        <div class="foot-col-hd">Contact</div>
+        <a class="foot-link" href="mailto:prism@theaurumcc.com">prism@theaurumcc.com</a>
+        <a class="foot-link" href="https://theaurumcc.com">theaurumcc.com</a>
+        <div style="margin-top:14px;font-family:var(--mono);font-size:7px;color:var(--muted)">Singapore · US & Asia</div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div class="foot-legal">
+        Aurum Prism is a private platform restricted to qualified institutional investors and Prism members. This page does not constitute an offer or solicitation to buy or sell securities. All investments involve risk including possible loss of capital. Past performance is not indicative of future results. Deal cards and platform screenshots shown are illustrative only. TACC Pte Ltd is incorporated in Singapore. Not for distribution where prohibited.
+      </div>
+      <div class="foot-sg"><strong>Aurum Prism</strong><br>Operated by TACC Pte Ltd · Singapore<br>Private Placement Only<br>© 2026 All Rights Reserved</div>
+    </div>
+  </div>
+</footer>
+
+<div class="toast-box" id="toast"></div>
+
+<script>
+// Canvas constellation
+(function(){
+  const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+  let W,H,pts=[];
+  function sz(){W=cv.width=cv.offsetWidth;H=cv.height=cv.offsetHeight;}
+  sz();window.addEventListener('resize',()=>{sz();init();});
+  class P{constructor(){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.22;this.vy=(Math.random()-.5)*.22;this.r=Math.random()*1.1+.3;this.a=Math.random()*.4+.07;}
+    tick(){this.x+=this.vx;this.y+=this.vy;if(this.x<0)this.x=W;if(this.x>W)this.x=0;if(this.y<0)this.y=H;if(this.y>H)this.y=0;}}
+  function init(){pts=Array.from({length:80},()=>new P());}
+  init();
+  let mx=W/2,my=H/2;
+  document.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>p.tick());
+    for(let i=0;i<pts.length;i++){const pi=pts[i];
+      for(let j=i+1;j<pts.length;j++){const pj=pts[j],dx=pi.x-pj.x,dy=pi.y-pj.y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<110){ctx.beginPath();ctx.moveTo(pi.x,pi.y);ctx.lineTo(pj.x,pj.y);ctx.strokeStyle=`rgba(197,165,114,${.10*(1-d/110)})`;ctx.lineWidth=.5;ctx.stroke();}}
+      const dm=Math.sqrt((pi.x-mx)**2+(pi.y-my)**2);
+      if(dm<150){ctx.beginPath();ctx.moveTo(pi.x,pi.y);ctx.lineTo(mx,my);ctx.strokeStyle=`rgba(197,165,114,${.18*(1-dm/150)})`;ctx.lineWidth=.5;ctx.stroke();}
+      ctx.beginPath();ctx.arc(pi.x,pi.y,pi.r,0,Math.PI*2);ctx.fillStyle=`rgba(197,165,114,${pi.a})`;ctx.fill();}
+    requestAnimationFrame(draw);}
+  draw();
+})();
+
+// Scroll reveals
+const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// Nav opacity
+window.addEventListener('scroll',()=>{
+  const n=document.getElementById('sitenav');
+  n.style.background=window.scrollY>60?'rgba(7,7,6,.97)':'rgba(7,7,6,.92)';
+});
+
+// Toast
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast-box show';
+  const isErr=type==='err';
+  t.style.color=isErr?'#b05e56':'var(--green)';
+  t.style.borderColor=isErr?'rgba(176,94,86,.28)':'rgba(90,158,114,.28)';
+  t.style.background=isErr?'rgba(176,94,86,.07)':'rgba(90,158,114,.07)';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast-box',3800);
+}
+
+// Form submit
+function submitForm(){
+  const name=document.getElementById('f-name').value.trim();
+  const firm=document.getElementById('f-firm').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  const type=document.getElementById('f-type').value;
+  if(!name||!firm||!email||!type){toast('Please complete all required fields.','err');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('Please enter a valid email address.','err');return;}
+  toast('Application submitted · We\'ll be in touch within 5 business days','ok');
+  ['f-name','f-role','f-firm','f-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-type','f-aum','f-focus'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+</script>
+</body>
+</html>
