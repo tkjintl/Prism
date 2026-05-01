@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\thoma\\\\prism\" -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Fix #1: Admin portal now redirects to /login when unauthenticated *)",
+      "Bash(git push *)",
+      "Bash(git commit -m 'Fix #2: Remove stray paren in adaptDeal — SyntaxError was killing entire admin script *)",
+      "Bash(git commit -m 'Fix #3: Landing page hero — 2-line layout, white/gold colour split *)",
+      "Bash(git commit -m 'Fix #4: Rebuild hero-right — premium two-card depth stack with floating pill *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\thoma\\\\prism\" -Recurse -Include \"advisor-portal.html\", \"admin-portal.html\")",
+      "Bash(Select-Object FullName)",
+      "Bash(Find C:\\\\Users\\\\thoma\\\\prism -type f -name \"*.js\")",
+      "Bash(Select-Object -First 20)",
+      "Bash(git commit *)",
+      "Bash(node *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\thoma\\\\prism\" -Name \"*.html\")",
+      "Bash(python3 *)"
+    ]
+  }
+}

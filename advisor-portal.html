@@ -359,6 +359,32 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .btn-gold:hover{background:var(--gold-b);transform:translateY(-1px)}
 .doc-req-note{font-size:11px;color:var(--text-3);background:var(--bg-3);padding:8px 12px;border-radius:4px;margin-bottom:16px}
 
+/* DATAROOM / Q&A TAB */
+.vdr-layout { display:grid; grid-template-columns:3fr 2fr; gap:20px; padding:24px; }
+@media(max-width:900px){ .vdr-layout { grid-template-columns:1fr; } }
+.vdr-section-hd { font-family:var(--mono); font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--text-3); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+.vdr-file-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--border); font-size:12px; transition:background .15s; }
+.vdr-file-row:hover { background:var(--bg-3); }
+.vdr-file-name { flex:1; color:var(--text-1,var(--text)); font-family:var(--sans); }
+.vdr-file-size, .vdr-file-date { color:var(--text-3); font-family:var(--mono); font-size:10px; }
+.vdr-view-btn { font-family:var(--mono); font-size:9px; padding:3px 8px; border:1px solid var(--border-m); background:none; color:var(--text-2); border-radius:2px; cursor:pointer; transition:all .15s; }
+.vdr-view-btn:hover { border-color:var(--gold-bd); color:var(--gold); }
+.vdr-upload-btn { font-family:var(--mono); font-size:10px; padding:6px 14px; background:var(--gold); color:#0A0908; border:none; border-radius:2px; cursor:pointer; font-weight:600; letter-spacing:.06em; }
+.vdr-folder-label { font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); padding:8px 12px 4px; background:var(--bg-2); border-bottom:1px solid var(--border); }
+.qa-item { padding:14px 0; border-bottom:1px solid var(--border); }
+.qa-from { font-family:var(--mono); font-size:10px; color:var(--gold); font-weight:600; }
+.qa-time { font-family:var(--mono); font-size:10px; color:var(--text-3); }
+.qa-text { font-size:13px; color:var(--text); margin-top:6px; line-height:1.6; }
+.qa-a { margin-top:10px; padding-left:14px; border-left:2px solid var(--border-m); }
+.qa-answer-text { font-size:12px; color:var(--text-2); line-height:1.6; }
+.qa-answer-from { font-family:var(--mono); font-size:9px; color:var(--text-3); margin-top:4px; }
+.qa-reply-input { width:100%; background:var(--bg-2); border:1px solid var(--border); color:var(--text); font-size:12px; padding:8px 10px; border-radius:2px; resize:vertical; min-height:60px; font-family:var(--sans); margin-bottom:6px; box-sizing:border-box; }
+.qa-reply-btn { font-family:var(--mono); font-size:9px; padding:5px 12px; background:none; border:1px solid var(--border-m); color:var(--text-2); border-radius:2px; cursor:pointer; transition:all .15s; }
+.qa-reply-btn:hover { border-color:var(--gold-bd); color:var(--gold); }
+.dd-deadline-banner { padding:10px 24px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+.dd-deadline-banner.active { background:rgba(184,131,58,.08); color:var(--amber); }
+.dd-deadline-banner.expired { background:rgba(176,94,86,.08); color:var(--red); }
+
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 20px;font-size:13px;border-radius:3px;z-index:999;opacity:0;transition:all .25s var(--ease);pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -474,6 +500,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ctab on" onclick="showTab('overview',this)">Overview</button>
     <button class="ctab" onclick="showTab('materials',this)">Materials</button>
     <button class="ctab" onclick="showTab('performance',this)">Performance</button>
+    <button class="ctab" id="ctab-dataroom" onclick="showTab('dataroom',this)" style="display:none">Dataroom / Q&amp;A</button>
   </div>
 
   <!-- Tab: Overview -->
@@ -481,6 +508,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
   <!-- Tab: Materials -->
   <div class="tab-panel" id="tab-materials"></div>
+
+  <!-- Tab: Dataroom / Q&A -->
+  <div class="tab-panel" id="tab-dataroom"></div>
 
   <!-- Tab: Performance -->
   <div class="tab-panel" id="tab-performance">
@@ -620,6 +650,34 @@ let DEALS = [
     ],
   },
   {
+    id:'d3', name:'Vantage Analytics Series C', ticker:'VAS', asset_class:'pe',
+    stage:'dd',
+    geography:'Austin, Texas', structure:'Common Equity',
+    target_irr:22, target_alloc:45000000, term:60, min_ticket:250000,
+    closing:'2026-08-15',
+    ioi_agg:27900000, ioi_count:4,
+    pushed_ioi:{id:'pi3',investor_type:'Family Office',investor_region:'Singapore',amount:3000000,date:'May 1',note:'Pre-screened. Strong tech mandate, committed 3 prior SaaS rounds.',status:'accepted'},
+    investors_by_type:[
+      {type:'Family Office',count:2,amount:12000000},
+      {type:'Institutional',count:1,amount:11000000},
+      {type:'HNW Individual',count:1,amount:4900000},
+    ],
+    documents:{
+      nda:{name:'NDA_VAS_v1.pdf',size:'286 KB',uploaded:'Apr 5',access:'public'},
+      teaser:{name:'VAS_InvestmentDeck_2026.pdf',size:'3.8 MB',uploaded:'Apr 6',access:'public'},
+      im:{name:'VAS_InformationMemo_v2.pdf',size:'7.2 MB',uploaded:'Apr 8',access:'nda'},
+      financials:{name:'VAS_FinancialSummary.xlsx',size:'640 KB',uploaded:'Apr 9',access:'nda'},
+      model:{name:'VAS_ProjectionModel.xlsx',size:'1.8 MB',uploaded:'Apr 12',access:'dd'},
+    },
+    closing_docs:{fund_docs:null,ppm:null,wire:null},
+    dataroom:[],
+    activity:[
+      {type:'stage',text:'Deal advanced to <strong>Due Diligence</strong> — data room now active',time:'2 days ago'},
+      {type:'access',text:'Investor accessed the <strong>Financial Model</strong>',time:'3 days ago'},
+      {type:'ioi',text:'IOI accepted — <strong>$3M Family Office</strong> advancing to DD',time:'5 days ago'},
+    ],
+  },
+  {
     id:'d8', name:'Clearwater Credit Partners III', ticker:'CCP', asset_class:'credit',
     stage:'close',
     geography:'North America', structure:'Senior Secured Credit',
@@ -656,6 +714,13 @@ let DEALS = [
       {type:'stage',text:'Deal reached <strong>96% indicated</strong> of target allocation',time:'8 days ago'},
     ],
   },
+];
+
+/* ─── DATAROOM MOCK DATA ─── */
+let VDR_FILES = [];  // populated from API or local upload
+let QA_THREAD = [
+  {id:'qa1', question:'Can you share the audited financials for the last 3 years?', askedBy:'Riviera Capital SG', askedAt:'May 1 2026', answer:null, answeredAt:null, answeredBy:null},
+  {id:'qa2', question:'What is the expected timeline for the next funding round?', askedBy:'Harrison Family Office', askedAt:'May 1 2026', answer:'We anticipate a Series D in Q1 2027 at a target valuation of $4B+. Current runway extends 24 months at current burn.', answeredAt:'May 1 2026', answeredBy:'TACC Singapore'},
 ];
 
 const STAGES=[
@@ -722,6 +787,7 @@ function showTab(name,btn){
   if(btn)btn.classList.add('on');
   if(name==='performance')setTimeout(animatePerf,100);
   if(name==='materials')renderMaterials();
+  if(name==='dataroom')renderDataroom();
 }
 
 function switchDeal(idx){
@@ -769,6 +835,8 @@ function renderHeader(){
     r.style.strokeDashoffset=201*(1-pct/100);
     r.style.transition='stroke-dashoffset 1.4s var(--ease)';
   },300);
+  const drTab=document.getElementById('ctab-dataroom');
+  if(drTab) drTab.style.display=d.stage==='dd'?'':'none';
 }
 
 /* ── STAGE JOURNEY ── */
@@ -1191,6 +1259,168 @@ function saveBankingDetails(){
   toast('Banking details saved','ok');
 }
 
+/* ── DATAROOM / Q&A ── */
+function renderDataroom(){
+  const d=DEALS[currentDealIdx];
+  const panel=document.getElementById('tab-dataroom');
+  if(!panel)return;
+
+  // DD deadline banner
+  let bannerHtml='';
+  if(d.closing){
+    const ddDeadline=new Date(new Date(d.closing)-14*24*60*60*1000);
+    const now=new Date();
+    const daysLeft=Math.round((ddDeadline-now)/86400000);
+    const deadlineStr=ddDeadline.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    if(daysLeft>0){
+      bannerHtml=`<div class="dd-deadline-banner active">&#9679; DD Period open &middot; Closes ${deadlineStr} &middot; ${daysLeft} day${daysLeft!==1?'s':''} remaining</div>`;
+    }else{
+      bannerHtml=`<div class="dd-deadline-banner expired">&#9632; DD Period closed &middot; ${deadlineStr}</div>`;
+    }
+  }
+
+  // File list grouped by folder
+  const filesByFolder={};
+  const filesArr=d._vdrFiles||VDR_FILES;
+  filesArr.forEach(f=>{
+    const fld=f.folder||'General';
+    if(!filesByFolder[fld])filesByFolder[fld]=[];
+    filesByFolder[fld].push(f);
+  });
+  let filesHtml='';
+  if(filesArr.length===0){
+    filesHtml=`<div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;line-height:1.7">No files uploaded yet. Upload a ZIP or individual files<br>to populate the data room.</div>`;
+  }else{
+    Object.entries(filesByFolder).forEach(([folder,files])=>{
+      filesHtml+=`<div class="vdr-folder-label">${folder}</div>`;
+      files.forEach(f=>{
+        const sizeStr=f.size?(f.size>1048576?(f.size/1048576).toFixed(1)+' MB':(f.size/1024).toFixed(0)+' KB'):f.sizeStr||'—';
+        filesHtml+=`<div class="vdr-file-row">
+          <span style="font-size:14px">📄</span>
+          <span class="vdr-file-name">${f.name}</span>
+          <span class="vdr-file-size">${sizeStr}</span>
+          <span class="vdr-file-date">${f.uploadedAt||'Today'}</span>
+          <button class="vdr-view-btn" onclick="viewVdrFile('${f.id}')">View</button>
+        </div>`;
+      });
+    });
+  }
+
+  // Q&A thread
+  const qaArr=d._qaThread||QA_THREAD;
+  let qaHtml='';
+  if(qaArr.length===0){
+    qaHtml=`<div style="padding:24px 0;text-align:center;color:var(--text-3);font-size:13px">No questions yet.</div>`;
+  }else{
+    qaArr.forEach(q=>{
+      const replyArea=!q.answer?`
+        <textarea class="qa-reply-input" id="qa-inp-${q.id}" placeholder="Type your answer…"></textarea>
+        <button class="qa-reply-btn" onclick="submitAnswer('${q.id}')">Reply</button>`
+        :`<div class="qa-answer-text">${q.answer}</div>
+         <div class="qa-answer-from">${q.answeredBy||'Advisor'} &middot; ${q.answeredAt||''}</div>`;
+      qaHtml+=`<div class="qa-item">
+        <div class="qa-q">
+          <span class="qa-from">${q.askedBy}</span> &middot; <span class="qa-time">${q.askedAt}</span>
+          <div class="qa-text">${q.question}</div>
+        </div>
+        <div class="qa-a">${replyArea}</div>
+      </div>`;
+    });
+  }
+
+  panel.innerHTML=`${bannerHtml}
+  <div class="vdr-layout">
+    <div>
+      <div class="vdr-section-hd">
+        <span>Virtual Data Room</span>
+        <button class="vdr-upload-btn" onclick="triggerVdrUpload()">Upload to Dataroom &rarr;</button>
+      </div>
+      <input type="file" id="vdr-file-input" multiple accept=".pdf,.xlsx,.pptx,.docx,.zip" style="display:none" onchange="handleVdrUpload(this.files)">
+      <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden">${filesHtml}</div>
+    </div>
+    <div>
+      <div class="vdr-section-hd"><span>Investor Q&amp;A</span></div>
+      <div>${qaHtml}</div>
+    </div>
+  </div>`;
+}
+
+function triggerVdrUpload(){
+  const inp=document.getElementById('vdr-file-input');
+  if(inp)inp.click();
+}
+
+function handleVdrUpload(files){
+  if(!files||!files.length)return;
+  const d=DEALS[currentDealIdx];
+  if(!d._vdrFiles)d._vdrFiles=[];
+  const arr=Array.from(files);
+  let processed=0;
+  const isZip=f=>f.type==='application/zip'||f.name.toLowerCase().endsWith('.zip');
+
+  arr.forEach((file,i)=>{
+    if(isZip(file)){
+      toast('ZIP detected — indexing files. Upload in progress…');
+    }
+    const reader=new FileReader();
+    reader.onload=function(e){
+      const entry={
+        id: Date.now().toString(36)+i,
+        name: isZip(file)?'[ZIP] '+file.name:file.name,
+        size: file.size,
+        sizeStr: file.size>1048576?(file.size/1048576).toFixed(1)+' MB':(file.size/1024).toFixed(0)+' KB',
+        folder:'General',
+        type: file.type||'application/octet-stream',
+        uploadedAt: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+        data: e.target.result.split(',')[1]||'',
+      };
+      d._vdrFiles.push(entry);
+      processed++;
+      if(processed===arr.length){
+        // Try API upload
+        const payload={dealId:d.id,files:d._vdrFiles};
+        fetch('/api/v2?resource=advisor&op=vdr-upload',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+          .then(r=>r.json())
+          .catch(()=>null)
+          .then(res=>{
+            if(res&&res.ok){toast(arr.length+' file'+(arr.length!==1?'s':'')+' uploaded','ok');}
+            else{toast(arr.length+' file'+(arr.length!==1?'s':'')+' saved locally','ok');}
+            renderDataroom();
+          });
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function viewVdrFile(fileId){
+  toast('File viewer coming — opening preview…');
+}
+
+async function submitAnswer(qaId){
+  const d=DEALS[currentDealIdx];
+  const ta=document.getElementById('qa-inp-'+qaId);
+  if(!ta)return;
+  const text=ta.value.trim();
+  if(!text){toast('Please enter a reply','err');return;}
+  const btn=ta.nextElementSibling;
+  if(btn){btn.disabled=true;btn.textContent='Sending…';}
+
+  const res=await api('POST','/api/v2?resource=advisor&op=answer-qa',{dealId:d.id,qaId,answer:text});
+
+  // Update local data regardless of API result
+  const arr=d._qaThread||QA_THREAD;
+  const q=arr.find(x=>x.id===qaId);
+  if(q){
+    q.answer=text;
+    q.answeredAt=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    q.answeredBy='TACC Singapore';
+  }
+  if(!d._qaThread)d._qaThread=[...QA_THREAD];
+  toast('Answer posted','ok');
+  renderDataroom();
+}
+
 /* ── PERFORMANCE ── */
 function animatePerf(){
   const d=DEALS[currentDealIdx];
@@ -1424,10 +1654,16 @@ function renderLoading(){
   if(sw)sw.innerHTML=`<span class="ds-label">Your Deals</span><span style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-left:8px;letter-spacing:.08em">Loading…</span>`;
 }
 
+function renderMockDeals(){
+  currentDealIdx=0;
+  document.getElementById('deal-tabs')&&(document.getElementById('deal-tabs').style.display='');
+  renderSwitcher();renderHeader();renderStageJourney();renderOverview();renderMaterials();
+}
+
 async function load(){
   renderLoading();
   const me=await fetchSilent('/api/me');
-  if(!me||me._unauth){ renderEmpty(); return; }
+  if(!me||me._unauth){ renderMockDeals(); return; }
   if(me.ok&&(me.role==='advisor'||me.role==='admin')){
     // Update nav identity
     const nameEl=document.querySelector('.nav-user-name');

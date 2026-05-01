@@ -4,6 +4,50 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Dataroom / Q&A tab — advisor and investor portals
+
+### `advisor-portal.html`
+- **New 4th tab "Dataroom / Q&A"** added to the content-tabs bar; only visible when `deal.stage === 'dd'`.
+- **`renderHeader()`** updated to show/hide the tab based on current deal stage.
+- **`renderDataroom()`** function renders two-column layout: VDR file browser (left, 60%) and Investor Q&A thread (right, 40%).
+- **DD deadline banner** at top — amber if open, red if expired. Computed as closing date minus 14 days.
+- **File upload:** "Upload to Dataroom" button triggers hidden file input. `handleVdrUpload()` reads files as base64, handles ZIP detection with toast, POSTs to `/api/v2?resource=advisor&op=vdr-upload`, falls back to local state on API error.
+- **VDR file list** grouped by folder with filename, size, date, and View button. `viewVdrFile()` is a placeholder toast.
+- **Q&A thread rendering** shows questions newest-first with reply textarea for unanswered items. `submitAnswer()` POSTs to `/api/v2?resource=advisor&op=answer-qa` and updates local state regardless.
+- **Mock data:** New `d3` (Vantage Analytics) deal added at `stage:'dd'` to trigger the tab in dev. `VDR_FILES` and `QA_THREAD` globals added with sample data.
+- **`renderMockDeals()`** fallback added so mock deals render without auth in local dev.
+- **CSS:** Full VDR/Q&A component styles added using existing `--mono`, `--gold`, `--border` vars.
+
+### `investor-portal.html`
+- **`d3` Vantage Analytics** stage changed from `live` to `dd`; `vdr_files` and `qa_thread` mock data arrays added inline.
+- **Deal detail tabs:** When `d.stage === 'dd'`, the `dd-left` panel wraps existing content in an Overview tab and adds a "Dataroom / Q&A" tab.
+- **`invShowDealTab()`** handles tab switching between Overview and Dataroom panels.
+- **`renderInvestorDataroom()`** renders DD deadline banner, VDR file list (no upload button), and Q&A thread with answered/pending states.
+- **`loadQaThread()`** fetches live Q&A from `/api/v2?resource=inst&op=qa-thread` and refreshes panel.
+- **`submitInvestorQuestion()`** POSTs to `/api/v2?resource=inst&op=submit-qa`; updates local state on success or API error. Q&A input disabled when DD period closed.
+- **`viewVdrFileInvestor()`** fetches file from `/api/v2?resource=inst&op=vdr-file`; falls back to `showVdrViewerMock()` in dev.
+- **File viewer modal** with watermark overlay (8 rows of `AURUM PRISM · [investor] · [date] · CONFIDENTIAL` at –30° rotation, no download affordance). Live path uses `<iframe src="data:...">`.
+- **CSS:** Full investor dataroom component styles added including viewer modal and watermark layers.
+
+---
+
+## [2026-05-01] — DD Dataroom (VDR) + Q&A backend endpoints
+
+### `api/v2.js`
+- **New KV key patterns documented:** `vdr:{dealId}:index`, `vdr:{dealId}:file:{fileId}`, `qa:{dealId}`
+- **`resource=advisor, op=vdr-upload` (POST):** Advisor uploads dataroom files (base64 array). Stores each file content separately, merges into index, writes audit log entry on the deal.
+- **`resource=advisor, op=vdr-files` (GET):** Returns index metadata for advisor's own deal (no binary content).
+- **`resource=advisor, op=qa-thread-advisor` (GET):** Returns full Q&A thread for advisor's own deal.
+- **`resource=advisor, op=answer-qa` (POST):** Advisor answers a question by qaId; records answeredAt and answeredBy from KV advisor record.
+- **`resource=inst, op=vdr-files` (GET):** Returns file index + dd_deadline + dd_expired. Gated: approved IOI required.
+- **`resource=inst, op=vdr-file` (GET):** Returns base64 file content + watermark metadata. Gated: approved IOI required.
+- **`resource=inst, op=submit-qa` (POST):** Investor submits a question. Gated: approved IOI + DD not expired.
+- **`resource=inst, op=qa-thread` (GET):** Returns full Q&A thread. Gated: approved IOI.
+- **Helper `getDdDeadline(deal)`:** Computes DD deadline as closing_date minus 14 days.
+- **Helper `getApprovedIoi(dealId, investorId)`:** Scans IOI keys to verify approved status; reuses existing `ioi_exists` dedup key pattern.
+
+---
+
 ## [2026-05-01] — Admin overview UX: layout reorder, column renames, clickable rows, package preview panel
 
 ### `admin-portal.html`

@@ -207,6 +207,109 @@ export default async function handler(req, res) {
       await kvDel(`reset_token:advisor:${email.toLowerCase()}`);
       return ok(res, { message: 'Password updated. You can now log in.' });
     }
+
+    // ── VDR: upload files ────────────────────────────────────────
+    // KV keys:
+    //   vdr:{dealId}:index          — JSON array of file metadata
+    //   vdr:{dealId}:file:{fileId}  — base64 file content
+    if (op === 'vdr-upload') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { dealId, files } = req.body || {};
+      if (!dealId || !Array.isArray(files) || files.length === 0) return bad(res, 'dealId and files array required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+
+      // Load existing index and merge
+      const existingIndex = (await kvGet(`vdr:${dealId}:index`)) || [];
+      const existingIds = new Set(existingIndex.map(f => f.id));
+
+      const newMeta = [];
+      for (const file of files) {
+        if (!file.id || !file.name || !file.data) return bad(res, `File entry missing id, name, or data`);
+        await kvSet(`vdr:${dealId}:file:${file.id}`, file.data);
+        const meta = {
+          id: file.id,
+          name: file.name,
+          size: file.size || 0,
+          folder: file.folder || '',
+          type: file.type || 'application/octet-stream',
+          uploadedAt: new Date().toISOString(),
+        };
+        if (!existingIds.has(file.id)) {
+          existingIndex.push(meta);
+          existingIds.add(file.id);
+        } else {
+          // Replace metadata for re-uploaded file
+          const idx = existingIndex.findIndex(f => f.id === file.id);
+          if (idx >= 0) existingIndex[idx] = meta;
+        }
+        newMeta.push(meta);
+      }
+
+      await kvSet(`vdr:${dealId}:index`, existingIndex);
+
+      // Audit log on deal
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({
+        at: new Date().toISOString(),
+        actor: adv.advisor_id,
+        action: 'vdr_upload',
+        meta: { fileCount: files.length, fileNames: newMeta.map(f => f.name) },
+      });
+      deal.updated_at = new Date().toISOString();
+      await saveDeal(deal);
+
+      return ok(res, { ok: true, files: newMeta });
+    }
+
+    // ── VDR: list files (advisor view) ───────────────────────────
+    if (op === 'vdr-files') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      const files = (await kvGet(`vdr:${dealId}:index`)) || [];
+      return ok(res, { ok: true, files });
+    }
+
+    // ── Q&A: full thread (advisor view) ─────────────────────────
+    // KV key: qa:{dealId} — JSON array of Q&A entries
+    if (op === 'qa-thread-advisor') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      const qa = (await kvGet(`qa:${dealId}`)) || [];
+      return ok(res, { ok: true, qa });
+    }
+
+    // ── Q&A: answer a question ───────────────────────────────────
+    if (op === 'answer-qa') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { dealId, qaId, answer } = req.body || {};
+      if (!dealId || !qaId || !answer) return bad(res, 'dealId, qaId, and answer required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      const qa = (await kvGet(`qa:${dealId}`)) || [];
+      const entry = qa.find(q => q.id === qaId);
+      if (!entry) return bad(res, 'Question not found', 404);
+      const advObj = await kvGet(`advisor:${adv.advisor_id}`);
+      entry.answer = answer.trim();
+      entry.answeredAt = new Date().toISOString();
+      entry.answeredBy = advObj?.name || advObj?.firm_name || adv.advisor_id;
+      await kvSet(`qa:${dealId}`, qa);
+      return ok(res, { ok: true });
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -426,6 +529,140 @@ export default async function handler(req, res) {
       }));
 
       return ok(res, { docs, nda_signed: ndaSigned });
+    }
+
+    // ── DD deadline helper ───────────────────────────────────────
+    // Returns Date or null. DD window closes 14 days before closing_date.
+    function getDdDeadline(deal) {
+      if (!deal.closing_date && !deal.closing) return null;
+      const closing = new Date(deal.closing_date || deal.closing);
+      if (isNaN(closing)) return null;
+      return new Date(closing.getTime() - 14 * 24 * 60 * 60 * 1000);
+    }
+
+    // ── IOI approval gate helper (inst) ─────────────────────────
+    // Returns the IOI record if investor has an approved IOI, else null.
+    async function getApprovedIoi(dealId, investorId) {
+      const ioiId = await kvGet(`ioi_exists:${dealId}:${investorId}`);
+      if (!ioiId || ioiId === 'pending' || ioiId === 'rejected') return null;
+      // ioiId is 'approved' for the dedup sentinel set by approve-ioi — look up by scan
+      // The dedup value was set to 'approved' (a string), so we need the actual IOI id.
+      // Scan ioi:IOI-* for the matching record.
+      const ioiKeys = await kvKeys('ioi:IOI-*');
+      const iois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      return iois.find(i => i.deal_id === dealId && i.investor_id === investorId && i.status === 'approved') || null;
+    }
+
+    // ── VDR: list files (investor view) ─────────────────────────
+    if (op === 'vdr-files') {
+      const instAuth = await getInst();
+      if (!instAuth) return unauth(res);
+      const inst = await kvGet(`inst:${instAuth.inst_id}`);
+      if (!inst || inst.status !== 'approved') return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const approvedIoi = await getApprovedIoi(dealId, instAuth.inst_id);
+      if (!approvedIoi) return bad(res, 'Data room access requires an approved indication of interest', 403);
+
+      const files = (await kvGet(`vdr:${dealId}:index`)) || [];
+      const ddDeadline = getDdDeadline(deal);
+      const ddExpired = ddDeadline ? new Date() > ddDeadline : false;
+
+      return ok(res, {
+        ok: true,
+        files,
+        dd_deadline: ddDeadline ? ddDeadline.toISOString() : null,
+        dd_expired: ddExpired,
+      });
+    }
+
+    // ── VDR: download single file (investor view) ────────────────
+    if (op === 'vdr-file') {
+      const instAuth = await getInst();
+      if (!instAuth) return unauth(res);
+      const inst = await kvGet(`inst:${instAuth.inst_id}`);
+      if (!inst || inst.status !== 'approved') return unauth(res);
+      const { dealId, fileId } = req.query;
+      if (!dealId || !fileId) return bad(res, 'dealId and fileId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const approvedIoi = await getApprovedIoi(dealId, instAuth.inst_id);
+      if (!approvedIoi) return bad(res, 'Data room access requires an approved indication of interest', 403);
+
+      const index = (await kvGet(`vdr:${dealId}:index`)) || [];
+      const fileMeta = index.find(f => f.id === fileId);
+      if (!fileMeta) return bad(res, 'File not found', 404);
+
+      const data = await kvGet(`vdr:${dealId}:file:${fileId}`);
+      if (!data) return bad(res, 'File content not found', 404);
+
+      return ok(res, {
+        ok: true,
+        name: fileMeta.name,
+        type: fileMeta.type,
+        data,
+        watermark: {
+          investorId: instAuth.inst_id,
+          investorName: inst.firm_name || inst.contact_name || instAuth.inst_id,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    }
+
+    // ── Q&A: submit a question ───────────────────────────────────
+    // qa:{dealId} — JSON array of {id, question, askedBy, askedAt, answer, answeredAt, answeredBy}
+    if (op === 'submit-qa') {
+      const instAuth = await getInst();
+      if (!instAuth) return unauth(res);
+      const inst = await kvGet(`inst:${instAuth.inst_id}`);
+      if (!inst || inst.status !== 'approved') return unauth(res);
+      const { dealId, question } = req.body || {};
+      if (!dealId || !question) return bad(res, 'dealId and question required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const approvedIoi = await getApprovedIoi(dealId, instAuth.inst_id);
+      if (!approvedIoi) return bad(res, 'Q&A access requires an approved indication of interest', 403);
+
+      const ddDeadline = getDdDeadline(deal);
+      if (ddDeadline && new Date() > ddDeadline) return bad(res, 'DD period has closed — questions are no longer accepted', 403);
+
+      const qaId = 'qa-' + Date.now().toString(36);
+      const qa = (await kvGet(`qa:${dealId}`)) || [];
+      qa.push({
+        id: qaId,
+        question: question.trim(),
+        askedBy: inst.firm_name || inst.contact_name || instAuth.inst_id,
+        askedAt: new Date().toISOString(),
+        answer: null,
+        answeredAt: null,
+        answeredBy: null,
+      });
+      await kvSet(`qa:${dealId}`, qa);
+
+      return ok(res, { ok: true, qaId });
+    }
+
+    // ── Q&A: fetch full thread (investor view) ───────────────────
+    if (op === 'qa-thread') {
+      const instAuth = await getInst();
+      if (!instAuth) return unauth(res);
+      const inst = await kvGet(`inst:${instAuth.inst_id}`);
+      if (!inst || inst.status !== 'approved') return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const approvedIoi = await getApprovedIoi(dealId, instAuth.inst_id);
+      if (!approvedIoi) return bad(res, 'Q&A access requires an approved indication of interest', 403);
+
+      const qa = (await kvGet(`qa:${dealId}`)) || [];
+      return ok(res, { ok: true, qa });
     }
   }
 

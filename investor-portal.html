@@ -373,6 +373,51 @@ a{color:inherit;text-decoration:none}
 .ps-pending{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .ps-approved{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 
+/* ── INVESTOR DATAROOM / Q&A ── */
+.inv-dr-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
+.inv-dr-tab{padding:10px 16px;font-size:12px;font-weight:500;color:var(--text-3);border-bottom:2px solid transparent;transition:all .15s;cursor:pointer;font-family:var(--sans);background:none;border-top:none;border-left:none;border-right:none}
+.inv-dr-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.inv-dr-tab:hover:not(.on){color:var(--text-2)}
+.inv-dr-section{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+.inv-dr-folder-label{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 14px 4px;background:var(--bg-3);border-bottom:1px solid var(--border)}
+.inv-dr-file-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;transition:background .15s}
+.inv-dr-file-row:last-child{border-bottom:none}
+.inv-dr-file-row:hover{background:var(--bg-3)}
+.inv-dr-file-name{flex:1;color:var(--text);font-family:var(--sans)}
+.inv-dr-file-size{color:var(--text-3);font-family:var(--mono);font-size:10px}
+.inv-dr-file-date{color:var(--text-3);font-family:var(--mono);font-size:10px}
+.inv-dr-view-btn{font-family:var(--mono);font-size:9px;padding:3px 9px;border:1px solid var(--border-m);background:none;color:var(--text-2);border-radius:2px;cursor:pointer;transition:all .15s}
+.inv-dr-view-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.inv-qa-item{padding:14px 0;border-bottom:1px solid var(--border)}
+.inv-qa-item:last-child{border-bottom:none}
+.inv-qa-from{font-family:var(--mono);font-size:10px;color:var(--gold);font-weight:600}
+.inv-qa-time{font-family:var(--mono);font-size:10px;color:var(--text-3)}
+.inv-qa-text{font-size:13px;color:var(--text);margin-top:5px;line-height:1.6}
+.inv-qa-answer{margin-top:10px;padding-left:14px;border-left:2px solid var(--border-m)}
+.inv-qa-answer-text{font-size:12px;color:var(--text-2);line-height:1.6}
+.inv-qa-answer-meta{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:3px}
+.inv-qa-pending{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-top:8px;padding:4px 8px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:2px;display:inline-block}
+.inv-qa-submit-wrap{margin-top:20px}
+.inv-qa-input{width:100%;background:var(--bg-3);border:1px solid var(--border-m);color:var(--text);font-size:13px;padding:10px 12px;border-radius:var(--r);resize:vertical;min-height:72px;font-family:var(--sans);box-sizing:border-box;margin-bottom:8px}
+.inv-qa-submit-btn{font-family:var(--mono);font-size:10px;padding:7px 16px;background:var(--gold);color:#0A0908;border:none;border-radius:2px;cursor:pointer;font-weight:600;letter-spacing:.06em;transition:opacity .15s}
+.inv-qa-submit-btn:hover{opacity:.88}
+.inv-qa-submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.dd-deadline-banner{padding:10px 0;font-family:var(--mono);font-size:10px;letter-spacing:.08em;display:flex;align-items:center;gap:8px;margin-bottom:18px}
+.dd-deadline-banner.active{color:var(--amber)}
+.dd-deadline-banner.expired{color:var(--red)}
+.inv-dr-empty{padding:28px;text-align:center;color:var(--text-3);font-size:13px;line-height:1.7}
+/* File viewer modal */
+.vdr-viewer-modal{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.92);display:flex;flex-direction:column}
+.vdr-viewer-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0}
+.vdr-viewer-title{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text-2)}
+.vdr-viewer-close{font-family:var(--mono);font-size:10px;padding:5px 14px;border:1px solid var(--border-m);background:none;color:var(--text-2);border-radius:2px;cursor:pointer;transition:all .15s}
+.vdr-viewer-close:hover{border-color:var(--gold-bd);color:var(--gold)}
+.vdr-viewer-frame{flex:1;position:relative;overflow:hidden}
+.vdr-viewer-iframe{width:100%;height:100%;border:none}
+.vdr-wm{position:absolute;inset:0;pointer-events:none;z-index:10;overflow:hidden}
+.vdr-wm-inner{position:absolute;inset:-50%;display:flex;flex-direction:column;justify-content:space-around;opacity:.06;transform:rotate(-30deg);white-space:nowrap;overflow:hidden}
+.vdr-wm-row{font-family:monospace;font-size:13px;color:white;letter-spacing:.04em;margin:14px 0}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 20px;font-size:13px;border-radius:3px;z-index:999;opacity:0;transition:all .25s var(--ease);pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.3);font-family:var(--sans)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -743,7 +788,7 @@ let DEALS = [
   },
   {
     id:'d3', name:'Vantage Analytics Series C', company:'Vantage Analytics', ticker:'VAS',
-    asset_class:'pe', stage:'live', geography:'Austin, Texas', structure:'Common Equity',
+    asset_class:'pe', stage:'dd', geography:'Austin, Texas', structure:'Common Equity',
     target_irr:22, target_alloc:45000000, term:60, hurdle:10, min_ticket:250000, closing:'2026-08-15',
     featured:false, ioi_count:4, ioi_agg:27900000,
     advisor:'Priya Mehta · Meridian Partners',
@@ -757,6 +802,16 @@ let DEALS = [
       {icon:'🔒', s:'Enterprise Contracts',   b:'42 enterprise clients on 3-year contracts — weighted average remaining life of 2.4 years.'}
     ],
     ioi_investors:['Tiger Global','Norwest','Thornton Capital','Apex Growth'],
+    vdr_files:[
+      {id:'vf1', name:'VAS_DD_Pack_Q1_2026.pdf',     sizeStr:'18.4 MB', folder:'Legal',      uploadedAt:'Apr 28'},
+      {id:'vf2', name:'VAS_FinancialModel_v3.xlsx',   sizeStr:'2.1 MB',  folder:'Financials', uploadedAt:'Apr 28'},
+      {id:'vf3', name:'Management_Presentation.pdf',  sizeStr:'6.8 MB',  folder:'Management', uploadedAt:'Apr 29'},
+      {id:'vf4', name:'ARR_Bridge_May2026.xlsx',      sizeStr:'890 KB',  folder:'Financials', uploadedAt:'May 1'},
+    ],
+    qa_thread:[
+      {id:'qa1', question:'Can you share the audited financials for the last 3 years?', askedBy:'Riviera Capital SG', askedAt:'May 1 2026', answer:null, answeredAt:null},
+      {id:'qa2', question:'What is the expected timeline for the next funding round?', askedBy:'Harrison Family Office', askedAt:'May 1 2026', answer:'We anticipate a Series D in Q1 2027 at a target valuation of $4B+. Current runway extends 24 months at current burn.', answeredAt:'May 1 2026', answeredBy:'TACC Singapore'},
+    ],
   },
   {
     id:'d4', name:'SunBelt Residential Fund IV', company:'SunBelt Capital Partners', ticker:'SRF',
@@ -1168,6 +1223,11 @@ async function openDeal(id, action) {
     </div>`;
   }).join('');
 
+  // Build dataroom tab HTML (only for dd stage)
+  const isDd = d.stage === 'dd';
+  const ddTabBtn  = isDd ? `<button class="inv-dr-tab" id="inv-tab-btn-dataroom" onclick="invShowDealTab('dataroom',this)">Dataroom / Q&amp;A</button>` : '';
+  const ddTabPanel = isDd ? `<div id="inv-tab-dataroom" style="display:none"></div>` : '';
+
   document.getElementById('dd-left').innerHTML = `
     <div class="dd-identity">
       <div class="dd-logo" style="color:${d.logo_color};background:${d.logo_bg};border-color:${d.logo_bd};width:48px;height:48px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:500;flex-shrink:0;border:1px solid">${d.ticker}</div>
@@ -1180,14 +1240,21 @@ async function openDeal(id, action) {
     </div>
     <h1 class="dd-name">${d.name}</h1>
     <p class="dd-thesis">${d.thesis}</p>
-    <div class="hl-cards">${d.highlights.map((h, i) => `<div class="hl-card" style="animation-delay:${i * 55}ms"><div class="hl-icon">${h.icon}</div><div class="hl-title">${h.s}</div><div class="hl-body">${h.b}</div></div>`).join('')}</div>
-    ${buildReturnChart(d)}
-    ${tlHtml}
-    <div class="docs-section">
-      <div class="chart-lbl" style="margin-bottom:12px">Deal Documents</div>
-      <div class="docs-grid">${docsHtml}</div>
-      ${docsLockedNote}
-    </div>`;
+    ${isDd ? `<div class="inv-dr-tabs">
+      <button class="inv-dr-tab on" id="inv-tab-btn-overview" onclick="invShowDealTab('overview',this)">Overview</button>
+      ${ddTabBtn}
+    </div>` : ''}
+    <div id="inv-tab-overview">
+      <div class="hl-cards">${d.highlights.map((h, i) => `<div class="hl-card" style="animation-delay:${i * 55}ms"><div class="hl-icon">${h.icon}</div><div class="hl-title">${h.s}</div><div class="hl-body">${h.b}</div></div>`).join('')}</div>
+      ${buildReturnChart(d)}
+      ${tlHtml}
+      <div class="docs-section">
+        <div class="chart-lbl" style="margin-bottom:12px">Deal Documents</div>
+        <div class="docs-grid">${docsHtml}</div>
+        ${docsLockedNote}
+      </div>
+    </div>
+    ${ddTabPanel}`;
 
   // Right panel
   document.getElementById('dd-right').innerHTML = `
@@ -1377,6 +1444,213 @@ async function viewInvestorDoc(dealId, slot) {
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
   } catch { toast('Error opening document', 'err'); }
+}
+
+/* ── INVESTOR DEAL TAB SWITCHER ── */
+function invShowDealTab(name, btn) {
+  // Toggle tab buttons
+  document.querySelectorAll('.inv-dr-tab').forEach(b => b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  // Toggle panels
+  const panels = ['inv-tab-overview','inv-tab-dataroom'];
+  panels.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = (id === 'inv-tab-' + name) ? '' : 'none';
+  });
+  if(name === 'dataroom') renderInvestorDataroom();
+}
+
+/* ── INVESTOR DATAROOM RENDER ── */
+function renderInvestorDataroom() {
+  const d = DEALS.find(x => x.id === activeDeal);
+  const panel = document.getElementById('inv-tab-dataroom');
+  if(!d || !panel) return;
+
+  // DD deadline banner
+  let bannerHtml = '';
+  if(d.closing) {
+    const ddDeadline = new Date(new Date(d.closing) - 14*24*60*60*1000);
+    const now = new Date();
+    const daysLeft = Math.round((ddDeadline - now) / 86400000);
+    const deadlineStr = ddDeadline.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    if(daysLeft > 0) {
+      bannerHtml = `<div class="dd-deadline-banner active">&#9679; DD Period open &middot; Closes ${deadlineStr} &middot; ${daysLeft} day${daysLeft!==1?'s':''} remaining</div>`;
+    } else {
+      bannerHtml = `<div class="dd-deadline-banner expired">&#9632; DD Period closed &middot; ${deadlineStr}</div>`;
+    }
+  }
+  const ddClosed = bannerHtml.includes('expired');
+
+  // File list grouped by folder
+  const files = d.vdr_files || [];
+  const filesByFolder = {};
+  files.forEach(f => {
+    const fld = f.folder || 'General';
+    if(!filesByFolder[fld]) filesByFolder[fld] = [];
+    filesByFolder[fld].push(f);
+  });
+  let filesHtml = '';
+  if(files.length === 0) {
+    filesHtml = `<div class="inv-dr-empty">No files have been added to the data room yet.</div>`;
+  } else {
+    Object.entries(filesByFolder).forEach(([folder, fls]) => {
+      filesHtml += `<div class="inv-dr-folder-label">${folder}</div>`;
+      fls.forEach(f => {
+        filesHtml += `<div class="inv-dr-file-row">
+          <span style="font-size:14px">📄</span>
+          <span class="inv-dr-file-name">${f.name}</span>
+          <span class="inv-dr-file-size">${f.sizeStr||'—'}</span>
+          <span class="inv-dr-file-date">${f.uploadedAt||''}</span>
+          <button class="inv-dr-view-btn" onclick="viewVdrFileInvestor('${d.id}','${f.id}','${f.name}')">View</button>
+        </div>`;
+      });
+    });
+  }
+
+  // Q&A thread
+  const qaArr = d.qa_thread || [];
+  let qaHtml = '';
+  if(qaArr.length === 0) {
+    qaHtml = `<div style="padding:20px 0;color:var(--text-3);font-size:13px">No questions submitted yet.</div>`;
+  } else {
+    qaArr.forEach(q => {
+      const answerBlock = q.answer
+        ? `<div class="inv-qa-answer">
+             <div class="inv-qa-answer-text">${q.answer}</div>
+             <div class="inv-qa-answer-meta">${q.answeredBy||'Advisor'} &middot; ${q.answeredAt||''}</div>
+           </div>`
+        : `<div><span class="inv-qa-pending">Answer pending</span></div>`;
+      qaHtml += `<div class="inv-qa-item">
+        <div>
+          <span class="inv-qa-from">${q.askedBy}</span> &middot; <span class="inv-qa-time">${q.askedAt}</span>
+          <div class="inv-qa-text">${q.question}</div>
+        </div>
+        ${answerBlock}
+      </div>`;
+    });
+  }
+
+  const qaInputBlock = ddClosed
+    ? `<div style="margin-top:16px;padding:12px 14px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r);font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--text-3)">DD period has closed — Q&amp;A submissions are no longer accepted.</div>`
+    : `<div class="inv-qa-submit-wrap">
+        <div class="chart-lbl" style="margin-bottom:10px">Submit a Question</div>
+        <textarea class="inv-qa-input" id="inv-qa-input" placeholder="Ask the advisor or deal team a question…"></textarea>
+        <button class="inv-qa-submit-btn" id="inv-qa-submit-btn" onclick="submitInvestorQuestion('${d.id}')">Submit Question</button>
+      </div>`;
+
+  panel.innerHTML = `${bannerHtml}
+    <div class="chart-lbl" style="margin-bottom:12px">Virtual Data Room</div>
+    <div class="inv-dr-section">${filesHtml}</div>
+    <div class="chart-lbl" style="margin-bottom:12px">Investor Q&amp;A</div>
+    <div>${qaHtml}</div>
+    ${qaInputBlock}`;
+
+  // Load real QA thread if available
+  loadQaThread(d.id);
+}
+
+async function loadQaThread(dealId) {
+  const res = await fetchSilent(`/api/v2?resource=inst&op=qa-thread&dealId=${dealId}`);
+  if(!res || !res.qa) return;
+  const d = DEALS.find(x => x.id === dealId);
+  if(!d) return;
+  d.qa_thread = res.qa;
+  // Re-render only the QA portion if panel is visible
+  const panel = document.getElementById('inv-tab-dataroom');
+  if(panel && panel.style.display !== 'none') renderInvestorDataroom();
+}
+
+async function submitInvestorQuestion(dealId) {
+  const inp = document.getElementById('inv-qa-input');
+  const btn = document.getElementById('inv-qa-submit-btn');
+  if(!inp) return;
+  const q = inp.value.trim();
+  if(!q) { toast('Please enter a question','err'); return; }
+  if(btn){btn.disabled=true;btn.textContent='Submitting…';}
+
+  const res = await api('POST','/api/v2?resource=inst&op=submit-qa',{dealId, question:q});
+
+  // Update local data regardless of API result
+  const d = DEALS.find(x => x.id === dealId);
+  if(d) {
+    if(!d.qa_thread) d.qa_thread = [];
+    d.qa_thread.unshift({
+      id: 'qa'+Date.now(),
+      question: q,
+      askedBy: document.getElementById('nav-user-name')?.textContent || 'You',
+      askedAt: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+      answer: null,
+      answeredAt: null,
+    });
+  }
+  if(btn){btn.disabled=false;btn.textContent='Submit Question';}
+  toast('Question submitted','ok');
+  renderInvestorDataroom();
+}
+
+async function viewVdrFileInvestor(dealId, fileId, fileName) {
+  // Try API first
+  const res = await fetchSilent(`/api/v2?resource=inst&op=vdr-file&dealId=${dealId}&fileId=${fileId}`);
+
+  let dataUrl = null;
+  let mimeType = 'application/pdf';
+
+  if(res && res.data) {
+    mimeType = res.type || 'application/pdf';
+    dataUrl = `data:${mimeType};base64,${res.data}`;
+  } else {
+    // Mock: show a placeholder PDF-like viewer message
+    toast('Loading file preview…');
+    showVdrViewerMock(fileName);
+    return;
+  }
+
+  showVdrViewer(fileName, dataUrl, mimeType);
+}
+
+function showVdrViewerMock(fileName) {
+  const investorName = document.getElementById('nav-user-name')?.textContent || 'Investor';
+  const dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const wmText = `AURUM PRISM · ${investorName} · ${dateStr} · CONFIDENTIAL`;
+  const rows = Array(8).fill(wmText).join('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+  const existing = document.getElementById('vdr-viewer-modal');
+  if(existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'vdr-viewer-modal';
+  modal.className = 'vdr-viewer-modal';
+  modal.innerHTML = `<div class="vdr-viewer-bar">
+    <span class="vdr-viewer-title">${fileName}</span>
+    <button class="vdr-viewer-close" onclick="document.getElementById('vdr-viewer-modal').remove()">Close</button>
+  </div>
+  <div class="vdr-viewer-frame" style="display:flex;align-items:center;justify-content:center">
+    <div style="text-align:center;color:var(--text-3);font-family:var(--sans)">
+      <div style="font-size:36px;margin-bottom:16px;opacity:.3">📄</div>
+      <div style="font-size:14px;color:var(--text-2);margin-bottom:8px">${fileName}</div>
+      <div style="font-size:12px;color:var(--text-3)">File viewer requires backend connection.<br>In production this opens a watermarked PDF.</div>
+    </div>
+    <div class="vdr-wm"><div class="vdr-wm-inner">${Array(8).fill(`<div class="vdr-wm-row">${wmText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${wmText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${wmText}</div>`).join('')}</div></div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function showVdrViewer(fileName, dataUrl, mimeType) {
+  const investorName = document.getElementById('nav-user-name')?.textContent || 'Investor';
+  const dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const wmText = `AURUM PRISM · ${investorName} · ${dateStr} · CONFIDENTIAL`;
+  const existing = document.getElementById('vdr-viewer-modal');
+  if(existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'vdr-viewer-modal';
+  modal.className = 'vdr-viewer-modal';
+  modal.innerHTML = `<div class="vdr-viewer-bar">
+    <span class="vdr-viewer-title">${fileName}</span>
+    <button class="vdr-viewer-close" onclick="document.getElementById('vdr-viewer-modal').remove()">Close</button>
+  </div>
+  <div class="vdr-viewer-frame">
+    <iframe class="vdr-viewer-iframe" src="${dataUrl}"></iframe>
+    <div class="vdr-wm"><div class="vdr-wm-inner">${Array(8).fill(`<div class="vdr-wm-row">${wmText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${wmText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${wmText}</div>`).join('')}</div></div>
+  </div>`;
+  document.body.appendChild(modal);
 }
 
 /* ── PORTFOLIO ── */
