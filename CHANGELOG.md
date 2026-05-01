@@ -6,6 +6,10 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ## [In progress — batch fixes]
 
+### Fix #3 — Landing page hero text breaking into 4 lines
+- **Root cause:** h1 font-size `clamp(52px,6vw,82px)` was too large for the ~580px hero column. "meet qualified capital." wrapped mid-line, turning 2 intended lines into 4. Also "meet " was white instead of gold — only "qualified capital." was inside the `<em>` tag.
+- **Fix:** Reduced h1 to `clamp(42px,4.8vw,64px)`, moved "meet " inside the `<em>` tag, added `display:block` on `em` so line 2 always starts on its own line. Line 1 = white, line 2 = gold.
+
 ### Fix #2 — Admin portal completely blank (SyntaxError killed entire script)
 - **Root cause:** Stray `)` at end of `adaptDeal()` function (line 451) caused `SyntaxError: Unexpected token ')'`. Browser stops parsing the whole `<script>` block on any syntax error, so zero functions were defined — no KPIs, no views, no tab switching. Nav worked because it's plain HTML.
 - **Fix:** Removed the extra `)` from `adaptDeal`. Script now parses fully; mock data renders immediately on load.

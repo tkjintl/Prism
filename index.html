@@ -60,8 +60,8 @@ canvas#c{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;op
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* Enhanced h1 — bigger, tighter */
-h1{font-family:var(--serif);font-weight:400;font-size:clamp(52px,6vw,82px);color:var(--text);line-height:.98;letter-spacing:-.02em;margin-bottom:24px}
-h1 em{color:var(--goldB);font-style:italic}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(42px,4.8vw,64px);color:var(--text);line-height:1.08;letter-spacing:-.02em;margin-bottom:24px}
+h1 em{color:var(--goldB);font-style:italic;display:block}
 .hero-sub{font-family:var(--serif);font-size:17px;font-weight:300;color:var(--sub);line-height:1.75;margin-bottom:40px;max-width:480px}
 
 /* Enhanced CTA buttons */
@@ -372,7 +372,7 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
     <div class="hero-left">
       <div class="hero-eyebrow"><div class="hero-eyebrow-line"></div><span class="hero-eyebrow-txt">Aurum Prism · prism.theaurumcc.com</span></div>
       <div class="hero-label"><span class="hero-label-dot"></span>Now Accepting Applications · Early Access Open</div>
-      <h1>Where private deals<br>meet <em>qualified capital.</em></h1>
+      <h1>Where private deals<em>meet qualified capital.</em></h1>
       <p class="hero-sub">Aurum Prism is a private deal platform for qualified institutional investors and deal advisors — curating credit, pre-IPO equity, real estate, and infrastructure across the US and Asia-Pacific. Apply for early access.</p>
       <div class="hero-ctas">
         <button class="btn-primary" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Institutional Access →</button>
