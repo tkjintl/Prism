@@ -581,6 +581,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
   <!-- Right: prism visual (investor-portal exact) -->
   <div class="dhs-visual">
+    <div class="dhs-prism-scene">
     <div class="dhs-prism-wrap">
       <svg class="dhs-prism-svg" viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
@@ -650,6 +651,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       <span class="dhs-ab-dot"></span>
       <span id="dhs-ab-text">0 actions needed</span>
     </div>
+    </div><!-- /dhs-prism-scene -->
   </div>
 </div>
 
@@ -3193,17 +3195,18 @@ load();
 .dhs-sub-bar-track{height:2px;background:rgba(255,255,255,0.06)}
 .dhs-sub-bar-fill{height:100%;background:linear-gradient(to right,#C5A572,#E3C187);transition:width 2s cubic-bezier(0.22,1,0.36,1)}
 /* Right visual */
-.dhs-visual{display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(197,165,114,.03) 0%,transparent 70%);min-height:360px;animation:fadeIn 1.2s .15s both}
-.dhs-prism-wrap{position:relative;width:min(360px,88%);animation:prismRotate 6s ease-in-out infinite}
+.dhs-visual{display:flex;align-items:center;justify-content:flex-start;padding-left:clamp(12px,3vw,32px);position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(197,165,114,.03) 0%,transparent 70%);min-height:360px;animation:fadeIn 1.2s .15s both}
+.dhs-prism-scene{position:relative;width:min(380px,90%);flex-shrink:0}
+.dhs-prism-wrap{position:relative;width:100%;animation:prismRotate 6s ease-in-out infinite}
 .dhs-prism-svg{width:100%;height:auto}
-.dhs-ring-float{position:absolute;right:6%;bottom:10%}
+.dhs-ring-float{position:absolute;right:-8px;bottom:8%}
 .dhs-ring-wrap{position:relative}
 .dhs-ring-wrap svg{display:block}
 .dhs-ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .dhs-ring-pct{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;color:#EDE8DF;line-height:1}
 .dhs-ring-sub{font-size:9px;color:#6B665E;letter-spacing:.08em;margin-top:2px}
 .dhs-ring-detail{padding:11px 15px;background:rgba(13,12,10,.85);border:1px solid rgba(255,255,255,0.06);border-radius:6px;margin-top:10px;backdrop-filter:blur(10px);animation:fadeUp .6s .8s both;text-align:center}
-.dhs-action-badge{position:absolute;top:16%;left:4%;display:flex;align-items:center;gap:6px;padding:6px 13px;background:rgba(184,131,58,0.08);border:1px solid rgba(184,131,58,0.28);border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;color:#b8833a;backdrop-filter:blur(8px);animation:fadeUp .5s .9s both}
+.dhs-action-badge{position:absolute;top:8%;right:4%;display:flex;align-items:center;gap:6px;padding:6px 13px;background:rgba(184,131,58,0.08);border:1px solid rgba(184,131,58,0.28);border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;color:#b8833a;backdrop-filter:blur(8px);animation:fadeUp .5s .9s both}
 .dhs-ab-dot{width:5px;height:5px;border-radius:50%;background:#b8833a;animation:pulse 1.5s infinite}
 </style>
 </body>
