@@ -4,6 +4,19 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor Portal: Dashboard hero upgraded to investor-portal lobby style
+
+### Changes
+- `advisor-portal.html`: Replaced weak dashboard hero with exact investor-portal lobby layout transplanted in.
+- Hero uses hardcoded dark hex values (#0A0908 bg, #C5A572 gold, #EDE8DF text) — always dark regardless of light/dark theme toggle.
+- Prism SVG updated: stroke uses `rgba(255,255,255,0.12)` instead of `currentColor` (invisible in light mode bug fixed).
+- Left panel: eyebrow dot, large serif italic greeting headline, tagline, KPI stat strip (deals / capital indicated / investors / actions needed), CTA buttons, action alert bar, progress bar strip.
+- Right panel: animated prism SVG, ring float (bottom-right) with live allocation % / IOI amount / target raise / investor count, action badge.
+- `renderDashboard()` fill block updated to match new IDs: `dhs-headline`, `dhs-tagline`, `dhs-stats`, `dhs-social`, `dhs-sub-bar-fill`, ring IDs unchanged.
+- Added `.dhs-stat`, `.dhs-stat-val`, `.dhs-stat-lbl`, `.dhs-stat-div` CSS for the KPI stat strip.
+
+---
+
 ## [2026-05-01] — Advisor Portal: Dashboard landing view
 
 ### Changes
