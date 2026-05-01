@@ -4,6 +4,27 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor portal: ZIP dataroom extraction + Q&A chat redesign
+
+### Changes
+- Dataroom: ZIP uploads now extract contents via JSZip (CDN) — files grouped into folders by ZIP directory structure
+- Q&A: redesigned as chat bubble interface — investor questions left, advisor replies right (gold)
+- Q&A: "Opening Statement" button pre-fills a broadcast message template
+- Q&A: "Unanswered — reply" badge on investor questions focuses the compose area with context
+- Q&A: dummy thread seeded with opening statement + 4 realistic investor questions
+
+---
+
+## [2026-05-01] — Investor portal Q&A redesigned as chat bubbles
+
+### Changed — `investor-portal.html`
+- Replaced old flat `.inv-qa-item` list CSS with new chat bubble classes: `.inv-qa-chat`, `.inv-qa-bubble`, `.inv-qa-bubble-body`, `.inv-qa-bubble-meta`, `.inv-qa-compose`, `.inv-qa-send-btn`
+- `renderInvestorDataroom()`: Q&A section now reads `d._investorQa` and renders investor questions right-aligned (gold tint) and advisor messages/answers left-aligned; unanswered questions show an "Awaiting reply" pill
+- `loadQaThread()`: now maps API response items to `d._investorQa` (was `d.qa_thread`); supports both `investor_q` and `advisor_open` item types
+- `submitInvestorQuestion()`: appends new question locally as a right-side bubble, clears textarea, re-renders, and scrolls `#inv-qa-chat` to bottom
+
+---
+
 ## [2026-05-01] — API audit fix: 5 confirmed break points repaired
 
 ### Fixes

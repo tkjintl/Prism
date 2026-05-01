@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root {
   --bg:#F7F5F1;--bg-2:#FFFFFF;--bg-3:#EFECE6;--surface:#FFFFFF;
@@ -381,6 +382,25 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .qa-reply-input { width:100%; background:var(--bg-2); border:1px solid var(--border); color:var(--text); font-size:12px; padding:8px 10px; border-radius:2px; resize:vertical; min-height:60px; font-family:var(--sans); margin-bottom:6px; box-sizing:border-box; }
 .qa-reply-btn { font-family:var(--mono); font-size:9px; padding:5px 12px; background:none; border:1px solid var(--border-m); color:var(--text-2); border-radius:2px; cursor:pointer; transition:all .15s; }
 .qa-reply-btn:hover { border-color:var(--gold-bd); color:var(--gold); }
+.qa-chat{display:flex;flex-direction:column;gap:10px;padding:14px;max-height:480px;overflow-y:auto;scroll-behavior:smooth}
+.qa-bubble{display:flex;flex-direction:column;max-width:85%}
+.qa-bubble.investor{align-self:flex-start}
+.qa-bubble.advisor{align-self:flex-end}
+.qa-bubble-body{padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.55}
+.qa-bubble.investor .qa-bubble-body{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+.qa-bubble.advisor .qa-bubble-body{background:var(--gold);color:#0A0908}
+.qa-bubble-meta{font-size:10px;color:var(--text-3);margin-top:4px;font-family:var(--mono);letter-spacing:.04em}
+.qa-bubble.advisor .qa-bubble-meta{text-align:right}
+.qa-reply-area{border-top:1px solid var(--border);padding:12px;background:var(--bg-2)}
+.qa-reply-ctx{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--gold);margin-bottom:6px;display:none}
+.qa-reply-row{display:flex;gap:8px;align-items:flex-end}
+.qa-reply-textarea{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:12px;padding:8px 10px;border-radius:6px;resize:none;height:60px;font-family:var(--sans);transition:border-color .15s}
+.qa-reply-textarea:focus{outline:none;border-color:var(--gold-bd)}
+.qa-send-btn{font-family:var(--mono);font-size:9px;padding:8px 14px;background:var(--gold);color:#0A0908;border:none;border-radius:4px;cursor:pointer;font-weight:600;letter-spacing:.08em;white-space:nowrap;height:36px;align-self:flex-end}
+.qa-open-stmt-btn{font-family:var(--mono);font-size:9px;padding:5px 12px;border:1px solid var(--border-m);color:var(--text-3);background:none;border-radius:3px;cursor:pointer;letter-spacing:.06em;transition:all .15s}
+.qa-open-stmt-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.qa-unanswered-flag{font-family:var(--mono);font-size:8px;padding:2px 7px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd);border-radius:10px;margin-top:4px;letter-spacing:.06em;cursor:pointer;display:inline-block}
+.qa-unanswered-flag:hover{background:var(--amber);color:#000}
 .dd-deadline-banner { padding:10px 24px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
 .dd-deadline-banner.active { background:rgba(184,131,58,.08); color:var(--amber); }
 .dd-deadline-banner.expired { background:rgba(176,94,86,.08); color:var(--red); }
@@ -719,8 +739,11 @@ let DEALS = [
 /* ─── DATAROOM MOCK DATA ─── */
 let VDR_FILES = [];  // populated from API or local upload
 let QA_THREAD = [
-  {id:'qa1', question:'Can you share the audited financials for the last 3 years?', askedBy:'Riviera Capital SG', askedAt:'May 1 2026', answer:null, answeredAt:null, answeredBy:null},
-  {id:'qa2', question:'What is the expected timeline for the next funding round?', askedBy:'Harrison Family Office', askedAt:'May 1 2026', answer:'We anticipate a Series D in Q1 2027 at a target valuation of $4B+. Current runway extends 24 months at current burn.', answeredAt:'May 1 2026', answeredBy:'TACC Singapore'},
+  {id:'qa0',type:'advisor_open',message:'Welcome to the Shield AI Series F due diligence room. All documents are organised by category in the left panel. Please review the DD pack before submitting questions — we aim to respond within 24 hours. Key contacts: legal queries to counsel@taccsg.com, financial queries directly here.',sentBy:'TACC Singapore',sentAt:'1 May 2026'},
+  {id:'qa1',type:'investor_q',question:'Can you share audited financials for FY2024 and FY2025? The DD pack only includes management accounts.',askedBy:'Temasek Holdings',askedAt:'1 May 2026',answer:null,answeredAt:null,answeredBy:null},
+  {id:'qa2',type:'investor_q',question:'What are the key lock-up provisions and are there any early redemption features in the preferred equity structure?',askedBy:'GIC Private Ltd',askedAt:'1 May 2026',answer:'Lock-up is 36 months from close with a drag-along provision. Early redemption is available after month 18 at a 5% premium to NAV. Full terms are in the Term Sheet folder of the data room.',answeredAt:'1 May 2026',answeredBy:'TACC Singapore'},
+  {id:'qa3',type:'investor_q',question:'Who are the primary DoD contract renewal counterparties and what is the average remaining contract tenure across the portfolio?',askedBy:'Meridian Capital LP',askedAt:'2 May 2026',answer:null,answeredAt:null,answeredBy:null},
+  {id:'qa4',type:'investor_q',question:'Are there any pending litigation matters or ITAR/EAR export control restrictions on the Hivemind autonomous AI technology?',askedBy:'Temasek Holdings',askedAt:'2 May 2026',answer:null,answeredAt:null,answeredBy:null},
 ];
 
 const STAGES=[
@@ -1310,43 +1333,65 @@ function renderDataroom(){
     });
   }
 
-  // Q&A thread
+  // Q&A chat thread
   const qaArr=d._qaThread||QA_THREAD;
-  let qaHtml='';
+  let chatHtml='';
   if(qaArr.length===0){
-    qaHtml=`<div style="padding:24px 0;text-align:center;color:var(--text-3);font-size:13px">No questions yet.</div>`;
-  }else{
+    chatHtml=`<div style="padding:40px 20px;text-align:center;color:var(--text-3);font-size:13px">No messages yet. Send an opening statement to get started.</div>`;
+  } else {
     qaArr.forEach(q=>{
-      const replyArea=!q.answer?`
-        <textarea class="qa-reply-input" id="qa-inp-${q.id}" placeholder="Type your answer…"></textarea>
-        <button class="qa-reply-btn" onclick="submitAnswer('${q.id}')">Reply</button>`
-        :`<div class="qa-answer-text">${q.answer}</div>
-         <div class="qa-answer-from">${q.answeredBy||'Advisor'} &middot; ${q.answeredAt||''}</div>`;
-      qaHtml+=`<div class="qa-item">
-        <div class="qa-q">
-          <span class="qa-from">${q.askedBy}</span> &middot; <span class="qa-time">${q.askedAt}</span>
-          <div class="qa-text">${q.question}</div>
-        </div>
-        <div class="qa-a">${replyArea}</div>
-      </div>`;
+      if(q.type==='advisor_open'){
+        chatHtml+=`<div class="qa-bubble advisor">
+          <div class="qa-bubble-body">${q.message}</div>
+          <div class="qa-bubble-meta">${q.sentBy} &middot; ${q.sentAt}</div>
+        </div>`;
+      } else {
+        // Investor question
+        chatHtml+=`<div class="qa-bubble investor">
+          <div class="qa-bubble-body">${q.question}</div>
+          <div class="qa-bubble-meta">${q.askedBy} &middot; ${q.askedAt}
+            ${!q.answer?`<span class="qa-unanswered-flag" onclick="setQaReplyCtx('${q.id}','${q.askedBy}')">Unanswered — reply</span>`:''}
+          </div>
+        </div>`;
+        if(q.answer){
+          chatHtml+=`<div class="qa-bubble advisor">
+            <div class="qa-bubble-body">${q.answer}</div>
+            <div class="qa-bubble-meta">${q.answeredBy||'TACC Singapore'} &middot; ${q.answeredAt||''}</div>
+          </div>`;
+        }
+      }
     });
   }
 
+  const unansweredCount=qaArr.filter(q=>q.type==='investor_q'&&!q.answer).length;
+
   panel.innerHTML=`${bannerHtml}
-  <div class="vdr-layout">
-    <div>
-      <div class="vdr-section-hd">
-        <span>Virtual Data Room</span>
-        <button class="vdr-upload-btn" onclick="triggerVdrUpload()">Upload to Dataroom &rarr;</button>
+<div class="vdr-layout">
+  <div>
+    <div class="vdr-section-hd">
+      <span>Virtual Data Room</span>
+      <button class="vdr-upload-btn" onclick="triggerVdrUpload()">Upload to Dataroom &rarr;</button>
+    </div>
+    <input type="file" id="vdr-file-input" multiple accept=".pdf,.xlsx,.pptx,.docx,.zip" style="display:none" onchange="handleVdrUpload(this.files)">
+    <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden">${filesHtml}</div>
+  </div>
+  <div>
+    <div class="vdr-section-hd">
+      <span>Investor Q&amp;A ${unansweredCount>0?`<span style="color:var(--amber);font-size:10px;font-weight:600;margin-left:6px">${unansweredCount} unanswered</span>`:''}</span>
+      <button class="qa-open-stmt-btn" onclick="sendOpeningStatement()">+ Opening Statement</button>
+    </div>
+    <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div class="qa-chat" id="qa-chat-scroll">${chatHtml}</div>
+      <div class="qa-reply-area">
+        <div class="qa-reply-ctx" id="qa-reply-ctx"></div>
+        <div class="qa-reply-row">
+          <textarea class="qa-reply-textarea" id="qa-reply-input" placeholder="Reply to investor question…"></textarea>
+          <button class="qa-send-btn" onclick="sendQaReply()">SEND</button>
+        </div>
       </div>
-      <input type="file" id="vdr-file-input" multiple accept=".pdf,.xlsx,.pptx,.docx,.zip" style="display:none" onchange="handleVdrUpload(this.files)">
-      <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden">${filesHtml}</div>
     </div>
-    <div>
-      <div class="vdr-section-hd"><span>Investor Q&amp;A</span></div>
-      <div>${qaHtml}</div>
-    </div>
-  </div>`;
+  </div>
+</div>`;
 }
 
 function triggerVdrUpload(){
@@ -1354,75 +1399,121 @@ function triggerVdrUpload(){
   if(inp)inp.click();
 }
 
-function handleVdrUpload(files){
-  if(!files||!files.length)return;
+async function handleVdrUpload(fileList){
+  if(!fileList||!fileList.length)return;
   const d=DEALS[currentDealIdx];
   if(!d._vdrFiles)d._vdrFiles=[];
-  const arr=Array.from(files);
-  let processed=0;
-  const isZip=f=>f.type==='application/zip'||f.name.toLowerCase().endsWith('.zip');
+  const files=Array.from(fileList);
 
-  arr.forEach((file,i)=>{
-    if(isZip(file)){
-      toast('ZIP detected — indexing files. Upload in progress…');
-    }
-    const reader=new FileReader();
-    reader.onload=function(e){
-      const entry={
-        id: Date.now().toString(36)+i,
-        name: isZip(file)?'[ZIP] '+file.name:file.name,
-        size: file.size,
-        sizeStr: file.size>1048576?(file.size/1048576).toFixed(1)+' MB':(file.size/1024).toFixed(0)+' KB',
-        folder:'General',
-        type: file.type||'application/octet-stream',
-        uploadedAt: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
-        data: e.target.result.split(',')[1]||'',
+  for(const file of files){
+    const isZip=file.type==='application/zip'||file.name.toLowerCase().endsWith('.zip');
+    if(isZip && typeof JSZip !== 'undefined'){
+      toast('Extracting ZIP contents…');
+      try{
+        const ab=await file.arrayBuffer();
+        const zip=await JSZip.loadAsync(ab);
+        const entries=[];
+        zip.forEach((path,entry)=>{ if(!entry.dir&&!path.startsWith('__MACOSX')&&!path.startsWith('.DS_Store')&&!path.includes('/.'))entries.push({path,entry}); });
+        let done=0;
+        for(const {path,entry} of entries){
+          const parts=path.split('/').filter(Boolean);
+          const folder=parts.length>1?parts[0]:'General';
+          const name=parts[parts.length-1];
+          const ext=name.split('.').pop().toLowerCase();
+          const typeMap={pdf:'application/pdf',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',csv:'text/csv'};
+          const b64=await entry.async('base64');
+          const byteSize=Math.round(b64.length*0.75);
+          const fEntry={
+            id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+            name, folder,
+            size:byteSize,
+            sizeStr:byteSize>1048576?(byteSize/1048576).toFixed(1)+' MB':(byteSize/1024).toFixed(0)+' KB',
+            type:typeMap[ext]||'application/octet-stream',
+            uploadedAt:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+            data:b64
+          };
+          d._vdrFiles.push(fEntry);
+          done++;
+        }
+        renderDataroom();
+        toast(done+' file'+(done!==1?'s':'')+' extracted from ZIP','ok');
+        fetch('/api/v2?resource=advisor&op=vdr-upload',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({dealId:d.id,files:d._vdrFiles})}).catch(()=>{});
+      }catch(e){ toast('ZIP error: '+e.message,'err'); }
+    } else {
+      // Single file
+      const reader=new FileReader();
+      reader.onload=function(ev){
+        const b64=ev.target.result.split(',')[1]||'';
+        const entry={
+          id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+          name:file.name, folder:'General',
+          size:file.size,
+          sizeStr:file.size>1048576?(file.size/1048576).toFixed(1)+' MB':(file.size/1024).toFixed(0)+' KB',
+          type:file.type||'application/octet-stream',
+          uploadedAt:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+          data:b64
+        };
+        d._vdrFiles.push(entry);
+        renderDataroom();
+        toast('File uploaded','ok');
+        fetch('/api/v2?resource=advisor&op=vdr-upload',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({dealId:d.id,files:d._vdrFiles})}).catch(()=>{});
       };
-      d._vdrFiles.push(entry);
-      processed++;
-      if(processed===arr.length){
-        // Try API upload
-        const payload={dealId:d.id,files:d._vdrFiles};
-        fetch('/api/v2?resource=advisor&op=vdr-upload',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-          .then(r=>r.json())
-          .catch(()=>null)
-          .then(res=>{
-            if(res&&res.ok){toast(arr.length+' file'+(arr.length!==1?'s':'')+' uploaded','ok');}
-            else{toast(arr.length+' file'+(arr.length!==1?'s':'')+' saved locally','ok');}
-            renderDataroom();
-          });
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+      reader.readAsDataURL(file);
+    }
+  }
 }
 
 function viewVdrFile(fileId){
   toast('File viewer coming — opening preview…');
 }
 
-async function submitAnswer(qaId){
+let _qaReplyToId = null;
+
+function setQaReplyCtx(qaId, investorName){
+  _qaReplyToId = qaId;
+  const ctx = document.getElementById('qa-reply-ctx');
+  const inp = document.getElementById('qa-reply-input');
+  if(ctx){ ctx.style.display='block'; ctx.textContent='↩ Replying to '+investorName; }
+  if(inp){ inp.focus(); inp.placeholder='Reply to '+investorName+'…'; }
+}
+
+async function sendQaReply(){
   const d=DEALS[currentDealIdx];
-  const ta=document.getElementById('qa-inp-'+qaId);
-  if(!ta)return;
-  const text=ta.value.trim();
-  if(!text){toast('Please enter a reply','err');return;}
-  const btn=ta.nextElementSibling;
-  if(btn){btn.disabled=true;btn.textContent='Sending…';}
+  const inp=document.getElementById('qa-reply-input');
+  if(!inp)return;
+  const text=inp.value.trim();
+  if(!text){toast('Enter a message','err');return;}
+  inp.value='';
 
-  const res=await api('POST','/api/v2?resource=advisor&op=answer-qa',{dealId:d.id,qaId,answer:text});
-
-  // Update local data regardless of API result
-  const arr=d._qaThread||QA_THREAD;
-  const q=arr.find(x=>x.id===qaId);
-  if(q){
-    q.answer=text;
-    q.answeredAt=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    q.answeredBy='TACC Singapore';
+  if(_qaReplyToId){
+    // Reply to specific question
+    const arr=d._qaThread||QA_THREAD;
+    const q=arr.find(x=>x.id===_qaReplyToId);
+    if(q){ q.answer=text; q.answeredAt=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); q.answeredBy='TACC Singapore'; }
+    if(!d._qaThread) d._qaThread=[...QA_THREAD];
+    api('POST','/api/v2?resource=advisor&op=answer-qa',{dealId:d.id,qaId:_qaReplyToId,answer:text}).catch(()=>{});
+    _qaReplyToId=null;
+    const ctx=document.getElementById('qa-reply-ctx');
+    if(ctx){ ctx.style.display='none'; ctx.textContent=''; }
+    const replyInput=document.getElementById('qa-reply-input');
+    if(replyInput) replyInput.placeholder='Reply to investor question…';
+  } else {
+    // Broadcast message
+    if(!d._qaThread) d._qaThread=[...QA_THREAD];
+    d._qaThread.push({id:'qa'+Date.now(),type:'advisor_open',message:text,sentBy:'TACC Singapore',sentAt:new Date().toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'})});
+    api('POST','/api/v2?resource=advisor&op=answer-qa',{dealId:d.id,broadcast:true,message:text}).catch(()=>{});
   }
-  if(!d._qaThread)d._qaThread=[...QA_THREAD];
-  toast('Answer posted','ok');
+  toast('Message sent','ok');
   renderDataroom();
+  setTimeout(()=>{ const s=document.getElementById('qa-chat-scroll'); if(s)s.scrollTop=s.scrollHeight; },50);
+}
+
+function sendOpeningStatement(){
+  const inp=document.getElementById('qa-reply-input');
+  _qaReplyToId=null;
+  if(inp){ inp.value='Welcome to the due diligence data room. All documents are organised by category on the left. Please review the materials before submitting questions — we aim to respond within 24 hours.'; inp.focus(); }
+  const ctx=document.getElementById('qa-reply-ctx');
+  if(ctx){ ctx.style.display='block'; ctx.textContent='Opening statement — sent to all DD investors'; }
 }
 
 /* ── DATAROOM LIVE FETCH ── */
