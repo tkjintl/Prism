@@ -1130,13 +1130,24 @@ function wizFakeUpload(zoneId,filename){
 
 /* ── INIT ── */
 async function load(){
-  const me=await fetchSilent('/api/me');
-  if(me?._unauth){window.location.href='/login';return;}
-  if(me?.ok&&(me.role==='advisor'||me.role==='admin')){
-    const d=await api('GET','/api/v2?resource=advisor&op=me');
-    if(d?.ok&&d.deals&&d.deals.length){DEALS=d.deals.map(adaptDeal);currentDealIdx=0;}
-  }
   renderSwitcher();renderHeader();renderStageJourney();renderOverview();renderMaterials();
+  const me=await fetchSilent('/api/me');
+  if(!me||me._unauth)return;
+  if(me.ok&&(me.role==='advisor'||me.role==='admin')){
+    const d=await fetchSilent('/api/v2?resource=advisor&op=me');
+    if(d?.ok){
+      if(d.advisor){
+        const nameEl=document.querySelector('.nav-user-name');
+        const firmEl=document.querySelector('.nav-user-firm');
+        if(nameEl)nameEl.textContent=d.advisor.name||me.email||'';
+        if(firmEl)firmEl.textContent=d.advisor.firm||me.firm||'';
+      }
+      if(d.deals&&d.deals.length){
+        DEALS=d.deals.map(adaptDeal);currentDealIdx=0;
+        renderSwitcher();renderHeader();renderStageJourney();renderOverview();renderMaterials();
+      }
+    }
+  }
 }
 load();
 </script>
