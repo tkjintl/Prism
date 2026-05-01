@@ -135,7 +135,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .sc-dd{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
 .sc-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .sc-close{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
-.sc-ioi_review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .dp-actions{display:flex;gap:6px;flex-wrap:wrap}
 .dp-btn{padding:5px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--border-m);color:var(--text-2);transition:all .15s;white-space:nowrap;cursor:pointer;font-family:inherit}
 .dp-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
@@ -644,6 +643,68 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
 </div>
 
+<!-- Close Raise modal -->
+<div class="modal-overlay hidden" id="close-raise-modal">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-title">Close Raise</div>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
+      <div>
+        <label style="font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-3);display:block;margin-bottom:5px">CLOSE DATE</label>
+        <input type="date" id="cr-date" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border-m);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 11px;outline:none;border-radius:0">
+      </div>
+      <div>
+        <label style="font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-3);display:block;margin-bottom:5px">REASON</label>
+        <select id="cr-reason" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border-m);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 11px;outline:none;border-radius:0;appearance:none">
+          <option value="push_to_investor">Push to Investor</option>
+          <option value="target_met">Target Met</option>
+          <option value="oversubscribed">Oversubscribed</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-3);display:block;margin-bottom:5px">NOTES <span style="opacity:.5">(optional)</span></label>
+        <textarea id="cr-notes" rows="2" placeholder="Additional context…" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border-m);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 11px;outline:none;border-radius:0;resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="document.getElementById('close-raise-modal').classList.add('hidden')">Cancel</button>
+      <button class="modal-confirm" onclick="confirmCloseRaise()" style="background:var(--red,#c0392b)">Close Raise</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delay Raise modal -->
+<div class="modal-overlay hidden" id="delay-raise-modal">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-title">Delay Raise</div>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
+      <div>
+        <label style="font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-3);display:block;margin-bottom:5px">NEW TARGET DATE</label>
+        <input type="date" id="dr-date" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border-m);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 11px;outline:none;border-radius:0">
+      </div>
+      <div>
+        <label style="font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-3);display:block;margin-bottom:5px">REASON</label>
+        <select id="dr-reason" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border-m);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 11px;outline:none;border-radius:0;appearance:none">
+          <option value="seller">Seller</option>
+          <option value="buyer">Buyer</option>
+          <option value="transaction">Transaction</option>
+          <option value="market">Market Conditions</option>
+          <option value="regulatory">Regulatory</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-3);display:block;margin-bottom:5px">NOTES <span style="opacity:.5">(optional)</span></label>
+        <textarea id="dr-notes" rows="2" placeholder="Additional context…" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border-m);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 11px;outline:none;border-radius:0;resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="document.getElementById('delay-raise-modal').classList.add('hidden')">Cancel</button>
+      <button class="modal-confirm" onclick="confirmDelayRaise()">Delay Raise</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="demo-badge">Admin Demo</div>
 
@@ -712,9 +773,9 @@ let NEW_SUBMISSIONS=[
   {id:'ns1',name:'Meridian Financial Corp',asset_class:'credit',geography:'United States',structure:'Mezzanine',target_irr:15,target_alloc:22000000,term:30,min_ticket:200000,advisor:'David Park',advisor_firm:'Park Capital',submitted:'Apr 28'},
 ];
 
-const STAGE_ORDER=['review','live','ioi_review','dd','close','realized'];
-const STAGE_LABELS={review:'Review',live:'Live',ioi_review:'IOI Review',dd:'Due Diligence',close:'Close',realized:'Realized'};
-const STAGE_CHIP={live:'sc-live',ioi_review:'sc-ioi_review',dd:'sc-dd',review:'sc-review',close:'sc-close'};
+const STAGE_ORDER=['review','live','dd','close','realized'];
+const STAGE_LABELS={review:'Review',live:'Live',dd:'Due Diligence',close:'Close',realized:'Realized'};
+const STAGE_CHIP={live:'sc-live',dd:'sc-dd',review:'sc-review',close:'sc-close'};
 const CLASS_CHIP_COL={credit:'color:var(--blue)',pe:'color:var(--gold)',re:'color:var(--green)',infra:'color:var(--slate)'};
 
 let pendingStage=null,pendingDealId=null;
@@ -938,8 +999,8 @@ function buildDealGroup(g,gi=0){
     </div>
     <div class="ioi-deal-footer">
       <div class="ioi-footer-left" id="footer-left-${g.dealId}">
-        <button class="ioi-action-btn" onclick="dealAction('${g.dealId}','close_raise')">Close Raise</button>
-        <button class="ioi-action-btn" onclick="dealAction('${g.dealId}','delay')">Delay</button>
+        <button class="ioi-action-btn" onclick="openCloseRaiseModal('${g.dealId}')">Close Raise</button>
+        <button class="ioi-action-btn" onclick="openDelayRaiseModal('${g.dealId}')">Delay Raise</button>
         <button class="ioi-action-btn" id="inc-btn-${g.dealId}" onclick="showIncreaseTarget('${g.dealId}')">Increase Target</button>
         <span id="inc-inline-${g.dealId}" style="display:none"></span>
       </div>
@@ -984,6 +1045,41 @@ async function dealAction(dealId,action,params={}){
   }
   if(res?.ok||deal){toast('Deal updated','ok');renderQueue();renderKPIs();}
   else toast('Error updating deal','err');
+}
+
+let _crDealId=null,_drDealId=null;
+
+function openCloseRaiseModal(dealId){
+  _crDealId=dealId;
+  const today=new Date().toISOString().split('T')[0];
+  const inp=document.getElementById('cr-date');
+  if(inp)inp.value=today;
+  document.getElementById('close-raise-modal').classList.remove('hidden');
+}
+
+function confirmCloseRaise(){
+  const date=document.getElementById('cr-date')?.value||'';
+  const reason=document.getElementById('cr-reason')?.value||'';
+  const notes=document.getElementById('cr-notes')?.value?.trim()||'';
+  if(!date){toast('Select a close date','err');return;}
+  document.getElementById('close-raise-modal').classList.add('hidden');
+  dealAction(_crDealId,'close_raise',{closeDate:date,reason,notes});
+}
+
+function openDelayRaiseModal(dealId){
+  _drDealId=dealId;
+  document.getElementById('dr-date').value='';
+  document.getElementById('dr-notes').value='';
+  document.getElementById('delay-raise-modal').classList.remove('hidden');
+}
+
+function confirmDelayRaise(){
+  const date=document.getElementById('dr-date')?.value||'';
+  const reason=document.getElementById('dr-reason')?.value||'';
+  const notes=document.getElementById('dr-notes')?.value?.trim()||'';
+  if(!date){toast('Select a new target date','err');return;}
+  document.getElementById('delay-raise-modal').classList.add('hidden');
+  dealAction(_drDealId,'delay',{newDate:date,reason,notes});
 }
 
 async function pushPackage(dealId){
@@ -1215,7 +1311,6 @@ function confirmPush(){
   const d=DEALS.find(x=>x.id===pushDealId);
   const ioi=d.iois.find(i=>i.id===pushIoiId);
   ioi.pushed=true;
-  d.stage='ioi_review';
   closePushModal();
   if(document.getElementById('view-queue').classList.contains('active'))renderQueue();
   renderOverview();renderKPIs();
@@ -1816,8 +1911,8 @@ function buildDealDetailHTML(deal){
         </div>
         <div class="ddp-ctrl-btns">
           ${nextStage?`<button class="ddp-ctrl-btn advance" onclick="openModal('${deal.id}','${nextStage}');closeDealDetail()">→ Advance to ${STAGE_LABELS[nextStage]}</button>`:''}
-          <button class="ddp-ctrl-btn" onclick="dealAction('${deal.id}','close_raise');toast('Raise closed','ok')">Close Raise</button>
-          <button class="ddp-ctrl-btn" onclick="dealAction('${deal.id}','delay');toast('Raise delayed','ok')">Delay Raise</button>
+          <button class="ddp-ctrl-btn" onclick="closeDealDetail();openCloseRaiseModal('${deal.id}')">Close Raise</button>
+          <button class="ddp-ctrl-btn" onclick="closeDealDetail();openDelayRaiseModal('${deal.id}')">Delay Raise</button>
           <button class="ddp-ctrl-btn push" onclick="pushPackage('${deal.id}');closeDealDetail()">✦ Push Package to Advisor</button>
         </div>
       </div>
