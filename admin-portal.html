@@ -2305,15 +2305,7 @@ function actIoiQueue(dealId,ioiId,action){
         b.className='iqi-actions';
         const badge=document.createElement('span');
         badge.className=`iqi-badge badge-${action}`;badge.textContent=action;badge.style.animation='fadeIn .3s';
-        if(action==='approved'){
-          const deal=DEALS.find(d=>d.id===dealId);
-          const dealPushed=deal.iois.some(i=>i.pushed);
-          const pb=document.createElement('button');
-          pb.className='q-push';pb.textContent='Push →';
-          if(dealPushed){pb.disabled=true;pb.title='1 IOI already pushed';}
-          else{pb.onclick=()=>openPushModal(dealId,ioiId);}
-          b.appendChild(badge);b.appendChild(pb);
-        }else{b.appendChild(badge);}
+        b.appendChild(badge);
         actDiv.parentNode.replaceChild(b,actDiv);
       },150);
     }
