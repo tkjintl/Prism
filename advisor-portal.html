@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -402,6 +402,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     </div>
     <div class="role-badge">Advisor</div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
+    <button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
 
@@ -628,7 +629,11 @@ function toast(msg,k=''){
 function toggleTheme(){
   const h=document.documentElement,dark=h.dataset.theme==='dark';
   h.dataset.theme=dark?'light':'dark';
-  document.getElementById('theme-btn').textContent=dark?'☀':'☾';
+  document.getElementById('theme-btn').textContent=dark?'☾':'☀';
+}
+async function logout(){
+  await fetch('/api/advisor/logout',{method:'POST',credentials:'include'});
+  window.location.href='/login';
 }
 
 function showView(name,btn){
