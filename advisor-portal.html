@@ -1410,6 +1410,7 @@ function renderDataroom(){
           <span class="vdr-file-size">${sizeStr}</span>
           <span class="vdr-file-date">${f.uploadedAt||'Today'}</span>
           <button class="vdr-view-btn" onclick="viewVdrFile('${f.id}')">View</button>
+          <button class="vdr-view-btn" onclick="deleteVdrFile('${f.id}')" style="color:#ef4444;border-color:rgba(220,38,38,.25)" onmouseover="this.style.borderColor='#ef4444'" onmouseout="this.style.borderColor='rgba(220,38,38,.25)'">Delete</button>
         </div>`;
       });
     });
@@ -1547,6 +1548,20 @@ async function handleVdrUpload(fileList){
 
 function viewVdrFile(fileId){
   toast('File viewer coming — opening preview…');
+}
+
+function deleteVdrFile(fileId){
+  const d=DEALS[currentDealIdx];
+  if(!d._vdrFiles)return;
+  d._vdrFiles=d._vdrFiles.filter(f=>f.id!==fileId);
+  renderDataroom();
+  toast('File deleted','');
+  // Persist deletion to backend
+  fetch(`/api/v2?resource=advisor&op=vdr-delete`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({deal_id:d.id,file_id:fileId})
+  }).catch(()=>{});
 }
 
 let _qaReplyToId = null;

@@ -303,6 +303,27 @@ export default async function handler(req, res) {
       return ok(res, { ok: true, files });
     }
 
+    // ── VDR: delete file ─────────────────────────────────────────
+    if (op === 'vdr-delete') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { deal_id, file_id } = req.body || {};
+      if (!deal_id || !file_id) return bad(res, 'deal_id and file_id required');
+      const deal = await getDeal(deal_id);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      // Remove from index and delete file data
+      const index = (await kvGet(`vdr:${deal_id}:index`)) || [];
+      const updated = index.filter(f => f.id !== file_id);
+      await kvSet(`vdr:${deal_id}:index`, updated);
+      await kvDel(`vdr:${deal_id}:file:${file_id}`);
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({ at: new Date().toISOString(), actor: adv.advisor_id, action: 'vdr_delete', meta: { file_id } });
+      deal.updated_at = new Date().toISOString();
+      await saveDeal(deal);
+      return ok(res, { ok: true });
+    }
+
     // ── Q&A: full thread (advisor view) ─────────────────────────
     // KV key: qa:{dealId} — JSON array of Q&A entries
     if (op === 'qa-thread-advisor') {
