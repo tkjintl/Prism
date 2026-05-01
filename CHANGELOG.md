@@ -4,6 +4,17 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin Review & Launch: full-fidelity investor preview with return chart
+
+### `admin-portal.html`
+- **Return Profile section (Edit Content tab):** New `lr-section` block with three numeric inputs — Target IRR (%), Hurdle Rate (%), Term (months). Wired to `oninput="updateLaunchPreview()"`. Includes a live mini-chart preview (`#lr-rp-chart-preview`) showing MOIC/exit value (PE) or annual income/hurdle (yield) as fields are typed.
+- **`openLaunchReview()` auto-populate:** After stats population, reads `deal.target_irr`, `deal.hurdle`, `deal.term_months` (with fallbacks) into the three new return profile inputs.
+- **`renderLRPreview()` full rewrite:** Investor Preview tab now renders the complete investor portal layout — deal logo chip, asset class badge, geography/structure, serif deal name, thesis block, highlight cards grid, asset-class-aware return chart (PE: 3-scenario Conservative/Base/Upside grid + year-by-year value path table; credit/infra/RE: income bar chart with hurdle line), deal stage timeline, document slots grid (4 slots, opacity-dimmed if not uploaded), and a sticky right-column stats grid (6 cells: IRR, Term, Min Ticket, Allocation, Hurdle, Closing countdown) + IOI flow placeholder with subscription bar.
+- **`updateLaunchPreview()` mini-chart refresh:** Appended return profile mini-chart logic — live MOIC/exit calculation (PE) or annual income (yield) displayed in the Edit Content tab as the operator types, before switching to the full preview.
+- **CSS:** Added `.eq-scenarios`, `.eq-sc`, `.eq-sc.is-base`, and all `.eq-sc-*` label classes to match the investor portal PE return chart styles.
+
+---
+
 ## [2026-05-01] — Return calc by asset class, IOI confirmation + lobby return, API error fix
 
 ### `investor-portal.html`

@@ -580,6 +580,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   /* KPI card touch targets */
   .kpi-card{padding:14px 16px}
 }
+/* ── EQUITY VALUE PATH (mirrored from investor portal for admin preview) ── */
+.eq-scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.eq-sc{border:1px solid var(--border);border-radius:var(--r);padding:12px 10px;text-align:center}
+.eq-sc.is-base{border-color:var(--gold-bd);background:var(--gold-bg)}
+.eq-sc-name{font-size:9px;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.eq-sc-irr{font-family:var(--mono);font-size:17px;font-weight:500;color:var(--text);line-height:1}
+.eq-sc-irr-lbl{font-size:9px;color:var(--text-3);font-family:var(--sans);margin-top:2px;margin-bottom:8px}
+.eq-sc-moic{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--gold)}
+.eq-sc-moic-lbl{font-size:9px;color:var(--text-3);font-family:var(--sans);margin-bottom:6px}
+.eq-sc-exit{font-family:var(--mono);font-size:11px;color:var(--text-2)}
+.eq-sc-exit-lbl{font-size:9px;color:var(--text-3);font-family:var(--sans)}
 </style>
 </head>
 <body>
@@ -868,6 +879,28 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
             </div>
           </div>
         </div>
+        <!-- Return Profile -->
+        <div class="lr-section">
+          <div class="lr-section-title">Return Profile <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-3);font-size:9px;font-family:var(--sans)"> — drives investor return chart</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+            <div class="lr-stat-chip">
+              <div class="lr-stat-chip-lbl">Target IRR (%)</div>
+              <input class="lr-stat-chip-input" id="lr-rp-irr" type="number" step="0.5" placeholder="e.g. 14" oninput="updateLaunchPreview()">
+            </div>
+            <div class="lr-stat-chip">
+              <div class="lr-stat-chip-lbl">Hurdle Rate (%)</div>
+              <input class="lr-stat-chip-input" id="lr-rp-hurdle" type="number" step="0.5" placeholder="e.g. 8" oninput="updateLaunchPreview()">
+            </div>
+            <div class="lr-stat-chip">
+              <div class="lr-stat-chip-lbl">Term (months)</div>
+              <input class="lr-stat-chip-input" id="lr-rp-term" type="number" step="1" placeholder="e.g. 36" oninput="updateLaunchPreview()">
+            </div>
+          </div>
+          <div id="lr-rp-chart-preview" style="background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;min-height:60px">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px" id="lr-rp-chart-label">—</div>
+            <div id="lr-rp-chart-body"></div>
+          </div>
+        </div>
         <!-- Preview -->
         <div class="lr-section">
           <div class="lr-preview-label">Investor Portal Preview</div>
@@ -951,7 +984,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
   </div><!-- /lr-edit-view -->
   <div id="lr-preview-view" style="display:none;padding:40px clamp(20px,5vw,72px)">
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)">INVESTOR PORTAL PREVIEW — as seen by approved investors</div>
     <div id="lr-preview-content"></div>
   </div>
 </div>
@@ -2335,6 +2367,14 @@ function openLaunchReview(deal,content){
     if(el)el.value=stats[k]||'';
   });
 
+  // Return profile financial params — drives the return chart in preview
+  const rpIrr = document.getElementById('lr-rp-irr');
+  const rpHurdle = document.getElementById('lr-rp-hurdle');
+  const rpTerm = document.getElementById('lr-rp-term');
+  if(rpIrr) rpIrr.value = deal.target_irr || deal.target_irr_pct || content?.stats?.irr || '';
+  if(rpHurdle) rpHurdle.value = deal.hurdle || deal.hurdle_rate || '';
+  if(rpTerm) rpTerm.value = deal.term_months || deal.term || '';
+
   // Mode
   selectLaunchMode('featured');
 
@@ -2442,6 +2482,38 @@ function updateLaunchPreview(){
   const pct=deal.target_alloc>0?Math.min(Math.round((deal.ioi_agg||0)/deal.target_alloc*100),100):0;
   if(subFill)subFill.style.width=pct+'%';
   if(subLbl)subLbl.textContent=pct+'% subscribed · '+fmU(deal.ioi_agg||0)+' indicated';
+
+  // Update return profile mini-chart
+  const rpIrr=parseFloat(document.getElementById('lr-rp-irr')?.value)||0;
+  const rpHurdle=parseFloat(document.getElementById('lr-rp-hurdle')?.value)||0;
+  const rpTerm=parseInt(document.getElementById('lr-rp-term')?.value)||0;
+  const rpChartLabel=document.getElementById('lr-rp-chart-label');
+  const rpChartBody=document.getElementById('lr-rp-chart-body');
+  if(rpIrr&&rpChartLabel&&rpChartBody){
+    const ac2=deal.asset_class||'credit';
+    if(ac2==='pe'){
+      const yrs=Math.max(1,Math.ceil(rpTerm/12));
+      const moic=Math.pow(1+rpIrr/100,yrs).toFixed(2);
+      const exitVal=fmU(Math.round(500000*Math.pow(1+rpIrr/100,yrs)));
+      rpChartLabel.textContent=`Equity Value Path · ${rpIrr}% IRR · ${yrs}yr hold`;
+      rpChartBody.innerHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div><div style="font-family:var(--mono);font-size:11px;color:var(--text-3)">Base MOIC</div><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--gold)">${moic}×</div></div>
+        <div><div style="font-family:var(--mono);font-size:11px;color:var(--text-3)">$500K exit</div><div style="font-family:var(--mono);font-size:16px;font-weight:500">${exitVal}</div></div>
+        <div><div style="font-family:var(--mono);font-size:11px;color:var(--text-3)">Hold</div><div style="font-family:var(--mono);font-size:16px;font-weight:500">${yrs}yr</div></div>
+      </div>`;
+    } else {
+      const annualInc=Math.round(500000*rpIrr/100);
+      rpChartLabel.textContent=`Income/Yield · ${rpIrr}% IRR · Hurdle ${rpHurdle}%`;
+      rpChartBody.innerHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div><div style="font-family:var(--mono);font-size:11px;color:var(--text-3)">Annual income</div><div style="font-family:var(--mono);font-size:16px;font-weight:500;color:var(--gold)">$${(annualInc/1000).toFixed(0)}K/yr</div></div>
+        <div><div style="font-family:var(--mono);font-size:11px;color:var(--text-3)">Hurdle</div><div style="font-family:var(--mono);font-size:16px;font-weight:500">${rpHurdle}%</div></div>
+        ${rpTerm?`<div><div style="font-family:var(--mono);font-size:11px;color:var(--text-3)">Term</div><div style="font-family:var(--mono);font-size:16px;font-weight:500">${rpTerm}mo</div></div>`:''}
+      </div>`;
+    }
+  } else if(rpChartLabel){
+    rpChartLabel.textContent='Enter IRR, Hurdle, and Term above to preview return profile';
+    if(rpChartBody)rpChartBody.innerHTML='';
+  }
 }
 
 function buildLaunchChecklist(deal,content){
@@ -2480,49 +2552,213 @@ function switchLRTab(tab){
 function renderLRPreview(){
   const deal=_launchDeal;
   if(!deal)return;
-  const tagline=document.getElementById('lr-tagline')?.value||_launchContent?.tagline||'';
+  const tagline=document.getElementById('lr-tagline')?.value||_launchContent?.tagline||deal.mk_notes||'';
   const thesis=document.getElementById('lr-thesis')?.value||_launchContent?.thesis||'';
-  // Read highlights from editable input rows
   const hlEls=document.querySelectorAll('.lr-hl-input');
   const highlights=Array.from(hlEls).map(el=>{
     const txt=el.value||'';
     return{icon:'◆',s:txt.split(' — ')[0]?.slice(0,50)||txt.slice(0,50),b:txt.split(' — ')[1]||txt};
   });
-  const irr=document.getElementById('lr-stat-irr')?.value||deal.target_irr||'—';
-  const term=document.getElementById('lr-stat-term')?.value||deal.term||'—';
-  const ticket=document.getElementById('lr-stat-ticket')?.value||fmU(deal.min_ticket||deal.min_ticket_usd||0);
+  const irr=parseFloat(document.getElementById('lr-rp-irr')?.value)||deal.target_irr||12;
+  const hurdle=parseFloat(document.getElementById('lr-rp-hurdle')?.value)||deal.hurdle||deal.hurdle_rate||8;
+  const termMo=parseInt(document.getElementById('lr-rp-term')?.value)||deal.term_months||deal.term||36;
+  const termYrs=Math.max(1,Math.ceil(termMo/12));
   const alloc=deal.target_alloc||deal.target_alloc_usd||0;
   const ioi_agg=deal.ioi_agg||0;
   const pct=alloc>0?Math.round(ioi_agg/alloc*100):0;
-  const hlCards=highlights.map((h,i)=>`
+  const minTicket=deal.min_ticket||deal.min_ticket_usd||deal.platform_min_ticket_usd||0;
+  const ac=deal.asset_class||'credit';
+  const ticker=((deal.name||'???').replace(/[^A-Za-z]/g,'').slice(0,3)).toUpperCase();
+  const LOGO_C={infra:'#7B8FA1',credit:'#5b85b8',pe:'#C5A572',re:'#5a9e72'};
+  const LOGO_BG={infra:'rgba(123,143,161,0.12)',credit:'rgba(91,133,184,0.12)',pe:'rgba(197,165,114,0.12)',re:'rgba(90,158,114,0.12)'};
+  const LOGO_BD={infra:'rgba(123,143,161,0.3)',credit:'rgba(91,133,184,0.3)',pe:'rgba(197,165,114,0.3)',re:'rgba(90,158,114,0.3)'};
+  const CLASS_LABEL={credit:'Private Credit',pe:'Private Equity',re:'Real Estate',infra:'Infrastructure'};
+  const closing=deal.closing_date||deal.closing||'';
+  const days=closing?Math.round((new Date(closing)-new Date())/86400000):0;
+
+  // Highlight cards
+  const hlCards=highlights.length?highlights.map((h,i)=>`
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;animation-delay:${i*55}ms">
       <div style="font-size:16px;margin-bottom:6px">${h.icon}</div>
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${h.s}</div>
-      <div style="font-size:13px;color:var(--text-2);line-height:1.6">${h.b}</div>
+      <div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${h.s}</div>
+      <div style="font-family:var(--sans);font-size:13px;color:var(--text-2);line-height:1.6">${h.b}</div>
+    </div>`).join(''):
+    '<div style="color:var(--text-3);font-size:12px;padding:10px">Add highlights in the Edit Content tab</div>';
+
+  // Return chart — asset-class aware (static for preview, no animation)
+  let returnChartHtml='';
+  if(ac==='pe'){
+    const irrBase=irr/100;
+    const irrDown=Math.max(0.05,Math.round(irrBase*0.6*100)/100);
+    const irrUp=Math.round(irrBase*1.35*100)/100;
+    const inv=500000;
+    const scenarios=[
+      {name:'Conservative',irrPct:Math.round(irrDown*100),moic:Math.pow(1+irrDown,termYrs),val:Math.round(inv*Math.pow(1+irrDown,termYrs)),cls:''},
+      {name:'Base Case',   irrPct:irr,                    moic:Math.pow(1+irrBase,termYrs),val:Math.round(inv*Math.pow(1+irrBase,termYrs)),cls:'is-base'},
+      {name:'Upside',      irrPct:Math.round(irrUp*100),  moic:Math.pow(1+irrUp,termYrs),  val:Math.round(inv*Math.pow(1+irrUp,termYrs)),  cls:''},
+    ];
+    const scenHtml=scenarios.map(s=>`<div class="eq-sc ${s.cls}">
+      <div class="eq-sc-name">${s.name}</div>
+      <div class="eq-sc-irr">${s.irrPct}%</div>
+      <div class="eq-sc-irr-lbl">Target IRR</div>
+      <div class="eq-sc-moic">${s.moic.toFixed(2)}×</div>
+      <div class="eq-sc-moic-lbl">MOIC at exit</div>
+      <div class="eq-sc-exit">${fmU(s.val)}</div>
+      <div class="eq-sc-exit-lbl">Exit value on $500K</div>
     </div>`).join('');
-  const statGrid=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px">
-      <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3)">Target IRR</div><div style="font-family:var(--mono);font-size:20px;color:var(--gold)">${irr}%</div></div>
-      <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3)">Term</div><div style="font-family:var(--mono);font-size:20px">${term}mo</div></div>
-      <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3)">Min Ticket</div><div style="font-family:var(--mono);font-size:20px">${ticket}</div></div>
-      <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3)">Allocation</div><div style="font-family:var(--mono);font-size:20px">${fmU(alloc)}</div></div>
-    </div>`;
-  document.getElementById('lr-preview-content').innerHTML=`
-    <div style="max-width:900px">
-      <div style="margin-bottom:8px"><span style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)">Featured Opportunity</span></div>
-      <h1 style="font-family:var(--serif);font-style:italic;font-size:clamp(32px,5vw,56px);color:var(--text);margin-bottom:12px;line-height:1.1">${deal.name||'—'}</h1>
-      <p style="font-size:14px;color:var(--text-2);line-height:1.8;max-width:560px;margin-bottom:28px">${tagline}</p>
-      <div style="display:grid;grid-template-columns:1fr 360px;gap:40px;align-items:start">
-        <div>
-          <p style="font-size:14px;line-height:1.9;color:var(--text-2);margin-bottom:24px;padding:14px 16px;background:var(--bg-3);border-radius:4px;border-left:2px solid var(--gold-bd)">${thesis}</p>
-          <div style="display:grid;gap:8px;margin-bottom:28px">${hlCards}</div>
+    let rowsHtml='';
+    const maxVal=Math.round(inv*Math.pow(1+irrBase,termYrs));
+    for(let yr=1;yr<=Math.min(termYrs,5);yr++){
+      const val=Math.round(inv*Math.pow(1+irrBase,yr));
+      const moic=Math.pow(1+irrBase,yr);
+      const pct2=Math.round(val/maxVal*100);
+      const isExit=yr===termYrs||yr===Math.min(termYrs,5);
+      rowsHtml+=`<tr>
+        <td style="font-family:var(--mono);font-size:11px;padding:6px 6px;border-bottom:1px solid var(--border);color:var(--text-2)">Yr ${yr}${isExit&&yr===termYrs?' <span style="font-size:8px;padding:1px 5px;border:1px solid var(--gold-bd);color:var(--gold);border-radius:2px;font-family:var(--mono);margin-left:4px">TARGET EXIT</span>':''}</td>
+        <td style="font-family:var(--mono);font-size:11px;padding:6px 6px;border-bottom:1px solid var(--border);color:var(--text-2)">${fmU(val)}</td>
+        <td style="font-family:var(--mono);font-size:11px;padding:6px 6px;border-bottom:1px solid var(--border);color:var(--text-2)">${moic.toFixed(2)}×</td>
+        <td style="padding:6px 6px;border-bottom:1px solid var(--border);width:35%"><div style="background:var(--bg-3);height:4px;border-radius:2px;overflow:hidden"><div style="height:4px;border-radius:2px;background:var(--gold);width:${pct2}%"></div></div></td>
+      </tr>`;
+    }
+    returnChartHtml=`
+      <div style="margin-bottom:30px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px">Value Path · $500K at Base Case IRR · ${termYrs}-Year Hold</div>
+        <div class="eq-scenarios">${scenHtml}</div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-top:4px;margin-bottom:8px">Year-by-Year Projection · Base Case ${irr}% IRR</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="font-size:9px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);text-align:left;padding:5px 6px;border-bottom:1px solid var(--border)">Period</th>
+            <th style="font-size:9px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);text-align:left;padding:5px 6px;border-bottom:1px solid var(--border)">Value</th>
+            <th style="font-size:9px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);text-align:left;padding:5px 6px;border-bottom:1px solid var(--border)">MOIC</th>
+            <th style="border-bottom:1px solid var(--border)"></th>
+          </tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>`;
+  } else {
+    // Income / yield chart (credit, infra, RE)
+    const inv=500000;
+    const vals=[
+      Math.round(inv*Math.max(irr-5,1)/100),
+      Math.round(inv*irr/100),
+      Math.round(inv*(irr+4)/100),
+    ];
+    const maxV=Math.max(...vals);
+    const barScenarios=[
+      {id:'d',val:vals[0],cls:'background:var(--border-m)',lbl:'Downside'},
+      {id:'b',val:vals[1],cls:'background:linear-gradient(to top,var(--gold),rgba(197,165,114,.7))',lbl:'Base Case'},
+      {id:'u',val:vals[2],cls:'background:linear-gradient(to top,var(--gold-b),var(--gold))',lbl:'Upside'},
+    ];
+    const barsHtml=barScenarios.map(s=>`
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+        <div style="font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text)">$${(s.val/1000).toFixed(0)}K/yr</div>
+        <div style="width:100%;border-radius:3px 3px 0 0;${s.cls};height:${Math.round(s.val/maxV*100)}px;min-height:8px"></div>
+        <div style="font-size:11px;color:var(--text-3);font-family:var(--sans)">${s.lbl}</div>
+      </div>`).join('');
+    returnChartHtml=`
+      <div style="margin-bottom:30px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px">${ac==='re'?'Distribution & Return Scenarios':'Income Scenarios'} · $500K Invested at Base Case</div>
+        <div style="display:flex;align-items:flex-end;gap:10px;height:120px;padding:0 4px">${barsHtml}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <div style="flex:1;height:1px;border-top:1px dashed var(--border-m)"></div>
+          <span style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Hurdle: ${hurdle}%</span>
         </div>
-        <div>${statGrid}
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px">
-            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">Express Interest</div>
-            <div style="font-size:12px;color:var(--text-3);padding:12px;background:var(--bg-3);border-radius:var(--r);text-align:center">Subscription bar: ${pct}% indicated<br><span style="font-family:var(--mono)">${fmU(ioi_agg)} of ${fmU(alloc)}</span></div>
-            <div style="margin-top:12px;width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden"><div style="width:${Math.min(pct,100)}%;height:100%;background:var(--gold)"></div></div>
+      </div>`;
+  }
+
+  // Stage timeline
+  const STAGE_ORDER=['review','live','dd','close','realized'];
+  const STAGE_LABELS_P={review:'Review',live:'Live',dd:'Due Diligence',close:'Close',realized:'Realized'};
+  const ci=STAGE_ORDER.indexOf(deal.stage||'live');
+  const tlHtml=`<div style="margin-bottom:30px">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px">Deal Progress</div>
+    <div style="display:flex;align-items:center;gap:0">
+      ${STAGE_ORDER.map((s,i)=>{
+        const done=i<ci;const cur=i===ci;
+        const nodeClr=done?'var(--green)':cur?'var(--gold)':'var(--text-3)';
+        const icon=done?'✓':cur?'●':'○';
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative">
+          ${i>0?`<div style="position:absolute;top:9px;left:-50%;right:50%;height:1px;background:${done||cur?'var(--gold-bd)':'var(--border)'}"></div>`:''}
+          <div style="width:18px;height:18px;border-radius:50%;background:${done?'var(--green-bg)':cur?'var(--gold-bg)':'var(--bg-3)'};border:1px solid ${done?'var(--green-bd)':cur?'var(--gold-bd)':'var(--border)'};display:flex;align-items:center;justify-content:center;font-size:9px;color:${nodeClr};z-index:1">${icon}</div>
+          <div style="font-size:9px;color:${nodeClr};font-family:var(--sans);text-align:center">${STAGE_LABELS_P[s]}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  // Documents
+  const SLOT_LABELS={nda:'NDA Template',mgmt:'Management Presentation',fin:'Financial Summary',term:'Term Sheet'};
+  const SLOT_ICONS={nda:'🔑',mgmt:'📄',fin:'📊',term:'📋'};
+  const docSlots=['nda','mgmt','fin','term'];
+  const uploadedDocs=deal.docs||[];
+  const docsHtml=docSlots.map(slot=>{
+    const uploaded=uploadedDocs.find(d=>d.slot===slot);
+    const isPublic=slot==='nda';
+    return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:6px;${!uploaded?'opacity:.4':''}">
+      <div style="font-size:16px">${SLOT_ICONS[slot]}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text);font-family:var(--sans)">${SLOT_LABELS[slot]}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-2)">${uploaded?uploaded.name||uploaded.filename||uploaded.label:'Not uploaded'}</div>
+      <div style="font-size:9px;padding:2px 7px;border-radius:2px;width:fit-content;border:1px solid;${isPublic?'color:var(--blue);border-color:rgba(91,133,184,.3);background:rgba(91,133,184,.08)':'color:var(--text-3);border-color:var(--border)'}">
+        ${isPublic?'🌐 Public':'🔒 NDA Required'}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Stats grid (right panel)
+  const statGrid=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px">
+    <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Target IRR</div><div style="font-family:var(--mono);font-size:20px;color:var(--gold)">${irr}%</div></div>
+    <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Term</div><div style="font-family:var(--mono);font-size:20px">${termMo}mo</div></div>
+    <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Min Ticket</div><div style="font-family:var(--mono);font-size:20px">${fmU(minTicket)}</div></div>
+    <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Allocation</div><div style="font-family:var(--mono);font-size:20px">${fmU(alloc)}</div></div>
+    <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Hurdle Rate</div><div style="font-family:var(--mono);font-size:20px">${hurdle}%</div></div>
+    <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Closing</div><div style="font-family:var(--mono);font-size:20px;${days>0&&days<30?'color:var(--red)':days<60?'color:var(--gold)':''}">${days>0?days+'d':'—'}</div></div>
+  </div>`;
+
+  // IOI form preview (static placeholder)
+  const ioiPlaceholder=`<div style="border:1px solid var(--border);border-radius:var(--r);background:var(--surface);overflow:hidden">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text);font-family:var(--sans);display:flex;align-items:center;justify-content:space-between">
+      Express Interest
+      <span style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text-3);text-transform:uppercase">Investor Portal</span>
+    </div>
+    <div style="padding:18px">
+      <div style="font-size:12px;color:var(--text-3);font-family:var(--sans);text-align:center;padding:16px;background:var(--bg-3);border-radius:var(--r)">
+        NDA required → Indication amount ($100K–$5M) → Acknowledgements → Submit<br>
+        <span style="font-family:var(--mono);font-size:10px;margin-top:6px;display:block">${pct}% subscribed · ${fmU(ioi_agg)} of ${fmU(alloc)}</span>
+      </div>
+      <div style="margin-top:10px;width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden"><div style="width:${Math.min(pct,100)}%;height:100%;background:var(--gold)"></div></div>
+    </div>
+  </div>`;
+
+  document.getElementById('lr-preview-content').innerHTML=`
+    <div style="max-width:1100px">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)">INVESTOR PORTAL PREVIEW — as seen by approved investors</div>
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:36px;align-items:start">
+        <!-- Left column -->
+        <div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <div style="width:48px;height:48px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:500;flex-shrink:0;border:1px solid;color:${LOGO_C[ac]||LOGO_C.credit};background:${LOGO_BG[ac]||LOGO_BG.credit};border-color:${LOGO_BD[ac]||LOGO_BD.credit}">${ticker}</div>
+            <div>
+              <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--text-2);font-family:var(--sans)">
+                <span style="font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:20px;border:1px solid;letter-spacing:.06em;${ac==='pe'?'color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)':ac==='re'?'color:var(--green);border-color:rgba(90,158,114,.3);background:rgba(90,158,114,.1)':ac==='infra'?'color:var(--slate);border-color:rgba(123,143,161,.3);background:rgba(123,143,161,.1)':'color:var(--blue);border-color:rgba(91,133,184,.3);background:rgba(91,133,184,.1)'}">${CLASS_LABEL[ac]||ac}</span>
+                <span>${deal.geography||'—'}</span> · <span>${deal.structure||deal.deal_structure||'—'}</span>
+              </div>
+            </div>
           </div>
+          <h1 style="font-family:var(--serif);font-style:italic;font-size:clamp(24px,4vw,38px);color:var(--text);margin-bottom:10px;line-height:1.1">${deal.name||'—'}</h1>
+          <p style="font-size:14px;line-height:1.9;color:var(--text-2);margin-bottom:24px;padding:14px 16px;background:var(--bg-3);border-radius:4px;border-left:2px solid var(--gold-bd)">${thesis||'<span style="color:var(--text-3)">Investment thesis will appear here</span>'}</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:28px">${hlCards}</div>
+          ${returnChartHtml}
+          ${tlHtml}
+          <div style="margin-bottom:20px">
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px">Deal Documents</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${docsHtml}</div>
+            <div style="font-size:11px;color:var(--text-3);font-family:var(--sans);margin-top:8px;padding:8px 10px;background:var(--bg-3);border-radius:var(--r);border:1px solid var(--border)">Full document suite unlocks for investors after IOI submission + NDA signing.</div>
+          </div>
+        </div>
+        <!-- Right column -->
+        <div style="position:sticky;top:20px">
+          ${statGrid}
+          ${ioiPlaceholder}
         </div>
       </div>
     </div>`;
