@@ -411,6 +411,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{background:var(--green);color:#fff}.toast.err{background:var(--red);color:#fff}
 .demo-badge{position:fixed;bottom:16px;right:16px;z-index:300;padding:6px 12px;background:var(--bg-3);border:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);border-radius:20px}
+
+/* REVIEW EDIT INLINE */
+.rev-edit-hint{font-family:var(--sans);font-size:9px;color:var(--text-3);margin-left:6px;opacity:0;transition:opacity .15s}
+.rev-field-wrap:hover .rev-edit-hint{opacity:1}
+@media(max-width:700px){
+  #review-edit-content .rev-two-col{grid-template-columns:1fr!important}
+}
 @media(max-width:640px){.deal-header{grid-template-columns:1fr}.dh-ring-side{align-items:flex-start}.materials-grid{grid-template-columns:1fr 1fr}.perf-layout{grid-template-columns:1fr}}
 
 /* ── MOBILE FIXES ── */
@@ -519,6 +526,24 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
+
+<!-- ══ REVIEW NOTIFICATION OVERLAY ══ -->
+<div id="review-notify-overlay" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,9,8,.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;animation:fadeIn .3s ease">
+  <div id="review-notify-box" style="max-width:520px;width:90%;background:var(--surface);border:1px solid var(--gold-bd);border-radius:var(--r);padding:0;overflow:hidden">
+    <div style="background:linear-gradient(135deg,var(--bg-2),var(--bg-3));padding:32px 36px 24px;border-bottom:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Action Required</div>
+      <div style="font-family:var(--serif);font-style:italic;font-size:26px;color:var(--text);line-height:1.2;margin-bottom:8px" id="rno-title">Deal Profile Ready for Review</div>
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--text-3)" id="rno-deal-name"></div>
+    </div>
+    <div style="padding:24px 36px">
+      <div style="font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:24px">The Aurum team has generated an investor deal profile for your deal. Please review the AI-generated content, make any edits, and confirm before it is published to the investor portal.</div>
+      <div style="display:flex;gap:12px">
+        <button id="rno-review-btn" onclick="dismissReviewOverlay(true)" style="flex:1;padding:14px 20px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;border:none;border-radius:2px;cursor:pointer">Review Now →</button>
+        <button onclick="dismissReviewOverlay(false)" style="padding:14px 20px;border:1px solid var(--border-m);color:var(--text-3);font-size:12px;border-radius:2px;background:none;cursor:pointer;font-family:var(--sans)">Later</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ══ VIEW: MY DEALS ══ -->
 <div id="view-deal" class="view active">
@@ -810,6 +835,8 @@ const DOT_CLS={live:'dot-live',review:'dot-review',dd:'dot-dd',close:'dot-dd'};
 let currentDealIdx=0;
 let wStep=1;
 let wizData={}; // persists values across wizard steps
+let _pendingReviewDealId=null;
+let _revEdits={};
 
 function wizSaveStep(){
   if(wStep===1){
@@ -838,6 +865,8 @@ const fmU=n=>{
   if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';
   return'$'+n;
 };
+function fmNum(v){ if(!v&&v!==0) return ''; return Number(String(v).replace(/[^0-9.]/g,'')||0).toLocaleString('en-US'); }
+function parseNum(s){ return parseFloat(String(s||0).replace(/[^0-9.]/g,''))||0; }
 function fmtAmtInput(el) {
   const raw = parseInt(el.value.replace(/[^0-9]/g,'')) || 0;
   el.value = raw ? raw.toLocaleString('en-US') : '';
@@ -1843,65 +1872,245 @@ async function wizHandleFile(slot,input){
   }
 }
 
+/* ── REVIEW OVERLAY ── */
+function dismissReviewOverlay(goToReview){
+  const el=document.getElementById('review-notify-overlay');
+  if(el)el.style.display='none';
+  if(goToReview&&_pendingReviewDealId){
+    const idx=DEALS.findIndex(x=>x.id===_pendingReviewDealId);
+    if(idx>=0){
+      switchDeal(idx);
+      setTimeout(()=>{
+        const reviewBtn=document.getElementById('ctab-review');
+        if(reviewBtn&&reviewBtn.style.display!=='none')showTab('review',reviewBtn);
+      },120);
+    }
+  }
+}
+
+function checkReviewOverlay(){
+  // Check DEALS for any pending review (notification or advisor_review_status)
+  const pending=DEALS.flatMap(d=>(d.notifications||[]).map(n=>({n,d}))).find(({n})=>n.type==='deal_review_requested'&&!n.read);
+  if(pending){
+    _pendingReviewDealId=pending.d.id;
+    const box=document.getElementById('rno-deal-name');
+    if(box)box.textContent=pending.d.name||pending.n.deal_name||'';
+    const overlay=document.getElementById('review-notify-overlay');
+    if(overlay)overlay.style.display='flex';
+    return;
+  }
+  // Fallback: check advisor_review_status field
+  const byStatus=DEALS.find(d=>d.advisor_review_status==='pending');
+  if(byStatus){
+    _pendingReviewDealId=byStatus.id;
+    const box=document.getElementById('rno-deal-name');
+    if(box)box.textContent=byStatus.name||'';
+    const overlay=document.getElementById('review-notify-overlay');
+    if(overlay)overlay.style.display='flex';
+  }
+}
+
 /* ── REVIEW & EDIT ── */
 function renderReviewEdit(){
   const d=DEALS[currentDealIdx];
-  if(!d){document.getElementById('review-edit-content').innerHTML='';return;}
+  if(!d){
+    const el=document.getElementById('review-edit-content');
+    if(el)el.innerHTML='';
+    return;
+  }
+
+  const lc={credit:'#A89A6A',pe:'#6A8BA8',re:'#6AA87A',infra:'#8A6AA8'}[d.asset_class]||'#A89A6A';
+  const ticker=(d.name||'???').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase();
+  const CLASS_LABEL={credit:'Private Credit',pe:'Private Equity',re:'Real Estate',infra:'Infrastructure'};
+
   document.getElementById('review-edit-content').innerHTML=`
-    <div style="max-width:680px">
-      <div style="margin-bottom:24px">
-        <div style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Deal Profile Review</div>
-        <div style="font-size:13px;color:var(--text-2);line-height:1.6">Review and edit the AI-generated deal profile below. Once confirmed, the Aurum team will do a final review before publishing to investors.</div>
+    <div style="max-width:900px">
+      <!-- Header banner -->
+      <div style="background:linear-gradient(135deg,var(--bg-2),var(--bg-3));border:1px solid var(--gold-bd);border-radius:var(--r);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+        <div>
+          <div style="font-family:var(--mono);font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:4px">Investor Preview · Review &amp; Edit</div>
+          <div style="font-size:12px;color:var(--text-2)">This is exactly what investors will see. Click any field to edit. Confirm when ready.</div>
+        </div>
+        <span style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--amber-bd);color:var(--amber);background:var(--amber-bg);border-radius:20px;white-space:nowrap">Pending Review</span>
       </div>
-      <div style="display:flex;flex-direction:column;gap:16px">
-        ${reviewField('Deal Name','rev-name',d.name||'')}
-        ${reviewField('Target IRR (%)','rev-irr',d.target_irr||'')}
-        ${reviewField('Target Allocation (USD)','rev-alloc',d.target_alloc||d.target_alloc_usd||'')}
-        ${reviewField('Min Ticket (USD)','rev-ticket',d.min_ticket||d.min_ticket_usd||'')}
-        ${reviewField('Term (months)','rev-term',d.term||d.term_months||'')}
-        ${reviewField('Closing Date','rev-closing',d.closing||d.closing_date||'')}
-        ${reviewField('Geography','rev-geo',d.geography||'')}
-        ${reviewField('Structure','rev-structure',d.structure||'')}
-        ${reviewTextarea('Investment Thesis','rev-thesis',d.thesis||'')}
-      </div>
-      <div style="display:flex;gap:12px;margin-top:32px">
-        <button onclick="confirmDealReview()" style="flex:1;padding:14px 24px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer">Confirm &amp; Send to Admin →</button>
+
+      <!-- Two-col layout -->
+      <div class="rev-two-col" style="display:grid;grid-template-columns:1fr 280px;gap:24px;align-items:start">
+
+        <!-- LEFT: deal content -->
+        <div>
+          <!-- Identity row -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <div style="width:44px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:500;flex-shrink:0;border:1px solid var(--border);color:${lc};background:var(--bg-2)">${ticker}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.08em">${CLASS_LABEL[d.asset_class]||d.asset_class||'—'} · ${d.geography||''} · ${d.structure||''}</div>
+          </div>
+
+          <!-- Deal name — editable -->
+          <div style="margin-bottom:16px" class="rev-field-wrap">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Deal Name <span class="rev-edit-hint">✎ click to edit</span></div>
+            <div class="rev-display rev-name-display" onclick="revToggleEdit('rev-name')" style="font-family:var(--serif);font-style:italic;font-size:clamp(20px,3vw,28px);color:var(--text);line-height:1.2;cursor:pointer;border-bottom:1px dashed var(--border-m);padding-bottom:4px">${d.name||'—'}</div>
+            <input id="rev-name" class="rev-input" style="display:none;width:100%;padding:8px 10px;background:var(--surface);border:1px solid var(--gold-bd);border-radius:3px;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text)" value="${(d.name||'').replace(/"/g,'&quot;')}" onblur="revSaveEdit('rev-name','name')">
+          </div>
+
+          <!-- Thesis — editable -->
+          <div style="margin-bottom:24px" class="rev-field-wrap">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Investment Thesis <span class="rev-edit-hint">✎ click to edit</span></div>
+            <div class="rev-display rev-thesis-display" onclick="revToggleEdit('rev-thesis')" style="font-size:14px;line-height:1.9;color:var(--text-2);cursor:pointer;border-bottom:1px dashed var(--border-m);padding-bottom:4px">${d.thesis||'No thesis set — click to add.'}</div>
+            <textarea id="rev-thesis" class="rev-input" style="display:none;width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--gold-bd);border-radius:3px;font-size:13px;color:var(--text);line-height:1.7;resize:vertical;min-height:120px" onblur="revSaveEdit('rev-thesis','thesis')">${d.thesis||''}</textarea>
+          </div>
+
+          <!-- Highlights — editable one by one -->
+          <div style="margin-bottom:24px">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Key Highlights <span class="rev-edit-hint">✎ click to edit</span></div>
+            <div id="rev-highlights-list" style="display:flex;flex-direction:column;gap:8px">
+              ${(d.highlights||[]).length>0?(d.highlights||[]).map((h,i)=>`
+                <div style="display:flex;gap:12px;padding:12px;background:var(--bg-3);border:1px solid var(--border);border-radius:4px;cursor:pointer" onclick="revEditHighlight(${i})" id="rev-hl-row-${i}">
+                  <div style="font-size:18px;width:28px;flex-shrink:0">${h.icon||'◆'}</div>
+                  <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600;color:var(--text-1,var(--text));margin-bottom:2px">${h.s||''}</div>
+                    <div style="font-size:12px;color:var(--text-2);line-height:1.5">${h.b||''}</div>
+                  </div>
+                  <div style="font-size:10px;color:var(--text-3);flex-shrink:0;align-self:center">✎</div>
+                </div>`).join(''):`<div style="padding:12px;background:var(--bg-3);border:1px dashed var(--border-m);border-radius:4px;font-size:12px;color:var(--text-3);text-align:center">No highlights — add from the deal profile data.</div>`}
+            </div>
+          </div>
+
+          <!-- Key stats chips row -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            ${[['Target IRR',(d.target_irr||'—')+'%'],['Term',(d.term||'—')+'mo'],['Min Ticket','$'+fmNum(d.min_ticket||d.min_ticket_usd)],['Structure',d.structure||'—']].map(([l,v])=>`<div style="padding:8px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:10px"><div style="color:var(--text-3);margin-bottom:2px">${l}</div><div style="color:var(--text)">${v}</div></div>`).join('')}
+          </div>
+        </div>
+
+        <!-- RIGHT: stat sidebar + confirm -->
+        <div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px">
+            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px">Deal Economics <span class="rev-edit-hint">✎ click to edit</span></div>
+            ${[
+              ['Target IRR (%)','rev-irr',d.target_irr||'','number'],
+              ['Allocation (USD)','rev-alloc',fmNum(d.target_alloc||d.target_alloc_usd||0),'text'],
+              ['Min Ticket (USD)','rev-ticket',fmNum(d.min_ticket||d.min_ticket_usd||0),'text'],
+              ['Term (months)','rev-term',d.term||d.term_months||'','number'],
+              ['Closing Date','rev-closing',d.closing||d.closing_date||'','text'],
+              ['Geography','rev-geo',d.geography||'','text'],
+              ['Structure','rev-structure',d.structure||'','text'],
+            ].map(([label,id,val,type])=>`
+              <div style="padding:8px 0;border-bottom:1px solid var(--border)" class="rev-field-wrap">
+                <div style="font-size:10px;color:var(--text-3);margin-bottom:3px">${label}</div>
+                <div class="rev-display" id="${id}-display" onclick="revToggleSidebar('${id}')" style="font-family:var(--mono);font-size:13px;color:var(--text);cursor:pointer">${val||'—'}</div>
+                <input id="${id}" class="rev-input" type="${type}" style="display:none;width:100%;padding:6px 8px;background:var(--bg-3);border:1px solid var(--gold-bd);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text)" value="${String(val).replace(/"/g,'&quot;')}" onblur="revSaveSidebar('${id}')">
+              </div>`).join('')}
+          </div>
+
+          <button onclick="confirmDealReview()" style="width:100%;padding:14px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;border:none;border-radius:2px;cursor:pointer;margin-bottom:8px">Confirm &amp; Send to Admin →</button>
+          <button onclick="saveDraftReview()" style="width:100%;padding:10px;border:1px solid var(--border-m);color:var(--text-3);font-size:11px;border-radius:2px;background:none;cursor:pointer">Save Draft</button>
+        </div>
       </div>
     </div>`;
 }
 
-function reviewField(label,id,val){
-  return`<div>
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">${label}</div>
-    <input id="${id}" value="${String(val).replace(/"/g,'&quot;')}" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border-m);border-radius:3px;font-size:13px;color:var(--text);font-family:var(--sans)">
-  </div>`;
+function revToggleEdit(id){
+  const inp=document.getElementById(id);
+  const dispSel=id==='rev-name'?'.rev-name-display':'.rev-thesis-display';
+  const disp=document.querySelector(dispSel);
+  if(!inp)return;
+  inp.style.display='block';
+  if(disp)disp.style.display='none';
+  inp.focus();
+  if(inp.select)inp.select();
 }
 
-function reviewTextarea(label,id,val){
-  return`<div>
-    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">${label}</div>
-    <textarea id="${id}" rows="5" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border-m);border-radius:3px;font-size:13px;color:var(--text);font-family:var(--sans);resize:vertical;line-height:1.6">${val}</textarea>
-  </div>`;
+function revSaveEdit(id,field){
+  const inp=document.getElementById(id);
+  if(!inp)return;
+  const val=inp.value.trim();
+  _revEdits[field]=val;
+  const dispSel=id==='rev-name'?'.rev-name-display':'.rev-thesis-display';
+  const disp=document.querySelector(dispSel);
+  if(disp){disp.textContent=val||'—';disp.style.display='';}
+  inp.style.display='none';
+}
+
+function revToggleSidebar(id){
+  const inp=document.getElementById(id);
+  const disp=document.getElementById(id+'-display');
+  if(!inp||!disp)return;
+  inp.style.display='block';
+  disp.style.display='none';
+  inp.focus();if(inp.select)inp.select();
+}
+
+function revSaveSidebar(id){
+  const inp=document.getElementById(id);
+  const disp=document.getElementById(id+'-display');
+  if(!inp||!disp)return;
+  const raw=inp.value.trim();
+  const numericIds=['rev-alloc','rev-ticket','rev-term','rev-irr'];
+  if(numericIds.includes(id)){
+    const n=parseFloat(raw.replace(/[^0-9.]/g,''));
+    if(!isNaN(n)){
+      const fieldMap={'rev-irr':'target_irr','rev-alloc':'target_alloc_usd','rev-ticket':'min_ticket_usd','rev-term':'term_months'};
+      _revEdits[fieldMap[id]]=n;
+      disp.textContent=(id==='rev-irr')?n+'%':'$'+n.toLocaleString('en-US');
+    }
+  }else{
+    const fieldMap={'rev-closing':'closing_date','rev-geo':'geography','rev-structure':'structure'};
+    _revEdits[fieldMap[id]]=raw;
+    disp.textContent=raw||'—';
+  }
+  inp.style.display='none';
+  disp.style.display='';
+}
+
+function revEditHighlight(i){
+  const d=DEALS[currentDealIdx];
+  if(!d||!d.highlights||!d.highlights[i])return;
+  const h=d.highlights[i];
+  const row=document.getElementById('rev-hl-row-'+i);
+  if(!row)return;
+  row.onclick=null;
+  row.innerHTML=`
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px;width:100%">
+      <input id="rev-hl-icon-${i}" value="${(h.icon||'◆').replace(/"/g,'&quot;')}" style="width:48px;padding:4px 8px;background:var(--bg-2);border:1px solid var(--border-m);border-radius:3px;font-size:16px;text-align:center">
+      <input id="rev-hl-s-${i}" value="${(h.s||'').replace(/"/g,'&quot;')}" placeholder="Short title" style="width:100%;padding:6px 8px;background:var(--surface);border:1px solid var(--gold-bd);border-radius:3px;font-size:13px;font-weight:600">
+      <textarea id="rev-hl-b-${i}" rows="2" style="width:100%;padding:6px 8px;background:var(--surface);border:1px solid var(--gold-bd);border-radius:3px;font-size:12px;resize:vertical">${h.b||''}</textarea>
+      <button onclick="revSaveHighlight(${i})" style="align-self:flex-start;padding:5px 14px;background:var(--gold);color:#1A1410;border:none;border-radius:2px;font-size:11px;cursor:pointer">Save</button>
+    </div>`;
+}
+
+function revSaveHighlight(i){
+  const d=DEALS[currentDealIdx];
+  if(!d||!d.highlights)return;
+  const icon=document.getElementById('rev-hl-icon-'+i)?.value||'◆';
+  const s=document.getElementById('rev-hl-s-'+i)?.value||'';
+  const b=document.getElementById('rev-hl-b-'+i)?.value||'';
+  d.highlights[i]={icon,s,b};
+  if(!_revEdits.highlights)_revEdits.highlights=[...d.highlights];
+  _revEdits.highlights[i]={icon,s,b};
+  renderReviewEdit();
+}
+
+function saveDraftReview(){
+  toast('Draft saved','ok');
 }
 
 async function confirmDealReview(){
   const d=DEALS[currentDealIdx];
   if(!d)return;
-  const edits={
-    name:document.getElementById('rev-name')?.value?.trim(),
-    target_irr:parseFloat(document.getElementById('rev-irr')?.value)||undefined,
-    target_alloc_usd:parseFloat(String(document.getElementById('rev-alloc')?.value||'').replace(/[^0-9.]/g,''))||undefined,
-    min_ticket_usd:parseFloat(String(document.getElementById('rev-ticket')?.value||'').replace(/[^0-9.]/g,''))||undefined,
-    term_months:parseInt(document.getElementById('rev-term')?.value)||undefined,
-    closing_date:document.getElementById('rev-closing')?.value?.trim(),
-    geography:document.getElementById('rev-geo')?.value?.trim(),
-    structure:document.getElementById('rev-structure')?.value?.trim(),
-    thesis:document.getElementById('rev-thesis')?.value?.trim(),
-  };
-  Object.keys(edits).forEach(k=>{if(!edits[k])delete edits[k];});
+
+  const edits={..._revEdits};
+  // Flush any still-open inline inputs
+  ['rev-name','rev-thesis'].forEach(id=>{
+    const inp=document.getElementById(id);
+    if(inp&&inp.style.display!=='none'){
+      const fieldMap={'rev-name':'name','rev-thesis':'thesis'};
+      edits[fieldMap[id]]=inp.value.trim();
+    }
+  });
+
   const res=await api('POST','/api/v2?resource=advisor&op=advisor-confirm-deal',{dealId:d.id,edits});
   if(res?.ok){
     d.advisor_review_status='approved';
+    _revEdits={};
     (d.notifications||[]).filter(n=>n.type==='deal_review_requested').forEach(n=>n.read=true);
     NOTIFS.filter(n=>n.deal_id===d.id&&n.type==='deal_review_requested').forEach(n=>n.read=true);
     renderNotifBell(NOTIFS.filter(n=>!n.read).length);
@@ -1944,6 +2153,7 @@ function renderMockDeals(){
   currentDealIdx=0;
   document.getElementById('deal-tabs')&&(document.getElementById('deal-tabs').style.display='');
   renderSwitcher();renderHeader();renderStageJourney();renderOverview();renderMaterials();
+  checkReviewOverlay();
 }
 
 /* ── NOTIFICATIONS ── */
@@ -1960,6 +2170,7 @@ async function loadNotifications(){
     }
     renderNotifBell(r.unread_count||0);
     renderSwitcher(); // refresh banners
+    checkReviewOverlay();
   }catch(e){/* non-fatal */}
 }
 
