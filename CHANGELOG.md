@@ -4,6 +4,17 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: "See Investors" replaced with inline popup modal
+
+### Changes
+- `admin-portal.html`: Replaced `seeInvestors()` (navigated away to IOI Queue tab) with `openInvestorsPopup()` — a fixed overlay modal that appears on the Overview page directly.
+- Modal shows all IOIs for the deal grouped into "Approved" (top) and "Pending / Other" (bottom) sections, with avatar initials, investor name/type/geo, amount in gold mono, status badge, and date.
+- Summary bar at modal bottom shows approved investor count, total approved amount, and % of target raise.
+- Added `.inv-popup-row` CSS class and `#investors-popup` modal HTML.
+- Removed the old `seeInvestors` function entirely.
+
+---
+
 ## [2026-05-01] — Advisor portal: Prism doc viewer modals + deal content data
 
 ### Changes

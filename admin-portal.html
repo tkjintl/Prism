@@ -162,6 +162,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .badge-approved{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 .badge-declined{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
 .badge-pushed{color:var(--violet);border-color:var(--violet-bd);background:var(--violet-bg)}
+.inv-popup-row{display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border)}
 .q-approve{padding:4px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--green-bd);color:var(--green);background:var(--green-bg);transition:all .15s;cursor:pointer;font-family:inherit}
 .q-approve:hover{background:var(--green);color:#fff;border-color:var(--green)}
 .q-decline{padding:4px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--red-bd);color:var(--red);background:var(--red-bg);transition:all .15s;cursor:pointer;font-family:inherit}
@@ -1752,7 +1753,7 @@ function renderOverview(){
       <div class="ov-ac-meta">${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}</div>
       ${investorRows}
       <div class="ov-ac-actions" style="margin-top:8px">
-        <button class="att-btn att-review" onclick="seeInvestors('${d.id}')">See Investors →</button>
+        <button class="att-btn att-review" onclick="openInvestorsPopup('${d.id}')">See Investors →</button>
         <button class="att-btn att-decline" onclick="killDeal('${d.id}',this)" style="background:rgba(220,38,38,.12);color:#ef4444;border-color:rgba(220,38,38,.25)">Kill Deal</button>
       </div>
       <div style="position:absolute;top:0;right:0;bottom:0;width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--border);gap:2px">
@@ -3504,15 +3505,59 @@ function closeIoiDetail(){
   setTimeout(()=>{panel.style.display='none';},320);
   _ioiDetailDeal=null;_ioiDetailIoi=null;
 }
-function seeInvestors(dealId){
-  showView('queue',document.querySelectorAll('.ntab')[2]);
-  setTimeout(()=>{
-    const grp=document.getElementById('iqg-'+dealId);
-    if(!grp)return;
-    grp.scrollIntoView({behavior:'smooth',block:'start'});
-    const body=document.getElementById('iqg-body-'+dealId);
-    if(body&&body.style.display==='none')toggleIoiGroup(dealId);
-  },420);
+function openInvestorsPopup(dealId){
+  const deal=DEALS.find(d=>d.id===dealId);
+  if(!deal)return;
+  const iois=deal.iois||[];
+  document.getElementById('inv-popup-title').textContent=deal.name;
+  const approved=iois.filter(i=>i.status==='approved');
+  const others=iois.filter(i=>i.status!=='approved');
+  const totalAmt=approved.reduce((s,i)=>s+i.amount,0);
+  const pctOfTarget=deal.target_alloc>0?Math.round(totalAmt/deal.target_alloc*100):0;
+  const badgeFor=ioi=>{
+    if(ioi.pushed||ioi.status==='pushed')return'pushed';
+    return ioi.status||'pending';
+  };
+  const rowHtml=ioi=>{
+    const init=(ioi.init||(ioi.name||'?').slice(0,2).toUpperCase());
+    const badge=badgeFor(ioi);
+    const badgeLabel=badge==='pushed'?'In Package':badge;
+    return `<div class="inv-popup-row">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold-bd);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--gold);flex-shrink:0">${init}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:var(--text);font-family:var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ioi.name||'—'}</div>
+        <div style="font-size:10px;color:var(--text-3);font-family:var(--sans);margin-top:1px">${ioi.type||'—'} · ${ioi.geo||'—'}</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--gold);white-space:nowrap;flex-shrink:0">${fmU(ioi.amount)}</div>
+      <div style="flex-shrink:0"><span class="iqi-badge badge-${badge}">${badgeLabel}</span></div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);white-space:nowrap;flex-shrink:0;min-width:64px;text-align:right">${ioi.date||'—'}</div>
+    </div>`;
+  };
+  let bodyHtml='';
+  if(approved.length>0){
+    bodyHtml+=`<div style="padding:8px 20px 4px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);border-bottom:1px solid var(--border)">Approved (${approved.length})</div>`;
+    bodyHtml+=approved.map(rowHtml).join('');
+  }
+  if(others.length>0){
+    bodyHtml+=`<div style="padding:8px 20px 4px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);border-bottom:1px solid var(--border)${approved.length>0?';margin-top:4px':''}">Pending / Other (${others.length})</div>`;
+    bodyHtml+=others.map(rowHtml).join('');
+  }
+  if(iois.length===0){
+    bodyHtml='<div style="padding:32px 20px;text-align:center;font-size:13px;color:var(--text-3);font-family:var(--sans)">No investors yet.</div>';
+  }
+  const pctStr=deal.target_alloc>0?` · ${pctOfTarget}% of target`:'';
+  bodyHtml+=`<div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.02);flex-shrink:0">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">${approved.length} approved investor${approved.length===1?'':'s'}${pctStr}</div>
+    <div style="font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:600">${fmU(totalAmt)}</div>
+  </div>`;
+  document.getElementById('inv-popup-body').innerHTML=bodyHtml;
+  const popup=document.getElementById('investors-popup');
+  popup.style.display='flex';
+  requestAnimationFrame(()=>popup.style.opacity='1');
+}
+function closeInvestorsPopup(){
+  const popup=document.getElementById('investors-popup');
+  popup.style.display='none';
 }
 
 function approveFromDetail(){
@@ -4030,5 +4075,17 @@ load();
 const _adp=document.getElementById('admin-deal-panel');
 const _idp=document.getElementById('ioi-detail-panel');
 </script>
+<div id="investors-popup" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(10,9,8,.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeInvestorsPopup()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:640px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:3px">Investor List</div>
+        <div style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--text)" id="inv-popup-title">—</div>
+      </div>
+      <button onclick="closeInvestorsPopup()" style="background:none;border:none;color:var(--text-3);font-size:20px;cursor:pointer;line-height:1;padding:4px 6px;flex-shrink:0">&#x2715;</button>
+    </div>
+    <div id="inv-popup-body" style="overflow-y:auto;flex:1"></div>
+  </div>
+</div>
 </body>
 </html>
