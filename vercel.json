@@ -38,8 +38,11 @@
     { "source": "/api/member/me",                "destination": "/api/v2?resource=member&op=me" },
     { "source": "/api/_lib/(.*)",                "destination": "/404" },
     { "source": "/advisor",                      "destination": "/advisor.html" },
+    { "source": "/advisor-portal",               "destination": "/advisor-demo.html" },
     { "source": "/marketplace",                  "destination": "/marketplace.html" },
+    { "source": "/investor-portal",              "destination": "/prism-investor.html" },
     { "source": "/control",                      "destination": "/control.html" },
+    { "source": "/admin-portal",                 "destination": "/admin-demo.html" },
     { "source": "/login",                        "destination": "/login.html" },
     { "source": "/forgot-password",              "destination": "/forgot-password.html" },
     { "source": "/reset-password",               "destination": "/reset-password.html" },
@@ -56,7 +59,7 @@
       ]
     },
     {
-      "source": "/(advisor|marketplace|control|login|forgot-password|reset-password|setup-password)",
+      "source": "/(advisor|advisor-portal|marketplace|investor-portal|control|admin-portal|login|forgot-password|reset-password|setup-password)",
       "headers": [
         { "key": "Cache-Control",  "value": "no-store, no-cache" },
         { "key": "X-Robots-Tag",   "value": "noindex, nofollow" }
