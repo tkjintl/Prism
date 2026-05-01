@@ -4,6 +4,24 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Return calc by asset class, IOI confirmation + lobby return, API error fix
+
+### `investor-portal.html`
+- **Asset-class-aware return chart:** `buildReturnChart(d)` now branches on `asset_class`. PE/equity deals render a 3-scenario grid (Conservative/Base/Upside) with IRR %, MOIC, and exit value on $500K, plus a year-by-year value path table (Yr 1–5) with animated progress bars and MOIC column. Scenarios derived from `target_irr`: Conservative = 60% of target, Base = target, Upside = 135% of target. Credit/infra/RE keep the existing income bar chart (RE label updated to "Distribution & Return Scenarios").
+- **Equity IOI estimate:** `syncSlider()` now shows projected exit value (`amount × MOIC at full hold`) for PE deals; income/yr for yield-generating deals. IOI est label dynamically reads "Projected exit value (Nyr base hold)" vs "Est. annual income at base case IRR".
+- **IOI submission fix:** `submitIoi()` no longer hard-stops on all API errors. Only "already submitted" triggers an error bail. Other failures (e.g., unpublished test deals returning "Deal not available") let the local mock flow complete.
+- **IOI confirmation screen:** After successful submission, `showIoiConfirmation(d, amt)` replaces the deal detail panel with a full-screen serif confirmation: deal name, indicated amount, submission date, 3-step pipeline (Admin Review → Advisor Notification → DD Access), and two CTAs — "Return to Marketplace" (closes deal panel + navigates to lobby) and "View My Portfolio".
+
+### `investor-portal.html`
+- **`buildReturnChart(d)`:** Asset-class–aware chart function. For `pe` deals: renders 3-scenario grid (Conservative / Base / Upside) with IRR, MOIC, and exit value on $500K, plus a year-by-year value path table with animated gold bar fills. For all other classes (credit, infra, RE): renders the existing bar chart (income scenarios + hurdle line), with RE getting a "Distribution & Return" label.
+- **`showIoiConfirmation(d, amt)`:** Replaces the deal detail panels after IOI submission. Renders a full-width serif confirmation with deal name, submitted amount, date, and a 3-step next-actions timeline (Admin review → Advisor notification → DD access). Includes "Return to Marketplace" and "View My Portfolio" CTAs.
+- **`syncSlider` (inside `openDeal`):** PE deals now show projected exit value (`fmFull(amount × MOIC) at Nyr`) instead of annual income; non-PE deals unchanged.
+- **IOI est label:** Dynamically shows "Projected exit value (Nyr base hold)" for PE deals vs "Est. annual income at base case IRR" for yield deals.
+- **Return chart animation:** PE branch animates `.vp-bar-fill` widths via `data-pct`; non-PE branch null-checks all DOM ids before setting (safe for both paths).
+- **`submitIoi`:** API errors only hard-stop on "already submitted" — other backend errors (e.g. deal not yet published) let the mock flow proceed. Post-submit now calls `showIoiConfirmation` instead of the old inline right-panel rewrite.
+
+---
+
 ## [2026-05-01] — Investor portal: doc gating, IOI slider UX
 
 ### `investor-portal.html`
