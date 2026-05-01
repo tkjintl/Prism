@@ -851,6 +851,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div id="deal-submissions-wrap"></div>
     <div class="section-hd"><div class="section-hd-title">Active Deals</div><span class="section-hd-count" id="active-deals-count"></span></div>
     <div class="deal-pipeline" id="deal-pipeline-table"></div>
+    <div id="deal-archive-wrap"></div>
   </div>
 </div>
 
@@ -1352,6 +1353,7 @@ function showSessionExpired(){let el=document.getElementById('session-expired');
 function adaptDeal(d,allIois){const di=(allIois||[]).filter(i=>i.deal_id===d.id);return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,advisor:d.originator||d.advisor||'—',advisor_firm:d.advisor_firm||'',iois:di.map(ioi=>({id:ioi.id,name:ioi.investor_firm||ioi.investor_email||'Investor',init:(ioi.investor_firm||ioi.investor_email||'?').slice(0,2).toUpperCase(),type:ioi.institution_type||'Institutional',geo:'—',amount:ioi.amount,date:new Date(ioi.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}),status:ioi.status,isNew:(Date.now()-new Date(ioi.submitted_at))<172800000,pushed:false}))};}
 
 /* ─── DATA ─── */
+let KILLED_DEALS=[];
 let DEALS=[
   {
     id:'d1',name:'Pacific Bridge Infrastructure',asset_class:'infra',stage:'live',
@@ -2238,12 +2240,23 @@ async function declineDeal(dealId,btn){
 }
 
 async function killDeal(dealId, btn){
-  if(!confirm('Kill this deal? This cannot be undone.')) return;
+  if(!confirm('Kill this deal? It will be archived and can be reviewed at any time.')) return;
   if(btn) btn.disabled=true;
+  const dead=DEALS.find(d=>d.id===dealId);
   DEALS=DEALS.filter(d=>d.id!==dealId);
+  if(dead){KILLED_DEALS=[{...dead,stage:'killed',killed_at:new Date().toISOString()},...KILLED_DEALS];}
   renderPipeline();renderOverview();
-  toast('Deal killed','');
+  toast('Deal killed and archived','');
   api('POST','/api/v2?resource=deals',{action:'update',id:dealId,stage:'killed'}).catch(()=>{});
+}
+
+function toggleArchive(){
+  const body=document.getElementById('archive-body');
+  const chev=document.getElementById('archive-chevron');
+  if(!body)return;
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  if(chev)chev.textContent=open?'∨':'›';
 }
 
 async function loadDocsAndGenerate(dealId){
@@ -2429,6 +2442,40 @@ function renderPipeline(){
       </div>`;
   }else{
     document.getElementById('deal-submissions-wrap').innerHTML='';
+  }
+
+  // Archive section
+  const archiveWrap=document.getElementById('deal-archive-wrap');
+  if(archiveWrap){
+    if(KILLED_DEALS.length>0){
+      archiveWrap.innerHTML=`
+        <div class="section-hd" style="margin-top:24px;cursor:pointer;user-select:none" onclick="toggleArchive()">
+          <div class="section-hd-title" style="color:var(--text-3)">Archived / Killed</div>
+          <span class="section-hd-count" id="archive-badge">${KILLED_DEALS.length}</span>
+          <span id="archive-chevron" style="font-family:var(--mono);font-size:12px;color:var(--text-3);margin-left:auto">›</span>
+        </div>
+        <div id="archive-body" style="display:none">
+          <div class="deal-pipeline" style="opacity:.7">
+            <div class="dp-row header">
+              <div>Deal</div><div>Advisor</div><div>Indicated</div><div>Stage Killed At</div><div>Killed</div><div></div>
+            </div>
+            ${KILLED_DEALS.map(d=>`
+              <div class="dp-row" onclick="openDealDetail('${d.id}')" style="cursor:pointer;opacity:.85">
+                <div>
+                  <div class="dp-name" style="text-decoration:line-through;opacity:.7">${d.name}</div>
+                  <div class="dp-sub">${d.geography||''} · ${d.target_irr||0}% IRR</div>
+                </div>
+                <div class="dp-advisor">${d.advisor||''}</div>
+                <div><div class="dp-amount">${fmU(d.ioi_agg||0)}</div></div>
+                <span class="dp-stage-chip sc-killed" style="background:rgba(220,38,38,.08);color:#ef4444;border-color:rgba(220,38,38,.2)">Killed</span>
+                <div style="font-family:var(--mono);font-size:10px;color:var(--text-3)">${d.killed_at?new Date(d.killed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</div>
+                <div></div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }else{
+      archiveWrap.innerHTML='';
+    }
   }
 
   document.getElementById('active-deals-count').textContent=`${DEALS.length} Deals`;
@@ -3787,9 +3834,11 @@ async function load(){
     }
     const allIois=ioisR?.iois||[];
     if(dealsR?.deals&&dealsR.deals.length){
-      const all=dealsR.deals.filter(d=>d.stage!=='killed').map(d=>adaptDeal(d,allIois));
-      NEW_SUBMISSIONS=all.filter(d=>d.stage==='review').map(d=>({...d,submitted:new Date(d.created_at||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric'})}));
-      DEALS=all.filter(d=>d.stage!=='review');
+      const allAdapted=dealsR.deals.map(d=>adaptDeal(d,allIois));
+      KILLED_DEALS=allAdapted.filter(d=>d.stage==='killed');
+      const active=allAdapted.filter(d=>d.stage!=='killed');
+      NEW_SUBMISSIONS=active.filter(d=>d.stage==='review').map(d=>({...d,submitted:new Date(d.created_at||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric'})}));
+      DEALS=active.filter(d=>d.stage!=='review');
     }
     // If API returns empty, DEALS/NEW_SUBMISSIONS retain their rich mock defaults
     renderKPIs();renderOverview();updateQueueBadge();
