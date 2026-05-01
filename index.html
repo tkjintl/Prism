@@ -75,23 +75,23 @@ h1 em{color:var(--goldB);font-style:italic;display:block}
 
 /* Hero prism scene */
 .hero-right{position:relative;display:flex;align-items:center;justify-content:center}
-.hero-prism-scene{display:flex;align-items:center;justify-content:center;gap:24px;width:100%}
-.hp-side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;min-width:110px;flex-shrink:0}
+.hero-prism-scene{display:flex;align-items:center;justify-content:center;gap:28px;width:100%}
+.hp-side{display:flex;flex-direction:column;align-items:flex-end;gap:12px;min-width:132px;flex-shrink:0}
 .hp-side-right{align-items:flex-start}
-.hp-side-label{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--goldD);text-transform:uppercase;line-height:1.7;text-align:right}
+.hp-side-label{font-family:var(--mono);font-size:13px;letter-spacing:.18em;color:var(--goldD);text-transform:uppercase;line-height:1.7;text-align:right}
 .hp-side-right .hp-side-label{text-align:left}
-.hp-side-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.10em;line-height:1.9;text-align:right}
+.hp-side-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.10em;line-height:1.9;text-align:right}
 .hp-side-right .hp-side-sub{text-align:left}
-.hp-flow-line{width:48px;height:1px;background:linear-gradient(90deg,transparent,rgba(197,165,114,.45));margin-top:4px}
+.hp-flow-line{width:58px;height:1px;background:linear-gradient(90deg,transparent,rgba(197,165,114,.45));margin-top:4px}
 .hp-side-right .hp-flow-line{background:linear-gradient(90deg,rgba(197,165,114,.45),transparent)}
-.hp-prism-wrap{position:relative;flex-shrink:0;width:min(580px,62%);animation:prismBounceLP 5s ease-in-out infinite}
+.hp-prism-wrap{position:relative;flex-shrink:0;width:min(700px,74%);animation:prismBounceLP 5s ease-in-out infinite}
 .hp-prism-svg{width:100%;height:auto}
 @keyframes beamPulse   {0%,100%{opacity:.14}50%{opacity:.07}}
 @keyframes raySpectrum {0%,100%{opacity:.85;transform:scaleX(1)}50%{opacity:.45;transform:scaleX(.97)}}
 @keyframes vertexGlow  {0%,100%{r:4px;opacity:.55}50%{r:3px;opacity:.25}}
 @keyframes particleDrift{0%{transform:translate(0,0);opacity:.7}100%{transform:translate(10px,-8px);opacity:0}}
 @keyframes breatheGlow {0%,100%{opacity:.04;transform:scaleX(1)}50%{opacity:.09;transform:scaleX(1.06)}}
-@keyframes prismBounceLP{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 28px rgba(197,165,114,.09))}40%{transform:translateY(-18px);filter:drop-shadow(0 0 52px rgba(197,165,114,.18))}60%{transform:translateY(-14px);filter:drop-shadow(0 0 44px rgba(197,165,114,.14))}}
+@keyframes prismBounceLP{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 32px rgba(197,165,114,.10))}40%{transform:translateY(-22px);filter:drop-shadow(0 0 62px rgba(197,165,114,.22))}60%{transform:translateY(-17px);filter:drop-shadow(0 0 50px rgba(197,165,114,.16))}}
 
 /* STATS BAR — enhanced */
 .stats{background:var(--bg3);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:40px 48px;position:relative;overflow:hidden}
