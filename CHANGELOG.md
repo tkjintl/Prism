@@ -4,6 +4,36 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Push preview modal redesign (deal brief layout)
+
+### `admin-portal.html`
+- Replaced all `.push-preview-*` and `.push-confirm-btn` CSS (9 rules) with 42 new `.pp-*` classes: `pp-modal-box`, `pp-header`, `pp-wordmark`, `pp-wm-*`, `pp-deal-block`, `pp-capital-block`, `pp-breakdown`, `pp-breakdown-col/row/fill`, `pp-confidential`, `pp-next-step`, `pp-already-pushed`, `pp-comment`, `pp-footer`, `pp-cancel-btn`, `pp-confirm-btn`
+- Modal container changed from `modal-box` (max-width 480px, padded) to `pp-modal-box` (max-width 680px, padding 0 — sections own their own padding)
+- `showPushPreviewModal()` rebuilt: letterhead header with wordmark + date + stage badge, serif italic deal name, gold hero capital amount, two-column composition/geo breakdown with proportional fill bars, confidential strip, recommended-action box, optional-push warning, and comment textarea
+- `confirmPushPackage()` now reads `#pp-comment-input` and passes `comment` in POST body alongside `dealId`
+
+## [2026-05-01] — push-package admin comment + polished IOI email template
+
+### `api/v2.js`
+- `push-package` op now reads `comment` from `req.body` (line 826: `const { dealId, comment } = req.body || {}`)
+- `pkg.admin_comment` set to `comment || ''` — persisted with the package record in KV
+- Advisor email notification block now builds `geo_breakdown` array (parallel to existing `type_breakdown`) and fetches `adv.name` / `adv.firm_name`
+- `sendIoiPackage` call refactored from 3-arg `(email, name, stats)` to single data object with all fields including `admin_comment`
+
+### `api/_lib/email.js`
+- `sendIoiPackage` signature changed to `(data)` — single object, no more positional args
+- Full email rebuilt as a standalone HTML document (table-based, all inline styles, no `<style>` block)
+  - Dark header: italic "AURUM" wordmark + "PRISM · PRIVATE DEAL PLATFORM" + "IOI PACKAGE" badge + date
+  - Deal name in Georgia italic + "Prepared for [name] · [firm]" subtitle
+  - Gold-bordered centrepiece block: total indicated capital, approved count, % of target, target allocation
+  - Side-by-side composition tables: By Investor Type / By Geography
+  - Compliance note (left-border rule)
+  - Conditional admin comment section with gold left border (only rendered when `data.admin_comment` is non-empty)
+  - CTA: "View in Advisor Portal →" linking to `${SITE}/advisor-portal`
+  - Footer: Package ID + boilerplate
+
+---
+
 ## [2026-05-01] — Admin deal detail: rich IOI summary + push-package preview modal
 
 ### `admin-portal.html`

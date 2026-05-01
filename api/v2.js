@@ -823,7 +823,7 @@ Return ONLY valid JSON in this exact structure:
       const admin = await getAdmin();
       if (!admin) return unauth(res);
 
-      const { dealId } = req.body || {};
+      const { dealId, comment } = req.body || {};
       if (!dealId) return bad(res, 'dealId required');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
@@ -846,6 +846,7 @@ Return ONLY valid JSON in this exact structure:
         indicatedTotal,
         pct: targetAlloc > 0 ? Math.round(indicatedTotal / targetAlloc * 100) : 0,
         raise_status: deal.raise_status || 'open',
+        admin_comment: comment || '',
         iois: approvedIois.map(i => ({
           id: i.id,
           name: i.investor_firm || i.investor_email || i.investor_id,
@@ -891,22 +892,35 @@ Return ONLY valid JSON in this exact structure:
           const adv = await kvGet(`advisor:${deal.advisor_id}`);
           if (adv?.email) {
             const pct = targetAlloc > 0 ? Math.round(indicatedTotal / targetAlloc * 100) : 0;
-            // Build type summary string
+
+            // Build type breakdown
             const typeMap = {};
             for (const ioi of approvedIois) {
               const t = ioi.institution_type || 'Other';
               typeMap[t] = (typeMap[t] || 0) + (ioi.amount || 0);
             }
-            const typeLines = Object.entries(typeMap)
-              .map(([t, amt]) => `<tr><td style="padding:4px 0;color:#a89f94">${t}</td><td style="padding:4px 0;text-align:right;color:#ede8df;font-family:monospace">$${Number(amt).toLocaleString()}</td></tr>`)
-              .join('');
 
-            await sendIoiPackage(adv.email, deal.name, {
-              approvedCount: approvedIois.length,
-              indicatedTotal,
+            // Build geo breakdown
+            const geoMap = {};
+            for (const ioi of approvedIois) {
+              const g = ioi.geo || 'Other';
+              geoMap[g] = (geoMap[g] || 0) + (ioi.amount || 0);
+            }
+
+            await sendIoiPackage({
+              to: adv.email,
+              advisor_name: adv.name || '',
+              advisor_firm: adv.firm_name || '',
+              deal_name: deal.name,
+              approved_count: approvedIois.length,
+              indicated_total: indicatedTotal,
+              target_alloc: targetAlloc,
               pct,
-              typeLines,
-              packageId: pkg.packageId,
+              type_breakdown: Object.entries(typeMap).map(([label, amount]) => ({ label, amount })),
+              geo_breakdown: Object.entries(geoMap).map(([label, amount]) => ({ label, amount })),
+              package_id: pkg.packageId,
+              generated_at: pkg.generatedAt,
+              admin_comment: comment || '',
             });
           }
         } catch (emailErr) {

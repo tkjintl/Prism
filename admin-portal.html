@@ -396,15 +396,48 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ddp-breakdown-item:last-child{border-bottom:none}
 .ddp-breakdown-item-lbl{color:var(--text-2)}
 .ddp-breakdown-item-val{font-family:var(--mono);color:var(--text);text-align:right}
-/* Push preview modal */
-.push-preview-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border)}
-.push-preview-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
-.push-preview-val{font-family:var(--mono);font-size:13px;color:var(--text)}
-.push-preview-section{margin:16px 0 8px;font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
-.push-preview-warning{font-family:var(--mono);font-size:9px;color:var(--amber);margin-top:8px;display:flex;align-items:center;gap:6px}
-.push-confirm-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold-b));color:var(--bg);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;border:none;cursor:pointer;margin-top:16px;transition:opacity .15s}
-.push-confirm-btn:hover{opacity:.9}
-.push-confirm-btn:disabled{opacity:.4;cursor:not-allowed}
+/* Push preview modal — polished deal brief */
+.pp-modal-box{max-width:680px;width:100%;background:var(--surface);padding:0;overflow:hidden;border:1px solid var(--border-m)}
+.pp-header{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 28px 14px;background:var(--bg-2);border-bottom:1px solid var(--gold-bd)}
+.pp-wordmark{display:flex;align-items:center;gap:0}
+.pp-wm-aurum{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--text)}
+.pp-wm-rule{display:inline-block;width:1px;height:10px;background:var(--gold);margin:0 8px;flex-shrink:0}
+.pp-wm-prism{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.pp-wm-sub{font-family:var(--mono);font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-top:5px}
+.pp-header-right{text-align:right}
+.pp-header-label{font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px}
+.pp-header-date{font-family:var(--mono);font-size:9px;color:var(--text-2);margin-bottom:8px}
+.pp-stage-badge{display:inline-block;padding:2px 8px;border:1px solid var(--gold-bd);background:var(--gold-bg);font-family:var(--mono);font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.pp-deal-block{padding:22px 28px 18px;border-bottom:1px solid var(--border)}
+.pp-deal-name{font-family:var(--serif);font-style:italic;font-size:clamp(20px,3vw,28px);color:var(--text);margin-bottom:6px;line-height:1.2}
+.pp-deal-advisor{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--text-3);text-transform:uppercase}
+.pp-capital-block{text-align:center;padding:26px 28px;border-bottom:1px solid var(--border)}
+.pp-capital-label{font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.pp-capital-amount{font-family:var(--mono);font-size:clamp(28px,4vw,36px);font-weight:600;color:var(--gold);line-height:1;font-variant-numeric:tabular-nums}
+.pp-capital-sub{font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:8px}
+.pp-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border)}
+.pp-breakdown-col{padding:18px 28px}
+.pp-breakdown-col:first-child{border-right:1px solid var(--border)}
+.pp-breakdown-title{font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px}
+.pp-breakdown-row{position:relative;display:flex;justify-content:space-between;align-items:center;padding:6px 8px;font-size:11px;margin-bottom:2px;overflow:hidden}
+.pp-breakdown-fill{position:absolute;inset:0;background:rgba(197,165,114,.06);pointer-events:none}
+.pp-breakdown-name{position:relative;z-index:1;color:var(--text-2);font-size:11px}
+.pp-breakdown-right{position:relative;z-index:1;font-family:var(--mono);font-size:10px;color:var(--text-3);text-align:right}
+.pp-confidential{text-align:center;padding:12px;font-family:var(--mono);font-size:7px;letter-spacing:.3em;text-transform:uppercase;color:var(--text-3)}
+.pp-next-step{margin:0 28px 18px;padding:13px 16px;border:1px solid var(--border);background:var(--bg-3)}
+.pp-next-label{font-family:var(--mono);font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.pp-next-text{font-family:var(--mono);font-size:11px;color:var(--text)}
+.pp-already-pushed{margin:0 28px 14px;padding:10px 14px;border:1px solid rgba(201,154,60,.25);background:rgba(201,154,60,.05);font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.06em}
+.pp-comment{padding:0 28px 20px}
+.pp-comment-label{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.pp-comment-input{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border-m);color:var(--text);font-family:var(--mono);font-size:11px;padding:10px 12px;resize:vertical;min-height:72px;outline:none;border-radius:0}
+.pp-comment-input:focus{border-color:var(--gold-bd)}
+.pp-footer{display:flex;justify-content:space-between;align-items:center;padding:14px 28px;border-top:1px solid var(--border);gap:12px}
+.pp-cancel-btn{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;background:none;border:1px solid var(--border);color:var(--text-3);padding:10px 20px;cursor:pointer;transition:border-color .15s,color .15s}
+.pp-cancel-btn:hover{border-color:var(--border-m);color:var(--text-2)}
+.pp-confirm-btn{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;background:var(--gold);color:var(--bg);border:none;padding:12px 28px;cursor:pointer;flex:1;max-width:280px;text-align:center;transition:opacity .15s}
+.pp-confirm-btn:hover{opacity:.88}
+.pp-confirm-btn:disabled{opacity:.4;cursor:not-allowed}
 /* IOI table in deal detail — richer columns */
 .ddp-ioi-table-full{width:100%;border-collapse:collapse}
 .ddp-ioi-table-full th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
@@ -606,14 +639,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <!-- Push Preview modal -->
 <div class="modal-overlay hidden" id="push-preview-modal">
-  <div class="modal-box" style="max-width:480px">
-    <div class="modal-title" style="font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-style:normal;color:var(--gold);margin-bottom:4px">Push Package to Advisor</div>
-    <div style="height:1px;background:var(--border-m);margin-bottom:16px"></div>
+  <div class="pp-modal-box">
     <div id="push-preview-content"></div>
-    <div style="display:flex;gap:10px;margin-top:4px">
-      <button class="modal-cancel" onclick="closePushPreviewModal()" style="flex:1">Cancel</button>
-      <button class="push-confirm-btn" id="push-preview-confirm-btn" style="flex:2;margin-top:0">Confirm Push →</button>
-    </div>
   </div>
 </div>
 
@@ -990,45 +1017,78 @@ async function pushPackage(dealId){
 
 function showPushPreviewModal(p){
   const pctTarget=p.targetAlloc>0?Math.round(p.approvedTotal/p.targetAlloc*100):0;
-  const byTypeRows=(p.byType||[]).map(r=>`<div class="push-preview-row">
-    <span class="push-preview-lbl">${r.type}</span>
-    <span class="push-preview-val">${r.count} investor${r.count!==1?'s':''} · ${fmU(r.total)}</span>
-  </div>`).join('');
-  const byGeoRows=(p.byGeo||[]).map(r=>`<div class="push-preview-row">
-    <span class="push-preview-lbl">${r.geo}</span>
-    <span class="push-preview-val">${fmU(r.total)}</span>
-  </div>`).join('');
+  const deal=DEALS.find(d=>d.id===p.dealId);
+  const stageLbl=deal?(STAGE_LABELS[deal.stage]||deal.stage):'Live';
+  const todayStr=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const advisorLine=[p.advisorName,p.advisorFirm&&p.advisorFirm!=='—'?p.advisorFirm:null].filter(Boolean).join(' · ');
+
+  const byTypeRows=(p.byType||[]).map(r=>{
+    const pct=(p.approvedTotal>0?(r.total/p.approvedTotal*100).toFixed(0):0);
+    return`<div class="pp-breakdown-row">
+      <div class="pp-breakdown-fill" style="width:${pct}%"></div>
+      <span class="pp-breakdown-name">${r.type}<span style="font-family:var(--mono);font-size:9px;color:var(--text-3);margin-left:8px">${r.count} inv.</span></span>
+      <span class="pp-breakdown-right">${fmU(r.total)}</span>
+    </div>`;
+  }).join('');
+
+  const byGeoRows=(p.byGeo||[]).map(r=>{
+    const pct=(p.approvedTotal>0?(r.total/p.approvedTotal*100).toFixed(0):0);
+    return`<div class="pp-breakdown-row">
+      <div class="pp-breakdown-fill" style="width:${pct}%"></div>
+      <span class="pp-breakdown-name">${r.geo}</span>
+      <span class="pp-breakdown-right">${fmU(r.total)}</span>
+    </div>`;
+  }).join('');
 
   document.getElementById('push-preview-content').innerHTML=`
-    <div class="push-preview-row">
-      <span class="push-preview-lbl">Deal</span>
-      <span class="push-preview-val" style="font-size:12px">${p.dealName}</span>
+    <div class="pp-header">
+      <div>
+        <div class="pp-wordmark">
+          <span class="pp-wm-aurum">Aurum</span>
+          <span class="pp-wm-rule"></span>
+          <span class="pp-wm-prism">Prism</span>
+        </div>
+        <div class="pp-wm-sub">A TACC Platform</div>
+      </div>
+      <div class="pp-header-right">
+        <div class="pp-header-label">IOI Package</div>
+        <div class="pp-header-date">${todayStr}</div>
+        <span class="pp-stage-badge">${stageLbl}</span>
+      </div>
     </div>
-    <div class="push-preview-row">
-      <span class="push-preview-lbl">Advisor</span>
-      <span class="push-preview-val" style="font-size:12px">${p.advisorName}${p.advisorFirm&&p.advisorFirm!=='—'?' · '+p.advisorFirm:''}</span>
+    <div class="pp-deal-block">
+      <div class="pp-deal-name">${p.dealName}</div>
+      <div class="pp-deal-advisor">Prepared for ${advisorLine}</div>
     </div>
-    <div class="push-preview-section">Approved IOIs</div>
-    <div class="push-preview-row">
-      <span class="push-preview-lbl">Capital</span>
-      <span class="push-preview-val">${fmU(p.approvedTotal)}</span>
+    <div class="pp-capital-block">
+      <div class="pp-capital-label">Approved Capital Indicated</div>
+      <div class="pp-capital-amount">${fmU(p.approvedTotal)}</div>
+      <div class="pp-capital-sub">${pctTarget}% of ${fmU(p.targetAlloc)} target &nbsp;&middot;&nbsp; ${p.approvedCount} investor${p.approvedCount!==1?'s':''}</div>
     </div>
-    <div class="push-preview-row">
-      <span class="push-preview-lbl">Investors</span>
-      <span class="push-preview-val">${p.approvedCount}</span>
+    ${(byTypeRows||byGeoRows)?`<div class="pp-breakdown">
+      <div class="pp-breakdown-col">
+        <div class="pp-breakdown-title">Composition</div>
+        ${byTypeRows||'<span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">—</span>'}
+      </div>
+      <div class="pp-breakdown-col">
+        <div class="pp-breakdown-title">Geographies</div>
+        ${byGeoRows||'<span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">—</span>'}
+      </div>
+    </div>`:''}
+    <div class="pp-confidential">Confidential &nbsp;&middot;&nbsp; Aggregate summary only &nbsp;&middot;&nbsp; Investor names not disclosed</div>
+    <div class="pp-next-step">
+      <div class="pp-next-label">Recommended Action</div>
+      <div class="pp-next-text">Schedule close calls with approved investors</div>
     </div>
-    <div class="push-preview-row" style="border-bottom:none">
-      <span class="push-preview-lbl">% of Target</span>
-      <span class="push-preview-val">${pctTarget}%</span>
+    ${p.alreadyPushed?`<div class="pp-already-pushed">A package has already been pushed for this deal. Sending again will update the advisor's view.</div>`:''}
+    <div class="pp-comment">
+      <label class="pp-comment-label" for="pp-comment-input">Note to Advisor (optional)</label>
+      <textarea class="pp-comment-input" id="pp-comment-input" rows="3" placeholder="Add any context, instructions, or deal notes for the advisor…"></textarea>
     </div>
-    ${byTypeRows.length?`<div class="push-preview-section">Composition</div>${byTypeRows}`:''}
-    ${byGeoRows.length?`<div class="push-preview-section">Geographies</div>${byGeoRows}`:''}
-    <div class="push-preview-section">Advisor Receives</div>
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text-2);line-height:1.6;padding:8px 0 4px">
-      Aggregate summary only — investor names not disclosed.<br>
-      <span style="color:var(--text-3)">Suggested: "Schedule close calls with approved investors"</span>
-    </div>
-    ${p.alreadyPushed?`<div class="push-preview-warning">⚠ A package has already been pushed for this deal.</div>`:''}`;
+    <div class="pp-footer">
+      <button class="pp-cancel-btn" onclick="closePushPreviewModal()">Cancel</button>
+      <button class="pp-confirm-btn" id="push-preview-confirm-btn">Confirm &amp; Send Package &#8594;</button>
+    </div>`;
 
   const confirmBtn=document.getElementById('push-preview-confirm-btn');
   confirmBtn.disabled=false;
@@ -1043,10 +1103,11 @@ function closePushPreviewModal(){
 async function confirmPushPackage(dealId){
   const confirmBtn=document.getElementById('push-preview-confirm-btn');
   if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Pushing…';}
+  const comment=document.getElementById('pp-comment-input')?.value?.trim()||'';
   const res=await fetchSilent('/api/v2?resource=admin&op=push-package',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({dealId})
+    body:JSON.stringify({dealId,comment})
   });
   // Update local state regardless of API (best-effort)
   const deal=DEALS.find(d=>d.id===dealId);

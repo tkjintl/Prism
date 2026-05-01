@@ -130,22 +130,162 @@ export async function sendAdvisorWelcome(advisor, tempPassword) {
 }
 
 // ── IOI push package notification to advisor ──────────────────
-export async function sendIoiPackage(advisorEmail, dealName, stats) {
-  // stats: { approvedCount, indicatedTotal, pct, typeLines, packageId }
-  await send(advisorEmail, `New IOI Package — ${dealName}`, base('IOI Package',
-    `<h3>${dealName}</h3>
-    <p style="color:#C5A572;font-family:monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase">IOI Package Ready</p>
-    <p>An IOI package has been compiled for your deal. Below is an aggregate summary. Individual investor identities are held by the platform operator per compliance policy.</p>
-    <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:13px">
-      <tr><td style="padding:4px 0;color:#a89f94">Approved indications</td><td style="padding:4px 0;text-align:right;color:#ede8df;font-family:monospace">${stats.approvedCount}</td></tr>
-      <tr><td style="padding:4px 0;color:#a89f94">Total indicated amount</td><td style="padding:4px 0;text-align:right;color:#ede8df;font-family:monospace">$${Number(stats.indicatedTotal).toLocaleString()}</td></tr>
-      <tr><td style="padding:4px 0;color:#a89f94">% of target allocation</td><td style="padding:4px 0;text-align:right;color:#C5A572;font-family:monospace">${stats.pct}%</td></tr>
+// data: { to, advisor_name, advisor_firm, deal_name, approved_count,
+//         indicated_total, target_alloc, pct, type_breakdown, geo_breakdown,
+//         package_id, generated_at, admin_comment }
+export async function sendIoiPackage(data) {
+  const dateStr = data.generated_at
+    ? new Date(data.generated_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()
+    : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+
+  const typeRows = (data.type_breakdown || [])
+    .map(({ label, amount }) =>
+      `<tr>
+        <td style="padding:5px 0;font-size:12px;color:#a89f94;border-bottom:1px solid rgba(255,255,255,0.05)">${label}</td>
+        <td style="padding:5px 0;font-size:12px;text-align:right;font-family:monospace;color:#ede8df;border-bottom:1px solid rgba(255,255,255,0.05)">$${Number(amount).toLocaleString()}</td>
+      </tr>`)
+    .join('');
+
+  const geoRows = (data.geo_breakdown || [])
+    .map(({ label, amount }) =>
+      `<tr>
+        <td style="padding:5px 0;font-size:12px;color:#a89f94;border-bottom:1px solid rgba(255,255,255,0.05)">${label}</td>
+        <td style="padding:5px 0;font-size:12px;text-align:right;font-family:monospace;color:#ede8df;border-bottom:1px solid rgba(255,255,255,0.05)">$${Number(amount).toLocaleString()}</td>
+      </tr>`)
+    .join('');
+
+  const html = `<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0d0c0a;font-family:'Helvetica Neue',Arial,sans-serif;color:#e8e4dc">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0d0c0a;padding:32px 0">
+  <tr><td align="center">
+    <table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#0d0c0a;border:1px solid rgba(197,165,114,0.18)">
+
+      <!-- HEADER -->
+      <tr>
+        <td style="padding:20px 28px 18px;border-bottom:1px solid rgba(197,165,114,0.15);background:#0d0c0a">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td>
+                <div style="font-family:Georgia,serif;font-size:16px;font-style:italic;color:#C5A572;letter-spacing:0.04em">AURUM</div>
+                <div style="font-family:monospace;font-size:7px;letter-spacing:0.38em;color:#6b6560;text-transform:uppercase;margin-top:2px">PRISM · PRIVATE DEAL PLATFORM</div>
+              </td>
+              <td align="right" valign="top">
+                <div style="font-family:monospace;font-size:8px;letter-spacing:0.22em;color:#C5A572;text-transform:uppercase">IOI PACKAGE</div>
+                <div style="font-family:monospace;font-size:8px;letter-spacing:0.12em;color:#6b6560;margin-top:3px">${dateStr}</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- DEAL NAME + PREPARED FOR -->
+      <tr>
+        <td style="padding:28px 28px 0">
+          <div style="font-family:Georgia,serif;font-style:italic;font-weight:400;font-size:24px;color:#e8e4dc;line-height:1.25">${data.deal_name}</div>
+          <div style="margin-top:8px;font-family:monospace;font-size:9px;letter-spacing:0.16em;color:#6b6560;text-transform:uppercase">
+            Prepared for ${data.advisor_name}${data.advisor_firm ? ' &middot; ' + data.advisor_firm : ''}
+          </div>
+        </td>
+      </tr>
+
+      <!-- CAPITAL AMOUNT (centrepiece) -->
+      <tr>
+        <td style="padding:24px 28px">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:rgba(197,165,114,0.05);border:1px solid rgba(197,165,114,0.14)">
+            <tr>
+              <td style="padding:20px 24px" align="center">
+                <div style="font-family:monospace;font-size:9px;letter-spacing:0.2em;color:#6b6560;text-transform:uppercase;margin-bottom:8px">Total Indicated Capital</div>
+                <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:32px;font-weight:300;color:#C5A572;letter-spacing:0.02em">$${Number(data.indicated_total).toLocaleString()}</div>
+                <div style="margin-top:8px">
+                  <span style="font-family:monospace;font-size:10px;color:#6b6560">${data.approved_count} approved indication${data.approved_count !== 1 ? 's' : ''}</span>
+                  <span style="font-family:monospace;font-size:10px;color:rgba(197,165,114,0.5);margin:0 8px">&middot;</span>
+                  <span style="font-family:monospace;font-size:10px;color:#C5A572">${data.pct}% of target</span>
+                </div>
+                ${data.target_alloc ? `<div style="margin-top:6px;font-family:monospace;font-size:9px;color:#6b6560">Target allocation: $${Number(data.target_alloc).toLocaleString()}</div>` : ''}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- COMPOSITION + GEOGRAPHY TABLES -->
+      <tr>
+        <td style="padding:0 28px 24px">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr valign="top">
+
+              <!-- By investor type -->
+              <td width="48%" style="padding-right:8px">
+                <div style="font-family:monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:#6b6560;margin-bottom:10px">By Investor Type</div>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  ${typeRows || `<tr><td style="font-size:12px;color:#6b6560;padding:5px 0">No data</td></tr>`}
+                </table>
+              </td>
+
+              <!-- Spacer -->
+              <td width="4%"></td>
+
+              <!-- By geography -->
+              <td width="48%" style="padding-left:8px">
+                <div style="font-family:monospace;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:#6b6560;margin-bottom:10px">By Geography</div>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  ${geoRows || `<tr><td style="font-size:12px;color:#6b6560;padding:5px 0">No data</td></tr>`}
+                </table>
+              </td>
+
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- COMPLIANCE NOTE -->
+      <tr>
+        <td style="padding:0 28px 20px">
+          <div style="padding:12px 14px;background:rgba(255,255,255,0.02);border-left:2px solid rgba(197,165,114,0.2)">
+            <div style="font-size:11px;color:#6b6560;line-height:1.6">Individual investor identities are held by the platform operator per compliance policy. Platform operators will coordinate next steps. Do not contact investors directly.</div>
+          </div>
+        </td>
+      </tr>
+
+      ${data.admin_comment ? `
+      <!-- ADMIN COMMENT -->
+      <tr>
+        <td style="padding:0 28px 20px">
+          <div style="padding:14px 16px;border-left:2px solid #C5A572;background:rgba(197,165,114,0.04)">
+            <div style="font-family:monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#C5A572;margin-bottom:6px">NOTE FROM AURUM PRISM</div>
+            <div style="font-size:13px;color:#e8e4dc;line-height:1.6">${data.admin_comment}</div>
+          </div>
+        </td>
+      </tr>
+      ` : ''}
+
+      <!-- CTA -->
+      <tr>
+        <td style="padding:0 28px 28px">
+          <a href="${SITE}/advisor-portal" style="display:inline-block;background:#C5A572;color:#060605;font-family:monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;padding:13px 24px;text-decoration:none">View in Advisor Portal &rarr;</a>
+        </td>
+      </tr>
+
+      <!-- FOOTER -->
+      <tr>
+        <td style="padding:14px 28px;border-top:1px solid rgba(255,255,255,0.06)">
+          <div style="font-family:monospace;font-size:8px;color:#3a3530;line-height:1.7">
+            Package ID: ${data.package_id}<br>
+            Aurum Prism &middot; prism.theaurumcc.com &middot; TACC Pte Ltd Singapore<br>
+            This is a transactional email. Do not reply to this address.
+          </div>
+        </td>
+      </tr>
+
     </table>
-    <p style="color:#635e58;font-size:11px;font-family:monospace;text-transform:uppercase;letter-spacing:.1em">By investor type</p>
-    <table style="width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:13px">${stats.typeLines}</table>
-    <p style="margin-top:12px;font-size:11px;color:#635e58">Package ID: <span style="font-family:monospace">${stats.packageId}</span><br>Platform operators will coordinate next steps. Do not contact investors directly.</p>
-    <a href="${SITE}/advisor" class="btn">View Advisor Portal →</a>`
-  ));
+  </td></tr>
+</table>
+</body>
+</html>`;
+
+  await send(data.to, `IOI Package — ${data.deal_name}`, html);
 }
 
 // ── Password reset code ────────────────────────────────────────
