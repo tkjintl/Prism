@@ -4,6 +4,27 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal nav fix, auto-reseed, mock name scrub (frontend)
+
+### Changes
+- `admin-portal.html` CSS: added `overflow-x:auto` and `-webkit-overflow-scrolling:touch` to base `.nav-tabs` rule and `flex-shrink:0` to base `.ntab` rule — fixes System tab clipped off-screen on desktop
+- `admin-portal.html` `load()`: added auto-heal block — if KV returns 0 < deals < 8, triggers `/api/v2?resource=deals&op=seed` then re-fetches before rendering, so partial KV data no longer replaces the full mock set
+- `admin-portal.html` mock data: replaced Harrison Family Office → Whitmore Family Office, R. Nakashima → Tanaka Family Office, Kessler Family Office → Sterling Family Office, Pemberton Holdings → Ashford Holdings, Riviera Capital SG → Marquette Capital SG, Thomas Kim → T. Kwan / TACC Pte Ltd (across DEALS, NEW_SUBMISSIONS, MOCK_INVESTORS, activity feed)
+- `investor-portal.html` mock data: replaced GIC → Meridian Sovereign Fund, Harrison Family Office → Whitmore Family Office, Riviera Capital SG → Marquette Capital SG, Thomas Kim → T. Kwan / TACC Pte Ltd
+- `advisor-portal.html` mock data: replaced Temasek Holdings → Singa Capital Fund, GIC Private Ltd → Meridian Sovereign Fund
+
+---
+
+## [2026-05-01] — Replace real company names with fictional ones; add admin deals auto-heal
+
+### Changes
+- `api/v2.js` `seedAdvisors`: renamed `Thomas K J` → `T. Kwan`
+- `api/v2.js` `seedInvestors`: replaced 7 real-world firm names with fictional equivalents — Northfield Endowment → Westbrook Endowment, Harrison Family Office → Whitmore Family Office, Kessler Family Office → Sterling Family Office, Wellington Capital SG → Hargrove Capital SG, R. Nakashima Family Office → Tanaka Family Office, Pemberton Holdings → Ashford Holdings, Riviera Capital SG → Marquette Capital SG
+- `api/_lib/deal-storage.js` `seedIois`: same 9-name replacement applied across all IOI seed entries (Temasek Holdings → Singa Capital Fund, GIC Private Ltd → Meridian Sovereign Fund, plus all above)
+- `api/v2.js` admin deals GET handler: added auto-heal block — if `listDeals()` returns fewer than 8 deals, forces full reseed (advisors, investors, deals, IOIs) before responding, ensuring admin portal never shows empty data after KV eviction
+
+---
+
 ## [2026-05-01] — Fix seed op: IOIs now force-refreshed on Load Test Data
 
 ### Changes

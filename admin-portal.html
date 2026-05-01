@@ -62,8 +62,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .nav-wm-rule{display:block;width:1px;height:12px;background:var(--gold-bd);margin:0 10px;flex-shrink:0}
 .nav-wm-prism{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
 .nav-div{width:1px;height:20px;background:var(--border);flex-shrink:0}
-.nav-tabs{display:flex}
-.ntab{padding:8px 14px;font-size:12px;font-weight:500;color:var(--text-3);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;position:relative}
+.nav-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ntab{padding:8px 14px;font-size:12px;font-weight:500;color:var(--text-3);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;position:relative;flex-shrink:0}
 .ntab.on{color:var(--gold);border-bottom-color:var(--gold)}
 .ntab:hover:not(.on){color:var(--text-2)}
 .ntab-badge{position:absolute;top:6px;right:4px;min-width:16px;height:16px;border-radius:8px;background:var(--amber);font-family:var(--mono);font-size:8px;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 4px;animation:pulse 2s infinite}
@@ -1360,9 +1360,9 @@ let DEALS=[
     advisor:'Sarah Chen',advisor_firm:'Chen Capital Partners',
     ioi_agg:58500000,
     iois:[
-      {id:'i1',name:'Harrison Family Office',init:'HF',type:'Family Office',geo:'US',amount:5000000,date:'Apr 29',status:'approved',isNew:true,pushed:false},
+      {id:'i1',name:'Whitmore Family Office',init:'HF',type:'Family Office',geo:'US',amount:5000000,date:'Apr 29',status:'approved',isNew:true,pushed:false},
       {id:'i2',name:'Meridian Capital LP',init:'MC',type:'Institutional',geo:'SG',amount:8000000,date:'Apr 26',status:'approved',isNew:false,pushed:false},
-      {id:'i3',name:'R. Nakashima',init:'RN',type:'Family Office',geo:'JP',amount:3500000,date:'Apr 24',status:'approved',isNew:false,pushed:false},
+      {id:'i3',name:'Tanaka Family Office',init:'RN',type:'Family Office',geo:'JP',amount:3500000,date:'Apr 24',status:'approved',isNew:false,pushed:false},
       {id:'i4',name:'Atlas Endowment',init:'AE',type:'Institutional',geo:'US',amount:12000000,date:'Apr 20',status:'approved',isNew:false,pushed:false},
       {id:'i5',name:'Thornwood Partners',init:'TP',type:'Family Office',geo:'UK',amount:7500000,date:'Apr 18',status:'declined',isNew:false,pushed:false},
     ],
@@ -1374,7 +1374,7 @@ let DEALS=[
     advisor:'Marcus Chen',advisor_firm:'Marcus Chen Advisory',
     ioi_agg:19600000,
     iois:[
-      {id:'i6',name:'Kessler Family Office',init:'KF',type:'Family Office',geo:'US',amount:4000000,date:'Apr 28',status:'pending',isNew:true,pushed:false},
+      {id:'i6',name:'Sterling Family Office',init:'KF',type:'Family Office',geo:'US',amount:4000000,date:'Apr 28',status:'pending',isNew:true,pushed:false},
       {id:'i7',name:'Westport Capital',init:'WC',type:'Institutional',geo:'US',amount:6000000,date:'Apr 26',status:'approved',isNew:false,pushed:false},
       {id:'i8',name:'H. Delacroix',init:'HD',type:'HNW',geo:'FR',amount:2000000,date:'Apr 22',status:'approved',isNew:false,pushed:false},
       {id:'i9',name:'Canmore Group',init:'CG',type:'Family Office',geo:'CA',amount:7600000,date:'Apr 18',status:'approved',isNew:false,pushed:false},
@@ -1395,7 +1395,7 @@ let DEALS=[
     id:'d4',name:'SunBelt Residential Fund IV',asset_class:'re',stage:'live',
     geography:'United States — Southeast',structure:'Preferred Equity',target_irr:16,
     target_alloc:38000000,term:48,min_ticket:250000,closing:'2026-11-30',
-    advisor:'Thomas Kim',advisor_firm:'Kim Real Estate Partners',
+    advisor:'T. Kwan',advisor_firm:'TACC Pte Ltd',
     ioi_agg:14100000,
     iois:[
       {id:'i12',name:'D. Ashford',init:'DA',type:'HNW',geo:'US',amount:1500000,date:'Apr 29',status:'pending',isNew:true,pushed:false},
@@ -1419,8 +1419,8 @@ let DEALS=[
     advisor:'Sarah Chen',advisor_firm:'Chen Capital Partners',
     ioi_agg:32000000,
     iois:[
-      {id:'i15',name:'Pemberton Holdings',init:'PH',type:'Family Office',geo:'UK',amount:10000000,date:'Apr 30',status:'approved',isNew:false,pushed:true},
-      {id:'i16',name:'Riviera Capital SG',init:'RC',type:'Institutional',geo:'SG',amount:12000000,date:'Apr 28',status:'approved',isNew:false,pushed:false},
+      {id:'i15',name:'Ashford Holdings',init:'PH',type:'Family Office',geo:'UK',amount:10000000,date:'Apr 30',status:'approved',isNew:false,pushed:true},
+      {id:'i16',name:'Marquette Capital SG',init:'RC',type:'Institutional',geo:'SG',amount:12000000,date:'Apr 28',status:'approved',isNew:false,pushed:false},
       {id:'i17',name:'E. Nakamura',init:'EN',type:'HNW',geo:'JP',amount:5000000,date:'May 1',status:'pending',isNew:true,pushed:false},
       {id:'i18',name:'Abilene Endowment',init:'AB',type:'Institutional',geo:'US',amount:5000000,date:'Apr 26',status:'declined',isNew:false,pushed:false},
     ],
@@ -1443,7 +1443,7 @@ let DEALS=[
     advisor:'Marcus Chen',advisor_firm:'Marcus Chen Advisory',
     ioi_agg:38500000,
     iois:[
-      {id:'i19',name:'Harrison Family Office',init:'HF',type:'Family Office',geo:'US',amount:8000000,date:'Apr 15',status:'approved',isNew:false,pushed:true},
+      {id:'i19',name:'Whitmore Family Office',init:'HF',type:'Family Office',geo:'US',amount:8000000,date:'Apr 15',status:'approved',isNew:false,pushed:true},
       {id:'i20',name:'Thornwood Partners',init:'TP',type:'Family Office',geo:'UK',amount:6500000,date:'Apr 12',status:'approved',isNew:false,pushed:true},
       {id:'i21',name:'Canmore Group',init:'CG',type:'Family Office',geo:'CA',amount:12000000,date:'Apr 10',status:'approved',isNew:false,pushed:true},
       {id:'i22',name:'Atlas Endowment',init:'AE',type:'Institutional',geo:'US',amount:12000000,date:'Apr 8',status:'approved',isNew:false,pushed:true},
@@ -1458,7 +1458,7 @@ let DEALS=[
     advisor:'TACC Singapore',advisor_firm:'TACC Singapore',
     ioi_agg:12000000,
     iois:[
-      {id:'i23',name:'Riviera Capital SG',init:'RC',type:'Institutional',geo:'SG',amount:8000000,date:'May 1',status:'pending',isNew:true,pushed:false},
+      {id:'i23',name:'Marquette Capital SG',init:'RC',type:'Institutional',geo:'SG',amount:8000000,date:'May 1',status:'pending',isNew:true,pushed:false},
       {id:'i24',name:'E. Nakamura',init:'EN',type:'HNW',geo:'JP',amount:4000000,date:'May 1',status:'pending',isNew:true,pushed:false},
     ],
     thesis:'Figure AI is building the world\'s most advanced humanoid robot, combining proprietary AI with full-stack hardware manufacturing. Series C led by strategic investors at a $2.6B valuation with letters of intent from Fortune 500 manufacturers.',
@@ -1627,13 +1627,13 @@ function renderOverview(){
     {name:'TACC Singapore',  firm:'TACC Singapore',          joined:'May 1 2026',  status:'active'},
   ];
   const MOCK_INVESTORS=[
-    {name:'Harrison Family Office',  type:'Family Office',   added:'Apr 29 2026',access:'active'},
+    {name:'Whitmore Family Office',  type:'Family Office',   added:'Apr 29 2026',access:'active'},
     {name:'D. Ashford',              type:'HNWI',            added:'May 1 2026',  access:'pending'},
-    {name:'Kessler Family Office',   type:'Family Office',   added:'Apr 28 2026', access:'active'},
+    {name:'Sterling Family Office',   type:'Family Office',   added:'Apr 28 2026', access:'active'},
     {name:'E. Nakamura',             type:'HNWI',            added:'May 1 2026',  access:'pending'},
-    {name:'Riviera Capital SG',      type:'Institutional',   added:'Apr 30 2026', access:'active'},
+    {name:'Marquette Capital SG',      type:'Institutional',   added:'Apr 30 2026', access:'active'},
     {name:'S. Okonkwo',              type:'HNWI',            added:'May 1 2026',  access:'invite_sent'},
-    {name:'Pemberton Holdings',      type:'Family Office',   added:'Apr 29 2026', access:'active'},
+    {name:'Ashford Holdings',      type:'Family Office',   added:'Apr 29 2026', access:'active'},
     {name:'Blackthorn Partners',     type:'Institutional',   added:'May 1 2026',  access:'invite_sent'},
   ];
 
@@ -1734,9 +1734,9 @@ function renderOverview(){
 
   /* ── Activity Feed ── */
   const activity=[
-    {type:'push',  text:'<strong>Harrison Family Office</strong> IOI pushed to Sarah Chen for review',time:'1h ago'},
+    {type:'push',  text:'<strong>Whitmore Family Office</strong> IOI pushed to Sarah Chen for review',time:'1h ago'},
     {type:'ioi',   text:'<strong>D. Ashford</strong> indicated $1.5M in SunBelt Residential Fund IV',time:'2h ago'},
-    {type:'ioi',   text:'<strong>Kessler Family Office</strong> indicated $4.0M in Clearwater Credit II',time:'4h ago'},
+    {type:'ioi',   text:'<strong>Sterling Family Office</strong> indicated $4.0M in Clearwater Credit II',time:'4h ago'},
     {type:'submit',text:'<strong>David Park</strong> submitted Meridian Financial Corp for review',time:'1d ago'},
     {type:'stage', text:'Vantage Analytics Series C advanced to <strong>Due Diligence</strong>',time:'2d ago'},
     {type:'review',text:'Pacific Bridge Infrastructure <strong>featured</strong> on investor portal',time:'3d ago'},
@@ -3763,13 +3763,20 @@ async function load(){
   if(!me||me._unauth){window.location.href='/login';return;}
   if(me.ok&&me.role!=='admin'){window.location.href='/login';return;}
   if(me.ok&&me.role==='admin'){
-    const [dealsR,ioisR]=await Promise.all([
+    let [dealsR,ioisR]=await Promise.all([
       fetchSilent('/api/v2?resource=deals'),
       fetchSilent('/api/v2?resource=marketplace&op=deal-iois')
     ]);
+    // Auto-heal: if KV has partial data (< 8 deals), force-reseed
+    if(dealsR?.deals&&dealsR.deals.length>0&&dealsR.deals.length<8){
+      await fetch('/api/v2?resource=deals&op=seed',{method:'POST'});
+      [dealsR,ioisR]=await Promise.all([
+        fetchSilent('/api/v2?resource=deals'),
+        fetchSilent('/api/v2?resource=marketplace&op=deal-iois')
+      ]);
+    }
     const allIois=ioisR?.iois||[];
     if(dealsR?.deals&&dealsR.deals.length){
-      // Replace mock data with live API data when KV has real deals
       const all=dealsR.deals.filter(d=>d.stage!=='killed').map(d=>adaptDeal(d,allIois));
       NEW_SUBMISSIONS=all.filter(d=>d.stage==='review').map(d=>({...d,submitted:new Date(d.created_at||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric'})}));
       DEALS=all.filter(d=>d.stage!=='review');

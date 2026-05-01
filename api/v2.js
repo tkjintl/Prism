@@ -470,7 +470,17 @@ export default async function handler(req, res) {
       return ok(res, { deal });
     }
 
-    const deals = await listDeals();
+    let deals = await listDeals();
+    // Auto-heal: if KV has stale/partial data, force reseed before returning
+    if (deals.length < 8) {
+      try {
+        await seedAdvisors();
+        await seedInvestors();
+        await seedDeals(true);
+        await seedIois(true);
+        deals = await listDeals();
+      } catch (e) { /* seed unavailable — return what we have */ }
+    }
     return ok(res, { deals });
   }
 
@@ -1627,7 +1637,7 @@ function sanitizeInst(inst) {
 
 async function seedAdvisors() {
   const advisors = [
-    { id:'adv-tkj', email:'tkj@theaurumcc.com',     firm_name:'TACC Pte Ltd',             name:'Thomas K J',      intro_fee_pct:1,   carry_pct:0,  status:'active',  requires_setup:false, temp_pw:'1234',        is_admin:true },
+    { id:'adv-tkj', email:'tkj@theaurumcc.com',     firm_name:'TACC Pte Ltd',             name:'T. Kwan',         intro_fee_pct:1,   carry_pct:0,  status:'active',  requires_setup:false, temp_pw:'1234',        is_admin:true },
     { id:'adv-sg1', email:'sarah@capitalgroup.sg',   firm_name:'Chen Capital Partners',    name:'Sarah Chen',      intro_fee_pct:1,   carry_pct:10, status:'active',  requires_setup:false },
     { id:'adv-mc1', email:'marcus@mchadvisory.com',  firm_name:'Marcus Chen Advisory',     name:'Marcus Chen',     intro_fee_pct:1,   carry_pct:10, status:'active',  requires_setup:false },
     { id:'adv-mg1', email:'priya@mehtainv.sg',       firm_name:'Mehta Investment Group',   name:'Priya Mehta',     intro_fee_pct:1,   carry_pct:10, status:'active',  requires_setup:false },
@@ -1653,15 +1663,15 @@ async function seedInvestors() {
     { id:'inv-tkj', email:'tkj@theaurumcc.com',           firm_name:'TACC Pte Ltd',                 contact_name:'Thomas K J',        institution_type:'Family Office',     aum_range:'Over $1B',    ticket_range:'Over $5M',    status:'approved', code:'TKJDEV1' },
     { id:'inv-001', email:'jwc@theaurumcc.com',            firm_name:'Meridian Family Office',       contact_name:'James Walker',       institution_type:'Family Office',     aum_range:'$50M–$250M',  ticket_range:'$1M–$5M',     status:'approved', code:'1234' },
     { id:'inv-002', email:'priya@atlascap.com',            firm_name:'Atlas Capital Management',     contact_name:'Priya Sharma',       institution_type:'Institutional Fund', aum_range:'$250M–$1B',   ticket_range:'Over $5M',    status:'pending',  code:null },
-    { id:'inv-003', email:'m.chen@northfield.edu',         firm_name:'Northfield Endowment',         contact_name:'Michael Chen',       institution_type:'Endowment',          aum_range:'Over $1B',    ticket_range:'$1M–$5M',     status:'pending',  code:null },
+    { id:'inv-003', email:'m.chen@northfield.edu',         firm_name:'Westbrook Endowment',          contact_name:'Michael Chen',       institution_type:'Endowment',          aum_range:'Over $1B',    ticket_range:'$1M–$5M',     status:'pending',  code:null },
     { id:'inv-004', email:'skim@pacificavc.com',           firm_name:'Pacifica Ventures',            contact_name:'Sarah Kim',          institution_type:'PE / VC Fund',       aum_range:'$50M–$250M',  ticket_range:'$250K–$1M',   status:'approved', code:'INST-Q3PX7KMN' },
     { id:'inv-005', email:'dliu@egf.com',                  firm_name:'Eastern Growth Fund',          contact_name:'David Liu',          institution_type:'Institutional Fund', aum_range:'$250M–$1B',   ticket_range:'$1M–$5M',     status:'approved', code:'INST-B8WZK4LR' },
-    { id:'inv-006', email:'harrison@harrisonfo.com',       firm_name:'Harrison Family Office',       contact_name:'William Harrison',   institution_type:'Family Office',     aum_range:'$250M–$1B',   ticket_range:'$1M–$5M',     status:'pending',  code:null },
-    { id:'inv-007', email:'kessler@kesslerfo.com',         firm_name:'Kessler Family Office',        contact_name:'James Kessler',      institution_type:'Family Office',     aum_range:'$50M–$250M',  ticket_range:'$250K–$1M',   status:'pending',  code:null },
-    { id:'inv-008', email:'weiss@wellingtonsg.com',        firm_name:'Wellington Capital SG',        contact_name:'Richard Weiss',      institution_type:'Institutional Fund', aum_range:'Over $1B',    ticket_range:'Over $5M',    status:'pending',  code:null },
-    { id:'inv-009', email:'nakashima@rnfamily.jp',         firm_name:'R. Nakashima Family Office',   contact_name:'R. Nakashima',       institution_type:'Family Office',     aum_range:'$250M–$1B',   ticket_range:'$1M–$5M',     status:'approved', code:'INST-RN7KXP2Q' },
-    { id:'inv-010', email:'pemberton@pembertonhold.co.uk', firm_name:'Pemberton Holdings',           contact_name:'C. Pemberton',       institution_type:'Family Office',     aum_range:'Over $1B',    ticket_range:'Over $5M',    status:'approved', code:'INST-PH4WM9VB' },
-    { id:'inv-011', email:'riviera@rivieracapsg.com',      firm_name:'Riviera Capital SG',           contact_name:'A. Fournier',        institution_type:'Institutional Fund', aum_range:'$250M–$1B',   ticket_range:'$1M–$5M',     status:'approved', code:'INST-RC2ZK8LN' },
+    { id:'inv-006', email:'harrison@harrisonfo.com',       firm_name:'Whitmore Family Office',       contact_name:'William Harrison',   institution_type:'Family Office',     aum_range:'$250M–$1B',   ticket_range:'$1M–$5M',     status:'pending',  code:null },
+    { id:'inv-007', email:'kessler@kesslerfo.com',         firm_name:'Sterling Family Office',       contact_name:'James Kessler',      institution_type:'Family Office',     aum_range:'$50M–$250M',  ticket_range:'$250K–$1M',   status:'pending',  code:null },
+    { id:'inv-008', email:'weiss@wellingtonsg.com',        firm_name:'Hargrove Capital SG',          contact_name:'Richard Weiss',      institution_type:'Institutional Fund', aum_range:'Over $1B',    ticket_range:'Over $5M',    status:'pending',  code:null },
+    { id:'inv-009', email:'nakashima@rnfamily.jp',         firm_name:'Tanaka Family Office',         contact_name:'R. Nakashima',       institution_type:'Family Office',     aum_range:'$250M–$1B',   ticket_range:'$1M–$5M',     status:'approved', code:'INST-RN7KXP2Q' },
+    { id:'inv-010', email:'pemberton@pembertonhold.co.uk', firm_name:'Ashford Holdings',             contact_name:'C. Pemberton',       institution_type:'Family Office',     aum_range:'Over $1B',    ticket_range:'Over $5M',    status:'approved', code:'INST-PH4WM9VB' },
+    { id:'inv-011', email:'riviera@rivieracapsg.com',      firm_name:'Marquette Capital SG',         contact_name:'A. Fournier',        institution_type:'Institutional Fund', aum_range:'$250M–$1B',   ticket_range:'$1M–$5M',     status:'approved', code:'INST-RC2ZK8LN' },
     { id:'inv-012', email:'chen@meridianam.sg',            firm_name:'Meridian Asset Management',    contact_name:'J. Chen',            institution_type:'Institutional Fund', aum_range:'Over $1B',    ticket_range:'Over $5M',    status:'pending',  code:null },
     { id:'inv-013', email:'stonegate@stonegatefo.com',     firm_name:'Stonegate Family Office',      contact_name:'D. Ashford',         institution_type:'Family Office',     aum_range:'$50M–$250M',  ticket_range:'$250K–$1M',   status:'pending',  code:null },
   ];

@@ -208,59 +208,59 @@ export async function seedIois(force = false) {
   const IOI_SEED = {
     // TACC — Figure AI
     'DL-FIGU1': [
-      { suffix:'001', investor_firm:'Temasek Holdings',           institution_type:'Institutional',  geo:'SG', amount:5000000, status:'approved', daysAgo:12 },
-      { suffix:'002', investor_firm:'GIC Private Ltd',            institution_type:'Institutional',  geo:'SG', amount:3000000, status:'approved', daysAgo:9  },
-      { suffix:'003', investor_firm:'Harrison Family Office',     institution_type:'Family Office',  geo:'US', amount:2500000, status:'pending',  daysAgo:4  },
-      { suffix:'004', investor_firm:'Riviera Capital SG',         institution_type:'Institutional',  geo:'SG', amount:4000000, status:'pending',  daysAgo:2  },
-      { suffix:'005', investor_firm:'R. Nakashima Family Office', institution_type:'Family Office',  geo:'JP', amount:3500000, status:'rejected', daysAgo:14 },
+      { suffix:'001', investor_firm:'Singa Capital Fund',         institution_type:'Institutional',  geo:'SG', amount:5000000, status:'approved', daysAgo:12 },
+      { suffix:'002', investor_firm:'Meridian Sovereign Fund',   institution_type:'Institutional',  geo:'SG', amount:3000000, status:'approved', daysAgo:9  },
+      { suffix:'003', investor_firm:'Whitmore Family Office',    institution_type:'Family Office',  geo:'US', amount:2500000, status:'pending',  daysAgo:4  },
+      { suffix:'004', investor_firm:'Marquette Capital SG',      institution_type:'Institutional',  geo:'SG', amount:4000000, status:'pending',  daysAgo:2  },
+      { suffix:'005', investor_firm:'Tanaka Family Office',      institution_type:'Family Office',  geo:'JP', amount:3500000, status:'rejected', daysAgo:14 },
     ],
     // TACC — Shield AI (DD stage — has active IOIs)
     'DL-SHIE1': [
-      { suffix:'001', investor_firm:'GIC Private Ltd',            institution_type:'Institutional',  geo:'SG', amount:4000000, status:'approved', daysAgo:8  },
+      { suffix:'001', investor_firm:'Meridian Sovereign Fund',    institution_type:'Institutional',  geo:'SG', amount:4000000, status:'approved', daysAgo:8  },
       { suffix:'002', investor_firm:'Meridian Asset Management',  institution_type:'Institutional',  geo:'SG', amount:3500000, status:'approved', daysAgo:6  },
-      { suffix:'003', investor_firm:'Pemberton Holdings',         institution_type:'Family Office',  geo:'UK', amount:2000000, status:'pending',  daysAgo:3  },
-      { suffix:'004', investor_firm:'Wellington Capital SG',      institution_type:'Institutional',  geo:'SG', amount:3000000, status:'rejected', daysAgo:10 },
+      { suffix:'003', investor_firm:'Ashford Holdings',           institution_type:'Family Office',  geo:'UK', amount:2000000, status:'pending',  daysAgo:3  },
+      { suffix:'004', investor_firm:'Hargrove Capital SG',        institution_type:'Institutional',  geo:'SG', amount:3000000, status:'rejected', daysAgo:10 },
     ],
     // Chen Capital — Pacific Bridge Infrastructure
     'DL-PBRI1': [
-      { suffix:'001', investor_firm:'Harrison Family Office',     institution_type:'Family Office',  geo:'US', amount:5000000,  status:'approved', daysAgo:18 },
+      { suffix:'001', investor_firm:'Whitmore Family Office',     institution_type:'Family Office',  geo:'US', amount:5000000,  status:'approved', daysAgo:18 },
       { suffix:'002', investor_firm:'Meridian Asset Management',  institution_type:'Institutional',  geo:'SG', amount:8000000,  status:'approved', daysAgo:14 },
-      { suffix:'003', investor_firm:'R. Nakashima Family Office', institution_type:'Family Office',  geo:'JP', amount:3500000,  status:'approved', daysAgo:10 },
+      { suffix:'003', investor_firm:'Tanaka Family Office',       institution_type:'Family Office',  geo:'JP', amount:3500000,  status:'approved', daysAgo:10 },
       { suffix:'004', investor_firm:'Atlas Capital Management',   institution_type:'Institutional',  geo:'US', amount:12000000, status:'approved', daysAgo:20 },
-      { suffix:'005', investor_firm:'Pemberton Holdings',         institution_type:'Family Office',  geo:'UK', amount:7500000,  status:'rejected', daysAgo:22 },
+      { suffix:'005', investor_firm:'Ashford Holdings',           institution_type:'Family Office',  geo:'UK', amount:7500000,  status:'rejected', daysAgo:22 },
     ],
     // Chen Capital — Apex Growth Partners
     'DL-APEX1': [
-      { suffix:'001', investor_firm:'Pemberton Holdings',         institution_type:'Family Office',  geo:'UK', amount:10000000, status:'approved', daysAgo:8  },
-      { suffix:'002', investor_firm:'Riviera Capital SG',         institution_type:'Institutional',  geo:'SG', amount:12000000, status:'approved', daysAgo:6  },
-      { suffix:'003', investor_firm:'R. Nakashima Family Office', institution_type:'Family Office',  geo:'JP', amount:5000000,  status:'pending',  daysAgo:2  },
-      { suffix:'004', investor_firm:'Northfield Endowment',       institution_type:'Endowment',      geo:'US', amount:5000000,  status:'rejected', daysAgo:12 },
+      { suffix:'001', investor_firm:'Ashford Holdings',            institution_type:'Family Office',  geo:'UK', amount:10000000, status:'approved', daysAgo:8  },
+      { suffix:'002', investor_firm:'Marquette Capital SG',        institution_type:'Institutional',  geo:'SG', amount:12000000, status:'approved', daysAgo:6  },
+      { suffix:'003', investor_firm:'Tanaka Family Office',        institution_type:'Family Office',  geo:'JP', amount:5000000,  status:'pending',  daysAgo:2  },
+      { suffix:'004', investor_firm:'Westbrook Endowment',         institution_type:'Endowment',      geo:'US', amount:5000000,  status:'rejected', daysAgo:12 },
     ],
     // Marcus Chen — Clearwater Credit II
     'DL-CLWA1': [
-      { suffix:'001', investor_firm:'Kessler Family Office',      institution_type:'Family Office',  geo:'US', amount:4000000, status:'pending',  daysAgo:3  },
-      { suffix:'002', investor_firm:'Wellington Capital SG',      institution_type:'Institutional',  geo:'SG', amount:6000000, status:'approved', daysAgo:8  },
-      { suffix:'003', investor_firm:'Harrison Family Office',     institution_type:'Family Office',  geo:'US', amount:3600000, status:'approved', daysAgo:12 },
-      { suffix:'004', investor_firm:'Stonegate Family Office',    institution_type:'Family Office',  geo:'US', amount:6000000, status:'approved', daysAgo:18 },
+      { suffix:'001', investor_firm:'Sterling Family Office',      institution_type:'Family Office',  geo:'US', amount:4000000, status:'pending',  daysAgo:3  },
+      { suffix:'002', investor_firm:'Hargrove Capital SG',         institution_type:'Institutional',  geo:'SG', amount:6000000, status:'approved', daysAgo:8  },
+      { suffix:'003', investor_firm:'Whitmore Family Office',      institution_type:'Family Office',  geo:'US', amount:3600000, status:'approved', daysAgo:12 },
+      { suffix:'004', investor_firm:'Stonegate Family Office',     institution_type:'Family Office',  geo:'US', amount:6000000, status:'approved', daysAgo:18 },
     ],
     // Marcus Chen — Clearwater Credit III (close stage)
     'DL-CLWB1': [
-      { suffix:'001', investor_firm:'Harrison Family Office',     institution_type:'Family Office',  geo:'US', amount:8000000,  status:'approved', daysAgo:35 },
-      { suffix:'002', investor_firm:'Pemberton Holdings',         institution_type:'Family Office',  geo:'UK', amount:6500000,  status:'approved', daysAgo:32 },
-      { suffix:'003', investor_firm:'Stonegate Family Office',    institution_type:'Family Office',  geo:'CA', amount:12000000, status:'approved', daysAgo:28 },
-      { suffix:'004', investor_firm:'Atlas Capital Management',   institution_type:'Institutional',  geo:'US', amount:12000000, status:'approved', daysAgo:25 },
+      { suffix:'001', investor_firm:'Whitmore Family Office',      institution_type:'Family Office',  geo:'US', amount:8000000,  status:'approved', daysAgo:35 },
+      { suffix:'002', investor_firm:'Ashford Holdings',            institution_type:'Family Office',  geo:'UK', amount:6500000,  status:'approved', daysAgo:32 },
+      { suffix:'003', investor_firm:'Stonegate Family Office',     institution_type:'Family Office',  geo:'CA', amount:12000000, status:'approved', daysAgo:28 },
+      { suffix:'004', investor_firm:'Atlas Capital Management',    institution_type:'Institutional',  geo:'US', amount:12000000, status:'approved', daysAgo:25 },
     ],
     // Mehta — Vantage Analytics (DD stage)
     'DL-VANA1': [
-      { suffix:'001', investor_firm:'Riviera Capital SG',         institution_type:'Institutional',  geo:'SG', amount:8000000, status:'approved', daysAgo:10 },
-      { suffix:'002', investor_firm:'Meridian Asset Management',  institution_type:'Institutional',  geo:'SG', amount:5000000, status:'pending',  daysAgo:5  },
-      { suffix:'003', investor_firm:'Wellington Capital SG',      institution_type:'Institutional',  geo:'SG', amount:7500000, status:'approved', daysAgo:15 },
+      { suffix:'001', investor_firm:'Marquette Capital SG',        institution_type:'Institutional',  geo:'SG', amount:8000000, status:'approved', daysAgo:10 },
+      { suffix:'002', investor_firm:'Meridian Asset Management',   institution_type:'Institutional',  geo:'SG', amount:5000000, status:'pending',  daysAgo:5  },
+      { suffix:'003', investor_firm:'Hargrove Capital SG',         institution_type:'Institutional',  geo:'SG', amount:7500000, status:'approved', daysAgo:15 },
     ],
     // Kim Real Estate — SunBelt
     'DL-SUNB1': [
-      { suffix:'001', investor_firm:'Stonegate Family Office',    institution_type:'Family Office',  geo:'US', amount:4000000, status:'pending',  daysAgo:3  },
-      { suffix:'002', investor_firm:'Kessler Family Office',      institution_type:'Family Office',  geo:'US', amount:1500000, status:'pending',  daysAgo:2  },
-      { suffix:'003', investor_firm:'Wellington Capital SG',      institution_type:'Institutional',  geo:'SG', amount:8600000, status:'approved', daysAgo:14 },
+      { suffix:'001', investor_firm:'Stonegate Family Office',     institution_type:'Family Office',  geo:'US', amount:4000000, status:'pending',  daysAgo:3  },
+      { suffix:'002', investor_firm:'Sterling Family Office',      institution_type:'Family Office',  geo:'US', amount:1500000, status:'pending',  daysAgo:2  },
+      { suffix:'003', investor_firm:'Hargrove Capital SG',         institution_type:'Institutional',  geo:'SG', amount:8600000, status:'approved', daysAgo:14 },
     ],
   };
 
