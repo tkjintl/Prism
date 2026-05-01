@@ -833,7 +833,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <div id="view-queue" class="view">
   <div class="view-inner">
     <div class="view-heading">IOI Approval Queue</div>
-    <div class="view-sub">Review and approve investor indications. Push one approved IOI per deal to the advisor for final review.</div>
+    <div class="view-sub">Review and approve investor indications. Open DD when ready — this notifies the advisor and grants approved investors data room access.</div>
     <div id="ioi-queue-content"></div>
   </div>
 </div>
@@ -970,7 +970,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div class="modal-body" id="push-modal-body"></div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closePushModal()">Cancel</button>
-      <button class="modal-confirm" id="push-modal-confirm">Push to Advisor →</button>
+      <button class="modal-confirm" id="push-modal-confirm">Open Due Diligence →</button>
     </div>
   </div>
 </div>
@@ -1594,7 +1594,7 @@ function renderKPIs(){
     {lbl:'Approved Capital',val:fmU(totalIndicated),rawNum:totalIndicated,sub:`${DEALS.length} active deals`,cls:'kpi-gold'},
     {lbl:'Investor Indications',val:totalPending>0?`${totalPending} pending`:'All clear',rawNum:totalPending,sub:'awaiting approval',cls:totalPending>0?'kpi-alert':'kpi-green'},
     {lbl:'New Submissions',val:NEW_SUBMISSIONS.length||'—',rawNum:NEW_SUBMISSIONS.length,sub:'from advisors',cls:NEW_SUBMISSIONS.length>0?'kpi-alert':''},
-    {lbl:'Ready to Push',val:approvedUnpushed||'—',rawNum:approvedUnpushed,sub:'approved IOIs',cls:approvedUnpushed>0?'kpi-gold':''},
+    {lbl:'Ready for DD',val:approvedUnpushed||'—',rawNum:approvedUnpushed,sub:'awaiting DD open',cls:approvedUnpushed>0?'kpi-gold':''},
     {lbl:'Actions Required',val:actionsRequired>0?actionsRequired:'All clear',rawNum:actionsRequired,sub:'total open items',cls:actionsRequired>0?'kpi-alert':'kpi-green'},
   ];
   const strip=document.getElementById('kpi-strip');
@@ -1697,7 +1697,7 @@ function renderOverview(){
       </div>`
     ).join('');
     return `<div class="ov-action-card" style="position:relative;padding-right:72px">
-      <div class="ov-ac-tag violet">Deploy Capital</div>
+      <div class="ov-ac-tag violet">Open Due Diligence</div>
       <div class="ov-ac-name">${d.name}</div>
       <div class="ov-ac-meta">${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}</div>
       ${investorRows}
@@ -1824,7 +1824,7 @@ function renderOverview(){
     <div class="ov-queue-grid">
       ${queueCol('ov-dot-amber','New Deals',submissionCards)}
       ${queueCol('ov-dot-gold','Inbound IOI from Investors',ioiDecisionCards)}
-      ${queueCol('ov-dot-violet','Deploy Capital',pushCards)}
+      ${queueCol('ov-dot-violet','Open Due Diligence',pushCards)}
     </div>
     <div class="ov-stage-section">
       <div class="ov-section-hd">
@@ -1911,7 +1911,7 @@ function openPackagePreview(dealId, ioiId){
 
   acts.innerHTML = `
     <button class="att-btn att-decline" onclick="closePackagePreview()">Cancel</button>
-    <button class="att-btn att-push" style="padding:10px 22px;font-size:13px" onclick="closePackagePreview();openPushModal('${dealId}','${ioiId}')">Push Package to ${d.advisor} →</button>`;
+    <button class="att-btn att-push" style="padding:10px 22px;font-size:13px" onclick="closePackagePreview();openPushModal('${dealId}','${ioiId}')">Open Due Diligence →</button>`;
 
   panel.style.transform = 'translateX(0)';
 }
@@ -2024,7 +2024,7 @@ function buildDealGroup(g,gi=0){
           <span id="inc-inline-${g.dealId}" style="display:none"></span>
         </div>
         <button class="ioi-pkg-btn" data-pkg-btn="${g.dealId}" onclick="pushPackage('${g.dealId}')"
-          ${g.approvedCount===0?'disabled':''}>Push Package to Advisor →</button>
+          ${g.approvedCount===0?'disabled':''}>Open Due Diligence →</button>
       </div>
     </div>
   </div>`;
@@ -2196,14 +2196,14 @@ function showPushPreviewModal(p){
       <div class="pp-next-label">Recommended Action</div>
       <div class="pp-next-text">Schedule close calls with approved investors</div>
     </div>
-    ${p.alreadyPushed?`<div class="pp-already-pushed">A package has already been pushed for this deal. Sending again will update the advisor's view.</div>`:''}
+    ${p.alreadyPushed?`<div class="pp-already-pushed">Due diligence is already open for this deal. Sending again will update the advisor's view.</div>`:''}
     <div class="pp-comment">
       <label class="pp-comment-label" for="pp-comment-input">Note to Advisor (optional)</label>
       <textarea class="pp-comment-input" id="pp-comment-input" rows="3" placeholder="Add any context, instructions, or deal notes for the advisor…"></textarea>
     </div>
     <div class="pp-footer">
       <button class="pp-cancel-btn" onclick="closePushPreviewModal()">Cancel</button>
-      <button class="pp-confirm-btn" id="push-preview-confirm-btn">Confirm &amp; Send Package &#8594;</button>
+      <button class="pp-confirm-btn" id="push-preview-confirm-btn">Open Due Diligence &#8594;</button>
     </div>`;
 
   const confirmBtn=document.getElementById('push-preview-confirm-btn');
@@ -2228,9 +2228,10 @@ async function confirmPushPackage(dealId){
   // Update local state regardless of API (best-effort)
   const deal=DEALS.find(d=>d.id===dealId);
   if(deal)deal.iois.filter(i=>i.status==='approved').forEach(i=>i.pushed=true);
+  if(deal)deal.stage='dd';
   closePushPreviewModal();
-  toast('Package pushed to advisor','ok');
-  renderQueue();renderOverview();
+  toast('Due diligence opened — advisor notified','ok');
+  renderQueue();renderOverview();renderPipeline();
   // If the detail panel was open, refresh it
   if(window._activeDealId===dealId&&document.getElementById('deal-detail-panel')?.classList.contains('ddp-open')){
     openDealDetail(dealId);
@@ -2334,8 +2335,8 @@ function openPushModal(dealId,ioiId){
   pushDealId=dealId;pushIoiId=ioiId;
   const d=DEALS.find(x=>x.id===dealId);
   const ioi=d.iois.find(i=>i.id===ioiId);
-  document.getElementById('push-modal-title').textContent=`Push IOI to ${d.advisor}?`;
-  document.getElementById('push-modal-body').innerHTML=`You are forwarding <strong>${ioi.name}</strong>'s ${fmU(ioi.amount)} indication to <strong>${d.advisor}</strong> for final review. The advisor will be notified and can accept or decline. Only one IOI can be pushed per deal.`;
+  document.getElementById('push-modal-title').textContent=`Open Due Diligence for ${d.name}?`;
+  document.getElementById('push-modal-body').innerHTML=`Opening due diligence for <strong>${d.name}</strong>. All approved investors will receive data room access and <strong>${d.advisor}</strong> will be notified. The deal will move to DD stage automatically.`;
   document.getElementById('push-modal').classList.remove('hidden');
   document.getElementById('push-modal-confirm').onclick=confirmPush;
 }
@@ -2343,13 +2344,12 @@ function closePushModal(){document.getElementById('push-modal').classList.add('h
 async function confirmPush(){
   if(!pushDealId||!pushIoiId)return;
   const d=DEALS.find(x=>x.id===pushDealId);
-  const ioi=d.iois.find(i=>i.id===pushIoiId);
-  ioi.pushed=true;
+  d.iois.filter(i=>i.status==='approved').forEach(i=>i.pushed=true);
+  d.stage='dd';
   closePushModal();
   if(document.getElementById('view-queue').classList.contains('active'))renderQueue();
-  renderOverview();renderKPIs();
-  toast(`IOI pushed to ${d.advisor} for review`,'ok');
-  // Persist push to KV via API
+  renderOverview();renderKPIs();renderPipeline();
+  toast(`Due diligence opened — ${d.advisor} notified`,'ok');
   api('POST','/api/v2?resource=admin&op=push-package',{dealId:pushDealId,ioiId:pushIoiId}).catch(()=>{});
 }
 const _pm=document.getElementById('push-modal');if(_pm)_pm.addEventListener('click',function(e){if(e.target===this)closePushModal();});
@@ -2514,7 +2514,7 @@ function renderPipeline(){
         <span class="dp-stage-chip ${STAGE_CHIP[d.stage]||'sc-review'}">${STAGE_LABELS[d.stage]||d.stage}</span>
         <div style="font-family:var(--mono);font-size:11px;color:${days>90?'var(--green)':days>45?'var(--amber)':'var(--red)'}">${days}d</div>
         <div class="dp-actions" onclick="event.stopPropagation()">
-          ${nextStage?`<button class="dp-btn advance" onclick="openModal('${d.id}','${nextStage}')">→ ${STAGE_LABELS[nextStage]}</button>`:''}
+          ${(nextStage&&nextStage!=='dd')?`<button class="dp-btn advance" onclick="openModal('${d.id}','${nextStage}')">→ ${STAGE_LABELS[nextStage]}</button>`:''}
         </div>
       </div>`;
     }).join('')}`;
@@ -3078,10 +3078,10 @@ function buildDealDetailHTML(deal){
           <span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">Current Stage</span>
         </div>
         <div class="ddp-ctrl-btns">
-          ${nextStage?`<button class="ddp-ctrl-btn advance" onclick="openModal('${deal.id}','${nextStage}');closeDealDetail()">→ Advance to ${STAGE_LABELS[nextStage]}</button>`:''}
+          ${(nextStage&&nextStage!=='dd')?`<button class="ddp-ctrl-btn advance" onclick="openModal('${deal.id}','${nextStage}');closeDealDetail()">→ Advance to ${STAGE_LABELS[nextStage]}</button>`:''}
           <button class="ddp-ctrl-btn" onclick="closeDealDetail();openCloseRaiseModal('${deal.id}')">Close Raise</button>
           <button class="ddp-ctrl-btn" onclick="closeDealDetail();openDelayRaiseModal('${deal.id}')">Delay Raise</button>
-          <button class="ddp-ctrl-btn push" onclick="pushPackage('${deal.id}');closeDealDetail()">✦ Push Package to Advisor</button>
+          <button class="ddp-ctrl-btn push" onclick="pushPackage('${deal.id}');closeDealDetail()">✦ Open Due Diligence</button>
         </div>
       </div>
 
@@ -3323,11 +3323,11 @@ function openIoiDetail(dealId,ioiId){
     actStrip.innerHTML=`
       <button style="padding:12px 28px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;transition:all .15s" onclick="approveFromDetail()">Approve IOI</button>
       <button style="padding:12px 20px;background:none;border:1px solid var(--red-bd,rgba(176,94,86,.4));border-radius:2px;color:var(--red);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="declineFromDetail()">Decline</button>
-      <span style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Approving adds this IOI to the deal's pool. Push to Advisor is a separate action.</span>`;
+      <span style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Approving adds this IOI to the deal's pool. Opening DD notifies the advisor and grants investors data room access.</span>`;
   } else if(ioi.status==='approved'&&!ioi.pushed){
     actStrip.innerHTML=`
-      <button style="padding:12px 28px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer" onclick="closeIoiDetail();openPushModal('${dealId}','${ioiId}')">Push to Advisor Package →</button>
-      <span style="font-size:11px;color:var(--text-3);font-family:var(--sans)">IOI is approved. Push it to the advisor package to notify them.</span>`;
+      <button style="padding:12px 28px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer" onclick="closeIoiDetail();openPushModal('${dealId}','${ioiId}')">Open Due Diligence →</button>
+      <span style="font-size:11px;color:var(--text-3);font-family:var(--sans)">IOI is approved. Opening DD notifies the advisor and grants investors data room access.</span>`;
   } else {
     actStrip.innerHTML=`<span style="font-size:12px;color:var(--text-3);font-family:var(--sans)">${ioi.pushed?'This IOI is in the advisor package.':ioi.status==='declined'?'This IOI was declined.':'No actions available.'}</span>`;
   }

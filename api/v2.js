@@ -1516,13 +1516,21 @@ Return ONLY valid JSON in this exact structure:
         await kvSet(`ioi:${ioi.id}`, ioi);
       }));
 
-      // Audit log on deal
+      // Audit log on deal + auto-advance to DD
       deal.audit_log = deal.audit_log || [];
+      const prevStage = deal.stage;
+      deal.stage = 'dd';
       deal.audit_log.push({
         at: new Date().toISOString(),
         actor: admin.email,
         action: 'package_pushed',
         meta: { packageId: pkg.packageId, approvedCount: approvedIois.length, indicatedTotal },
+      });
+      deal.audit_log.push({
+        at: new Date().toISOString(),
+        actor: 'system',
+        action: 'stage_changed',
+        meta: { from: prevStage, to: 'dd', trigger: 'package_pushed' },
       });
 
       // In-app notification for advisor

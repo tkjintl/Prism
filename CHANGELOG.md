@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Rename Push to "Open Due Diligence" + auto-DD trigger
+
+### Changes
+- `admin-portal.html`: Renamed "Deploy Capital" column to "Open Due Diligence"; renamed all "Push Package" / "Push to Advisor" buttons to "Open Due Diligence"; `confirmPush()` and `confirmPushPackage()` now auto-advance `deal.stage` to `'dd'` locally and call `renderPipeline()`; removed manual "Advance to Due Diligence" button from pipeline (both table and detail panel — `live→dd` transition blocked via `nextStage!=='dd'` guard); updated KPI tile "Ready to Push" → "Ready for DD" with sub-label "awaiting DD open"; updated IOI queue subtitle and IOI detail panel action text; updated push modal title/body for clarity
+- `advisor-portal.html`: No label changes required — "Accept & Advance to Due Diligence" already correct
+- `investor-portal.html`: Updated IOI confirmation step 2 from "advisor will be notified of your interest" to "the deal moves directly to Due Diligence"
+- `api/v2.js`: `push-package` op now captures `prevStage`, sets `deal.stage = 'dd'` before save, and appends two audit log entries: `package_pushed` (existing) + `stage_changed` (new, actor: 'system', trigger: 'package_pushed')
+
+---
+
 ## [2026-05-01] — Fix Deploy Capital card layout (absolute position approach)
 
 ### Changes
