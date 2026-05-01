@@ -46,7 +46,10 @@
     { "source": "/login",                        "destination": "/login.html" },
     { "source": "/forgot-password",              "destination": "/forgot-password.html" },
     { "source": "/reset-password",               "destination": "/reset-password.html" },
-    { "source": "/setup-password",               "destination": "/setup-password.html" }
+    { "source": "/setup-password",               "destination": "/setup-password.html" },
+    { "source": "/advisor-demo",                 "destination": "/advisor-demo.html" },
+    { "source": "/admin-demo",                   "destination": "/admin-demo.html" },
+    { "source": "/prism-investor",               "destination": "/prism-investor.html" }
   ],
   "headers": [
     {

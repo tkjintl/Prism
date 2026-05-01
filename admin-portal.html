@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Aurum Prism · Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F5F1;--bg-2:#FFFFFF;--bg-3:#EFECE6;--surface:#FFFFFF;
+  --border:rgba(0,0,0,0.07);--border-m:rgba(0,0,0,0.12);
+  --text:#18160F;--text-2:#5A5449;--text-3:#9C968A;
+  --gold:#A8813A;--gold-b:#C5A572;--gold-bg:rgba(168,129,58,0.07);--gold-bd:rgba(168,129,58,0.25);
+  --green:#2E6E48;--green-bg:rgba(46,110,72,0.07);--green-bd:rgba(46,110,72,0.25);
+  --amber:#8A5C1A;--amber-bg:rgba(138,92,26,0.08);--amber-bd:rgba(138,92,26,0.28);
+  --red:#8B3228;--red-bg:rgba(139,50,40,0.07);--red-bd:rgba(139,50,40,0.22);
+  --blue:#2B5C8A;--blue-bg:rgba(43,92,138,0.07);--blue-bd:rgba(43,92,138,0.25);
+  --slate:#4A5E6E;--slate-bg:rgba(74,94,110,0.07);--slate-bd:rgba(74,94,110,0.22);
+  --violet:#5B3E8A;--violet-bg:rgba(91,62,138,0.07);--violet-bd:rgba(91,62,138,0.22);
+  --serif:'Cormorant Garamond',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:6px;--nav-h:56px;--ease:cubic-bezier(0.22,1,0.36,1);
+}
+[data-theme="dark"]{
+  --bg:#0A0908;--bg-2:#100F0D;--bg-3:#161412;--surface:#131210;
+  --border:rgba(255,255,255,0.07);--border-m:rgba(255,255,255,0.13);
+  --text:#EDE8DF;--text-2:#A09A91;--text-3:#6B665E;
+  --gold:#C5A572;--gold-b:#E3C187;--gold-bg:rgba(197,165,114,0.07);--gold-bd:rgba(197,165,114,0.22);
+  --green:#5a9e72;--green-bg:rgba(90,158,114,0.07);--green-bd:rgba(90,158,114,0.25);
+  --amber:#b8833a;--amber-bg:rgba(184,131,58,0.08);--amber-bd:rgba(184,131,58,0.28);
+  --red:#b05e56;--red-bg:rgba(176,94,86,0.07);--red-bd:rgba(176,94,86,0.22);
+  --blue:#5b85b8;--blue-bg:rgba(91,133,184,0.07);--blue-bd:rgba(91,133,184,0.25);
+  --slate:#7B8FA1;--slate-bg:rgba(123,143,161,0.07);--slate-bd:rgba(123,143,161,0.22);
+  --violet:#8B7BC0;--violet-bg:rgba(139,123,192,0.07);--violet-bd:rgba(139,123,192,0.22);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;color:inherit;background:var(--surface);border:1px solid var(--border-m);outline:none;transition:border-color .15s;border-radius:3px}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes shimmer{from{opacity:.5}to{opacity:1}}
+@keyframes rowSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+@keyframes typing{0%{opacity:0}50%{opacity:1}100%{opacity:0}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes streamIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:200;display:flex;align-items:center;padding:0 20px;gap:16px;background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+[data-theme="dark"] .nav{background:rgba(10,9,8,0.92)}
+.nav-mark{width:32px;height:32px;border:1px solid var(--gold-bd);background:var(--gold-bg);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:14px;color:var(--gold);flex-shrink:0}
+.nav-brand-name{font-family:var(--mono);font-size:8px;letter-spacing:.38em;text-transform:uppercase;color:var(--text)}
+.nav-brand-tag{font-family:var(--mono);font-size:6px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-3);margin-top:2px}
+.nav-div{width:1px;height:20px;background:var(--border);flex-shrink:0}
+.nav-tabs{display:flex}
+.ntab{padding:8px 14px;font-size:12px;font-weight:500;color:var(--text-3);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;position:relative}
+.ntab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.ntab:hover:not(.on){color:var(--text-2)}
+.ntab-badge{position:absolute;top:6px;right:4px;min-width:16px;height:16px;border-radius:8px;background:var(--amber);font-family:var(--mono);font-size:8px;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 4px;animation:pulse 2s infinite}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.role-badge{padding:4px 10px;background:rgba(139,50,40,.07);border:1px solid rgba(139,50,40,.2);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);border-radius:20px}
+[data-theme="dark"] .role-badge{background:rgba(176,94,86,.08);border-color:rgba(176,94,86,.22);color:var(--red)}
+.theme-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:50%;color:var(--text-2);font-size:16px;transition:all .2s}
+.theme-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+
+/* VIEWS */
+.view{display:none;padding-top:var(--nav-h);min-height:100vh}
+.view.active{display:block}
+.view-inner{padding:clamp(24px,4vh,44px) clamp(20px,5vw,72px)}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+@media(min-width:640px){.kpi-strip{grid-template-columns:repeat(4,1fr)}}
+.kpi-card{padding:18px clamp(16px,3vw,28px);background:var(--bg);transition:background .15s}
+.kpi-card:hover{background:var(--bg-3)}
+.kpi-lbl{font-size:10px;color:var(--text-3);letter-spacing:.06em;margin-bottom:7px}
+.kpi-val{font-family:var(--mono);font-size:26px;font-weight:500;color:var(--text);line-height:1}
+.kpi-val.gold{color:var(--gold)}.kpi-val.green{color:var(--green)}.kpi-val.amber{color:var(--amber)}
+.kpi-sub{font-size:11px;color:var(--text-3);margin-top:5px}
+
+/* SECTION */
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.section-hd-title{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text)}
+.section-hd-count{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.14em;text-transform:uppercase}
+.section-label{font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
+.view-heading{font-family:var(--serif);font-style:italic;font-size:clamp(22px,4vw,38px);color:var(--text);margin-bottom:4px}
+.view-sub{font-size:13px;color:var(--text-3);margin-bottom:28px}
+
+/* ATTENTION CARDS */
+.attention-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:36px}
+.att-card{padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);border-left:3px solid;transition:border-color .15s,transform .15s;animation:fadeUp .4s var(--ease) both}
+.att-card:hover{transform:translateY(-1px)}
+.att-card.pending{border-left-color:var(--amber)}
+.att-card.new-deal{border-left-color:var(--blue)}
+.att-card-tag{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:7px}
+.att-pending{color:var(--amber)}.att-blue{color:var(--blue)}.att-red{color:var(--red)}
+.att-card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.att-card-body{font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:12px}
+.att-actions{display:flex;gap:7px;flex-wrap:wrap}
+.att-btn{padding:5px 12px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid;transition:all .15s;cursor:pointer;font-family:inherit}
+.att-approve{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.att-approve:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.att-review{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.att-review:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.att-decline{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.att-decline:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.att-push{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.att-push:hover{background:var(--gold);color:#fff;border-color:var(--gold)}
+
+/* PIPELINE TABLE */
+.deal-pipeline{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:32px}
+.dp-row{display:grid;grid-template-columns:1.4fr 110px 130px 110px 80px auto;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s}
+.dp-row:last-child{border-bottom:none}
+.dp-row:hover{background:var(--bg-3)}
+.dp-row.header{background:var(--bg-3);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);padding:10px 18px}
+.dp-name{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text)}
+.dp-sub{font-size:11px;color:var(--text-3);margin-top:1px}
+.dp-advisor{font-size:12px;color:var(--text-2)}
+.dp-amount{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)}
+.dp-bar-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:4px}
+.dp-bar-fill{height:100%;background:var(--gold);border-radius:2px;transition:width 1s var(--ease)}
+.dp-stage-chip{padding:3px 9px;border:1px solid;border-radius:20px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.sc-live{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.sc-ioi{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.sc-dd{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.sc-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.sc-close{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.sc-ioi_review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.dp-actions{display:flex;gap:6px;flex-wrap:wrap}
+.dp-btn{padding:5px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--border-m);color:var(--text-2);transition:all .15s;white-space:nowrap;cursor:pointer;font-family:inherit}
+.dp-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
+.dp-btn.advance{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.dp-btn.advance:hover{background:var(--green);color:#fff;border-color:var(--green)}
+
+/* ACTIVITY */
+.activity-timeline{display:flex;flex-direction:column;gap:0}
+.at-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);animation:rowSlide .35s var(--ease) both}
+.at-item:last-child{border-bottom:none}
+.at-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px}
+.at-ioi{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-bd)}
+.at-stage{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.at-review{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd)}
+.at-submit{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.at-push{background:var(--violet-bg);color:var(--violet);border:1px solid var(--violet-bd)}
+.at-body{flex:1;font-size:13px;color:var(--text-2);line-height:1.5}
+.at-body strong{color:var(--text);font-weight:500}
+.at-time{font-family:var(--mono);font-size:10px;color:var(--text-3);white-space:nowrap;margin-top:3px}
+
+/* IOI QUEUE */
+.ioi-queue-section{margin-bottom:36px}
+.iqs-deal-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--bg-3);border:1px solid var(--border);border-bottom:none;border-radius:var(--r) var(--r) 0 0}
+.iqs-deal-name{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--text)}
+.iqs-deal-meta{font-size:12px;color:var(--text-3);margin-top:1px}
+.iqs-summary{font-family:var(--mono);font-size:10px;color:var(--text-3)}
+.iqs-items{border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden}
+.iqi-row{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:13px 18px;background:var(--surface);border-bottom:1px solid var(--border);animation:rowSlide .4s var(--ease) both}
+.iqi-row:last-child{border-bottom:none}
+.iqi-row:hover{background:var(--bg-3)}
+.iqi-row.new-ioi{border-left:3px solid var(--gold);padding-left:15px}
+.iqi-avatar{width:36px;height:36px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border-m);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text-2);flex-shrink:0}
+.iqi-row.new-ioi .iqi-avatar{background:var(--gold-bg);border-color:var(--gold-bd);color:var(--gold)}
+.iqi-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
+.iqi-meta{font-size:11px;color:var(--text-3)}
+.iqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.iqi-amount{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text)}
+.iqi-date{font-family:var(--mono);font-size:9px;color:var(--text-3)}
+.iqi-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.iqi-badge{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid;white-space:nowrap}
+.badge-pending{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.badge-approved{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.badge-declined{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.badge-pushed{color:var(--violet);border-color:var(--violet-bd);background:var(--violet-bg)}
+.q-approve{padding:4px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--green-bd);color:var(--green);background:var(--green-bg);transition:all .15s;cursor:pointer;font-family:inherit}
+.q-approve:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.q-decline{padding:4px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--red-bd);color:var(--red);background:var(--red-bg);transition:all .15s;cursor:pointer;font-family:inherit}
+.q-decline:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.q-push{padding:4px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--violet-bd);color:var(--violet);background:var(--violet-bg);transition:all .15s;cursor:pointer;font-family:inherit}
+.q-push:hover{background:var(--violet);color:#fff;border-color:var(--violet)}
+.q-push:disabled{opacity:.4;cursor:not-allowed}
+.empty-queue{padding:32px;text-align:center;font-size:14px;color:var(--text-3);border:1px solid var(--border);border-radius:var(--r);background:var(--surface)}
+
+/* DEAL SUBMISSIONS */
+.deal-submissions{display:flex;flex-direction:column;gap:10px;margin-bottom:36px}
+.ds-card{border:1px solid var(--blue-bd);border-radius:var(--r);background:var(--surface);overflow:hidden;animation:fadeUp .4s var(--ease) both}
+.ds-card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--blue-bg)}
+.ds-deal-name{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--text)}
+.ds-deal-meta{font-size:11px;color:var(--text-3);margin-top:2px}
+.ds-card-body{padding:16px 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:640px){.ds-card-body{grid-template-columns:1fr 1fr}}
+.ds-stat-lbl{font-size:10px;color:var(--text-3);margin-bottom:3px}
+.ds-stat-val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text)}
+.ds-card-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.ds-advisor{font-size:12px;color:var(--text-3);margin-right:auto}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);animation:fadeIn .2s}
+.modal-overlay.hidden{display:none}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;max-width:400px;width:90vw;animation:fadeUp .25s var(--ease);box-shadow:0 24px 64px rgba(0,0,0,.15)}
+.modal-title{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--text);margin-bottom:8px}
+.modal-body{font-size:13px;color:var(--text-2);margin-bottom:20px;line-height:1.6}
+.modal-actions{display:flex;gap:10px}
+.modal-confirm{flex:1;padding:11px;background:var(--gold);font-size:13px;font-weight:600;border-radius:2px;transition:background .15s;cursor:pointer;font-family:inherit;border:none}
+[data-theme="light"] .modal-confirm{color:#1A1410}
+.modal-cancel{flex:1;padding:11px;border:1px solid var(--border-m);font-size:13px;border-radius:2px;color:var(--text-2);transition:all .15s;cursor:pointer;font-family:inherit}
+.modal-confirm:hover{background:var(--gold-b)}
+.modal-cancel:hover{color:var(--text)}
+
+/* ─── AI TOOL ─── */
+.ai-tool-wrap{max-width:860px}
+.ai-tool-header{margin-bottom:32px}
+.ai-tool-title{font-family:var(--serif);font-style:italic;font-size:clamp(22px,4vw,36px);color:var(--text);margin-bottom:6px}
+.ai-tool-sub{font-size:13px;color:var(--text-3);line-height:1.6;max-width:580px}
+.ai-layout{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+@media(max-width:700px){.ai-layout{grid-template-columns:1fr}}
+.ai-input-panel{display:flex;flex-direction:column;gap:14px}
+.ai-doc-slot{border:1.5px dashed var(--border-m);border-radius:var(--r);padding:18px;background:var(--bg-3);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.ai-doc-slot.loaded{border-style:solid;border-color:var(--green-bd);background:var(--green-bg);cursor:default}
+.ai-doc-slot:not(.loaded):hover{border-color:var(--gold-bd);background:var(--gold-bg)}
+.ai-slot-row{display:flex;align-items:center;gap:12px}
+.ai-slot-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg-3);border:1px solid var(--border-m)}
+.ai-doc-slot.loaded .ai-slot-icon{background:var(--green-bg);border-color:var(--green-bd)}
+.ai-slot-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.3}
+.ai-slot-meta{font-size:11px;color:var(--text-3);margin-top:2px}
+.ai-slot-status{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.ai-slot-status.empty{color:var(--text-3)}
+.ai-slot-status.loaded{color:var(--green)}
+.ai-deal-select{width:100%;padding:10px 12px;font-size:14px;margin-bottom:4px}
+.ai-process-btn{width:100%;padding:13px;background:linear-gradient(135deg,#5B3E8A,#2B5C8A);color:#fff;font-size:13px;font-weight:600;border-radius:var(--r);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px;margin-top:6px;border:none;cursor:pointer;font-family:inherit}
+.ai-process-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,62,138,.3)}
+.ai-process-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.ai-process-icon{font-size:16px}
+.ai-output-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;min-height:360px;display:flex;flex-direction:column}
+.ai-output-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text-3)}
+.ai-output-placeholder-icon{font-size:32px;margin-bottom:12px;opacity:.4}
+.ai-output-placeholder-text{font-size:13px;line-height:1.6}
+.ai-thinking{display:flex;flex-direction:column;gap:12px;animation:fadeIn .3s}
+.ai-thinking-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);display:flex;align-items:center;gap:6px}
+.ai-thinking-dot{width:6px;height:6px;border-radius:50%;background:var(--violet);animation:typing 1.2s infinite}
+.ai-thinking-dot:nth-child(2){animation-delay:.2s}
+.ai-thinking-dot:nth-child(3){animation-delay:.4s}
+.ai-thinking-steps{display:flex;flex-direction:column;gap:6px}
+.ai-step{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:8px;animation:streamIn .3s var(--ease) both}
+.ai-step.done{color:var(--green)}
+.ai-step-icon{font-size:11px}
+.ai-output{display:flex;flex-direction:column;gap:16px;animation:scaleIn .4s var(--ease)}
+.ai-out-section{animation:streamIn .4s var(--ease) both}
+.ai-out-label{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:7px}
+.ai-out-tagline{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--gold);line-height:1.3}
+.ai-out-thesis{font-size:13px;color:var(--text-2);line-height:1.7;padding:12px 14px;background:var(--bg-3);border-radius:4px;border-left:2px solid var(--gold-bd)}
+.ai-highlights{display:flex;flex-direction:column;gap:6px}
+.ai-hl-item{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--text-2);line-height:1.5}
+.ai-hl-bullet{width:18px;height:18px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold-bd);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;color:var(--gold);flex-shrink:0;margin-top:1px}
+.ai-stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ai-stat-chip{padding:9px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:4px}
+.ai-stat-lbl{font-size:10px;color:var(--text-3);margin-bottom:2px}
+.ai-stat-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)}
+.ai-apply-btn{width:100%;padding:11px;background:var(--gold);font-size:13px;font-weight:600;border-radius:2px;color:#1A1410;transition:all .2s;border:none;cursor:pointer;font-family:inherit;margin-top:4px}
+.ai-apply-btn:hover{background:var(--gold-b);transform:translateY(-1px)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 20px;font-size:13px;border-radius:3px;z-index:999;opacity:0;transition:all .25s var(--ease);pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--green);color:#fff}.toast.err{background:var(--red);color:#fff}
+.demo-badge{position:fixed;bottom:16px;right:16px;z-index:300;padding:6px 12px;background:var(--bg-3);border:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);border-radius:20px}
+@media(max-width:640px){.dp-row{grid-template-columns:1fr auto auto}.dp-bar-wrap,.dp-advisor{display:none}}
+
+/* ── MOBILE FIXES ── */
+@media(max-width:600px){
+  /* Prevent iOS input zoom */
+  input,select,textarea{font-size:16px!important}
+  /* KPI strip — 2 cols at all mobile sizes */
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  /* Nav tabs scroll */
+  .nav-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  .ntab{flex-shrink:0;white-space:nowrap;padding:0 12px}
+  /* IOI queue cards */
+  .iqi-row{flex-wrap:wrap;gap:8px}
+  .iqi-actions{flex-shrink:0}
+  /* Modal responsive padding */
+  .modal-box{padding:clamp(16px,4vw,28px);width:94vw}
+  /* Deal submission cards */
+  .ds-card-footer{flex-wrap:wrap;gap:8px}
+  .att-btn{min-height:40px;padding:9px 14px}
+}
+@media(max-width:480px){
+  /* Pipeline table — minimal cols */
+  .dp-row{grid-template-columns:1fr auto}
+  .dp-closing,.dp-actions-col{font-size:11px}
+  /* AI tool layout already stacks at 700px, but ensure padding */
+  .ai-slot{padding:12px}
+  /* Section headers */
+  .section-hd{flex-wrap:wrap;gap:6px}
+  /* Overview attention cards */
+  .att-card{padding:14px 16px}
+  /* KPI card touch targets */
+  .kpi-card{padding:14px 16px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-mark"><em>Au</em></div>
+  <div>
+    <div class="nav-brand-name">Aurum&nbsp;Prism</div>
+    <div class="nav-brand-tag">Private&nbsp;Capital</div>
+  </div>
+  <div class="nav-div"></div>
+  <div class="nav-tabs">
+    <button class="ntab on" onclick="showView('overview',this)">Overview</button>
+    <button class="ntab" onclick="showView('queue',this)">IOI Queue<span class="ntab-badge" id="queue-badge-dot" style="display:none"></span></button>
+    <button class="ntab" onclick="showView('pipeline',this)">Deal Pipeline</button>
+    <button class="ntab" onclick="showView('aitool',this)">AI Doc Tool</button>
+  </div>
+  <div class="nav-r">
+    <div class="role-badge">Admin</div>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
+  </div>
+</nav>
+
+<!-- ══ VIEW: OVERVIEW ══ -->
+<div id="view-overview" class="view active">
+  <div class="kpi-strip" id="kpi-strip"></div>
+  <div class="view-inner">
+    <div style="display:grid;grid-template-columns:1fr;gap:32px" id="overview-main"></div>
+  </div>
+</div>
+
+<!-- ══ VIEW: IOI QUEUE ══ -->
+<div id="view-queue" class="view">
+  <div class="view-inner">
+    <div class="view-heading">IOI Approval Queue</div>
+    <div class="view-sub">Review and approve investor indications. Push one approved IOI per deal to the advisor for final review.</div>
+    <div id="ioi-queue-content"></div>
+  </div>
+</div>
+
+<!-- ══ VIEW: DEAL PIPELINE ══ -->
+<div id="view-pipeline" class="view">
+  <div class="view-inner">
+    <div class="view-heading">Deal Pipeline</div>
+    <div class="view-sub">All active deals across all advisors. Stage advances are controlled by admin.</div>
+    <div id="deal-submissions-wrap"></div>
+    <div class="section-hd"><div class="section-hd-title">Active Deals</div><span class="section-hd-count" id="active-deals-count"></span></div>
+    <div class="deal-pipeline" id="deal-pipeline-table"></div>
+  </div>
+</div>
+
+<!-- ══ VIEW: AI DOC TOOL ══ -->
+<div id="view-aitool" class="view">
+  <div class="view-inner">
+    <div class="ai-tool-wrap">
+      <div class="ai-tool-header">
+        <div class="ai-tool-title">AI Document Intelligence</div>
+        <div class="ai-tool-sub">Upload three advisor documents and Claude will generate investor-ready portal content — thesis, highlights, key stats, and tagline.</div>
+      </div>
+      <div class="ai-layout">
+        <div class="ai-input-panel">
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Apply Output To Deal</div>
+            <select class="ai-deal-select" id="ai-deal-select">
+              <option value="">Select deal…</option>
+            </select>
+          </div>
+          <div id="ai-slot-nda" class="ai-doc-slot" onclick="aiLoadDoc('nda')">
+            <div class="ai-slot-row">
+              <div class="ai-slot-icon">🔑</div>
+              <div style="flex:1">
+                <div class="ai-slot-label">NDA Template</div>
+                <div class="ai-slot-meta">Investor NDA for this deal</div>
+              </div>
+              <div class="ai-slot-status empty" id="ai-stat-nda">Click to load</div>
+            </div>
+          </div>
+          <div id="ai-slot-mgmt" class="ai-doc-slot" onclick="aiLoadDoc('mgmt')">
+            <div class="ai-slot-row">
+              <div class="ai-slot-icon">📄</div>
+              <div style="flex:1">
+                <div class="ai-slot-label">Management Presentation</div>
+                <div class="ai-slot-meta">Primary advisor deck</div>
+              </div>
+              <div class="ai-slot-status empty" id="ai-stat-mgmt">Click to load</div>
+            </div>
+          </div>
+          <div id="ai-slot-fin" class="ai-doc-slot" onclick="aiLoadDoc('fin')">
+            <div class="ai-slot-row">
+              <div class="ai-slot-icon">📊</div>
+              <div style="flex:1">
+                <div class="ai-slot-label">Financial Summary</div>
+                <div class="ai-slot-meta">Revenue, EBITDA, cap structure</div>
+              </div>
+              <div class="ai-slot-status empty" id="ai-stat-fin">Click to load</div>
+            </div>
+          </div>
+          <button class="ai-process-btn" id="ai-process-btn" onclick="runAIProcess()" disabled>
+            <span class="ai-process-icon">✦</span>
+            Process with Claude
+          </button>
+        </div>
+        <div class="ai-output-panel" id="ai-output-panel">
+          <div class="ai-output-placeholder">
+            <div class="ai-output-placeholder-icon">✦</div>
+            <div class="ai-output-placeholder-text">Load documents and select a deal, then click<br><strong>Process with Claude</strong> to generate<br>investor portal content.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stage advance modal -->
+<div class="modal-overlay hidden" id="stage-modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Advance Stage?</div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" id="modal-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Push IOI modal -->
+<div class="modal-overlay hidden" id="push-modal">
+  <div class="modal-box">
+    <div class="modal-title" id="push-modal-title">Push IOI to Advisor?</div>
+    <div class="modal-body" id="push-modal-body"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closePushModal()">Cancel</button>
+      <button class="modal-confirm" id="push-modal-confirm">Push to Advisor →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="demo-badge">Admin Demo</div>
+
+<script>
+/* ─── API + AUTH ─── */
+async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
+async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
+function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--bg-2,#fff);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
+function adaptDeal(d,allIois){const di=(allIois||[]).filter(i=>i.deal_id===d.id);return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,advisor:d.originator||d.advisor||'—',advisor_firm:d.advisor_firm||'',iois:di.map(ioi=>({id:ioi.id,name:ioi.investor_firm||ioi.investor_email||'Investor',init:(ioi.investor_firm||ioi.investor_email||'?').slice(0,2).toUpperCase(),type:ioi.institution_type||'Institutional',geo:'—',amount:ioi.amount,date:new Date(ioi.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}),status:ioi.status,isNew:(Date.now()-new Date(ioi.submitted_at))<172800000,pushed:false}))});}
+
+/* ─── DATA ─── */
+let DEALS=[
+  {
+    id:'d1',name:'Pacific Bridge Infrastructure',asset_class:'infra',stage:'live',
+    geography:'Asia-Pacific · N. America',structure:'Senior Secured',target_irr:11,
+    target_alloc:60000000,term:84,min_ticket:500000,closing:'2026-07-31',
+    advisor:'Sarah Chen',advisor_firm:'Chen Capital Partners',
+    ioi_agg:58500000,
+    iois:[
+      {id:'i1',name:'Harrison Family Office',init:'HF',type:'Family Office',geo:'US',amount:5000000,date:'Apr 29',status:'approved',isNew:true,pushed:false},
+      {id:'i2',name:'Meridian Capital LP',init:'MC',type:'Institutional',geo:'SG',amount:8000000,date:'Apr 26',status:'approved',isNew:false,pushed:false},
+      {id:'i3',name:'R. Nakashima',init:'RN',type:'Family Office',geo:'JP',amount:3500000,date:'Apr 24',status:'approved',isNew:false,pushed:false},
+      {id:'i4',name:'Atlas Endowment',init:'AE',type:'Institutional',geo:'US',amount:12000000,date:'Apr 20',status:'approved',isNew:false,pushed:false},
+      {id:'i5',name:'Thornwood Partners',init:'TP',type:'Family Office',geo:'UK',amount:7500000,date:'Apr 18',status:'declined',isNew:false,pushed:false},
+    ],
+  },
+  {
+    id:'d2',name:'Clearwater Credit Partners II',asset_class:'credit',stage:'live',
+    geography:'North America',structure:'Senior Secured Credit',target_irr:13,
+    target_alloc:28000000,term:36,min_ticket:250000,closing:'2026-09-30',
+    advisor:'Marcus Chen',advisor_firm:'Marcus Chen Advisory',
+    ioi_agg:19600000,
+    iois:[
+      {id:'i6',name:'Kessler Family Office',init:'KF',type:'Family Office',geo:'US',amount:4000000,date:'Apr 28',status:'pending',isNew:true,pushed:false},
+      {id:'i7',name:'Westport Capital',init:'WC',type:'Institutional',geo:'US',amount:6000000,date:'Apr 26',status:'approved',isNew:false,pushed:false},
+      {id:'i8',name:'H. Delacroix',init:'HD',type:'HNW',geo:'FR',amount:2000000,date:'Apr 22',status:'approved',isNew:false,pushed:false},
+      {id:'i9',name:'Canmore Group',init:'CG',type:'Family Office',geo:'CA',amount:7600000,date:'Apr 18',status:'approved',isNew:false,pushed:false},
+    ],
+  },
+  {
+    id:'d3',name:'Vantage Analytics Series C',asset_class:'pe',stage:'dd',
+    geography:'United States',structure:'Common Equity',target_irr:22,
+    target_alloc:45000000,term:60,min_ticket:500000,closing:'2026-10-15',
+    advisor:'Priya Mehta',advisor_firm:'Mehta Investment Group',
+    ioi_agg:27900000,
+    iois:[
+      {id:'i10',name:'Sierra Ventures LP',init:'SV',type:'Institutional',geo:'US',amount:8000000,date:'Apr 25',status:'approved',isNew:false,pushed:true},
+      {id:'i11',name:'Alto Family Office',init:'AF',type:'Family Office',geo:'US',amount:5000000,date:'Apr 22',status:'approved',isNew:false,pushed:false},
+    ],
+  },
+  {
+    id:'d4',name:'SunBelt Residential Fund IV',asset_class:'re',stage:'live',
+    geography:'United States — Southeast',structure:'Preferred Equity',target_irr:16,
+    target_alloc:38000000,term:48,min_ticket:250000,closing:'2026-11-30',
+    advisor:'Thomas Kim',advisor_firm:'Kim Real Estate Partners',
+    ioi_agg:14100000,
+    iois:[
+      {id:'i12',name:'D. Ashford',init:'DA',type:'HNW',geo:'US',amount:1500000,date:'Apr 29',status:'pending',isNew:true,pushed:false},
+      {id:'i13',name:'Stonegate Family Office',init:'SF',type:'Family Office',geo:'US',amount:4000000,date:'Apr 25',status:'pending',isNew:true,pushed:false},
+      {id:'i14',name:'Brighton Capital',init:'BC',type:'Institutional',geo:'US',amount:8600000,date:'Apr 20',status:'approved',isNew:false,pushed:false},
+    ],
+  },
+];
+
+let NEW_SUBMISSIONS=[
+  {id:'ns1',name:'Meridian Financial Corp',asset_class:'credit',geography:'United States',structure:'Mezzanine',target_irr:15,target_alloc:22000000,term:30,min_ticket:200000,advisor:'David Park',advisor_firm:'Park Capital',submitted:'Apr 28'},
+];
+
+const STAGE_ORDER=['review','live','ioi_review','dd','close','realized'];
+const STAGE_LABELS={review:'Review',live:'Live',ioi_review:'IOI Review',dd:'Due Diligence',close:'Close',realized:'Realized'};
+const STAGE_CHIP={live:'sc-live',ioi_review:'sc-ioi_review',dd:'sc-dd',review:'sc-review',close:'sc-close'};
+const CLASS_CHIP_COL={credit:'color:var(--blue)',pe:'color:var(--gold)',re:'color:var(--green)',infra:'color:var(--slate)'};
+
+let pendingStage=null,pendingDealId=null;
+let pushDealId=null,pushIoiId=null;
+
+const fmU=n=>{
+  if(!n)return'—';
+  if(n>=1e6)return'$'+(n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M';
+  if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';
+  return'$'+n;
+};
+const pendingCount=()=>DEALS.reduce((s,d)=>s+d.iois.filter(i=>i.status==='pending').length,0);
+
+function toast(msg,k=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show '+k;
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+function toggleTheme(){
+  const h=document.documentElement,dark=h.dataset.theme==='dark';
+  h.dataset.theme=dark?'light':'dark';
+  document.getElementById('theme-btn').textContent=dark?'☀':'☾';
+}
+
+function showView(name,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('view-'+name).classList.add('active');
+  if(btn)btn.classList.add('on');
+  if(name==='queue')renderQueue();
+  if(name==='pipeline')renderPipeline();
+  if(name==='aitool')renderAITool();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── KPI ── */
+function renderKPIs(){
+  const totalIndicated=DEALS.reduce((s,d)=>s+d.iois.filter(i=>i.status==='approved').reduce((ss,i)=>ss+i.amount,0),0);
+  const totalPending=pendingCount();
+  const activeInvestors=new Set(DEALS.flatMap(d=>d.iois.filter(i=>i.status!=='declined').map(i=>i.name))).size;
+  document.getElementById('kpi-strip').innerHTML=[
+    {lbl:'Total Capital Indicated',val:fmU(totalIndicated),cls:'gold',sub:`across ${DEALS.length} active deals`},
+    {lbl:'Active Deals',val:DEALS.length,cls:'',sub:`${NEW_SUBMISSIONS.length} pending approval`},
+    {lbl:'Pending IOIs',val:totalPending,cls:totalPending>0?'amber':'green',sub:'awaiting your review'},
+    {lbl:'Active Investors',val:activeInvestors,cls:'',sub:'unique across all deals'},
+  ].map(k=>`<div class="kpi-card">
+    <div class="kpi-lbl">${k.lbl}</div>
+    <div class="kpi-val ${k.cls}">${k.val}</div>
+    <div class="kpi-sub">${k.sub}</div>
+  </div>`).join('');
+}
+
+/* ── OVERVIEW ── */
+function renderOverview(){
+  const pending=pendingCount();
+  const attCards=[];
+
+  DEALS.forEach(d=>{
+    d.iois.filter(i=>i.status==='pending').slice(0,1).forEach(ioi=>{
+      attCards.push(`<div class="att-card pending" style="animation-delay:${attCards.length*60}ms">
+        <div class="att-card-tag att-pending">Pending IOI · ${d.name.length>22?d.name.substring(0,22)+'…':d.name}</div>
+        <div class="att-card-title">${ioi.name}</div>
+        <div class="att-card-body">${ioi.type} · ${ioi.geo} · <strong>${fmU(ioi.amount)}</strong> · ${ioi.date}</div>
+        <div class="att-actions">
+          <button class="att-btn att-approve" onclick="actIoi('${d.id}','${ioi.id}','approved');renderOverview();renderKPIs()">Approve</button>
+          <button class="att-btn att-decline" onclick="actIoi('${d.id}','${ioi.id}','declined');renderOverview();renderKPIs()">Decline</button>
+        </div>
+      </div>`);
+    });
+  });
+
+  if(NEW_SUBMISSIONS.length>0){
+    NEW_SUBMISSIONS.forEach(s=>{
+      attCards.push(`<div class="att-card new-deal" style="animation-delay:${attCards.length*60}ms">
+        <div class="att-card-tag att-blue">New Deal Submission</div>
+        <div class="att-card-title">${s.name}</div>
+        <div class="att-card-body">From ${s.advisor} · ${s.submitted} · ${s.target_irr}% IRR · ${fmU(s.target_alloc)} target</div>
+        <div class="att-actions">
+          <button class="att-btn att-review" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2])">Review Deal</button>
+        </div>
+      </div>`);
+    });
+  }
+
+  const approvedUnpushed=DEALS.flatMap(d=>d.iois.filter(i=>i.status==='approved'&&!i.pushed&&d.stage==='live').map(i=>({...i,dealName:d.name,dealId:d.id,advisor:d.advisor})));
+  if(approvedUnpushed.length>0){
+    const ioi=approvedUnpushed[0];
+    attCards.unshift(`<div class="att-card" style="border-left:3px solid var(--violet);animation-delay:0ms">
+      <div class="att-card-tag" style="color:var(--violet)">Ready to Push · ${ioi.dealName.length>22?ioi.dealName.substring(0,22)+'…':ioi.dealName}</div>
+      <div class="att-card-title">${ioi.name}</div>
+      <div class="att-card-body">${ioi.type} · ${ioi.geo} · <strong>${fmU(ioi.amount)}</strong> · Approved · ${ioi.date}</div>
+      <div class="att-actions">
+        <button class="att-btn att-push" onclick="openPushModal('${ioi.dealId}','${ioi.id}')">Push to ${ioi.advisor} →</button>
+      </div>
+    </div>`);
+  }
+
+  const activity=[
+    {type:'push',text:'<strong>Harrison Family Office</strong> IOI pushed to Sarah Chen for review',time:'1h ago'},
+    {type:'ioi',text:'<strong>D. Ashford</strong> indicated $1.5M in SunBelt Residential Fund IV',time:'2h ago'},
+    {type:'ioi',text:'<strong>Kessler Family Office</strong> indicated $4.0M in Clearwater Credit Partners II',time:'4h ago'},
+    {type:'submit',text:'<strong>David Park</strong> submitted Meridian Financial Corp for review',time:'1 day ago'},
+    {type:'stage',text:'Vantage Analytics Series C advanced to <strong>Due Diligence</strong>',time:'2 days ago'},
+    {type:'review',text:'Pacific Bridge Infrastructure <strong>featured</strong> on investor portal',time:'3 days ago'},
+    {type:'ioi',text:'<strong>Stonegate Family Office</strong> indicated $4.0M in SunBelt IV',time:'3 days ago'},
+  ];
+
+  const iconMap={ioi:'at-ioi',stage:'at-stage',review:'at-review',submit:'at-submit',push:'at-push'};
+  const emojiMap={ioi:'↑',stage:'→',review:'✓',submit:'+',push:'✦'};
+
+  document.getElementById('overview-main').innerHTML=`
+    ${attCards.length>0?`<div>
+      <div class="section-label">Needs Attention</div>
+      <div class="attention-grid">${attCards.join('')}</div>
+    </div>`:''}
+    <div>
+      <div class="section-hd"><div class="section-hd-title">Platform Activity</div></div>
+      <div class="activity-timeline">${activity.map((a,i)=>`
+        <div class="at-item" style="animation-delay:${i*40}ms">
+          <div class="at-icon ${iconMap[a.type]}">${emojiMap[a.type]}</div>
+          <div class="at-body">${a.text}</div>
+          <div class="at-time">${a.time}</div>
+        </div>`).join('')}</div>
+    </div>`;
+}
+
+/* ── IOI QUEUE ── */
+function renderQueue(){
+  const hasPending=DEALS.some(d=>d.iois.some(i=>i.status==='pending'||i.status==='approved'));
+  if(!hasPending){
+    document.getElementById('ioi-queue-content').innerHTML=`<div class="empty-queue">✓ No pending IOIs — all reviewed</div>`;
+    return;
+  }
+  document.getElementById('ioi-queue-content').innerHTML=DEALS.map(d=>{
+    const relevantIOIs=d.iois.filter(i=>i.status!=='declined');
+    if(relevantIOIs.length===0)return'';
+    const pct=Math.round(d.ioi_agg/d.target_alloc*100);
+    const dealPushed=d.iois.some(i=>i.pushed);
+    return`<div class="ioi-queue-section">
+      <div class="iqs-deal-header">
+        <div>
+          <div class="iqs-deal-name">${d.name}</div>
+          <div class="iqs-deal-meta">${d.advisor} · ${d.geography} · ${d.target_irr}% IRR${dealPushed?' · <span style="color:var(--violet);font-family:var(--mono);font-size:9px;letter-spacing:.1em">1 IOI PUSHED</span>':''}</div>
+        </div>
+        <div class="iqs-summary">${fmU(d.ioi_agg)} / ${fmU(d.target_alloc)} · ${pct}%</div>
+      </div>
+      <div class="iqs-items">
+        ${relevantIOIs.map((ioi,i)=>`
+          <div class="iqi-row ${ioi.isNew?'new-ioi':''}" id="iqi-${ioi.id}" style="animation-delay:${i*40}ms">
+            <div class="iqi-avatar">${ioi.init}</div>
+            <div>
+              <div class="iqi-name">${ioi.name}</div>
+              <div class="iqi-meta">${ioi.type} · ${ioi.geo}</div>
+            </div>
+            <div class="iqi-right">
+              <div class="iqi-amount">${fmU(ioi.amount)}</div>
+              <div class="iqi-date">${ioi.date}</div>
+              <div class="iqi-actions">
+                ${ioi.status==='pending'?`
+                  <button class="q-approve" onclick="actIoiQueue('${d.id}','${ioi.id}','approved')">Approve</button>
+                  <button class="q-decline" onclick="actIoiQueue('${d.id}','${ioi.id}','declined')">Decline</button>
+                `:ioi.pushed?`<span class="iqi-badge badge-pushed">Pushed to Advisor</span>`
+                :ioi.status==='approved'?`
+                  <span class="iqi-badge badge-approved">Approved</span>
+                  <button class="q-push" onclick="openPushModal('${d.id}','${ioi.id}')" ${dealPushed?'disabled title="1 IOI already pushed to this advisor"':''}>Push →</button>
+                `:`<span class="iqi-badge badge-${ioi.status}">${ioi.status}</span>`}
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function approveDeal(dealId,btn){
+  if(btn){btn.disabled=true;btn.textContent='Publishing…';}
+  const r=await api('POST','/api/v2?resource=deals',{action:'update',id:dealId,member_visible:true,stage:'live'});
+  if(r?.ok){
+    NEW_SUBMISSIONS=NEW_SUBMISSIONS.filter(s=>s.id!==dealId);
+    const d=r.deal;if(d){DEALS.push(adaptDeal(d,[]));}
+    renderPipeline();renderOverview();renderKPIs();
+    toast('Deal approved and live on investor portal','ok');
+  }else{
+    if(btn){btn.disabled=false;btn.textContent='Approve & Publish';}
+    toast(r?.error||'Approval failed','err');
+  }
+}
+async function declineDeal(dealId,btn){
+  if(btn){btn.disabled=true;}
+  NEW_SUBMISSIONS=NEW_SUBMISSIONS.filter(s=>s.id!==dealId);
+  renderPipeline();renderOverview();
+  toast('Deal declined','');
+}
+
+function actIoi(dealId,ioiId,action){
+  const deal=DEALS.find(d=>d.id===dealId);
+  if(!deal)return;
+  const ioi=deal.iois.find(i=>i.id===ioiId);
+  if(!ioi)return;
+  ioi.status=action;ioi.isNew=false;
+  if(action==='approved')deal.ioi_agg=deal.iois.filter(i=>i.status==='approved').reduce((s,i)=>s+i.amount,0);
+  // Fire real API
+  const apiOp=action==='approved'?'approve-ioi':'reject-ioi';
+  api('POST','/api/marketplace/'+apiOp,{ioi_id:ioiId}).catch(()=>{});
+  updateQueueBadge();
+  toast(`IOI ${action} — ${ioi.name}`,action==='approved'?'ok':'');
+}
+
+function actIoiQueue(dealId,ioiId,action){
+  actIoi(dealId,ioiId,action);
+  const row=document.getElementById('iqi-'+ioiId);
+  if(row){
+    const actDiv=row.querySelector('.iqi-actions');
+    if(actDiv){
+      actDiv.style.opacity='0';actDiv.style.transition='opacity .15s';
+      setTimeout(()=>{
+        const b=document.createElement('div');
+        b.className='iqi-actions';
+        const badge=document.createElement('span');
+        badge.className=`iqi-badge badge-${action}`;badge.textContent=action;badge.style.animation='fadeIn .3s';
+        if(action==='approved'){
+          const deal=DEALS.find(d=>d.id===dealId);
+          const dealPushed=deal.iois.some(i=>i.pushed);
+          const pb=document.createElement('button');
+          pb.className='q-push';pb.textContent='Push →';
+          if(dealPushed){pb.disabled=true;pb.title='1 IOI already pushed';}
+          else{pb.onclick=()=>openPushModal(dealId,ioiId);}
+          b.appendChild(badge);b.appendChild(pb);
+        }else{b.appendChild(badge);}
+        actDiv.parentNode.replaceChild(b,actDiv);
+      },150);
+    }
+    row.classList.remove('new-ioi');
+  }
+}
+
+function updateQueueBadge(){
+  const n=pendingCount();
+  const dot=document.getElementById('queue-badge-dot');
+  if(dot){dot.style.display=n>0?'flex':'none';dot.textContent=n>0?n:'';}
+}
+
+/* ── IOI PUSH MODAL ── */
+function openPushModal(dealId,ioiId){
+  pushDealId=dealId;pushIoiId=ioiId;
+  const d=DEALS.find(x=>x.id===dealId);
+  const ioi=d.iois.find(i=>i.id===ioiId);
+  document.getElementById('push-modal-title').textContent=`Push IOI to ${d.advisor}?`;
+  document.getElementById('push-modal-body').innerHTML=`You are forwarding <strong>${ioi.name}</strong>'s ${fmU(ioi.amount)} indication to <strong>${d.advisor}</strong> for final review. The advisor will be notified and can accept or decline. Only one IOI can be pushed per deal.`;
+  document.getElementById('push-modal').classList.remove('hidden');
+  document.getElementById('push-modal-confirm').onclick=confirmPush;
+}
+function closePushModal(){document.getElementById('push-modal').classList.add('hidden');pushDealId=null;pushIoiId=null;}
+function confirmPush(){
+  if(!pushDealId||!pushIoiId)return;
+  const d=DEALS.find(x=>x.id===pushDealId);
+  const ioi=d.iois.find(i=>i.id===pushIoiId);
+  ioi.pushed=true;
+  d.stage='ioi_review';
+  closePushModal();
+  if(document.getElementById('view-queue').classList.contains('active'))renderQueue();
+  renderOverview();renderKPIs();
+  toast(`IOI pushed to ${d.advisor} for review`,'ok');
+}
+document.getElementById('push-modal').addEventListener('click',function(e){if(e.target===this)closePushModal();});
+
+/* ── PIPELINE ── */
+function renderPipeline(){
+  if(NEW_SUBMISSIONS.length>0){
+    document.getElementById('deal-submissions-wrap').innerHTML=`
+      <div class="section-hd"><div class="section-hd-title">Pending Submissions</div><span class="section-hd-count">${NEW_SUBMISSIONS.length} New</span></div>
+      <div class="deal-submissions">${NEW_SUBMISSIONS.map(s=>`
+        <div class="ds-card">
+          <div class="ds-card-header">
+            <div><div class="ds-deal-name">${s.name}</div><div class="ds-deal-meta">${s.geography} · ${s.structure}</div></div>
+            <span class="iqi-badge badge-pending">Under Review</span>
+          </div>
+          <div class="ds-card-body">
+            <div><div class="ds-stat-lbl">Target IRR</div><div class="ds-stat-val">${s.target_irr}%</div></div>
+            <div><div class="ds-stat-lbl">Allocation</div><div class="ds-stat-val">${fmU(s.target_alloc)}</div></div>
+            <div><div class="ds-stat-lbl">Min Ticket</div><div class="ds-stat-val">${fmU(s.min_ticket)}</div></div>
+          </div>
+          <div class="ds-card-footer">
+            <div class="ds-advisor">From ${s.advisor} · ${s.advisor_firm} · Submitted ${s.submitted}</div>
+            <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
+            <button class="att-btn att-approve" onclick="approveDeal('${s.id}',this)">Approve &amp; Publish</button>
+          </div>
+        </div>`).join('')}
+      </div>`;
+  }else{
+    document.getElementById('deal-submissions-wrap').innerHTML='';
+  }
+
+  document.getElementById('active-deals-count').textContent=`${DEALS.length} Deals`;
+  document.getElementById('deal-pipeline-table').innerHTML=`
+    <div class="dp-row header">
+      <div>Deal</div><div>Advisor</div><div>Indicated</div><div>Stage</div><div>Closing</div><div>Actions</div>
+    </div>
+    ${DEALS.map((d,i)=>{
+      const pct=Math.round(d.ioi_agg/d.target_alloc*100);
+      const days=Math.round((new Date(d.closing)-new Date())/86400000);
+      const ci=STAGE_ORDER.indexOf(d.stage);
+      const nextStage=STAGE_ORDER[ci+1];
+      return`<div class="dp-row" style="animation-delay:${i*50}ms">
+        <div>
+          <div class="dp-name">${d.name}</div>
+          <div class="dp-sub">${d.geography} · ${d.target_irr}% IRR</div>
+        </div>
+        <div class="dp-advisor">${d.advisor}</div>
+        <div>
+          <div class="dp-amount">${fmU(d.ioi_agg)}</div>
+          <div class="dp-bar-track"><div class="dp-bar-fill" style="width:${pct}%"></div></div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:2px">${pct}% of ${fmU(d.target_alloc)}</div>
+        </div>
+        <span class="dp-stage-chip ${STAGE_CHIP[d.stage]||'sc-review'}">${STAGE_LABELS[d.stage]||d.stage}</span>
+        <div style="font-family:var(--mono);font-size:11px;color:${days>90?'var(--green)':days>45?'var(--amber)':'var(--red)'}">${days}d</div>
+        <div class="dp-actions">
+          <button class="dp-btn" onclick="toast('Opening deal detail…')">View</button>
+          ${nextStage?`<button class="dp-btn advance" onclick="openModal('${d.id}','${nextStage}')">→ ${STAGE_LABELS[nextStage]}</button>`:''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+/* ── STAGE MODAL ── */
+function openModal(dealId,targetStage){
+  pendingDealId=dealId;pendingStage=targetStage;
+  const d=DEALS.find(x=>x.id===dealId);
+  document.getElementById('modal-title').textContent=`Advance to ${STAGE_LABELS[targetStage]}?`;
+  document.getElementById('modal-body').textContent=`Move "${d.name}" from ${STAGE_LABELS[d.stage]} to ${STAGE_LABELS[targetStage]}. Approved investors will be notified by email.`;
+  document.getElementById('stage-modal').classList.remove('hidden');
+}
+function closeModal(){document.getElementById('stage-modal').classList.add('hidden');pendingStage=null;pendingDealId=null;}
+document.getElementById('modal-confirm').onclick=function(){
+  if(!pendingDealId)return;
+  const d=DEALS.find(x=>x.id===pendingDealId);
+  d.stage=pendingStage;closeModal();renderPipeline();renderKPIs();
+  toast(`${d.name} advanced to ${STAGE_LABELS[pendingStage]}`,'ok');
+};
+document.getElementById('stage-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+/* ── AI TOOL ── */
+const AI_DOCS={nda:false,mgmt:false,fin:false};
+
+function renderAITool(){
+  const sel=document.getElementById('ai-deal-select');
+  sel.innerHTML='<option value="">Select deal…</option>'+
+    DEALS.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+}
+
+function aiLoadDoc(type){
+  if(AI_DOCS[type])return;
+  const slot=document.getElementById('ai-slot-'+type);
+  const stat=document.getElementById('ai-stat-'+type);
+  if(!slot||!stat)return;
+  slot.classList.add('loaded');
+  stat.className='ai-slot-status loaded';
+  stat.textContent='✓ Loaded';
+  AI_DOCS[type]=true;
+  const btn=document.getElementById('ai-process-btn');
+  if(btn)btn.disabled=!(AI_DOCS.nda&&AI_DOCS.mgmt&&AI_DOCS.fin);
+}
+
+function runAIProcess(){
+  const sel=document.getElementById('ai-deal-select');
+  const dealId=sel?sel.value:'';
+  const deal=DEALS.find(d=>d.id===dealId);
+  const panel=document.getElementById('ai-output-panel');
+  if(!panel)return;
+
+  const steps=[
+    'Reading NDA template…',
+    'Parsing management presentation…',
+    'Extracting financial data…',
+    'Identifying key metrics…',
+    'Structuring investor thesis…',
+    'Generating highlights…',
+    'Composing tagline…',
+  ];
+
+  panel.innerHTML=`<div class="ai-thinking">
+    <div class="ai-thinking-label">
+      ✦ Claude is processing
+      <span class="ai-thinking-dot"></span>
+      <span class="ai-thinking-dot"></span>
+      <span class="ai-thinking-dot"></span>
+    </div>
+    <div class="ai-thinking-steps" id="ai-steps"></div>
+  </div>`;
+
+  const stepsEl=document.getElementById('ai-steps');
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i<steps.length&&stepsEl){
+      if(i>0){
+        const prev=stepsEl.children[i-1];
+        if(prev)prev.classList.add('done');
+      }
+      const el=document.createElement('div');
+      el.className='ai-step';
+      el.style.animationDelay=(i*80)+'ms';
+      el.innerHTML=`<span class="ai-step-icon">${i<steps.length-1?'◦':'✦'}</span> ${steps[i]}`;
+      stepsEl.appendChild(el);
+      i++;
+    }else{
+      clearInterval(iv);
+      setTimeout(()=>showAIOutput(deal),600);
+    }
+  },340);
+}
+
+function showAIOutput(deal){
+  const panel=document.getElementById('ai-output-panel');
+  if(!panel)return;
+
+  const outputs=deal?{
+    tagline:`${deal.name} — ${deal.geography} capital at institutional scale`,
+    thesis:`${deal.name} offers qualified investors a compelling opportunity in ${deal.geography.toLowerCase()} ${deal.asset_class==='infra'?'infrastructure':'private markets'}, targeting ${deal.target_irr}% net IRR over a ${deal.term}-month investment horizon. The fund employs a ${deal.structure.toLowerCase()} structure with a minimum ticket of ${fmU(deal.min_ticket)}, making it accessible to institutional allocators and sophisticated family offices. The advisor team has an established track record in the sector with institutional-grade diligence processes.`,
+    highlights:[
+      `${deal.target_irr}% target net IRR with ${deal.structure.toLowerCase()} capital protection`,
+      `${deal.term}-month investment term with quarterly reporting to investors`,
+      `${fmU(deal.target_alloc)} total raise — ${Math.round(deal.ioi_agg/deal.target_alloc*100)}% already indicated`,
+      `Target close ${new Date(deal.closing).toLocaleDateString('en-US',{month:'long',year:'numeric'})} — limited remaining capacity`,
+    ],
+    stats:{irr:`${deal.target_irr}%`,term:`${deal.term}mo`,ticket:fmU(deal.min_ticket),geo:deal.geography.split('·')[0].trim()},
+  }:{
+    tagline:'Infrastructure capital at the convergence of Asia and North America',
+    thesis:'Pacific Bridge Infrastructure offers a compelling senior secured opportunity in cross-Pacific transport and logistics infrastructure, targeting 11% net IRR over an 84-month term. The fund structure provides downside protection through first-lien security on hard assets.',
+    highlights:[
+      '11% target net IRR with senior secured capital position',
+      '84-month investment term with semi-annual distributions',
+      '$60M total raise — 97.5% already indicated by qualified investors',
+      'Target close July 2026 — limited remaining allocation',
+    ],
+    stats:{irr:'11%',term:'84mo',ticket:'$500K',geo:'Asia-Pacific'},
+  };
+
+  panel.innerHTML=`<div class="ai-output">
+    <div class="ai-out-section" style="animation-delay:.05s">
+      <div class="ai-out-label">Generated Tagline</div>
+      <div class="ai-out-tagline">${outputs.tagline}</div>
+    </div>
+    <div class="ai-out-section" style="animation-delay:.15s">
+      <div class="ai-out-label">Investment Thesis</div>
+      <div class="ai-out-thesis">${outputs.thesis}</div>
+    </div>
+    <div class="ai-out-section" style="animation-delay:.25s">
+      <div class="ai-out-label">Key Highlights</div>
+      <div class="ai-highlights">${outputs.highlights.map((h,i)=>`
+        <div class="ai-hl-item">
+          <div class="ai-hl-bullet">${i+1}</div>
+          <span>${h}</span>
+        </div>`).join('')}</div>
+    </div>
+    <div class="ai-out-section" style="animation-delay:.35s">
+      <div class="ai-out-label">Key Stats</div>
+      <div class="ai-stats-row">
+        <div class="ai-stat-chip"><div class="ai-stat-lbl">Target IRR</div><div class="ai-stat-val">${outputs.stats.irr}</div></div>
+        <div class="ai-stat-chip"><div class="ai-stat-lbl">Term</div><div class="ai-stat-val">${outputs.stats.term}</div></div>
+        <div class="ai-stat-chip"><div class="ai-stat-lbl">Min Ticket</div><div class="ai-stat-val">${outputs.stats.ticket}</div></div>
+        <div class="ai-stat-chip"><div class="ai-stat-lbl">Geography</div><div class="ai-stat-val">${outputs.stats.geo}</div></div>
+      </div>
+    </div>
+    <div class="ai-out-section" style="animation-delay:.45s">
+      <button class="ai-apply-btn" onclick="toast('Content applied to deal on investor portal','ok')">Apply to Investor Portal →</button>
+    </div>
+  </div>`;
+}
+
+/* ── INIT ── */
+async function load(){
+  const me=await fetchSilent('/api/me');
+  if(me?._unauth){window.location.href='/login';return;}
+  if(me?.ok&&me.role==='admin'){
+    const [dealsR,ioisR]=await Promise.all([
+      api('GET','/api/v2?resource=deals'),
+      api('GET','/api/marketplace/deal-iois')
+    ]);
+    const allIois=ioisR?.iois||[];
+    if(dealsR?.deals&&dealsR.deals.length){
+      const all=dealsR.deals.filter(d=>d.stage!=='killed').map(d=>adaptDeal(d,allIois));
+      NEW_SUBMISSIONS=all.filter(d=>d.stage==='review').map(d=>({...d,submitted:new Date(d.created_at||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric'})}));
+      DEALS=all.filter(d=>d.stage!=='review');
+    }
+  }else if(me?._unauth===undefined&&!me?.ok){
+    // Network error — fall back to mock data silently
+  }else if(me?.ok&&me.role!=='admin'){
+    window.location.href='/login';return;
+  }
+  renderKPIs();renderOverview();updateQueueBadge();
+}
+load();
+</script>
+</body>
+</html>
