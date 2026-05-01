@@ -775,7 +775,7 @@ function confirmPush(){
   renderOverview();renderKPIs();
   toast(`IOI pushed to ${d.advisor} for review`,'ok');
 }
-document.getElementById('push-modal').addEventListener('click',function(e){if(e.target===this)closePushModal();});
+const _pm=document.getElementById('push-modal');if(_pm)_pm.addEventListener('click',function(e){if(e.target===this)closePushModal();});
 
 /* ── PIPELINE ── */
 function renderPipeline(){
@@ -844,13 +844,13 @@ function openModal(dealId,targetStage){
   document.getElementById('stage-modal').classList.remove('hidden');
 }
 function closeModal(){document.getElementById('stage-modal').classList.add('hidden');pendingStage=null;pendingDealId=null;}
-document.getElementById('modal-confirm').onclick=function(){
+const _mc=document.getElementById('modal-confirm');if(_mc)_mc.onclick=function(){
   if(!pendingDealId)return;
   const d=DEALS.find(x=>x.id===pendingDealId);
   d.stage=pendingStage;closeModal();renderPipeline();renderKPIs();
   toast(`${d.name} advanced to ${STAGE_LABELS[pendingStage]}`,'ok');
 };
-document.getElementById('stage-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+const _sm=document.getElementById('stage-modal');if(_sm)_sm.addEventListener('click',function(e){if(e.target===this)closeModal();});
 
 /* ── AI TOOL ── */
 const AI_DOCS={nda:false,mgmt:false,fin:false};
@@ -981,11 +981,9 @@ function showAIOutput(deal){
 }
 
 /* ── INIT ── */
-async function load(){
-  // Render mock data immediately so page is never blank
-  renderKPIs();renderOverview();updateQueueBadge();
+renderKPIs();renderOverview();updateQueueBadge();
 
-  // Check auth and overlay with live data if available
+async function load(){
   const me=await fetchSilent('/api/me');
   if(!me||me._unauth)return; // not logged in — keep mock data visible
   if(me.ok&&me.role!=='admin')return; // wrong role — keep mock data
