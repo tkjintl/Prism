@@ -3768,12 +3768,13 @@ async function load(){
       fetchSilent('/api/v2?resource=marketplace&op=deal-iois')
     ]);
     const allIois=ioisR?.iois||[];
-    if(dealsR?.deals){
-      // Always replace mock data with live API data, even if empty
+    if(dealsR?.deals&&dealsR.deals.length){
+      // Replace mock data with live API data when KV has real deals
       const all=dealsR.deals.filter(d=>d.stage!=='killed').map(d=>adaptDeal(d,allIois));
       NEW_SUBMISSIONS=all.filter(d=>d.stage==='review').map(d=>({...d,submitted:new Date(d.created_at||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric'})}));
       DEALS=all.filter(d=>d.stage!=='review');
     }
+    // If API returns empty, DEALS/NEW_SUBMISSIONS retain their rich mock defaults
     renderKPIs();renderOverview();updateQueueBadge();
   }
 }

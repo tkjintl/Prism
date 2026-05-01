@@ -1792,13 +1792,14 @@ async function load(){
         document.getElementById('stage-journey')&&(document.getElementById('stage-journey').style.display='');
         renderSwitcher();renderHeader();renderStageJourney();renderOverview();renderMaterials();
       } else {
-        renderEmpty();
+        // No live deals yet — show mock data so portal always looks populated
+        renderMockDeals();
       }
     } else {
-      renderEmpty();
+      renderMockDeals();
     }
   } else {
-    renderEmpty();
+    renderMockDeals();
   }
 }
 load();
