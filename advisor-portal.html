@@ -255,6 +255,27 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .cs-status.uploaded{color:var(--green)}
 .cs-status.released{color:var(--blue)}
 
+/* BANKING DETAILS */
+.banking-section{margin-top:36px;padding-top:28px;border-top:1px solid var(--border)}
+.banking-header{margin-bottom:20px}
+.banking-title{font-size:11px;font-weight:600;color:var(--text-2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.banking-note{font-size:12px;color:var(--text-3);line-height:1.6;max-width:560px}
+.banking-section-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;margin-top:8px}
+.banking-note-sub{font-size:11px;color:var(--text-3);margin-bottom:14px;line-height:1.5}
+.banking-form{display:flex;flex-direction:column;gap:12px;padding:16px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r)}
+.banking-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.banking-field-row{grid-template-columns:1fr}}
+.banking-field{display:flex;flex-direction:column;gap:4px}
+.banking-label{font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.04em;text-transform:uppercase;font-family:var(--sans)}
+.banking-input{padding:9px 12px;background:var(--surface);border:1px solid var(--border-m);border-radius:var(--r);font-size:13px;color:var(--text);font-family:var(--sans);transition:border-color .15s}
+.banking-input:focus{border-color:var(--gold);outline:none}
+.bk-mono{font-family:var(--mono);font-size:12px;letter-spacing:.04em}
+.banking-same-row{margin-bottom:12px}
+.banking-same-label{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-2);cursor:pointer;font-family:var(--sans)}
+.banking-same-label input[type=checkbox]{accent-color:var(--gold);width:14px;height:14px;flex-shrink:0}
+.banking-save-btn{margin-top:20px;padding:11px 24px;background:var(--gold);border:none;border-radius:var(--r);font-size:13px;font-weight:600;color:#0A0908;cursor:pointer;font-family:var(--sans);transition:opacity .15s;display:inline-flex;align-items:center;gap:6px}
+.banking-save-btn:hover{opacity:.88}
+
 /* PERFORMANCE */
 .perf-layout{display:grid;grid-template-columns:1fr;gap:28px}
 @media(min-width:900px){.perf-layout{grid-template-columns:1fr 1fr}}
@@ -596,6 +617,43 @@ let DEALS = [
       {type:'access',text:'Investor accessed your <strong>Information Memo</strong>',time:'8 hours ago'},
       {type:'ioi',text:'New investor indicated <strong>$2.0M</strong> — admin approved',time:'2 days ago'},
       {type:'stage',text:'Deal live — <strong>70% indicated</strong> of target allocation',time:'5 days ago'},
+    ],
+  },
+  {
+    id:'d8', name:'Clearwater Credit Partners III', ticker:'CCP', asset_class:'credit',
+    stage:'close',
+    geography:'North America', structure:'Senior Secured Credit',
+    target_irr:14, target_alloc:40000000, term:30, min_ticket:250000,
+    closing:'2026-06-30',
+    ioi_agg:38500000, ioi_count:4,
+    pushed_ioi:null,
+    investors_by_type:[
+      {type:'Family Office',count:3,amount:26500000},
+      {type:'Institutional',count:1,amount:12000000},
+    ],
+    documents:{
+      nda:{name:'NDA_CCP3_v1.pdf',size:'292 KB',uploaded:'Mar 15',access:'public'},
+      teaser:{name:'CCP3_InvestmentDeck.pdf',size:'3.1 MB',uploaded:'Mar 16',access:'public'},
+      im:{name:'CCP3_InfoMemo_v2.pdf',size:'6.2 MB',uploaded:'Mar 20',access:'nda'},
+      financials:{name:'CCP3_FinancialSummary.xlsx',size:'510 KB',uploaded:'Mar 21',access:'nda'},
+      model:{name:'CCP3_Model.xlsx',size:'1.2 MB',uploaded:'Apr 1',access:'dd'},
+    },
+    closing_docs:{
+      fund_docs:{name:'CCP3_FundDocs.pdf',uploaded:'Apr 10'},
+      ppm:{name:'CCP3_PPM.pdf',uploaded:'Apr 10'},
+      wire:null,
+    },
+    banking:null,
+    dataroom:[
+      {name:'Credit_Portfolio_III.pdf',size:'9.4 MB',folder:'Legal',accesses:7,icon:'📄'},
+      {name:'Borrower_Profiles_III.pdf',size:'4.1 MB',folder:'Borrowers',accesses:4,icon:'📄'},
+      {name:'Legal_Opinions.pdf',size:'2.2 MB',folder:'Legal',accesses:2,icon:'📄'},
+    ],
+    activity:[
+      {type:'stage',text:'Deal advanced to <strong>Close</strong> — wiring instructions active',time:'2 days ago'},
+      {type:'ioi',text:'<strong>Atlas Endowment</strong> $12M IOI confirmed',time:'4 days ago'},
+      {type:'ioi',text:'<strong>Canmore Group</strong> $12M IOI confirmed',time:'6 days ago'},
+      {type:'stage',text:'Deal reached <strong>96% indicated</strong> of target allocation',time:'8 days ago'},
     ],
   },
 ];
@@ -948,6 +1006,90 @@ function renderMaterials(){
     </div>`;
   }
 
+  /* banking details — only in Close/Realized stage */
+  if(d.stage==='close'||d.stage==='realized'){
+    html+=`<div class="banking-section">
+      <div class="banking-header">
+        <div class="banking-title">Banking Details</div>
+        <div class="banking-note">These details are used by Aurum to deploy committed capital and return exit proceeds to the underlying fund.</div>
+      </div>
+
+      <div class="banking-section-lbl">Section A — Capital Receipt (Deployment)</div>
+      <div class="banking-note-sub">Where Aurum should wire investor capital to deploy into this deal.</div>
+      <div class="banking-form">
+        <div class="banking-field-row">
+          <div class="banking-field">
+            <label class="banking-label">Beneficiary Name</label>
+            <input class="banking-input" id="bk-a-bene" type="text" placeholder="Fund or SPV receiving capital" value="${d.banking?.a?.bene||''}">
+          </div>
+          <div class="banking-field">
+            <label class="banking-label">Bank Name</label>
+            <input class="banking-input" id="bk-a-bank" type="text" placeholder="e.g. DBS Bank Ltd" value="${d.banking?.a?.bank||''}">
+          </div>
+        </div>
+        <div class="banking-field">
+          <label class="banking-label">Bank Address</label>
+          <input class="banking-input" id="bk-a-addr" type="text" placeholder="Full branch address" value="${d.banking?.a?.addr||''}">
+        </div>
+        <div class="banking-field-row">
+          <div class="banking-field">
+            <label class="banking-label">SWIFT / BIC</label>
+            <input class="banking-input bk-mono" id="bk-a-swift" type="text" placeholder="e.g. DBSSSGSG" value="${d.banking?.a?.swift||''}">
+          </div>
+          <div class="banking-field">
+            <label class="banking-label">Account Number</label>
+            <input class="banking-input bk-mono" id="bk-a-acct" type="text" placeholder="e.g. 072-901847-3" value="${d.banking?.a?.acct||''}">
+          </div>
+        </div>
+        <div class="banking-field">
+          <label class="banking-label">Reference / Purpose of Payment</label>
+          <input class="banking-input" id="bk-a-ref" type="text" placeholder="e.g. Capital deployment — [Deal Name]" value="${d.banking?.a?.ref||''}">
+        </div>
+      </div>
+
+      <div class="banking-section-lbl" style="margin-top:24px">Section B — Distribution Account (Future Exits)</div>
+      <div class="banking-note-sub">Where Aurum should send distributions when the deal exits.</div>
+      <div class="banking-same-row">
+        <label class="banking-same-label">
+          <input type="checkbox" id="bk-same-chk" onchange="toggleSameAccount()" ${d.banking?.sameAsA?'checked':''}>
+          <span>Same as Capital Receipt account — auto-fill from Section A</span>
+        </label>
+      </div>
+      <div class="banking-form" id="banking-b-form" style="${d.banking?.sameAsA?'opacity:.45;pointer-events:none':''}">
+        <div class="banking-field-row">
+          <div class="banking-field">
+            <label class="banking-label">Beneficiary Name</label>
+            <input class="banking-input" id="bk-b-bene" type="text" placeholder="Fund or SPV receiving distributions" value="${d.banking?.b?.bene||''}">
+          </div>
+          <div class="banking-field">
+            <label class="banking-label">Bank Name</label>
+            <input class="banking-input" id="bk-b-bank" type="text" placeholder="e.g. DBS Bank Ltd" value="${d.banking?.b?.bank||''}">
+          </div>
+        </div>
+        <div class="banking-field">
+          <label class="banking-label">Bank Address</label>
+          <input class="banking-input" id="bk-b-addr" type="text" placeholder="Full branch address" value="${d.banking?.b?.addr||''}">
+        </div>
+        <div class="banking-field-row">
+          <div class="banking-field">
+            <label class="banking-label">SWIFT / BIC</label>
+            <input class="banking-input bk-mono" id="bk-b-swift" type="text" placeholder="e.g. DBSSSGSG" value="${d.banking?.b?.swift||''}">
+          </div>
+          <div class="banking-field">
+            <label class="banking-label">Account Number</label>
+            <input class="banking-input bk-mono" id="bk-b-acct" type="text" placeholder="e.g. 072-901847-3" value="${d.banking?.b?.acct||''}">
+          </div>
+        </div>
+        <div class="banking-field">
+          <label class="banking-label">Reference / Purpose of Payment</label>
+          <input class="banking-input" id="bk-b-ref" type="text" placeholder="e.g. Distribution — [Deal Name]" value="${d.banking?.b?.ref||''}">
+        </div>
+      </div>
+
+      <button class="banking-save-btn" onclick="saveBankingDetails()">Save Banking Details</button>
+    </div>`;
+  }
+
   document.getElementById('tab-materials').innerHTML=html;
 }
 
@@ -993,6 +1135,60 @@ function simulateClosingUpload(docId){
     renderMaterials();
     toast(`${docId.replace('_',' ')} uploaded — awaiting admin release`,'ok');
   },1700);
+}
+
+/* ── BANKING DETAILS ── */
+function toggleSameAccount(){
+  const chk=document.getElementById('bk-same-chk');
+  const form=document.getElementById('banking-b-form');
+  if(!chk||!form)return;
+  if(chk.checked){
+    // Copy Section A values into Section B and disable
+    const fields=['bene','bank','addr','swift','acct','ref'];
+    fields.forEach(f=>{
+      const a=document.getElementById('bk-a-'+f);
+      const b=document.getElementById('bk-b-'+f);
+      if(a&&b)b.value=a.value;
+    });
+    form.style.opacity='.45';
+    form.style.pointerEvents='none';
+  }else{
+    form.style.opacity='';
+    form.style.pointerEvents='';
+  }
+}
+
+function saveBankingDetails(){
+  const d=DEALS[currentDealIdx];
+  const sameAsA=document.getElementById('bk-same-chk')?.checked||false;
+  const readField=id=>(document.getElementById(id)?.value||'').trim();
+  d.banking={
+    sameAsA,
+    a:{
+      bene:readField('bk-a-bene'),
+      bank:readField('bk-a-bank'),
+      addr:readField('bk-a-addr'),
+      swift:readField('bk-a-swift'),
+      acct:readField('bk-a-acct'),
+      ref:readField('bk-a-ref'),
+    },
+    b:sameAsA?{
+      bene:readField('bk-a-bene'),
+      bank:readField('bk-a-bank'),
+      addr:readField('bk-a-addr'),
+      swift:readField('bk-a-swift'),
+      acct:readField('bk-a-acct'),
+      ref:readField('bk-a-ref'),
+    }:{
+      bene:readField('bk-b-bene'),
+      bank:readField('bk-b-bank'),
+      addr:readField('bk-b-addr'),
+      swift:readField('bk-b-swift'),
+      acct:readField('bk-b-acct'),
+      ref:readField('bk-b-ref'),
+    },
+  };
+  toast('Banking details saved','ok');
 }
 
 /* ── PERFORMANCE ── */

@@ -4,6 +4,32 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Mock data expansion, closing instructions (investor), banking details (advisor)
+
+### `admin-portal.html`
+- **4 new deals added** (d5–d8): Nexus Digital Infrastructure (live/PE), Apex Growth Partners Fund III (dd/PE), Meridian Financial Corp Growth Equity (review/PE), Clearwater Credit Partners III (close/credit). d6 and d8 include IOI arrays.
+- **2 new advisor submissions** added to `NEW_SUBMISSIONS`: Horizon Renewable Energy Fund and Cascade Software Series B.
+- **MOCK_ADVISORS expanded** to 6 entries with realistic firms and statuses (active/pending).
+- **MOCK_INVESTORS expanded** to 8 entries; added `invite_sent` as a third status value with blue dot and "Invite Sent" badge. CSS updated: `.ov-signup-dot.invite_sent` (blue) and `.ov-signup-status.invite_sent` (blue chip).
+- `investorAccessLabel()` and `advisorStatusLabel()` helper functions replace inline ternaries for cleaner status label rendering.
+
+### `investor-portal.html`
+- **d8 (Clearwater Credit Partners III, close stage)** added to `DEALS` array.
+- **Portfolio entry for d8** added: $2M committed, `pipeline_step:4`, `status:'close'`.
+- **PIPELINE_STEPS** expanded from 4 to 5 steps — "Closing / Wiring" added as the final step.
+- **Portfolio card rendering** updated: close-stage cards get a green border, "Closing" chip, confirmation copy, and a "Wire Instructions Ready →" CTA button.
+- **`showClosingInstructions(dealId)`** added: full-screen overlay with DBS Bank wire details, deal-specific payment reference (ACP-[TICKER]-HFO-2026), important notes, contact details, and Download PDF placeholder. Responsive table collapses on mobile below 520px. Back button removes overlay.
+- New CSS classes: `pos-card-close`, `closing-stage-chip`, `ps-close`, `wiring-cta`, and full `ci-*` block for the closing instructions overlay.
+
+### `advisor-portal.html`
+- **d8 (Clearwater Credit Partners III)** added to advisor `DEALS` mock array in `close` stage with full documents, closing_docs, dataroom, and activity arrays.
+- **Banking Details section** added to `renderMaterials()` — appears when `d.stage === 'close'` or `'realized'`. Two sections: Section A (Capital Receipt / Deployment) and Section B (Distribution Account / Exits). Section B has a "Same as Capital Receipt account" checkbox that copies and locks Section A values.
+- **`saveBankingDetails()`** reads all fields and persists to `d.banking` on the in-memory deal object; toasts confirmation.
+- **`toggleSameAccount()`** handles the same-account checkbox: copies Section A into Section B, toggles opacity/pointer-events.
+- New CSS block: `.banking-section`, `.banking-form`, `.banking-field`, `.banking-label`, `.banking-input`, `.banking-save-btn`, `.bk-mono`, `.banking-same-label`, `.banking-section-lbl`, `.banking-note-sub`.
+
+---
+
 ## [2026-05-01] — Admin Overview dashboard: scrollable queue columns, New Deals label, sign-up access panel, richer visuals
 
 ### `admin-portal.html` — `renderOverview()`, `renderKPIs()`, CSS

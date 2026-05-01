@@ -446,6 +446,52 @@ a{color:inherit;text-decoration:none}
 .ioi-confirm-step-num{width:20px;height:20px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);color:var(--text-3);flex-shrink:0;margin-top:1px}
 .ioi-confirm-step-text{font-size:12px;color:var(--text-2);font-family:var(--sans);line-height:1.6}
 .ioi-confirm-btns{display:flex;flex-direction:column;gap:8px;width:100%;max-width:320px}
+
+/* ── PORTFOLIO CLOSE STAGE ── */
+.pos-card-close{border-color:var(--green-bd);background:linear-gradient(135deg,var(--bg-2) 0%,rgba(90,158,114,0.04) 100%)}
+.closing-stage-chip{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border-radius:20px;border:1px solid var(--green-bd);background:var(--green-bg);color:var(--green)}
+.ps-close{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.wiring-cta{display:block;width:100%;margin-top:14px;padding:11px 16px;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:var(--r);font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--green);cursor:pointer;text-align:center;transition:background .15s,color .15s}
+.wiring-cta:hover{background:var(--green);color:#fff}
+
+/* ── CLOSING INSTRUCTIONS OVERLAY ── */
+.closing-instr-wrap{max-width:640px;margin:0 auto;padding:32px 24px 64px}
+.closing-back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-3);font-family:var(--sans);cursor:pointer;background:none;border:none;padding:0;margin-bottom:28px;transition:color .15s}
+.closing-back-btn:hover{color:var(--gold)}
+.ci-header{margin-bottom:24px}
+.ci-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.ci-deal-name{font-family:var(--serif);font-style:italic;font-size:clamp(22px,4vw,34px);font-weight:400;color:var(--text);line-height:1.1;margin-bottom:14px}
+.ci-amount-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r)}
+.ci-amount-lbl{font-size:12px;color:var(--text-3);font-family:var(--sans)}
+.ci-amount-val{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--gold);margin-left:auto;letter-spacing:.02em}
+.ci-rule{height:1px;background:var(--border);margin:24px 0}
+.ci-section-title{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:16px}
+.ci-wire-table{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.ci-wire-row{display:grid;grid-template-columns:180px 1fr;gap:0;border-bottom:1px solid var(--border)}
+.ci-wire-row:last-child{border-bottom:none}
+.ci-wire-lbl{padding:12px 16px;font-size:11px;font-family:var(--mono);color:var(--text-3);letter-spacing:.06em;background:var(--bg-3);border-right:1px solid var(--border)}
+.ci-wire-val{padding:12px 16px;font-size:13px;color:var(--text);line-height:1.5}
+.ci-mono{font-family:var(--mono);font-size:12px;letter-spacing:.04em}
+.ci-ref-block{padding:16px 20px;background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:var(--r);margin-bottom:8px}
+.ci-ref-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
+.ci-ref-val{font-family:var(--mono);font-size:17px;font-weight:500;color:var(--gold);letter-spacing:.06em;margin-bottom:4px}
+.ci-ref-note{font-size:11px;color:var(--text-3);font-family:var(--sans)}
+.ci-important-block{padding:18px 20px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:var(--r);margin-bottom:20px}
+.ci-imp-title{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+.ci-imp-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.ci-imp-list li{font-size:13px;color:var(--text-2);line-height:1.5;padding-left:16px;position:relative}
+.ci-imp-list li::before{content:'•';position:absolute;left:0;color:var(--amber)}
+.ci-contact{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-3);font-family:var(--sans);margin-bottom:24px;flex-wrap:wrap}
+.ci-actions{display:flex;gap:10px;flex-wrap:wrap}
+.ci-pdf-btn{padding:11px 22px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:var(--r);font-size:13px;font-family:var(--sans);font-weight:500;color:var(--text-2);cursor:pointer;transition:border-color .15s,color .15s}
+.ci-pdf-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.ci-back-btn{padding:11px 22px;background:var(--gold);border:none;border-radius:var(--r);font-size:13px;font-family:var(--sans);font-weight:600;color:#0A0908;cursor:pointer;transition:opacity .15s}
+.ci-back-btn:hover{opacity:.88}
+@media(max-width:520px){
+  .ci-wire-row{grid-template-columns:1fr}
+  .ci-wire-lbl{border-right:none;border-bottom:1px solid var(--border);padding:8px 12px}
+  .ci-wire-val{padding:8px 12px}
+}
 </style>
 </head>
 <body>
@@ -709,11 +755,27 @@ let DEALS = [
     ],
     ioi_investors:['Wellington','Hartwell Capital','Pacific Ridge'],
   },
+  {
+    id:'d8', name:'Clearwater Credit Partners III', company:'Clearwater Capital', ticker:'CCP',
+    asset_class:'credit', stage:'close', geography:'North America', structure:'Senior Secured Credit',
+    target_irr:14, target_alloc:40000000, term:30, hurdle:8, min_ticket:250000, closing:'2026-06-30',
+    featured:false, ioi_count:4, ioi_agg:38500000,
+    advisor:'Marcus Chen · Thornton Capital Partners',
+    logo_color:'#5b85b8', logo_bg:'rgba(91,133,184,0.12)', logo_bd:'rgba(91,133,184,0.3)',
+    tagline:'Third vintage of the Clearwater senior secured credit strategy.',
+    thesis:'Diversified first-lien portfolio across North American middle market with monthly cash distributions.',
+    highlights:[
+      {icon:'🔒', s:'Senior Secured',   b:'First lien security across all 16 portfolio positions.'},
+      {icon:'💰', s:'Monthly Income',   b:'14% target IRR via monthly cash distributions.'}
+    ],
+    ioi_investors:['Harrison Family Office','Thornwood Partners','Canmore Group','Atlas Endowment'],
+  },
 ];
 
 let PORTFOLIO = [
   {deal_id:'d1', amount:1000000, status:'pending',  submitted:'Apr 29', pipeline_step:1},
   {deal_id:'d2', amount:500000,  status:'approved', submitted:'Apr 20', pipeline_step:3},
+  {deal_id:'d8', amount:2000000, status:'close',    submitted:'Apr 8',  pipeline_step:4},
 ];
 
 const CLASS_TAG   = {credit:'dct-credit',pe:'dct-pe',re:'dct-re',infra:'dct-infra'};
@@ -721,7 +783,7 @@ const CLASS_LABEL = {credit:'Private Credit',pe:'Private Equity',re:'Real Estate
 const CLASS_COLOR = {credit:'var(--blue)',pe:'var(--gold)',re:'var(--green)',infra:'var(--slate)'};
 const STAGE_ORDER  = ['review','live','ioi','dd','terms','close','realized'];
 const STAGE_LABELS = {review:'Review',live:'Live',ioi:'IOI',dd:'Due Diligence',terms:'Terms',close:'Close',realized:'Realized'};
-const PIPELINE_STEPS = ['Submitted','Admin Review','Advisor Review','Confirmed'];
+const PIPELINE_STEPS = ['Submitted','Admin Review','Advisor Review','Confirmed','Closing / Wiring'];
 
 let activeDeal = null;
 let ndaSigned  = {};
@@ -1229,33 +1291,102 @@ function renderPortfolio() {
 
   document.getElementById('portfolio-list').innerHTML = PORTFOLIO.map((p, i) => {
     const d = DEALS.find(x => x.id === p.deal_id); if(!d) return '';
-    const isApp = p.status === 'approved';
+    const isClose = p.status === 'close' || d.stage === 'close';
+    const isApp = p.status === 'approved' || isClose;
     const step  = p.pipeline_step || 1;
-    return `<div class="pos-card" style="animation-delay:${i * 80}ms">
+    const statusBadgeCls = isClose ? 'ps-close' : isApp ? 'ps-approved' : 'ps-pending';
+    const statusBadgeLbl = isClose ? 'CLOSING' : p.status.toUpperCase();
+    return `<div class="pos-card ${isClose ? 'pos-card-close' : ''}" style="animation-delay:${i * 80}ms">
       <div class="pos-card-top">
         <div class="pos-class-row">
           <div style="width:24px;height:24px;border-radius:3px;background:${d.logo_bg};border:1px solid ${d.logo_bd};display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;color:${d.logo_color}">${d.ticker}</div>
           <span class="dc-class-tag ${CLASS_TAG[d.asset_class]}">${CLASS_LABEL[d.asset_class]}</span>
+          ${isClose ? '<span class="closing-stage-chip">Closing</span>' : ''}
         </div>
         <div class="pos-name">${d.name}</div>
         <div class="pos-sub">${d.geography} · ${d.target_irr}% IRR · Submitted ${p.submitted}</div>
         <div style="margin-top:8px;font-size:11px;color:${isApp ? 'var(--green)' : 'var(--text-3)'}">
-          ${isApp ? '🔓 Data room access granted' : '🔒 Data room pending approval'}
+          ${isClose ? '✓ Capital commitment confirmed' : isApp ? '🔓 Data room access granted' : '🔒 Data room pending approval'}
         </div>
         <div class="ioi-pipeline pos-pipeline" style="margin-top:10px">
           <div class="pipeline-steps">${PIPELINE_STEPS.map((s, j) => `
-            <div class="ps-step ${j < step ? 'done' : j === step ? 'active' : ''}">
+            <div class="ps-step ${j < step ? 'done' : j === step - 1 ? 'active' : ''}">
               <div class="ps-circle">${j < step ? '✓' : j + 1}</div>
               <div class="ps-lbl">${s}</div>
             </div>`).join('')}</div>
         </div>
+        ${isClose ? `<button class="wiring-cta" onclick="showClosingInstructions('${d.id}')">Wire Instructions Ready →</button>` : ''}
       </div>
       <div class="pos-card-btm">
         <div class="pos-amount">${fmFull(p.amount)}</div>
-        <span class="pos-badge ${isApp ? 'ps-approved' : 'ps-pending'}">${p.status.toUpperCase()}</span>
+        <span class="pos-badge ${statusBadgeCls}">${statusBadgeLbl}</span>
       </div>
     </div>`;
   }).join('');
+}
+
+/* ── CLOSING INSTRUCTIONS ── */
+function showClosingInstructions(dealId) {
+  const d = DEALS.find(x => x.id === dealId);
+  const p = PORTFOLIO.find(x => x.deal_id === dealId);
+  if(!d || !p) return;
+  const ticker = (d.name || '???').replace(/[^A-Za-z]/g,'').slice(0,4).toUpperCase();
+  const closingDisplay = d.closing ? new Date(d.closing + 'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : 'TBD';
+  // Show as a full-screen overlay within the portfolio view
+  const view = document.getElementById('view-portfolio');
+  const existing = document.getElementById('closing-overlay');
+  if(existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'closing-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto;padding-top:var(--nav-h)';
+  overlay.innerHTML = `<div class="closing-instr-wrap">
+    <button class="closing-back-btn" onclick="document.getElementById('closing-overlay').remove()">← Back to Portfolio</button>
+    <div class="ci-header">
+      <div class="ci-eyebrow">Capital Commitment</div>
+      <div class="ci-deal-name">${d.name}</div>
+      <div class="ci-amount-row">
+        <span class="ci-amount-lbl">Your committed amount</span>
+        <span class="ci-amount-val">${fmFull(p.amount)}</span>
+      </div>
+    </div>
+    <div class="ci-rule"></div>
+    <div class="ci-section-title">Wire Transfer Instructions</div>
+    <div class="ci-wire-table">
+      <div class="ci-wire-row"><div class="ci-wire-lbl">Beneficiary Name</div><div class="ci-wire-val">Aurum Capital Partners VCC<br><span style="color:var(--text-3);font-size:12px">Sub-Fund: ${d.name} Opportunities</span></div></div>
+      <div class="ci-wire-row"><div class="ci-wire-lbl">Beneficiary Bank</div><div class="ci-wire-val">DBS Bank Ltd</div></div>
+      <div class="ci-wire-row"><div class="ci-wire-lbl">Bank Address</div><div class="ci-wire-val">12 Marina Boulevard, DBS Asia Hub,<br>Singapore 018982</div></div>
+      <div class="ci-wire-row"><div class="ci-wire-lbl">Swift Code</div><div class="ci-wire-val ci-mono">DBSSSGSG</div></div>
+      <div class="ci-wire-row"><div class="ci-wire-lbl">Account Number</div><div class="ci-wire-val ci-mono">072-901847-3 (SGD) / 072-901847-5 (USD)</div></div>
+      <div class="ci-wire-row"><div class="ci-wire-lbl">Bank Code</div><div class="ci-wire-val ci-mono">7171</div></div>
+      <div class="ci-wire-row"><div class="ci-wire-lbl">Branch Code</div><div class="ci-wire-val ci-mono">072</div></div>
+    </div>
+    <div class="ci-ref-block">
+      <div class="ci-ref-lbl">Payment Reference</div>
+      <div class="ci-ref-val">ACP-${ticker}-HFO-2026</div>
+      <div class="ci-ref-note">This reference code must appear in the payment narrative</div>
+    </div>
+    <div class="ci-rule"></div>
+    <div class="ci-important-block">
+      <div class="ci-imp-title">Important</div>
+      <ul class="ci-imp-list">
+        <li>Wire must be received by <strong>${closingDisplay}</strong></li>
+        <li>Reference code <strong>MUST</strong> appear in the payment narrative</li>
+        <li>USD and SGD both accepted — USD preferred</li>
+        <li>Upon receipt, you will receive a capital call confirmation and your fund subscription documents within 2 business days</li>
+      </ul>
+    </div>
+    <div class="ci-contact">
+      <span>Contact</span>
+      <a href="mailto:invest@theaurumcc.com" style="color:var(--gold)">invest@theaurumcc.com</a>
+      <span style="color:var(--border-m)">·</span>
+      <span>+65 6123 4567</span>
+    </div>
+    <div class="ci-actions">
+      <button class="ci-pdf-btn" onclick="toast('PDF download coming soon')">Download PDF</button>
+      <button class="ci-back-btn" onclick="document.getElementById('closing-overlay').remove()">← Back to Portfolio</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
 }
 
 /* ── INIT ── */

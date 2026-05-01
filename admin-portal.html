@@ -697,12 +697,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ov-signup-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .ov-signup-dot.active{background:var(--green)}
 .ov-signup-dot.pending{background:var(--amber)}
+.ov-signup-dot.invite_sent{background:var(--blue)}
 .ov-signup-info{flex:1;min-width:0}
 .ov-signup-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ov-signup-sub{font-size:10px;color:var(--text-3);font-family:var(--sans);margin-top:1px}
 .ov-signup-status{font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:2px 7px;border-radius:20px;border:1px solid;white-space:nowrap;flex-shrink:0}
 .ov-signup-status.active{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 .ov-signup-status.pending{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.ov-signup-status.invite_sent{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
 /* Enhanced KPI strip */
 .kpi-card{position:relative;overflow:hidden}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--border)}
@@ -1366,10 +1368,72 @@ let DEALS=[
       {id:'i14',name:'Brighton Capital',init:'BC',type:'Institutional',geo:'US',amount:8600000,date:'Apr 20',status:'approved',isNew:false,pushed:false},
     ],
   },
+  {
+    id:'d5',name:'Nexus Digital Infrastructure Series B',asset_class:'pe',stage:'live',
+    geography:'Southeast Asia',structure:'Preferred Equity + Warrants',target_irr:28,
+    target_alloc:35000000,term:48,min_ticket:500000,closing:'2026-09-15',
+    advisor:'James Lim',advisor_firm:'Lim Capital SG',
+    ioi_agg:0,iois:[],
+    thesis:'Cloud infrastructure play across SEA — enterprise SaaS customer data centres.',
+    highlights:[{icon:'⚡',s:'High Growth',b:'28% target IRR across 4-year hold.'},{icon:'🌏',s:'SEA Expansion',b:'Positioned for digital infrastructure buildout in Indonesia and Vietnam.'}]
+  },
+  {
+    id:'d6',name:'Apex Growth Partners Fund III',asset_class:'pe',stage:'dd',
+    geography:'Global',structure:'LP Interest — Buyout',target_irr:24,
+    target_alloc:50000000,term:84,min_ticket:1000000,closing:'2026-12-31',
+    advisor:'Sarah Chen',advisor_firm:'Chen Capital Partners',
+    ioi_agg:32000000,
+    iois:[
+      {id:'i15',name:'Pemberton Holdings',init:'PH',type:'Family Office',geo:'UK',amount:10000000,date:'Apr 30',status:'approved',isNew:false,pushed:true},
+      {id:'i16',name:'Riviera Capital SG',init:'RC',type:'Institutional',geo:'SG',amount:12000000,date:'Apr 28',status:'approved',isNew:false,pushed:false},
+      {id:'i17',name:'E. Nakamura',init:'EN',type:'HNW',geo:'JP',amount:5000000,date:'May 1',status:'pending',isNew:true,pushed:false},
+      {id:'i18',name:'Abilene Endowment',init:'AB',type:'Institutional',geo:'US',amount:5000000,date:'Apr 26',status:'declined',isNew:false,pushed:false},
+    ],
+    thesis:'Global buyout fund targeting operational improvements in B2B software and services.',
+    highlights:[{icon:'◆',s:'Buyout Strategy',b:'LP interest in proven buyout manager with $4.2B AUM.'},{icon:'📈',s:'Track Record',b:'Prior fund returned 2.4x MOIC net of fees.'}]
+  },
+  {
+    id:'d7',name:'Meridian Financial Corp — Growth Equity',asset_class:'pe',stage:'review',
+    geography:'United States',structure:'Growth Equity',target_irr:19,
+    target_alloc:22000000,term:60,min_ticket:250000,closing:'2026-11-15',
+    advisor:'David Park',advisor_firm:'Park & Associates',
+    ioi_agg:0,iois:[],
+    thesis:'Mid-market fintech lender targeting the US SME credit gap with proprietary underwriting.',
+    highlights:[{icon:'💳',s:'Fintech Lending',b:'Proprietary AI-driven underwriting model with sub-2% default rate.'},{icon:'🏦',s:'Regulatory Moat',b:'Licensed lender in 32 states with established bank partnerships.'}]
+  },
+  {
+    id:'d8',name:'Clearwater Credit Partners III',asset_class:'credit',stage:'close',
+    geography:'North America',structure:'Senior Secured Credit',target_irr:14,
+    target_alloc:40000000,term:30,min_ticket:250000,closing:'2026-06-30',
+    advisor:'Marcus Chen',advisor_firm:'Marcus Chen Advisory',
+    ioi_agg:38500000,
+    iois:[
+      {id:'i19',name:'Harrison Family Office',init:'HF',type:'Family Office',geo:'US',amount:8000000,date:'Apr 15',status:'approved',isNew:false,pushed:true},
+      {id:'i20',name:'Thornwood Partners',init:'TP',type:'Family Office',geo:'UK',amount:6500000,date:'Apr 12',status:'approved',isNew:false,pushed:true},
+      {id:'i21',name:'Canmore Group',init:'CG',type:'Family Office',geo:'CA',amount:12000000,date:'Apr 10',status:'approved',isNew:false,pushed:true},
+      {id:'i22',name:'Atlas Endowment',init:'AE',type:'Institutional',geo:'US',amount:12000000,date:'Apr 8',status:'approved',isNew:false,pushed:true},
+    ],
+    thesis:'Third vintage of the Clearwater senior secured credit strategy. Diversified first-lien portfolio across North American middle market.',
+    highlights:[{icon:'🔒',s:'Senior Secured',b:'First lien security across all 16 portfolio positions.'},{icon:'💰',s:'Monthly Income',b:'14% target IRR via monthly cash distributions.'}]
+  },
 ];
 
 let NEW_SUBMISSIONS=[
   {id:'ns1',name:'Meridian Financial Corp',asset_class:'credit',geography:'United States',structure:'Mezzanine',target_irr:15,target_alloc:22000000,term:30,min_ticket:200000,advisor:'David Park',advisor_firm:'Park Capital',submitted:'Apr 28'},
+  {
+    id:'sub3',name:'Horizon Renewable Energy Fund',asset_class:'infra',stage:'review',
+    advisor:'James Lim',advisor_firm:'Lim Capital SG',submitted:'May 1',
+    target_irr:13,target_alloc:45000000,min_ticket:500000,
+    asset_class_display:'Infrastructure',
+    thesis:'Solar and wind portfolio across Southeast Asia with government-backed offtake agreements.',
+  },
+  {
+    id:'sub4',name:'Cascade Software Series B',asset_class:'pe',stage:'review',
+    advisor:'Priya Mehta',advisor_firm:'Mehta Investment Group',submitted:'May 1',
+    target_irr:26,target_alloc:18000000,min_ticket:250000,
+    asset_class_display:'Private Equity',
+    thesis:'B2B workflow automation SaaS targeting European mid-market. $8M ARR, 140% NRR.',
+  },
 ];
 
 const STAGE_ORDER=['review','live','dd','close','realized'];
@@ -1472,13 +1536,22 @@ function renderOverview(){
 
   /* ── Mock data for sign-up access cycle ── */
   const MOCK_ADVISORS=[
-    {name:'Sarah Chen',firm:'Capital Group SG',joined:'Apr 28 2026',status:'active'},
-    {name:'David Park',firm:'Meridian Capital',joined:'May 1 2026',status:'pending'},
+    {name:'Sarah Chen',      firm:'Chen Capital Partners',   joined:'Apr 25 2026',status:'active'},
+    {name:'David Park',      firm:'Park & Associates',       joined:'Apr 28 2026',status:'active'},
+    {name:'Priya Mehta',     firm:'Mehta Investment Group',  joined:'May 1 2026',  status:'active'},
+    {name:'James Lim',       firm:'Lim Capital SG',          joined:'May 1 2026',  status:'pending'},
+    {name:'Marcus Chen',     firm:'Marcus Chen Advisory',    joined:'Apr 26 2026', status:'active'},
+    {name:'R. Tanaka',       firm:'Tanaka Family Office',    joined:'May 1 2026',  status:'pending'},
   ];
   const MOCK_INVESTORS=[
-    {name:'Harrison Family Office',type:'Family Office',added:'Apr 30 2026',access:'active'},
-    {name:'D. Ashford',type:'HNWI',added:'May 1 2026',access:'pending'},
-    {name:'Kessler Family Office',type:'Family Office',added:'Apr 29 2026',access:'active'},
+    {name:'Harrison Family Office',  type:'Family Office',   added:'Apr 29 2026',access:'active'},
+    {name:'D. Ashford',              type:'HNWI',            added:'May 1 2026',  access:'pending'},
+    {name:'Kessler Family Office',   type:'Family Office',   added:'Apr 28 2026', access:'active'},
+    {name:'E. Nakamura',             type:'HNWI',            added:'May 1 2026',  access:'pending'},
+    {name:'Riviera Capital SG',      type:'Institutional',   added:'Apr 30 2026', access:'active'},
+    {name:'S. Okonkwo',              type:'HNWI',            added:'May 1 2026',  access:'invite_sent'},
+    {name:'Pemberton Holdings',      type:'Family Office',   added:'Apr 29 2026', access:'active'},
+    {name:'Blackthorn Partners',     type:'Institutional',   added:'May 1 2026',  access:'invite_sent'},
   ];
 
   /* ── Header bar ── */
@@ -1619,21 +1692,23 @@ function renderOverview(){
   }).join('');
 
   /* ── Sign-up access cycle panel ── */
+  const advisorStatusLabel=s=>s==='active'?'Active':'Pending Setup';
   const advisorRows=MOCK_ADVISORS.map(a=>`<div class="ov-signup-row">
     <div class="ov-signup-dot ${a.status}"></div>
     <div class="ov-signup-info">
       <div class="ov-signup-name">${a.name}</div>
       <div class="ov-signup-sub">${a.firm} · Joined ${a.joined}</div>
     </div>
-    <div class="ov-signup-status ${a.status}">${a.status==='active'?'Active':'Pending Setup'}</div>
+    <div class="ov-signup-status ${a.status}">${advisorStatusLabel(a.status)}</div>
   </div>`).join('');
+  const investorAccessLabel=s=>s==='active'?'Active':s==='invite_sent'?'Invite Sent':'Pending Setup';
   const investorRows=MOCK_INVESTORS.map(i=>`<div class="ov-signup-row">
     <div class="ov-signup-dot ${i.access}"></div>
     <div class="ov-signup-info">
       <div class="ov-signup-name">${i.name}</div>
       <div class="ov-signup-sub">${i.type} · Added ${i.added}</div>
     </div>
-    <div class="ov-signup-status ${i.access}">${i.access==='active'?'Active':'Pending'}</div>
+    <div class="ov-signup-status ${i.access}">${investorAccessLabel(i.access)}</div>
   </div>`).join('');
 
   document.getElementById('overview-main').innerHTML=`
