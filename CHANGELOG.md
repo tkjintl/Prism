@@ -4,6 +4,20 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin Overview: luxury command-centre dashboard redesign
+
+### `admin-portal.html`
+- **3-column Action Queue:** Pending Review (new advisor submissions → AI generate button), IOI Decisions (approve/decline per investor), Ready to Push (approved IOIs with push-to-advisor action). Each column has a colour-coded dot (amber/gold/violet), badge count that highlights gold when items exist, and "No items — all clear" empty state.
+- **5-tile KPI strip:** Capital Indicated, Investor Indications (amber alert when pending), New Submissions, Ready to Push, Actions Required. Each tile has a coloured accent line at the base (amber/gold/green) that conveys status at a glance.
+- **Deal Stage Map:** 5-lane horizontal grid (Review → Live → DD → Close → Realized) showing all active deals as clickable chips. Each chip shows ticker, deal name, and IOI aggregate. Clicking navigates to the deal in the Pipeline tab.
+- **IOI Intelligence panel:** Per-deal gold fill-bar showing subscription % with pill counts for pending and declined IOIs.
+- **Platform Activity feed:** Icon-badged timeline with per-event type colour coding (IOI gold, submit blue, push violet, stage green, review grey).
+
+- `admin-portal.html`: added ~90 lines of new CSS for overview dashboard components (`ov-queue-grid`, `ov-queue-col`, `ov-lane`, `ov-deal-chip`, `ov-bottom-grid`, `ov-panel`, `ov-at-*`, `ov-intel-*`, enhanced `kpi-card` accent lines)
+- `admin-portal.html`: updated `.kpi-strip` grid to 5 columns at `>=1024px`, 3 columns at `>=640px`
+- `admin-portal.html`: rewrote `renderKPIs()` — 5 tiles (Capital Indicated, Investor Indications, New Submissions, Ready to Push, Actions Required) with colored accent bar via `kpi-alert`/`kpi-gold`/`kpi-green` modifier classes
+- `admin-portal.html`: rewrote `renderOverview()` — 3-column action queue, 5-lane stage map with deal chips, Platform Activity feed with icon badges, IOI Intelligence panel with fill-bar allocation tracking
+
 ## [2026-05-01] — Admin portal: dark mode default, double-unit fix, pre-committed capital field
 
 - `admin-portal.html`: defaulted `data-theme` to `dark`; updated theme-btn icon to match; added `localStorage` persistence to `toggleTheme()`; added IIFE at top of `<script>` to restore saved theme on load
