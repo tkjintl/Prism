@@ -4,6 +4,19 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor Portal: Dashboard landing view
+
+### Changes
+- `advisor-portal.html`: Added a full "Dashboard" tab as the new default landing view for advisors. The advisor now lands on the Dashboard instead of My Deals.
+- New `#view-overview` div with `id="dash-root"` inserted before the My Deals view. `view-deal` no longer starts as `active`.
+- Nav tabs updated: Dashboard (first, default) · My Deals · Submit New Deal.
+- `showView('overview',...)` now calls `renderDashboard()`. `renderMockDeals()` and `load()` both call `renderDashboard()` after setting up deals. `load()` also calls `showView('overview',...)` when real deals are loaded.
+- New `renderDashboard()` JS function: computes cross-deal KPI aggregates (total raise, capital indicated, active investors, nearest close), builds an action queue scanning all deals for pending review/IOI/dataroom/Q&A items, renders stage pipeline, deal cards with animated fill bars, recent activity feed, and platform documents section.
+- Helper functions added: `goDashDeal(idx)`, `goDashAction(idx,tab)`, `filterDashByStage(stage)`.
+- New dashboard CSS block added before `</body>`: `.dash-hero`, `.dash-kpi-grid`, `.dash-kpi-card`, `.dash-action-list`, `.dash-action-card`, `.dash-pipeline`, `.dash-deal-grid`, `.dash-deal-card`, `.dash-activity-feed`, `.dash-pdoc-list` — all using existing CSS variable system with serif italics for titles, mono for numbers, gold accents.
+
+---
+
 ## [2026-05-01] — Hide terms universally from Equity deal listings (all portals)
 
 ### Changes
