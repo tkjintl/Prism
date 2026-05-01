@@ -388,20 +388,21 @@ a{color:inherit;text-decoration:none}
 .inv-dr-file-date{color:var(--text-3);font-family:var(--mono);font-size:10px}
 .inv-dr-view-btn{font-family:var(--mono);font-size:9px;padding:3px 9px;border:1px solid var(--border-m);background:none;color:var(--text-2);border-radius:2px;cursor:pointer;transition:all .15s}
 .inv-dr-view-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
-.inv-qa-item{padding:14px 0;border-bottom:1px solid var(--border)}
-.inv-qa-item:last-child{border-bottom:none}
-.inv-qa-from{font-family:var(--mono);font-size:10px;color:var(--gold);font-weight:600}
-.inv-qa-time{font-family:var(--mono);font-size:10px;color:var(--text-3)}
-.inv-qa-text{font-size:13px;color:var(--text);margin-top:5px;line-height:1.6}
-.inv-qa-answer{margin-top:10px;padding-left:14px;border-left:2px solid var(--border-m)}
-.inv-qa-answer-text{font-size:12px;color:var(--text-2);line-height:1.6}
-.inv-qa-answer-meta{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:3px}
-.inv-qa-pending{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-top:8px;padding:4px 8px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:2px;display:inline-block}
-.inv-qa-submit-wrap{margin-top:20px}
-.inv-qa-input{width:100%;background:var(--bg-3);border:1px solid var(--border-m);color:var(--text);font-size:13px;padding:10px 12px;border-radius:var(--r);resize:vertical;min-height:72px;font-family:var(--sans);box-sizing:border-box;margin-bottom:8px}
-.inv-qa-submit-btn{font-family:var(--mono);font-size:10px;padding:7px 16px;background:var(--gold);color:#0A0908;border:none;border-radius:2px;cursor:pointer;font-weight:600;letter-spacing:.06em;transition:opacity .15s}
-.inv-qa-submit-btn:hover{opacity:.88}
-.inv-qa-submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.inv-qa-chat{display:flex;flex-direction:column;gap:10px;padding:14px;max-height:420px;overflow-y:auto;scroll-behavior:smooth}
+.inv-qa-bubble{display:flex;flex-direction:column;max-width:85%}
+.inv-qa-bubble.investor{align-self:flex-end}
+.inv-qa-bubble.advisor{align-self:flex-start}
+.inv-qa-bubble-body{padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.55}
+.inv-qa-bubble.investor .inv-qa-bubble-body{background:var(--gold-bg);border:1px solid var(--gold-bd);color:var(--text)}
+.inv-qa-bubble.advisor .inv-qa-bubble-body{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+.inv-qa-bubble-meta{font-size:10px;color:var(--text-3);margin-top:4px;font-family:var(--mono);letter-spacing:.04em}
+.inv-qa-bubble.investor .inv-qa-bubble-meta{text-align:right}
+.inv-qa-pending{font-family:var(--mono);font-size:8px;padding:2px 7px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd);border-radius:10px;margin-top:4px;letter-spacing:.06em;display:inline-block}
+.inv-qa-compose{border-top:1px solid var(--border);padding:12px;background:var(--bg-2);display:flex;gap:8px;align-items:flex-end}
+.inv-qa-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:12px;padding:8px 10px;border-radius:6px;resize:none;height:56px;font-family:var(--sans);transition:border-color .15s}
+.inv-qa-input:focus{outline:none;border-color:var(--gold-bd)}
+.inv-qa-send-btn{font-family:var(--mono);font-size:9px;padding:8px 14px;background:var(--gold);color:#0A0908;border:none;border-radius:4px;cursor:pointer;font-weight:600;letter-spacing:.08em;height:36px;white-space:nowrap;align-self:flex-end}
+.inv-qa-send-btn:disabled{opacity:.4;cursor:not-allowed}
 .dd-deadline-banner{padding:10px 0;font-family:var(--mono);font-size:10px;letter-spacing:.08em;display:flex;align-items:center;gap:8px;margin-bottom:18px}
 .dd-deadline-banner.active{color:var(--amber)}
 .dd-deadline-banner.expired{color:var(--red)}
@@ -1507,43 +1508,52 @@ function renderInvestorDataroom() {
     });
   }
 
-  // Q&A thread
-  const qaArr = d.qa_thread || [];
-  let qaHtml = '';
-  if(qaArr.length === 0) {
-    qaHtml = `<div style="padding:20px 0;color:var(--text-3);font-size:13px">No questions submitted yet.</div>`;
+  // Q&A chat
+  const qaItems = d._investorQa || [];
+  let chatHtml = '';
+  if(qaItems.length === 0){
+    chatHtml = `<div style="padding:40px 20px;text-align:center;color:var(--text-3);font-size:13px;line-height:1.7">No messages yet. Your advisor will send an opening statement shortly.<br>You can submit questions below.</div>`;
   } else {
-    qaArr.forEach(q => {
-      const answerBlock = q.answer
-        ? `<div class="inv-qa-answer">
-             <div class="inv-qa-answer-text">${q.answer}</div>
-             <div class="inv-qa-answer-meta">${q.answeredBy||'Advisor'} &middot; ${q.answeredAt||''}</div>
-           </div>`
-        : `<div><span class="inv-qa-pending">Answer pending</span></div>`;
-      qaHtml += `<div class="inv-qa-item">
-        <div>
-          <span class="inv-qa-from">${q.askedBy}</span> &middot; <span class="inv-qa-time">${q.askedAt}</span>
-          <div class="inv-qa-text">${q.question}</div>
-        </div>
-        ${answerBlock}
-      </div>`;
+    qaItems.forEach(q => {
+      if(q.type === 'advisor_open'){
+        // Advisor broadcast — show on left (advisor side)
+        chatHtml += `<div class="inv-qa-bubble advisor">
+          <div class="inv-qa-bubble-body">${q.message}</div>
+          <div class="inv-qa-bubble-meta">${q.sentBy || 'Advisor'} &middot; ${q.sentAt || ''}</div>
+        </div>`;
+      } else {
+        // Investor question — show on right
+        chatHtml += `<div class="inv-qa-bubble investor">
+          <div class="inv-qa-bubble-body">${q.question}</div>
+          <div class="inv-qa-bubble-meta">You &middot; ${q.askedAt || ''}
+            ${!q.answer ? `<span class="inv-qa-pending">Awaiting reply</span>` : ''}
+          </div>
+        </div>`;
+        if(q.answer){
+          chatHtml += `<div class="inv-qa-bubble advisor">
+            <div class="inv-qa-bubble-body">${q.answer}</div>
+            <div class="inv-qa-bubble-meta">${q.answeredBy || 'Advisor'} &middot; ${q.answeredAt || ''}</div>
+          </div>`;
+        }
+      }
     });
   }
 
-  const qaInputBlock = ddClosed
-    ? `<div style="margin-top:16px;padding:12px 14px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r);font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--text-3)">DD period has closed — Q&amp;A submissions are no longer accepted.</div>`
-    : `<div class="inv-qa-submit-wrap">
-        <div class="chart-lbl" style="margin-bottom:10px">Submit a Question</div>
-        <textarea class="inv-qa-input" id="inv-qa-input" placeholder="Ask the advisor or deal team a question…"></textarea>
-        <button class="inv-qa-submit-btn" id="inv-qa-submit-btn" onclick="submitInvestorQuestion('${d.id}')">Submit Question</button>
+  const composeBlock = ddClosed
+    ? `<div style="padding:12px 14px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--text-3)">DD period has closed — Q&amp;A submissions are no longer accepted.</div>`
+    : `<div class="inv-qa-compose">
+        <textarea class="inv-qa-input" id="inv-qa-input" placeholder="Submit a question to your advisor…"></textarea>
+        <button class="inv-qa-send-btn" id="inv-qa-send-btn" onclick="submitInvestorQuestion('${d.id}')">SEND</button>
       </div>`;
 
   panel.innerHTML = `${bannerHtml}
     <div class="chart-lbl" style="margin-bottom:12px">Virtual Data Room</div>
     <div class="inv-dr-section">${filesHtml}</div>
-    <div class="chart-lbl" style="margin-bottom:12px">Investor Q&amp;A</div>
-    <div>${qaHtml}</div>
-    ${qaInputBlock}`;
+    <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:20px">
+      <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)">Investor Q&amp;A</div>
+      <div class="inv-qa-chat" id="inv-qa-chat">${chatHtml}</div>
+      ${composeBlock}
+    </div>`;
 
   // Load real VDR files and QA thread from API (requires approved IOI)
   loadVdrFilesInvestor(d.id);
@@ -1566,7 +1576,8 @@ async function loadQaThread(dealId) {
   if(!res || !res.qa) return;
   const d = DEALS.find(x => x.id === dealId);
   if(!d) return;
-  d.qa_thread = res.qa;
+  // Map API items directly — supports both investor_q and advisor_open types
+  d._investorQa = res.qa.map(item => ({...item}));
   // Re-render only the QA portion if panel is visible
   const panel = document.getElementById('inv-tab-dataroom');
   if(panel && panel.style.display !== 'none') renderInvestorDataroom();
@@ -1574,30 +1585,34 @@ async function loadQaThread(dealId) {
 
 async function submitInvestorQuestion(dealId) {
   const inp = document.getElementById('inv-qa-input');
-  const btn = document.getElementById('inv-qa-submit-btn');
+  const btn = document.getElementById('inv-qa-send-btn');
   if(!inp) return;
-  const q = inp.value.trim();
-  if(!q) { toast('Please enter a question','err'); return; }
-  if(btn){btn.disabled=true;btn.textContent='Submitting…';}
+  const text = inp.value.trim();
+  if(!text) { toast('Please enter a question','err'); return; }
+  if(btn){btn.disabled=true;btn.textContent='...';}
 
-  const res = await api('POST','/api/v2?resource=inst&op=submit-qa',{dealId, question:q});
+  await api('POST','/api/v2?resource=inst&op=submit-qa',{dealId, question:text});
 
-  // Update local data regardless of API result
+  // Append locally as a right-side bubble immediately
   const d = DEALS.find(x => x.id === dealId);
   if(d) {
-    if(!d.qa_thread) d.qa_thread = [];
-    d.qa_thread.unshift({
-      id: 'qa'+Date.now(),
-      question: q,
-      askedBy: document.getElementById('nav-user-name')?.textContent || 'You',
+    if(!d._investorQa) d._investorQa = [];
+    d._investorQa.push({
+      id: 'q'+Date.now(),
+      type: 'investor_q',
+      question: text,
+      askedBy: 'You',
       askedAt: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
       answer: null,
-      answeredAt: null,
     });
   }
-  if(btn){btn.disabled=false;btn.textContent='Submit Question';}
+  inp.value = '';
+  if(btn){btn.disabled=false;btn.textContent='SEND';}
   toast('Question submitted','ok');
   renderInvestorDataroom();
+  // Scroll chat to bottom so the new bubble is visible
+  const chat = document.getElementById('inv-qa-chat');
+  if(chat) chat.scrollTop = chat.scrollHeight;
 }
 
 async function viewVdrFileInvestor(dealId, fileId, fileName) {
