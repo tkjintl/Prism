@@ -4,6 +4,13 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: dark mode default, double-unit fix, pre-committed capital field
+
+- `admin-portal.html`: defaulted `data-theme` to `dark`; updated theme-btn icon to match; added `localStorage` persistence to `toggleTheme()`; added IIFE at top of `<script>` to restore saved theme on load
+- `admin-portal.html`: fixed `renderLRPreview()` double-unit bug — `_cleanNum()` strips non-numeric chars before parsing IRR/hurdle/term fallback strings from deal data
+- `admin-portal.html`: `renderLRPreview()` now reads `lr-pre-committed` input and factors it into `ioi_agg`; IOI bar copy changed from "subscribed" to "indicated"; shows remaining open allocation in gold
+- `admin-portal.html`: added Pre-Committed Capital input field in Review & Launch right column (below Min Ticket); wired into `openLaunchReview()`, `updateLaunchPreview()` summary label, and `confirmPublish()` payload as `pre_committed`
+
 ## [2026-05-01] — Admin Review & Launch: full-fidelity investor preview with return chart
 
 ### `admin-portal.html`

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -613,7 +613,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
   <div class="nav-r">
     <div class="role-badge">Admin</div>
-    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☾</button>
     <button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
@@ -974,6 +974,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
             <input class="lr-ticket-input" type="number" id="lr-min-ticket" min="0" step="50000" placeholder="500000">
           </div>
         </div>
+        <!-- Pre-Committed Capital -->
+        <div class="lr-section">
+          <div class="lr-section-title">Pre-Committed Capital</div>
+          <div style="font-size:11px;color:var(--text-3);font-family:var(--sans);margin-bottom:8px;line-height:1.5">Capital already raised before this listing goes live. Shown as pre-filled on the investor subscription bar.</div>
+          <div class="lr-ticket-wrap">
+            <span class="lr-ticket-prefix">$</span>
+            <input class="lr-ticket-input" type="text" inputmode="numeric" id="lr-pre-committed" placeholder="0" oninput="fmtAmtInput(this);updateLaunchPreview()">
+          </div>
+          <div id="lr-pre-committed-summary" style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-3)"></div>
+        </div>
         <!-- Checklist -->
         <div class="lr-section">
           <div class="lr-section-title">Readiness Checklist</div>
@@ -992,6 +1002,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <div class="demo-badge">Admin Demo</div>
 
 <script>
+(function(){const t=localStorage.getItem('prism_admin_theme');if(t)document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☀':'☾';})();
 /* ── LAUNCH REVIEW state ── */
 let _launchDeal=null,_launchContent=null;
 let _launchMode='featured';
@@ -1091,7 +1102,9 @@ function toast(msg,k=''){
 
 function toggleTheme(){
   const h=document.documentElement,dark=h.dataset.theme==='dark';
-  h.dataset.theme=dark?'light':'dark';
+  const next=dark?'light':'dark';
+  h.dataset.theme=next;
+  localStorage.setItem('prism_admin_theme',next);
   document.getElementById('theme-btn').textContent=dark?'☀':'☾';
 }
 async function logout(){
@@ -2389,6 +2402,12 @@ function openLaunchReview(deal,content){
   const tickEl=document.getElementById('lr-min-ticket');
   if(tickEl)tickEl.value=deal.min_ticket||500000;
 
+  const preCommittedEl=document.getElementById('lr-pre-committed');
+  if(preCommittedEl){
+    const existing=deal.pre_committed||deal.ioi_agg||0;
+    preCommittedEl.value=existing?existing.toLocaleString('en-US'):'';
+  }
+
   // Preview
   updateLaunchPreview();
 
@@ -2483,6 +2502,21 @@ function updateLaunchPreview(){
   if(subFill)subFill.style.width=pct+'%';
   if(subLbl)subLbl.textContent=pct+'% subscribed · '+fmU(deal.ioi_agg||0)+' indicated';
 
+  // Pre-committed capital summary
+  const pcEl=document.getElementById('lr-pre-committed');
+  const pcSummary=document.getElementById('lr-pre-committed-summary');
+  if(pcEl&&pcSummary&&deal){
+    const pc=readAmt(pcEl);
+    const totalAlloc=deal.target_alloc||deal.target_alloc_usd||0;
+    if(pc>0&&totalAlloc>0){
+      const rem=totalAlloc-pc;
+      const pcPct=Math.min(Math.round(pc/totalAlloc*100),100);
+      pcSummary.textContent=`${fmU(pc)} pre-committed (${pcPct}%) · ${fmU(Math.max(rem,0))} open for portal`;
+    } else {
+      pcSummary.textContent='';
+    }
+  }
+
   // Update return profile mini-chart
   const rpIrr=parseFloat(document.getElementById('lr-rp-irr')?.value)||0;
   const rpHurdle=parseFloat(document.getElementById('lr-rp-hurdle')?.value)||0;
@@ -2559,13 +2593,16 @@ function renderLRPreview(){
     const txt=el.value||'';
     return{icon:'◆',s:txt.split(' — ')[0]?.slice(0,50)||txt.slice(0,50),b:txt.split(' — ')[1]||txt};
   });
-  const irr=parseFloat(document.getElementById('lr-rp-irr')?.value)||deal.target_irr||12;
-  const hurdle=parseFloat(document.getElementById('lr-rp-hurdle')?.value)||deal.hurdle||deal.hurdle_rate||8;
-  const termMo=parseInt(document.getElementById('lr-rp-term')?.value)||deal.term_months||deal.term||36;
+  const _cleanNum=(v,fb)=>parseFloat(String(v||'').replace(/[^0-9.]/g,''))||parseFloat(String(fb||'').replace(/[^0-9.]/g,''))||0;
+  const irr=_cleanNum(document.getElementById('lr-rp-irr')?.value,deal.target_irr)||12;
+  const hurdle=_cleanNum(document.getElementById('lr-rp-hurdle')?.value,deal.hurdle||deal.hurdle_rate)||8;
+  const termMo=_cleanNum(document.getElementById('lr-rp-term')?.value,deal.term_months||deal.term)||36;
   const termYrs=Math.max(1,Math.ceil(termMo/12));
   const alloc=deal.target_alloc||deal.target_alloc_usd||0;
-  const ioi_agg=deal.ioi_agg||0;
+  const preCommitted=_cleanNum(document.getElementById('lr-pre-committed')?.value,0);
+  const ioi_agg=Math.max(preCommitted,deal.ioi_agg||0);
   const pct=alloc>0?Math.round(ioi_agg/alloc*100):0;
+  const remaining=alloc>0?alloc-ioi_agg:alloc;
   const minTicket=deal.min_ticket||deal.min_ticket_usd||deal.platform_min_ticket_usd||0;
   const ac=deal.asset_class||'credit';
   const ticker=((deal.name||'???').replace(/[^A-Za-z]/g,'').slice(0,3)).toUpperCase();
@@ -2723,7 +2760,8 @@ function renderLRPreview(){
     <div style="padding:18px">
       <div style="font-size:12px;color:var(--text-3);font-family:var(--sans);text-align:center;padding:16px;background:var(--bg-3);border-radius:var(--r)">
         NDA required → Indication amount ($100K–$5M) → Acknowledgements → Submit<br>
-        <span style="font-family:var(--mono);font-size:10px;margin-top:6px;display:block">${pct}% subscribed · ${fmU(ioi_agg)} of ${fmU(alloc)}</span>
+        <span style="font-family:var(--mono);font-size:10px;margin-top:6px;display:block">${pct}% indicated · ${fmU(ioi_agg)} raised${preCommitted>0?' (incl. pre-committed)':''}</span>
+        ${remaining>0?`<span style="font-family:var(--mono);font-size:10px;display:block;color:var(--gold)">${fmU(remaining)} open for investor portal</span>`:''}
       </div>
       <div style="margin-top:10px;width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden"><div style="width:${Math.min(pct,100)}%;height:100%;background:var(--gold)"></div></div>
     </div>
@@ -2786,6 +2824,7 @@ async function confirmPublish(){
   const open_date=document.getElementById('lr-open-date')?.value||'';
   const close_date=document.getElementById('lr-close-date')?.value||'';
   const min_ticket=parseFloat(document.getElementById('lr-min-ticket')?.value)||0;
+  const pre_committed=readAmt(document.getElementById('lr-pre-committed'));
 
   const allSeg=document.getElementById('lr-seg-all')?.checked;
   let target_segments=[];
@@ -2804,6 +2843,7 @@ async function confirmPublish(){
     open_date,close_date,
     target_segments,
     min_ticket,
+    pre_committed,
   };
 
   // Disable button during request
