@@ -222,6 +222,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 /* DEAL SUBMISSIONS */
 .deal-submissions{display:flex;flex-direction:column;gap:10px;margin-bottom:36px}
 .ds-card{border:1px solid var(--blue-bd);border-radius:var(--r);background:var(--surface);overflow:hidden;animation:fadeUp .4s var(--ease) both}
+.ds-card-collapsed .ds-card-header{border-bottom:none}
+.ds-card-collapsed .ds-card-header:hover{background:var(--bg-3)}
+.ds-chevron{font-size:16px;color:var(--text-3);transition:transform .2s var(--ease);font-family:var(--mono);flex-shrink:0;user-select:none}
 .ds-card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--blue-bg)}
 .ds-deal-name{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--text)}
 .ds-deal-meta{font-size:11px;color:var(--text-3);margin-top:2px}
@@ -1730,16 +1733,6 @@ function renderOverview(){
 
   document.getElementById('overview-main').innerHTML=`
     ${headerBar}
-    <div class="ov-signup-grid">
-      <div class="ov-panel">
-        <div class="ov-panel-hd"><span>Advisor Access</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length} advisors</span></div>
-        <div class="ov-panel-body" style="max-height:220px">${advisorRows}</div>
-      </div>
-      <div class="ov-panel">
-        <div class="ov-panel-hd"><span>Investor Access</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length} investors</span></div>
-        <div class="ov-panel-body" style="max-height:220px">${investorRows}</div>
-      </div>
-    </div>
     <div class="ov-queue-grid">
       ${queueCol('ov-dot-amber','New Deals',submissionCards)}
       ${queueCol('ov-dot-gold','Inbound IOI from Investors',ioiDecisionCards)}
@@ -1751,6 +1744,16 @@ function renderOverview(){
         <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2])">View Full Pipeline →</button>
       </div>
       <div class="ov-stage-lanes">${stageLanes.join('')}</div>
+    </div>
+    <div class="ov-signup-grid">
+      <div class="ov-panel">
+        <div class="ov-panel-hd"><span>Advisor Access</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length} advisors</span></div>
+        <div class="ov-panel-body" style="max-height:220px">${advisorRows}</div>
+      </div>
+      <div class="ov-panel">
+        <div class="ov-panel-hd"><span>Investor Access</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length} investors</span></div>
+        <div class="ov-panel-body" style="max-height:220px">${investorRows}</div>
+      </div>
     </div>
     <div class="ov-bottom-grid">
       <div class="ov-panel">
@@ -2234,73 +2237,90 @@ const _pm=document.getElementById('push-modal');if(_pm)_pm.addEventListener('cli
 const _ppm=document.getElementById('push-preview-modal');if(_ppm)_ppm.addEventListener('click',function(e){if(e.target===this)closePushPreviewModal();});
 
 /* ── PIPELINE ── */
+function toggleSubmission(id){
+  const body=document.getElementById('dsc-body-'+id);
+  const chev=document.getElementById('dsc-chev-'+id);
+  const card=document.getElementById('dsc-'+id);
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  chev.style.transform=open?'rotate(90deg)':'rotate(0)';
+  card.style.borderColor=open?'var(--border-m)':'var(--border)';
+}
+
 function renderPipeline(){
   if(NEW_SUBMISSIONS.length>0){
     document.getElementById('deal-submissions-wrap').innerHTML=`
       <div class="section-hd"><div class="section-hd-title">Pending Submissions</div><span class="section-hd-count">${NEW_SUBMISSIONS.length} New</span></div>
       <div class="deal-submissions">${NEW_SUBMISSIONS.map(s=>`
-        <div class="ds-card">
-          <div class="ds-card-header">
-            <div>
-              <div class="ds-deal-name">${s.name}</div>
-              <div class="ds-deal-meta">${s.geography||'—'} · ${s.structure||'—'}</div>
-            </div>
-            <span class="iqi-badge badge-pending">Under Review</span>
-          </div>
-          ${(s.company_overview||s.mk_notes)?`<div class="ds-overview">${s.company_overview||s.mk_notes}</div>`:''}
-          <div class="ds-card-body">
-            <div><div class="ds-stat-lbl">Target IRR</div><div class="ds-stat-val">${s.target_irr}%</div></div>
-            <div><div class="ds-stat-lbl">Capacity</div><div class="ds-stat-val">${fmU(s.target_alloc)}</div></div>
-            <div><div class="ds-stat-lbl">Min Ticket</div><div class="ds-stat-val">${fmU(s.min_ticket)}</div></div>
-          </div>
-          <div class="ds-admin-params" id="ds-params-${s.id}">
-            <div class="ds-param-label">PLATFORM PARAMETERS <span style="opacity:.5;font-weight:400">(admin controls)</span></div>
-            <div class="ds-param-row">
-              <div class="ds-param-field">
-                <label class="ds-param-lbl">Platform Allocation <span style="color:var(--text-3)">— how much to market to investors</span></label>
-                <div class="ds-param-input-wrap">
-                  <span class="ds-param-prefix">$</span>
-                  <input class="ds-param-input" id="pa-alloc-${s.id}" type="text" inputmode="numeric"
-                    placeholder="${(s.target_alloc||s.target_alloc_usd||0).toLocaleString()}"
-                    value="${s.platform_alloc_usd ? s.platform_alloc_usd.toLocaleString() : ''}"
-                    oninput="fmtAmtInput(this)"
-                    title="Advisor stated capacity: ${fmU(s.target_alloc||s.target_alloc_usd)}">
-                  <span class="ds-param-hint">Advisor capacity: ${fmU(s.target_alloc||s.target_alloc_usd)}</span>
-                </div>
-              </div>
-              <div class="ds-param-field">
-                <label class="ds-param-lbl">Platform Min Ticket <span style="color:var(--text-3)">— our platform minimum</span></label>
-                <div class="ds-param-input-wrap">
-                  <span class="ds-param-prefix">$</span>
-                  <input class="ds-param-input" id="pa-ticket-${s.id}" type="text" inputmode="numeric"
-                    placeholder="${(s.min_ticket||s.min_ticket_usd||0).toLocaleString()}"
-                    value="${s.platform_min_ticket_usd ? s.platform_min_ticket_usd.toLocaleString() : ''}"
-                    oninput="fmtAmtInput(this)"
-                    title="Advisor requested: ${fmU(s.min_ticket||s.min_ticket_usd)}">
-                  <span class="ds-param-hint">Advisor ask: ${fmU(s.min_ticket||s.min_ticket_usd)}</span>
-                </div>
+        <div class="ds-card ds-card-collapsed" id="dsc-${s.id}">
+          <div class="ds-card-header" style="cursor:pointer" onclick="toggleSubmission('${s.id}')">
+            <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+              <div class="ds-chevron" id="dsc-chev-${s.id}">›</div>
+              <div style="min-width:0">
+                <div class="ds-deal-name">${s.name}</div>
+                <div class="ds-deal-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''} · ${s.target_irr}% IRR · ${fmU(s.target_alloc)}</div>
               </div>
             </div>
-            <div class="ds-param-save-row">
-              <button class="ds-param-save-btn" onclick="savePlatformParams('${s.id}')">Save Parameters</button>
-              <span class="ds-param-saved" id="pa-saved-${s.id}" style="display:none">✓ Saved</span>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              <span class="iqi-badge badge-pending">Under Review</span>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--text-3)">${s.submitted||'Recent'}</span>
             </div>
           </div>
-          <!-- Doc status row -->
-          <div style="padding:8px 18px;display:flex;align-items:center;gap:6px;border-top:1px solid var(--border);flex-wrap:wrap">
-            <span style="font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-right:4px">Docs</span>
-            ${['nda','mgmt','fin','term'].map(slot => {
-              const doc = (s.docs||[]).find(d=>d.slot===slot);
-              const labels = {nda:'NDA',mgmt:'Deck',fin:'Financials',term:'Term Sheet'};
-              return doc
-                ? `<button onclick="viewDoc('${s.id}','${slot}')" title="View ${labels[slot]}" style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72;border-radius:2px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(90,158,114,.18)'" onmouseout="this.style.background='rgba(90,158,114,.07)'">↗ ${labels[slot]}</button>`
-                : `<span style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid var(--border);color:var(--text-3);border-radius:2px">${labels[slot]}</span>`;
-            }).join('')}
-          </div>
-          <div class="ds-card-footer">
-            <div class="ds-advisor">From ${s.advisor} · ${s.advisor_firm} · Submitted ${s.submitted}</div>
-            <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
-            <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}')">✦ Generate with AI →</button>
+          <div class="ds-card-expandable" id="dsc-body-${s.id}" style="display:none">
+            ${(s.company_overview||s.mk_notes)?`<div class="ds-overview">${s.company_overview||s.mk_notes}</div>`:''}
+            <div class="ds-card-body">
+              <div><div class="ds-stat-lbl">Target IRR</div><div class="ds-stat-val">${s.target_irr}%</div></div>
+              <div><div class="ds-stat-lbl">Capacity</div><div class="ds-stat-val">${fmU(s.target_alloc)}</div></div>
+              <div><div class="ds-stat-lbl">Min Ticket</div><div class="ds-stat-val">${fmU(s.min_ticket)}</div></div>
+            </div>
+            <div class="ds-admin-params" id="ds-params-${s.id}">
+              <div class="ds-param-label">PLATFORM PARAMETERS <span style="opacity:.5;font-weight:400">(admin controls)</span></div>
+              <div class="ds-param-row">
+                <div class="ds-param-field">
+                  <label class="ds-param-lbl">Platform Allocation <span style="color:var(--text-3)">— how much to market to investors</span></label>
+                  <div class="ds-param-input-wrap">
+                    <span class="ds-param-prefix">$</span>
+                    <input class="ds-param-input" id="pa-alloc-${s.id}" type="text" inputmode="numeric"
+                      placeholder="${(s.target_alloc||s.target_alloc_usd||0).toLocaleString()}"
+                      value="${s.platform_alloc_usd ? s.platform_alloc_usd.toLocaleString() : ''}"
+                      oninput="fmtAmtInput(this)"
+                      title="Advisor stated capacity: ${fmU(s.target_alloc||s.target_alloc_usd)}">
+                    <span class="ds-param-hint">Advisor capacity: ${fmU(s.target_alloc||s.target_alloc_usd)}</span>
+                  </div>
+                </div>
+                <div class="ds-param-field">
+                  <label class="ds-param-lbl">Platform Min Ticket <span style="color:var(--text-3)">— our platform minimum</span></label>
+                  <div class="ds-param-input-wrap">
+                    <span class="ds-param-prefix">$</span>
+                    <input class="ds-param-input" id="pa-ticket-${s.id}" type="text" inputmode="numeric"
+                      placeholder="${(s.min_ticket||s.min_ticket_usd||0).toLocaleString()}"
+                      value="${s.platform_min_ticket_usd ? s.platform_min_ticket_usd.toLocaleString() : ''}"
+                      oninput="fmtAmtInput(this)"
+                      title="Advisor requested: ${fmU(s.min_ticket||s.min_ticket_usd)}">
+                    <span class="ds-param-hint">Advisor ask: ${fmU(s.min_ticket||s.min_ticket_usd)}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-param-save-row">
+                <button class="ds-param-save-btn" onclick="savePlatformParams('${s.id}')">Save Parameters</button>
+                <span class="ds-param-saved" id="pa-saved-${s.id}" style="display:none">✓ Saved</span>
+              </div>
+            </div>
+            <div style="padding:8px 18px;display:flex;align-items:center;gap:6px;border-top:1px solid var(--border);flex-wrap:wrap">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-right:4px">Docs</span>
+              ${['nda','mgmt','fin','term'].map(slot => {
+                const doc = (s.docs||[]).find(d=>d.slot===slot);
+                const labels = {nda:'NDA',mgmt:'Deck',fin:'Financials',term:'Term Sheet'};
+                return doc
+                  ? `<button onclick="viewDoc('${s.id}','${slot}')" title="View ${labels[slot]}" style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72;border-radius:2px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(90,158,114,.18)'" onmouseout="this.style.background='rgba(90,158,114,.07)'">↗ ${labels[slot]}</button>`
+                  : `<span style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid var(--border);color:var(--text-3);border-radius:2px">${labels[slot]}</span>`;
+              }).join('')}
+            </div>
+            <div class="ds-card-footer">
+              <div class="ds-advisor">From ${s.advisor} · ${s.advisor_firm} · Submitted ${s.submitted}</div>
+              <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
+              <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}')">✦ Generate with AI →</button>
+            </div>
           </div>
         </div>`).join('')}
       </div>`;
