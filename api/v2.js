@@ -603,6 +603,138 @@ Return ONLY valid JSON in this exact structure:
       return ok(res, { ok: true, deal });
     }
 
+    // ── deal-detail ───────────────────────────────────────────────
+    if (op === 'deal-detail') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      // Fetch all IOIs for this deal
+      const ioiKeys = await kvKeys('ioi:IOI-*');
+      const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const dealIois = allIois.filter(i => i.deal_id === dealId);
+
+      const ioiTotal = dealIois.length;
+      const ioiApproved = dealIois.filter(i => i.status === 'approved');
+      const ioiPending = dealIois.filter(i => i.status === 'pending');
+      const ioiDeclined = dealIois.filter(i => i.status === 'rejected');
+      const approvedTotal = ioiApproved.reduce((s, i) => s + (i.amount || 0), 0);
+      const targetAlloc = deal.target_alloc_usd || 0;
+      const pctSubscribed = targetAlloc > 0 ? Math.round(approvedTotal / targetAlloc * 100) : 0;
+
+      const ioi_summary = {
+        total: ioiTotal,
+        approved: ioiApproved.length,
+        pending: ioiPending.length,
+        declined: ioiDeclined.length,
+        approved_total: approvedTotal,
+        pct_subscribed: pctSubscribed,
+      };
+
+      // Fetch advisor info
+      let advisor_name = null, advisor_firm = null, advisor_email = null;
+      if (deal.advisor_id && deal.advisor_id.startsWith('adv-')) {
+        const adv = await kvGet(`advisor:${deal.advisor_id}`);
+        if (adv) {
+          advisor_name = adv.name || null;
+          advisor_firm = adv.firm_name || null;
+          advisor_email = adv.email || null;
+        }
+      }
+
+      // Fetch docs from deal_doc slots (metadata only — no binary data)
+      const docSlots = ['nda', 'mgmt', 'fin', 'term'];
+      const docs = [];
+      await Promise.all(docSlots.map(async slot => {
+        const doc = await kvGet(`deal_doc:${dealId}:${slot}`);
+        if (doc) docs.push({ slot, name: doc.name, type: doc.type });
+      }));
+
+      // Prism economics — read from deal, fall back to defaults
+      const fee_pct = deal.prism_fee_pct ?? 1.5;
+      const carry_pct = deal.prism_carry_pct ?? 10;
+      const mgmt_fee_pct = deal.prism_mgmt_fee_pct ?? 0.5;
+      const projected_fee_revenue = Math.round(targetAlloc * fee_pct / 100);
+      const projected_mgmt_revenue = Math.round(targetAlloc * mgmt_fee_pct / 100);
+      const projected_carry = 0; // complex; show 0 until realized
+      const total_projected_revenue = projected_fee_revenue + projected_mgmt_revenue + projected_carry;
+
+      const prism_economics = {
+        fee_pct,
+        carry_pct,
+        mgmt_fee_pct,
+        projected_fee_revenue,
+        projected_carry,
+        projected_mgmt_revenue,
+        total_projected_revenue,
+      };
+
+      // Recent audit — last 10 entries, newest first
+      const recent_audit = (deal.audit_log || []).slice(-10).reverse();
+
+      const enriched = {
+        ...deal,
+        ioi_summary,
+        docs: docs.length ? docs : (deal.docs || []),
+        advisor_name,
+        advisor_firm,
+        advisor_email,
+        prism_economics,
+        recent_audit,
+      };
+
+      return ok(res, { deal: enriched });
+    }
+
+    // ── update-prism-economics ─────────────────────────────────────
+    if (op === 'update-prism-economics') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const { dealId, fee_pct, carry_pct, mgmt_fee_pct } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+
+      const parsedFee = parseFloat(fee_pct);
+      const parsedCarry = parseFloat(carry_pct);
+      const parsedMgmt = parseFloat(mgmt_fee_pct);
+      if (isNaN(parsedFee) || isNaN(parsedCarry) || isNaN(parsedMgmt)) {
+        return bad(res, 'fee_pct, carry_pct, and mgmt_fee_pct must be numbers');
+      }
+
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const now = new Date().toISOString();
+      const prev = {
+        prism_fee_pct: deal.prism_fee_pct ?? 1.5,
+        prism_carry_pct: deal.prism_carry_pct ?? 10,
+        prism_mgmt_fee_pct: deal.prism_mgmt_fee_pct ?? 0.5,
+      };
+
+      deal.prism_fee_pct = parsedFee;
+      deal.prism_carry_pct = parsedCarry;
+      deal.prism_mgmt_fee_pct = parsedMgmt;
+      deal.updated_at = now;
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({
+        at: now,
+        actor: admin.email,
+        action: 'prism_economics_updated',
+        meta: {
+          from: prev,
+          to: { prism_fee_pct: parsedFee, prism_carry_pct: parsedCarry, prism_mgmt_fee_pct: parsedMgmt },
+        },
+      });
+
+      await saveDeal(deal);
+      return ok(res, { ok: true, deal });
+    }
+
     // ── push-package ──────────────────────────────────────────────
     if (op === 'push-package') {
       const admin = await getAdmin();

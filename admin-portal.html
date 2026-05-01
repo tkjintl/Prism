@@ -304,6 +304,81 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .demo-badge{position:fixed;bottom:16px;right:16px;z-index:300;padding:6px 12px;background:var(--bg-3);border:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);border-radius:20px}
 @media(max-width:640px){.dp-row{grid-template-columns:1fr auto}.dp-bar-wrap,.dp-advisor{display:none}}
 
+/* ── DEAL DETAIL PANEL ── */
+#deal-detail-panel{position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);display:none}
+#deal-detail-panel.ddp-open{transform:translateX(0)}
+.ddp-inner{max-width:1200px;margin:0 auto;padding:calc(var(--nav-h) + 24px) 28px 80px}
+.ddp-back{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:0;margin-bottom:28px;display:flex;align-items:center;gap:8px;transition:color .15s}
+.ddp-back:hover{color:var(--text)}
+.ddp-grid{display:grid;grid-template-columns:1fr 340px;gap:32px;align-items:start}
+@media(max-width:900px){.ddp-grid{grid-template-columns:1fr}}
+.ddp-section{margin-bottom:28px}
+.ddp-section-title{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.ddp-deal-name{font-family:var(--serif);font-style:italic;font-size:clamp(24px,3vw,36px);color:var(--text);line-height:1.1;margin-bottom:12px}
+.ddp-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.ddp-tag{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border:1px solid var(--border-m);border-radius:20px;color:var(--text-3)}
+.ddp-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:600px){.ddp-metrics{grid-template-columns:repeat(2,1fr)}}
+.ddp-metric{background:var(--surface);border:1px solid var(--border);padding:12px 14px;border-radius:var(--r)}
+.ddp-metric-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px}
+.ddp-metric-val{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text)}
+.ddp-alloc-bar{height:5px;background:var(--border);border-radius:2px;margin:8px 0}
+.ddp-alloc-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .6s}
+.ddp-alloc-label{font-family:var(--mono);font-size:10px;color:var(--text-3)}
+.ddp-desc{font-size:13px;color:var(--text-2);line-height:1.75;background:var(--surface);border:1px solid var(--border);padding:16px;border-radius:var(--r)}
+/* IOI table */
+.ddp-ioi-table{width:100%;border-collapse:collapse}
+.ddp-ioi-table th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.ddp-ioi-table td{font-size:12px;padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.ddp-ioi-table tr:last-child td{border-bottom:none}
+/* Docs */
+.ddp-doc-list{display:flex;flex-direction:column;gap:8px}
+.ddp-doc-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
+.ddp-doc-name{font-size:12px;color:var(--text)}
+.ddp-doc-view{font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:4px 10px;border:1px solid var(--gold-bd);color:var(--gold);background:var(--gold-bg);border-radius:2px;cursor:pointer;transition:all .15s}
+.ddp-doc-view:hover{background:var(--gold);color:var(--bg)}
+/* Audit log */
+.ddp-audit-entry{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ddp-audit-entry:last-child{border-bottom:none}
+.ddp-audit-dot{width:6px;height:6px;border-radius:50%;background:var(--gold-bd);flex-shrink:0;margin-top:5px}
+.ddp-audit-action{color:var(--text-2);font-size:12px;flex:1;line-height:1.5}
+.ddp-audit-time{font-family:var(--mono);font-size:9px;color:var(--text-3);white-space:nowrap}
+/* Prism economics card */
+.ddp-econ-card{background:var(--surface);border:1px solid var(--gold-bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.ddp-econ-title{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.ddp-econ-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.ddp-econ-row:last-of-type{border-bottom:none}
+.ddp-econ-lbl{font-family:var(--mono);font-size:10px;color:var(--text-2)}
+.ddp-econ-val{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text)}
+.ddp-econ-total{display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:4px;border-top:1px solid var(--gold-bd)}
+.ddp-econ-total-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.ddp-econ-total-val{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--gold)}
+.ddp-econ-edit-row{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.ddp-econ-field{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ddp-econ-field label{font-family:var(--mono);font-size:9px;color:var(--text-3);white-space:nowrap}
+.ddp-econ-field input{width:72px;padding:5px 8px;font-family:var(--mono);font-size:12px;text-align:right;border:1px solid var(--border-m);border-radius:2px;background:var(--bg-3);color:var(--text)}
+.ddp-econ-save{width:100%;margin-top:4px;padding:9px;background:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--bg);border:none;border-radius:2px;cursor:pointer;transition:background .15s}
+.ddp-econ-save:hover{background:var(--gold-b)}
+/* Controls card */
+.ddp-ctrl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.ddp-ctrl-title{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px}
+.ddp-ctrl-stage{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.ddp-ctrl-btns{display:flex;flex-direction:column;gap:7px}
+.ddp-ctrl-btn{padding:8px 12px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--border-m);color:var(--text-2);background:transparent;transition:all .15s;cursor:pointer;font-family:inherit;text-align:left}
+.ddp-ctrl-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
+.ddp-ctrl-btn.advance{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.ddp-ctrl-btn.advance:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.ddp-ctrl-btn.push{color:var(--violet);border-color:var(--violet-bd);background:var(--violet-bg)}
+.ddp-ctrl-btn.push:hover{background:var(--violet);color:#fff;border-color:var(--violet)}
+/* Advisor card */
+.ddp-advisor-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.ddp-adv-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.ddp-adv-firm{font-size:12px;color:var(--text-2);margin-bottom:8px}
+.ddp-adv-email{font-family:var(--mono);font-size:10px;color:var(--gold)}
+/* Row hover — clickable */
+.dp-row:not(.header){cursor:pointer}
+.dp-row:not(.header):hover{background:rgba(197,165,114,.04)}
+
 /* ── MOBILE FIXES ── */
 @media(max-width:600px){
   /* Prevent iOS input zoom */
@@ -458,6 +533,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DEAL DETAIL PANEL ══ -->
+<div id="deal-detail-panel">
+  <div class="ddp-inner">
+    <button class="ddp-back" onclick="closeDealDetail()">← Back to Pipeline</button>
+    <div id="deal-detail-content">
+      <div style="padding:40px;color:var(--text-3);font-family:var(--mono);font-size:11px">Loading…</div>
     </div>
   </div>
 </div>
@@ -1001,7 +1086,7 @@ function renderPipeline(){
       const days=Math.round((new Date(d.closing)-new Date())/86400000);
       const ci=STAGE_ORDER.indexOf(d.stage);
       const nextStage=STAGE_ORDER[ci+1];
-      return`<div class="dp-row" style="animation-delay:${i*50}ms">
+      return`<div class="dp-row" style="animation-delay:${i*50}ms" onclick="openDealDetail('${d.id}')">
         <div>
           <div class="dp-name">${d.name}</div>
           <div class="dp-sub">${d.geography} · ${d.target_irr}% IRR</div>
@@ -1014,8 +1099,8 @@ function renderPipeline(){
         </div>
         <span class="dp-stage-chip ${STAGE_CHIP[d.stage]||'sc-review'}">${STAGE_LABELS[d.stage]||d.stage}</span>
         <div style="font-family:var(--mono);font-size:11px;color:${days>90?'var(--green)':days>45?'var(--amber)':'var(--red)'}">${days}d</div>
-        <div class="dp-actions">
-          <button class="dp-btn" onclick="toast('Opening deal detail…')">View</button>
+        <div class="dp-actions" onclick="event.stopPropagation()">
+          <button class="dp-btn" onclick="openDealDetail('${d.id}')">View</button>
           ${nextStage?`<button class="dp-btn advance" onclick="openModal('${d.id}','${nextStage}')">→ ${STAGE_LABELS[nextStage]}</button>`:''}
         </div>
       </div>`;
@@ -1213,6 +1298,290 @@ function showAIOutput(deal,generated){
       <button class="ai-apply-btn" onclick="toast('Content applied to deal on investor portal','ok')">Apply to Investor Portal →</button>
     </div>
   </div>`;
+}
+
+/* ── DEAL DETAIL PANEL ── */
+async function openDealDetail(dealId){
+  const panel=document.getElementById('deal-detail-panel');
+  const content=document.getElementById('deal-detail-content');
+  panel.style.display='block';
+  content.innerHTML='<div style="padding:40px;color:var(--text-3);font-family:var(--mono);font-size:11px;letter-spacing:.1em">Loading…</div>';
+  requestAnimationFrame(()=>panel.classList.add('ddp-open'));
+  window._activeDealId=dealId;
+
+  const res=await fetchSilent(`/api/v2?resource=admin&op=deal-detail&dealId=${dealId}`);
+  const deal=res?.deal||buildMockDealDetail(dealId);
+  content.innerHTML=buildDealDetailHTML(deal);
+  // Animate allocation bar after paint
+  requestAnimationFrame(()=>{
+    const fill=document.getElementById('ddp-alloc-fill');
+    if(fill)fill.style.width=fill.dataset.pct+'%';
+  });
+}
+
+function closeDealDetail(){
+  const panel=document.getElementById('deal-detail-panel');
+  panel.classList.remove('ddp-open');
+  setTimeout(()=>{panel.style.display='none';},320);
+}
+
+function buildMockDealDetail(dealId){
+  const d=DEALS.find(x=>x.id===dealId)||DEALS[0];
+  const target=d.target_alloc||50000000;
+  const feePct=d.prism_fee_pct||1.5;
+  const carryPct=d.prism_carry_pct||10;
+  const mgmtPct=d.prism_mgmt_fee_pct||0.5;
+  return{
+    ...d,
+    advisor_name:d.advisor||'Sarah Chen',
+    advisor_firm:d.advisor_firm||'Chen Capital Partners',
+    advisor_email:d.advisor_email||'sarah@capitalgroup.sg',
+    description:d.thesis||d.tagline||`${d.name} is a private investment opportunity sourced and structured by ${d.advisor||'the advisor team'}. This opportunity has been reviewed and approved by the Aurum Prism investment committee for distribution to qualified investors.`,
+    ioi_summary:{
+      total:(d.iois||[]).length,
+      approved:(d.iois||[]).filter(i=>i.status==='approved').length,
+      pending:(d.iois||[]).filter(i=>i.status==='pending').length,
+      declined:(d.iois||[]).filter(i=>i.status==='declined').length,
+      approved_total:(d.iois||[]).filter(i=>i.status==='approved').reduce((s,i)=>s+i.amount,0),
+      pct_subscribed:target>0?Math.round(d.ioi_agg/target*100):0
+    },
+    ioi_rows:(d.iois||[]).filter(i=>i.status!=='declined'),
+    docs:d.docs||[],
+    recent_audit:(d.audit_log||[
+      {action:'Deal advanced to '+STAGE_LABELS[d.stage],actor:'Admin',ts:new Date(Date.now()-86400000).toISOString()},
+      {action:'IOI package pushed to '+d.advisor,actor:'Admin',ts:new Date(Date.now()-172800000).toISOString()},
+      {action:'Deal published to investor portal',actor:'Admin',ts:new Date(Date.now()-259200000).toISOString()},
+      {action:'Deal submitted by '+d.advisor,actor:d.advisor,ts:new Date(Date.now()-432000000).toISOString()},
+    ]).slice(-5).reverse(),
+    prism_economics:{
+      fee_pct:feePct,
+      carry_pct:carryPct,
+      mgmt_fee_pct:mgmtPct,
+      projected_fee_revenue:target*feePct/100,
+      projected_mgmt_revenue:target*mgmtPct/100,
+      total_projected_revenue:target*(feePct+mgmtPct)/100
+    }
+  };
+}
+
+function buildDealDetailHTML(deal){
+  const target=deal.target_alloc||50000000;
+  const ioi_agg=deal.ioi_agg||deal.ioi_summary?.approved_total||0;
+  const pct=Math.min(target>0?Math.round(ioi_agg/target*100):0,100);
+  const ci=STAGE_ORDER.indexOf(deal.stage);
+  const nextStage=STAGE_ORDER[ci+1];
+  const econ=deal.prism_economics||{fee_pct:1.5,carry_pct:10,mgmt_fee_pct:0.5,projected_fee_revenue:0,projected_mgmt_revenue:0,total_projected_revenue:0};
+  const summary=deal.ioi_summary||{total:0,approved:0,pending:0,declined:0,approved_total:0,pct_subscribed:pct};
+  const ioi_rows=deal.ioi_rows||deal.iois||[];
+  const audit=deal.recent_audit||[];
+  const docs=deal.docs||[];
+  const closing=deal.closing?new Date(deal.closing).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'TBD';
+  const submitted=deal.submitted_at?new Date(deal.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+
+  // Status badge class
+  const badgeCls=STAGE_CHIP[deal.stage]||'sc-review';
+
+  // Doc slots
+  const docLabels={nda:'NDA Template',mgmt:'Management Presentation',fin:'Financial Summary',term:'Term Sheet'};
+  const docSlots=['nda','mgmt','fin','term'];
+  const availDocs=docSlots.filter(s=>docs.find?.(d=>d.slot===s));
+
+  const docsHTML=availDocs.length
+    ?`<div class="ddp-doc-list">${availDocs.map(slot=>{
+        const doc=docs.find(d=>d.slot===slot)||{};
+        return`<div class="ddp-doc-row">
+          <div class="ddp-doc-name">${doc.name||docLabels[slot]}</div>
+          <button class="ddp-doc-view" onclick="viewDoc('${deal.id}','${slot}')">↗ View</button>
+        </div>`;
+      }).join('')}</div>`
+    :`<div style="font-size:12px;color:var(--text-3);padding:12px 0">No documents uploaded yet.</div>`;
+
+  const ioiTableHTML=ioi_rows.length
+    ?`<table class="ddp-ioi-table">
+        <thead><tr>
+          <th>Investor</th><th>Type</th><th>Amount</th><th>Status</th>
+        </tr></thead>
+        <tbody>${ioi_rows.map(ioi=>`<tr>
+          <td><strong>${ioi.name||'—'}</strong><br><span style="font-size:10px;color:var(--text-3)">${ioi.geo||'—'}</span></td>
+          <td style="color:var(--text-2)">${ioi.type||'—'}</td>
+          <td style="font-family:var(--mono);font-size:12px">${fmU(ioi.amount)}</td>
+          <td><span class="iqi-badge badge-${ioi.status||'pending'}">${ioi.status||'pending'}</span></td>
+        </tr>`).join('')}</tbody>
+      </table>`
+    :`<div style="font-size:12px;color:var(--text-3);padding:8px 0">No IOIs recorded yet.</div>`;
+
+  const auditHTML=audit.length
+    ?audit.map(a=>`<div class="ddp-audit-entry">
+        <div class="ddp-audit-dot"></div>
+        <div class="ddp-audit-action">${a.action||a.event||'—'}<br><span style="font-size:10px;color:var(--text-3)">${a.actor||'System'}</span></div>
+        <div class="ddp-audit-time">${a.ts?new Date(a.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—'}</div>
+      </div>`).join('')
+    :`<div style="font-size:12px;color:var(--text-3);padding:8px 0">No audit entries.</div>`;
+
+  return`<div class="ddp-grid">
+    <!-- LEFT: investor-facing view -->
+    <div>
+      <!-- Header -->
+      <div class="ddp-section">
+        <div class="ddp-deal-name">${deal.name}</div>
+        <div class="ddp-tags">
+          <span class="dp-stage-chip ${badgeCls}">${STAGE_LABELS[deal.stage]||deal.stage}</span>
+          ${deal.geography?`<span class="ddp-tag">${deal.geography}</span>`:''}
+          ${deal.structure?`<span class="ddp-tag">${deal.structure}</span>`:''}
+          ${deal.asset_class?`<span class="ddp-tag">${deal.asset_class.toUpperCase()}</span>`:''}
+        </div>
+      </div>
+
+      <!-- Key metrics -->
+      <div class="ddp-section">
+        <div class="ddp-section-title">Key Metrics</div>
+        <div class="ddp-metrics">
+          <div class="ddp-metric"><div class="ddp-metric-lbl">Target IRR</div><div class="ddp-metric-val">${deal.target_irr||'—'}%</div></div>
+          <div class="ddp-metric"><div class="ddp-metric-lbl">Term</div><div class="ddp-metric-val">${deal.term||'—'}mo</div></div>
+          <div class="ddp-metric"><div class="ddp-metric-lbl">Min Ticket</div><div class="ddp-metric-val">${fmU(deal.min_ticket)}</div></div>
+          <div class="ddp-metric"><div class="ddp-metric-lbl">Asset Class</div><div class="ddp-metric-val" style="font-size:12px;text-transform:capitalize">${deal.asset_class||'—'}</div></div>
+          <div class="ddp-metric"><div class="ddp-metric-lbl">Target Close</div><div class="ddp-metric-val" style="font-size:11px">${closing}</div></div>
+          <div class="ddp-metric"><div class="ddp-metric-lbl">Total Raise</div><div class="ddp-metric-val">${fmU(target)}</div></div>
+        </div>
+      </div>
+
+      <!-- Allocation bar -->
+      <div class="ddp-section">
+        <div class="ddp-section-title">Subscription</div>
+        <div class="ddp-alloc-bar"><div class="ddp-alloc-fill" id="ddp-alloc-fill" data-pct="${pct}" style="width:0%"></div></div>
+        <div class="ddp-alloc-label">${fmU(ioi_agg)} indicated of ${fmU(target)} target · <strong style="color:var(--text)">${pct}%</strong> subscribed</div>
+      </div>
+
+      <!-- Description -->
+      <div class="ddp-section">
+        <div class="ddp-section-title">Investment Overview</div>
+        <div class="ddp-desc">${deal.description||deal.thesis||'No description provided.'}</div>
+      </div>
+
+      <!-- IOI summary -->
+      <div class="ddp-section">
+        <div class="ddp-section-title">IOI Summary
+          <span style="margin-left:10px;font-family:var(--mono);font-size:9px;color:var(--text-3)">
+            ${summary.total} total · ${summary.approved} approved · ${summary.pending} pending · ${summary.declined} declined
+          </span>
+        </div>
+        ${ioiTableHTML}
+      </div>
+
+      <!-- Documents -->
+      <div class="ddp-section">
+        <div class="ddp-section-title">Documents</div>
+        ${docsHTML}
+      </div>
+
+      <!-- Audit log -->
+      <div class="ddp-section">
+        <div class="ddp-section-title">Audit Log</div>
+        ${auditHTML}
+      </div>
+    </div>
+
+    <!-- RIGHT: admin panel -->
+    <div>
+      <!-- Prism Economics -->
+      <div class="ddp-econ-card">
+        <div class="ddp-econ-title">◆ Prism Economics</div>
+        <div id="ddp-econ-display">
+          <div class="ddp-econ-row">
+            <span class="ddp-econ-lbl">Placement Fee</span>
+            <span class="ddp-econ-val">${econ.fee_pct}% → ${fmU(econ.projected_fee_revenue)} proj.</span>
+          </div>
+          <div class="ddp-econ-row">
+            <span class="ddp-econ-lbl">Carried Interest</span>
+            <span class="ddp-econ-val">${econ.carry_pct}%</span>
+          </div>
+          <div class="ddp-econ-row">
+            <span class="ddp-econ-lbl">Mgmt Fee (p.a.)</span>
+            <span class="ddp-econ-val">${econ.mgmt_fee_pct}% → ${fmU(econ.projected_mgmt_revenue)} proj.</span>
+          </div>
+          <div class="ddp-econ-total">
+            <span class="ddp-econ-total-lbl">Total Projected Revenue</span>
+            <span class="ddp-econ-total-val">${fmU(econ.total_projected_revenue)}</span>
+          </div>
+        </div>
+        <div id="ddp-econ-edit" style="display:none">
+          <div class="ddp-econ-edit-row">
+            <div class="ddp-econ-field">
+              <label>Placement Fee %</label>
+              <input id="ddp-fee-input" type="number" step="0.1" min="0" max="10" value="${econ.fee_pct}">
+            </div>
+            <div class="ddp-econ-field">
+              <label>Carried Interest %</label>
+              <input id="ddp-carry-input" type="number" step="1" min="0" max="30" value="${econ.carry_pct}">
+            </div>
+            <div class="ddp-econ-field">
+              <label>Mgmt Fee % p.a.</label>
+              <input id="ddp-mgmt-input" type="number" step="0.1" min="0" max="5" value="${econ.mgmt_fee_pct}">
+            </div>
+            <button class="ddp-econ-save" onclick="savePrismEconomics('${deal.id}')">Save Economics</button>
+          </div>
+        </div>
+        <button onclick="toggleEconEdit()" id="ddp-econ-edit-btn" style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text-3);background:none;border:none;cursor:pointer;margin-top:12px;padding:0;transition:color .15s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-3)'">Edit Economics →</button>
+      </div>
+
+      <!-- Deal Controls -->
+      <div class="ddp-ctrl-card">
+        <div class="ddp-ctrl-title">Deal Controls</div>
+        <div class="ddp-ctrl-stage">
+          <span class="dp-stage-chip ${badgeCls}">${STAGE_LABELS[deal.stage]||deal.stage}</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">Current Stage</span>
+        </div>
+        <div class="ddp-ctrl-btns">
+          ${nextStage?`<button class="ddp-ctrl-btn advance" onclick="openModal('${deal.id}','${nextStage}');closeDealDetail()">→ Advance to ${STAGE_LABELS[nextStage]}</button>`:''}
+          <button class="ddp-ctrl-btn" onclick="dealAction('${deal.id}','close_raise');toast('Raise closed','ok')">Close Raise</button>
+          <button class="ddp-ctrl-btn" onclick="dealAction('${deal.id}','delay');toast('Raise delayed','ok')">Delay Raise</button>
+          <button class="ddp-ctrl-btn push" onclick="pushPackage('${deal.id}');closeDealDetail()">✦ Push Package to Advisor</button>
+        </div>
+      </div>
+
+      <!-- Advisor card -->
+      <div class="ddp-advisor-card">
+        <div class="ddp-section-title" style="margin-bottom:12px">Sourcing Advisor</div>
+        <div class="ddp-adv-name">${deal.advisor_name||deal.advisor||'—'}</div>
+        <div class="ddp-adv-firm">${deal.advisor_firm||'—'}</div>
+        ${deal.advisor_email?`<div class="ddp-adv-email">${deal.advisor_email}</div>`:''}
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:8px">Submitted ${submitted}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleEconEdit(){
+  const disp=document.getElementById('ddp-econ-display');
+  const edit=document.getElementById('ddp-econ-edit');
+  const btn=document.getElementById('ddp-econ-edit-btn');
+  if(!disp||!edit)return;
+  const editing=edit.style.display!=='none';
+  disp.style.display=editing?'block':'none';
+  edit.style.display=editing?'none':'block';
+  btn.textContent=editing?'Edit Economics →':'Cancel';
+}
+
+async function savePrismEconomics(dealId){
+  const fee=parseFloat(document.getElementById('ddp-fee-input')?.value);
+  const carry=parseFloat(document.getElementById('ddp-carry-input')?.value);
+  const mgmt=parseFloat(document.getElementById('ddp-mgmt-input')?.value);
+  if([fee,carry,mgmt].some(isNaN)){toast('Invalid values','err');return;}
+  // Update local deal state immediately
+  const d=DEALS.find(x=>x.id===dealId);
+  if(d){d.prism_fee_pct=fee;d.prism_carry_pct=carry;d.prism_mgmt_fee_pct=mgmt;}
+  // Fire API (best-effort)
+  const res=await fetchSilent('/api/v2?resource=admin&op=update-prism-economics',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({dealId,fee_pct:fee,carry_pct:carry,mgmt_fee_pct:mgmt})
+  });
+  if(res?.ok||d){
+    toast('Economics updated','ok');
+    openDealDetail(dealId);
+  } else {
+    toast('Save failed — changes held locally','');
+    openDealDetail(dealId);
+  }
 }
 
 /* ── INIT ── */

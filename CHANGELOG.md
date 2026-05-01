@@ -4,6 +4,31 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin deal detail panel: full-screen tear sheet with Prism economics
+
+### `admin-portal.html`
+- **New panel** `#deal-detail-panel` — `position:fixed;inset:0;z-index:300`, slides in from the right on `.ddp-open` (translateX CSS transition, 320ms ease). Sits above all portal views without disrupting existing layout.
+- **Panel HTML** inserted between the `view-aitool` section and the existing stage-advance modal.
+- **CSS block** `/* ── DEAL DETAIL PANEL ── */` added before mobile media queries: panel, grid, metrics, allocation bar, IOI table, documents, audit log, Prism economics card, deal controls card, advisor card, row hover cursor styles.
+- **`renderPipeline()`** — each `.dp-row` now has `onclick="openDealDetail('${d.id}')"`. The actions column uses `event.stopPropagation()` so stage-advance buttons do not also trigger the panel. `dp-row:not(.header)` gets `cursor:pointer` via CSS.
+- **New functions (all new):**
+  - `openDealDetail(dealId)` — shows panel, fetches `/api/v2?resource=admin&op=deal-detail`, falls back to `buildMockDealDetail()`, calls `buildDealDetailHTML()`, animates allocation bar.
+  - `closeDealDetail()` — removes `.ddp-open`, hides panel after 320ms.
+  - `buildMockDealDetail(dealId)` — builds a rich detail object from the in-memory `DEALS` array including ioi_summary counts, mock audit log, and computed Prism economics projections.
+  - `buildDealDetailHTML(deal)` — returns the two-column HTML string: left (deal header, metrics grid, allocation bar, description, IOI table, documents, audit log) and right (Prism economics card with inline edit, deal controls card, advisor card).
+  - `toggleEconEdit()` — toggles between display and edit modes in the economics card.
+  - `savePrismEconomics(dealId)` — reads three % inputs, updates local `DEALS` state, POSTs to `op=update-prism-economics`, re-opens panel to reflect saved values.
+- **Reused functions (no changes):** `viewDoc()`, `dealAction()`, `pushPackage()`, `openModal()`, `fmU()`, `toast()`, `fetchSilent()`, `STAGE_ORDER`, `STAGE_LABELS`, `STAGE_CHIP`.
+
+## [2026-05-01] — Admin deal-detail API: enriched deal view + Prism economics CRUD
+
+### `api/v2.js`
+- **New op** `GET ?resource=admin&op=deal-detail&dealId=xxx` — returns full deal record enriched with IOI summary (total/approved/pending/declined counts, approved total USD, % subscribed), document slot metadata, advisor name/firm/email, computed Prism economics projections, and last 10 audit log entries (newest first).
+- **New op** `POST ?resource=admin&op=update-prism-economics` — body `{ dealId, fee_pct, carry_pct, mgmt_fee_pct }`. Validates inputs as numbers, writes `prism_fee_pct` / `prism_carry_pct` / `prism_mgmt_fee_pct` to the deal, appends `prism_economics_updated` audit log entry with before/after values, returns `{ ok: true, deal }`.
+
+### `api/_lib/deal-storage.js`
+- Added `prism_fee_pct: 1.5`, `prism_carry_pct: 10`, `prism_mgmt_fee_pct: 0.5` to all five seed deals. Existing Redis records fall back to these same defaults at read time via `??` operator — no migration required.
+
 ## [2026-05-01] — Universal brand wordmark rollout across all 5 portals
 
 ### `index.html`, `admin-portal.html`, `advisor-portal.html`, `investor-portal.html`, `login.html`
