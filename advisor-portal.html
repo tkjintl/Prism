@@ -2625,6 +2625,7 @@ async function load(){
       if(d.advisor){
         if(nameEl)nameEl.textContent=d.advisor.name||me.email||'';
         if(firmEl)firmEl.textContent=d.advisor.firm_name||d.advisor.firm||me.firm||'';
+        renderDashboard(); // refresh hero with real name + firm
       }
       if(d.deals&&d.deals.length){
         DEALS=d.deals.map(adaptDeal);

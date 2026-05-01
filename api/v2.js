@@ -65,7 +65,7 @@ export default async function handler(req, res) {
         const setupToken = await signToken({ advisor_id: adv.id, email: adv.email, setup: true }, '1h');
         return ok(res, { requires_setup: true, setup_token: setupToken });
       }
-      const token = await signToken({ advisor_id: adv.id, email: adv.email, firm: adv.firm_name, role: 'advisor' }, '7d');
+      const token = await signToken({ advisor_id: adv.id, email: adv.email, name: adv.name || '', firm: adv.firm_name, role: 'advisor' }, '7d');
       res.setHeader('Set-Cookie', setCookieHeader('prism_advisor', token, cookieOpts(604800)));
       return ok(res, { advisor: sanitizeAdvisor(adv) });
     }
@@ -81,7 +81,7 @@ export default async function handler(req, res) {
       adv.password_hash = await bcrypt.hash(password, 12);
       adv.requires_setup = false;
       await kvSet(`advisor:${adv.id}`, adv);
-      const token = await signToken({ advisor_id: adv.id, email: adv.email, firm: adv.firm_name, role: 'advisor' }, '7d');
+      const token = await signToken({ advisor_id: adv.id, email: adv.email, name: adv.name || '', firm: adv.firm_name, role: 'advisor' }, '7d');
       res.setHeader('Set-Cookie', setCookieHeader('prism_advisor', token, cookieOpts(604800)));
       return ok(res, { advisor: sanitizeAdvisor(adv) });
     }

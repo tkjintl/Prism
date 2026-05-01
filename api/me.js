@@ -10,6 +10,7 @@ export default async function handler(req, res) {
   return ok(res, {
     role:   payload.role,
     email:  payload.email,
+    name:   payload.name || null,
     firm:   payload.firm || null,
     id:     payload.advisor_id || payload.inst_id || null,
   });
