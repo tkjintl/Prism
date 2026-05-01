@@ -787,7 +787,7 @@ function showTab(name,btn){
   if(btn)btn.classList.add('on');
   if(name==='performance')setTimeout(animatePerf,100);
   if(name==='materials')renderMaterials();
-  if(name==='dataroom')renderDataroom();
+  if(name==='dataroom'){renderDataroom();loadVdrAndQa();}
 }
 
 function switchDeal(idx){
@@ -964,7 +964,7 @@ function renderOverview(){
   document.getElementById('tab-overview').innerHTML=html;
 }
 
-function acceptAdminIOI(){
+async function acceptAdminIOI(){
   const d=DEALS[currentDealIdx];
   if(!d.pushed_ioi)return;
   d.pushed_ioi.status='accepted';
@@ -976,14 +976,18 @@ function acceptAdminIOI(){
   renderStageJourney();
   renderOverview();
   toast('IOI accepted — deal advanced to Due Diligence','ok');
+  // Persist decision via API
+  api('POST','/api/v2?resource=advisor&op=respond-package',{dealId:d.id,packageId:d.pushed_ioi.id,decision:'accepted'}).catch(()=>{});
 }
 
-function declineAdminIOI(){
+async function declineAdminIOI(){
   const d=DEALS[currentDealIdx];
   if(!d.pushed_ioi)return;
   d.pushed_ioi.status='declined';
   renderOverview();
   toast('IOI declined — admin has been notified');
+  // Persist decision via API
+  api('POST','/api/v2?resource=advisor&op=respond-package',{dealId:d.id,packageId:d.pushed_ioi.id,decision:'declined'}).catch(()=>{});
 }
 
 /* ── MATERIALS ── */
@@ -1419,6 +1423,18 @@ async function submitAnswer(qaId){
   if(!d._qaThread)d._qaThread=[...QA_THREAD];
   toast('Answer posted','ok');
   renderDataroom();
+}
+
+/* ── DATAROOM LIVE FETCH ── */
+async function loadVdrAndQa(){
+  const d=DEALS[currentDealIdx];
+  if(!d)return;
+  // Fetch live VDR files from API; fall back to d._vdrFiles if request fails
+  const vdrRes=await fetchSilent(`/api/v2?resource=advisor&op=vdr-files&dealId=${d.id}`);
+  if(vdrRes?.files){d._vdrFiles=vdrRes.files;renderDataroom();}
+  // Fetch live Q&A thread from API; fall back to d._qaThread if request fails
+  const qaRes=await fetchSilent(`/api/v2?resource=advisor&op=qa-thread-advisor&dealId=${d.id}`);
+  if(qaRes?.qa){d._qaThread=qaRes.qa;renderDataroom();}
 }
 
 /* ── PERFORMANCE ── */

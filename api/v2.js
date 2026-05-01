@@ -97,7 +97,28 @@ export default async function handler(req, res) {
       const full = await kvGet(`advisor:${adv.advisor_id}`);
       if (!full) return unauth(res);
       const deals = await listDeals({ advisor_id: adv.advisor_id });
-      return ok(res, { advisor: sanitizeAdvisor(full), deals });
+      // Hydrate pushed_ioi from the latest package for each deal
+      const enrichedDeals = await Promise.all(deals.map(async deal => {
+        const pkgListKey = `packages:deal:${deal.id}`;
+        const pkgList = await kvGet(pkgListKey);
+        if (!pkgList || !pkgList.length) return deal;
+        const latestPkgId = pkgList[pkgList.length - 1];
+        const pkg = await kvGet(`package:${latestPkgId}`);
+        if (!pkg) return deal;
+        // Expose aggregate push stats only — no investor PII
+        const pushed_ioi = {
+          id: pkg.packageId,
+          investor_type: pkg.iois?.[0]?.type || '',
+          investor_region: pkg.iois?.[0]?.geo || '',
+          amount: pkg.indicatedTotal || 0,
+          date: pkg.generatedAt ? new Date(pkg.generatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
+          note: pkg.admin_comment || '',
+          status: deal.pushed_ioi_status || 'pending',
+          ioi_count: pkg.iois?.length || 0,
+        };
+        return { ...deal, pushed_ioi };
+      }));
+      return ok(res, { advisor: sanitizeAdvisor(full), deals: enrichedDeals });
     }
 
     if (op === 'deals') {
@@ -309,6 +330,36 @@ export default async function handler(req, res) {
       entry.answeredBy = advObj?.name || advObj?.firm_name || adv.advisor_id;
       await kvSet(`qa:${dealId}`, qa);
       return ok(res, { ok: true });
+    }
+
+    // ── IOI package response (advisor accepts or declines pushed package) ──
+    if (op === 'respond-package') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { dealId, packageId, decision } = req.body || {};
+      if (!dealId || !packageId || !['accepted', 'declined'].includes(decision)) {
+        return bad(res, 'dealId, packageId, and decision (accepted|declined) required');
+      }
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      const pkg = await kvGet(`package:${packageId}`);
+      if (!pkg) return bad(res, 'Package not found', 404);
+      // Persist decision on both the package and deal
+      pkg.advisor_decision = decision;
+      pkg.advisor_decision_at = new Date().toISOString();
+      await kvSet(`package:${packageId}`, pkg);
+      deal.pushed_ioi_status = decision;
+      if (decision === 'accepted') {
+        deal.stage = 'dd';
+        deal.ioi_agg_usd = (deal.ioi_agg_usd || 0) + (pkg.indicatedTotal || 0);
+        deal.ioi_count = (deal.ioi_count || 0) + (pkg.iois?.length || 0);
+      }
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({ at: new Date().toISOString(), actor: adv.advisor_id, action: `package_${decision}`, meta: { packageId } });
+      deal.updated_at = new Date().toISOString();
+      await saveDeal(deal);
+      return ok(res, { ok: true, decision, stage: deal.stage });
     }
   }
 
@@ -529,6 +580,27 @@ export default async function handler(req, res) {
       }));
 
       return ok(res, { docs, nda_signed: ndaSigned });
+    }
+
+    // ── Investor document download (gated by NDA) ────────────────
+    if (op === 'inst-doc-download') {
+      const instAuth = await getInst();
+      if (!instAuth) return unauth(res);
+      const inst = await kvGet(`inst:${instAuth.inst_id}`);
+      if (!inst || inst.status !== 'approved') return unauth(res);
+      const { dealId, slot } = req.query;
+      if (!dealId || !slot) return bad(res, 'dealId and slot required');
+      const validSlots = ['nda', 'mgmt', 'fin', 'term'];
+      if (!validSlots.includes(slot)) return bad(res, 'Invalid slot');
+      const gates = { nda: 'public', mgmt: 'nda', fin: 'nda', term: 'nda' };
+      // NDA-gated docs require NDA signature on file
+      if (gates[slot] !== 'public') {
+        const ndaRecord = await kvGet(`nda_signed:${instAuth.inst_id}:${dealId}`);
+        if (!ndaRecord) return bad(res, 'NDA must be signed before accessing this document', 403);
+      }
+      const doc = await kvGet(`deal_doc:${dealId}:${slot}`);
+      if (!doc?.data) return bad(res, 'Document not available', 404);
+      return ok(res, { name: doc.name, type: doc.type, data: doc.data });
     }
 
     // ── DD deadline helper ───────────────────────────────────────

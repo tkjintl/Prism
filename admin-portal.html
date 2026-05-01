@@ -2204,6 +2204,8 @@ async function declineDeal(dealId,btn){
   NEW_SUBMISSIONS=NEW_SUBMISSIONS.filter(s=>s.id!==dealId);
   renderPipeline();renderOverview();
   toast('Deal declined','');
+  // Persist kill to KV via API
+  api('POST','/api/v2?resource=deals',{action:'update',id:dealId,stage:'killed'}).catch(()=>{});
 }
 
 async function loadDocsAndGenerate(dealId){
@@ -2225,7 +2227,7 @@ function actIoi(dealId,ioiId,action){
   if(action==='approved')deal.ioi_agg=deal.iois.filter(i=>i.status==='approved').reduce((s,i)=>s+i.amount,0);
   // Fire real API
   const apiOp=action==='approved'?'approve-ioi':'reject-ioi';
-  api('POST','/api/marketplace/'+apiOp,{ioi_id:ioiId}).catch(()=>{});
+  api('POST','/api/v2?resource=marketplace&op='+apiOp,{ioi_id:ioiId}).catch(()=>{});
   updateQueueBadge();
   toast(`IOI ${action} — ${ioi.name}`,action==='approved'?'ok':'');
 }
@@ -2275,7 +2277,7 @@ function openPushModal(dealId,ioiId){
   document.getElementById('push-modal-confirm').onclick=confirmPush;
 }
 function closePushModal(){document.getElementById('push-modal').classList.add('hidden');pushDealId=null;pushIoiId=null;}
-function confirmPush(){
+async function confirmPush(){
   if(!pushDealId||!pushIoiId)return;
   const d=DEALS.find(x=>x.id===pushDealId);
   const ioi=d.iois.find(i=>i.id===pushIoiId);
@@ -2284,6 +2286,8 @@ function confirmPush(){
   if(document.getElementById('view-queue').classList.contains('active'))renderQueue();
   renderOverview();renderKPIs();
   toast(`IOI pushed to ${d.advisor} for review`,'ok');
+  // Persist push to KV via API
+  api('POST','/api/v2?resource=admin&op=push-package',{dealId:pushDealId,ioiId:pushIoiId}).catch(()=>{});
 }
 const _pm=document.getElementById('push-modal');if(_pm)_pm.addEventListener('click',function(e){if(e.target===this)closePushModal();});
 const _ppm=document.getElementById('push-preview-modal');if(_ppm)_ppm.addEventListener('click',function(e){if(e.target===this)closePushPreviewModal();});
@@ -2440,11 +2444,14 @@ function openModal(dealId,targetStage){
   document.getElementById('stage-modal').classList.remove('hidden');
 }
 function closeModal(){document.getElementById('stage-modal').classList.add('hidden');pendingStage=null;pendingDealId=null;}
-const _mc=document.getElementById('modal-confirm');if(_mc)_mc.onclick=function(){
+const _mc=document.getElementById('modal-confirm');if(_mc)_mc.onclick=async function(){
   if(!pendingDealId)return;
   const d=DEALS.find(x=>x.id===pendingDealId);
-  d.stage=pendingStage;closeModal();renderPipeline();renderKPIs();
-  toast(`${d.name} advanced to ${STAGE_LABELS[pendingStage]}`,'ok');
+  const targetStage=pendingStage;
+  d.stage=targetStage;closeModal();renderPipeline();renderKPIs();
+  toast(`${d.name} advanced to ${STAGE_LABELS[targetStage]}`,'ok');
+  // Persist stage change to KV via API
+  api('POST','/api/v2?resource=deals',{action:'update',id:d.id,stage:targetStage}).catch(()=>{});
 };
 const _sm=document.getElementById('stage-modal');if(_sm)_sm.addEventListener('click',function(e){if(e.target===this)closeModal();});
 
@@ -3730,7 +3737,7 @@ async function load(){
   if(me.ok&&me.role==='admin'){
     const [dealsR,ioisR]=await Promise.all([
       fetchSilent('/api/v2?resource=deals'),
-      fetchSilent('/api/marketplace/deal-iois')
+      fetchSilent('/api/v2?resource=marketplace&op=deal-iois')
     ]);
     const allIois=ioisR?.iois||[];
     if(dealsR?.deals&&dealsR.deals.length){

@@ -4,6 +4,35 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — API connectivity audit — all three portals wired to backend
+
+### Problems fixed
+
+**investor-portal.html**
+- `load()`: Fixed marketplace deal fetch — was hitting non-existent `/api/deals/marketplace`, now correctly calls `/api/v2?resource=deals&op=marketplace`.
+- `load()`: Fixed my-IOIs fetch — was hitting `/api/marketplace/my-iois`, now `/api/v2?resource=marketplace&op=my-iois`.
+- `submitIoi()`: Fixed IOI submission endpoint — was `/api/marketplace/ioi`, now `/api/v2?resource=marketplace&op=ioi`.
+- `renderInvestorDataroom()`: Added `loadVdrFilesInvestor()` call on dataroom tab open — investor dataroom was rendering mock-only `d.vdr_files` without ever fetching live files from `/api/v2?resource=inst&op=vdr-files`.
+- `viewInvestorDoc()`: Was calling admin-only `resource=admin&op=deal-docs` with investor cookie (always 401). Fixed to call new `resource=inst&op=inst-doc-download&slot=X` endpoint.
+
+**admin-portal.html**
+- `load()`: Fixed IOI fetch — was hitting `/api/marketplace/deal-iois`, now `/api/v2?resource=marketplace&op=deal-iois`.
+- `actIoi()`: Fixed approve/reject IOI calls — were POSTing to `/api/marketplace/approve-ioi` and `/api/marketplace/reject-ioi` (non-existent). Now correctly route to `/api/v2?resource=marketplace&op=approve-ioi` and `reject-ioi`.
+- `confirmPush()`: Was only mutating local state, never called API. Now fires `POST /api/v2?resource=admin&op=push-package` after updating local state.
+- Stage modal confirm: Was only mutating local `d.stage`, never persisted to KV. Now fires `POST /api/v2?resource=deals` with `action:update, stage:targetStage`.
+- `declineDeal()`: Was only removing from local `NEW_SUBMISSIONS`, never persisted kill. Now fires `POST /api/v2?resource=deals` with `action:update, stage:'killed'`.
+
+**advisor-portal.html**
+- `renderDataroom()` tab switch: Was rendering from `d._vdrFiles || VDR_FILES` only. Now calls `loadVdrAndQa()` on tab open, which fetches `/api/v2?resource=advisor&op=vdr-files` and `/api/v2?resource=advisor&op=qa-thread-advisor`, updating local deal state and re-rendering.
+- `acceptAdminIOI()` / `declineAdminIOI()`: Were only mutating local state. Now persist decision to KV via new `POST /api/v2?resource=advisor&op=respond-package`.
+
+**api/v2.js**
+- `advisor op=me`: Now hydrates `pushed_ioi` from the latest `package:` KV record for each deal, so the advisor portal can display pushed IOI packages without a separate fetch.
+- Added `advisor op=respond-package`: New endpoint for advisor to accept or decline a pushed IOI package; persists decision on both the package record and deal record, advances stage to `dd` on acceptance.
+- Added `inst op=inst-doc-download`: New investor-authenticated endpoint to download NDA-gated deal documents (replaces incorrect use of admin `deal-docs` endpoint from investor portal).
+
+---
+
 ## [2026-05-01] — Dataroom / Q&A tab — advisor and investor portals
 
 ### `advisor-portal.html`
