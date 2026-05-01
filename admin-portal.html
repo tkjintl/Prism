@@ -828,7 +828,7 @@ function renderPipeline(){
               const doc = (s.docs||[]).find(d=>d.slot===slot);
               const labels = {nda:'NDA',mgmt:'Deck',fin:'Financials',term:'Term Sheet'};
               return doc
-                ? `<span style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72;border-radius:2px">✓ ${labels[slot]}</span>`
+                ? `<button onclick="viewDoc('${s.id}','${slot}')" title="View ${labels[slot]}" style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72;border-radius:2px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(90,158,114,.18)'" onmouseout="this.style.background='rgba(90,158,114,.07)'">↗ ${labels[slot]}</button>`
                 : `<span style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid var(--border);color:var(--text-3);border-radius:2px">${labels[slot]}</span>`;
             }).join('')}
           </div>
@@ -901,6 +901,25 @@ function renderAITool(){
     [...DEALS,...NEW_SUBMISSIONS].map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
   sel.onchange=checkAIReady;
   checkAIReady();
+}
+
+const _docCache={};
+async function viewDoc(dealId,slot){
+  const cacheKey=dealId+':'+slot;
+  let docData=_docCache[cacheKey];
+  if(!docData){
+    const res=await fetchSilent(`/api/v2?resource=admin&op=deal-docs&dealId=${dealId}`);
+    if(!res?.docs){toast('Could not load document','');return;}
+    ['nda','mgmt','fin','term'].forEach(s=>{ if(res.docs[s]) _docCache[dealId+':'+s]=res.docs[s]; });
+    docData=_docCache[cacheKey];
+  }
+  if(!docData){toast('Document not found','');return;}
+  const bytes=atob(docData.data);
+  const arr=new Uint8Array(bytes.length);
+  for(let i=0;i<bytes.length;i++) arr[i]=bytes.charCodeAt(i);
+  const blob=new Blob([arr],{type:docData.type||'application/pdf'});
+  const url=URL.createObjectURL(blob);
+  window.open(url,'_blank');
 }
 
 function aiLoadDoc(type){
