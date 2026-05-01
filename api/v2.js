@@ -337,6 +337,54 @@ export default async function handler(req, res) {
       return ok(res, { ok: true });
     }
 
+    // ── Advisor notifications ─────────────────────────────────────
+    // GET  ?resource=advisor&op=notifications          — all unread notifications across advisor's deals
+    // POST ?resource=advisor&op=notifications  { action:'mark-read', ids:[...] | 'all', dealId? }
+    if (op === 'notifications') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+
+      const deals = await listDeals({ advisor_id: adv.advisor_id });
+
+      if (req.method === 'POST') {
+        const { action, ids, dealId } = req.body || {};
+        if (action !== 'mark-read') return bad(res, 'action must be mark-read');
+        const targetDeals = dealId ? deals.filter(d => d.id === dealId) : deals;
+        for (const deal of targetDeals) {
+          if (!deal.notifications?.length) continue;
+          let dirty = false;
+          for (const n of deal.notifications) {
+            if (n.read) continue;
+            if (ids === 'all' || (Array.isArray(ids) && ids.includes(n.id))) {
+              n.read = true;
+              dirty = true;
+            }
+          }
+          if (dirty) {
+            deal.updated_at = new Date().toISOString();
+            await saveDeal(deal);
+          }
+        }
+        return ok(res, { ok: true });
+      }
+
+      // GET — collect all unread (and recent read) notifications, newest first
+      const notifications = [];
+      for (const deal of deals) {
+        for (const n of (deal.notifications || [])) {
+          notifications.push({ ...n, deal_id: deal.id, deal_name: deal.name });
+        }
+      }
+      // Sort newest first
+      notifications.sort((a, b) => {
+        const ta = a.pushed_at || a.advanced_at || '';
+        const tb = b.pushed_at || b.advanced_at || '';
+        return tb.localeCompare(ta);
+      });
+      const unread = notifications.filter(n => !n.read);
+      return ok(res, { notifications, unread_count: unread.length });
+    }
+
     // ── IOI package response (advisor accepts or declines pushed package) ──
     if (op === 'respond-package') {
       const adv = await getAdvisor();
@@ -455,12 +503,26 @@ export default async function handler(req, res) {
         const prev = await getDeal(id);
         if (!prev) return bad(res, 'Deal not found', 404);
         const result = await updateDeal(id, updates, admin.email);
-        // Stage change email
+        // Stage change email + in-app notification
         if (result.stage_changed) {
           const advId = result.deal.advisor_id;
           if (advId && advId.startsWith('adv-')) {
             const adv = await kvGet(`advisor:${advId}`);
             if (adv) await sendStageChange(result.deal, adv, result.new_stage).catch(console.error);
+          }
+          // Append stage-change notification to deal record
+          const refreshed = await getDeal(id);
+          if (refreshed) {
+            refreshed.notifications = refreshed.notifications || [];
+            refreshed.notifications.push({
+              id: `notif_${Date.now()}`,
+              type: 'stage_change',
+              from_stage: prev.stage,
+              to_stage: result.new_stage,
+              advanced_at: new Date().toISOString(),
+              read: false,
+            });
+            await saveDeal(refreshed);
           }
         }
         return ok(res, { deal: result.deal });
@@ -1440,6 +1502,22 @@ Return ONLY valid JSON in this exact structure:
         action: 'package_pushed',
         meta: { packageId: pkg.packageId, approvedCount: approvedIois.length, indicatedTotal },
       });
+
+      // In-app notification for advisor
+      const pushedAt = new Date().toISOString();
+      deal.notifications = deal.notifications || [];
+      deal.notifications.push({
+        id: `notif_${Date.now()}`,
+        type: 'ioi_pushed',
+        ioi_id: pkg.packageId,
+        investor_firm: approvedIois.length === 1
+          ? (approvedIois[0].investor_firm || approvedIois[0].investor_email || 'Investor')
+          : `${approvedIois.length} investors`,
+        amount: indicatedTotal,
+        pushed_at: pushedAt,
+        read: false,
+      });
+
       deal.updated_at = new Date().toISOString();
       await saveDeal(deal);
 

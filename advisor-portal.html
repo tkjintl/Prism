@@ -450,6 +450,36 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   /* Nav tabs hidden text on mobile — show icons only */
   .nav-right{gap:6px}
 }
+
+/* NOTIFICATION BELL */
+.notif-bell-wrap{position:relative;flex-shrink:0}
+.notif-bell-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:50%;color:var(--text-2);font-size:16px;transition:all .2s;background:none;cursor:pointer}
+.notif-bell-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.notif-bell-btn.has-unread{border-color:var(--amber-bd);color:var(--amber);animation:breathe 2.4s infinite}
+.notif-badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:9px;background:var(--amber);color:#fff;font-family:var(--mono);font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;pointer-events:none;border:2px solid var(--bg)}
+.notif-panel{position:absolute;top:calc(100% + 10px);right:0;width:340px;background:var(--bg-2);border:1px solid var(--border-m);border-radius:var(--r);box-shadow:0 16px 48px rgba(0,0,0,.24);z-index:500;display:none;animation:scaleIn .15s var(--ease)}
+.notif-panel.open{display:block}
+.notif-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.notif-panel-title{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-2)}
+.notif-mark-all{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--text-3);background:none;border:none;cursor:pointer;transition:color .15s}
+.notif-mark-all:hover{color:var(--gold)}
+.notif-list{max-height:360px;overflow-y:auto}
+.notif-item{display:flex;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;position:relative}
+.notif-item:last-child{border-bottom:none}
+.notif-item:hover{background:var(--bg-3)}
+.notif-item.unread{background:var(--amber-bg)}
+.notif-item.unread::before{content:'';position:absolute;left:6px;top:50%;transform:translateY(-50%);width:4px;height:4px;border-radius:50%;background:var(--amber)}
+.notif-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px}
+.notif-icon.ioi{background:var(--amber-bg);border:1px solid var(--amber-bd);color:var(--amber)}
+.notif-icon.stage{background:var(--blue-bg);border:1px solid var(--blue-bd);color:var(--blue)}
+.notif-body{flex:1;min-width:0}
+.notif-deal{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notif-text{font-size:12px;color:var(--text);line-height:1.4}
+.notif-time{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:3px}
+.notif-empty{padding:28px 16px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.08em}
+/* Deal switcher IOI banner pill */
+.ds-ioi-banner{display:flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:10px;font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--amber);margin-top:4px;white-space:nowrap}
+.ds-ioi-dot{width:5px;height:5px;border-radius:50%;background:var(--amber);animation:pulse 1.6s infinite;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -474,6 +504,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       <div class="nav-user-firm"></div>
     </div>
     <div class="role-badge">Advisor</div>
+    <div class="notif-bell-wrap" id="notif-bell-wrap">
+      <button class="notif-bell-btn" id="notif-bell-btn" onclick="toggleNotifPanel()" title="Notifications">🔔</button>
+      <div class="notif-panel" id="notif-panel">
+        <div class="notif-panel-hdr">
+          <span class="notif-panel-title">Notifications</span>
+          <button class="notif-mark-all" onclick="markAllNotifRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notif-list"><div class="notif-empty">No notifications</div></div>
+      </div>
+    </div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
     <button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
@@ -593,7 +633,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
 function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--bg-2,#fff);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again to continue.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
-function adaptDeal(d){return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,documents:d.documents||{},dataroom:(d.docs||[]).filter(f=>f.access==='dd'),activity:(d.qa||[]).map(m=>({type:'msg',text:m.text||'',time:new Date(m.at).toLocaleDateString('en-US',{month:'short',day:'numeric'})})),pushed_ioi:d.pushed_ioi||null,closing_docs:d.closing_docs||{},investors_by_type:[]};}
+function adaptDeal(d){return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,documents:d.documents||{},dataroom:(d.docs||[]).filter(f=>f.access==='dd'),activity:(d.qa||[]).map(m=>({type:'msg',text:m.text||'',time:new Date(m.at).toLocaleDateString('en-US',{month:'short',day:'numeric'})})),pushed_ioi:d.pushed_ioi||null,closing_docs:d.closing_docs||{},investors_by_type:[],notifications:d.notifications||[]};}
 
 /* ─── DATA ─── */
 let DEALS = [
@@ -830,12 +870,20 @@ function switchDeal(idx){
 function renderSwitcher(){
   const sw=document.querySelector('.deal-switcher');
   sw.innerHTML=`<span class="ds-label">Your Deals</span>`+
-    DEALS.map((d,i)=>`
-      <button class="ds-pill ${i===currentDealIdx?'active':''}" onclick="switchDeal(${i})">
-        <span class="ds-pill-dot ${DOT_CLS[d.stage]||'dot-review'}"></span>
-        ${d.name}
-        <span class="ds-pill-stage">${STAGE_LABEL[d.stage]||d.stage}</span>
-      </button>`).join('');
+    DEALS.map((d,i)=>{
+      const unreadIoi=(d.notifications||[]).find(n=>!n.read&&n.type==='ioi_pushed');
+      const bannerHtml=unreadIoi
+        ?`<div class="ds-ioi-banner"><span class="ds-ioi-dot"></span>New IOI Package · ${fmU(unreadIoi.amount)}</div>`
+        :'';
+      return`<button class="ds-pill ${i===currentDealIdx?'active':''}" onclick="switchDeal(${i})" style="flex-direction:column;align-items:flex-start;height:auto;padding:7px 14px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="ds-pill-dot ${DOT_CLS[d.stage]||'dot-review'}"></span>
+          ${d.name}
+          <span class="ds-pill-stage">${STAGE_LABEL[d.stage]||d.stage}</span>
+        </div>
+        ${bannerHtml}
+      </button>`;
+    }).join('');
 }
 
 /* ── HEADER ── */
@@ -902,6 +950,15 @@ function renderOverview(){
         <div class="cb-text-main">Your deal is live and collecting investor interest</div>
         <div class="cb-text-sub">Investors can view your deck and submit expressions of interest. Admin reviews all IOIs before forwarding to you.</div>
       </div>
+    </div>`;
+  } else if(d.stage==='dd'){
+    html+=`<div class="context-banner cb-live" style="background:var(--blue-bg);border-color:var(--blue-bd)">
+      <div class="cb-icon" style="color:var(--blue)">◆</div>
+      <div>
+        <div class="cb-text-main" style="color:var(--blue)">DD Room Active — Due Diligence stage</div>
+        <div class="cb-text-sub">Approved investors have data room access. Answer Q&amp;A in the Dataroom tab. Upload closing docs in Materials when ready.</div>
+      </div>
+      <button onclick="showTab('dataroom',document.querySelectorAll('.ctab')[3]||document.querySelectorAll('.ctab')[document.querySelectorAll(\'.ctab\').length-1])" style="margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:6px 14px;border:1px solid var(--blue-bd);color:var(--blue);border-radius:3px;background:none;cursor:pointer;white-space:nowrap;flex-shrink:0">Open DD Room →</button>
     </div>`;
   } else if(d.pushed_ioi&&d.pushed_ioi.status==='accepted'){
     html+=`<div class="context-banner cb-live">
@@ -994,6 +1051,10 @@ async function acceptAdminIOI(){
   d.stage='dd';
   d.ioi_agg+=d.pushed_ioi.amount;
   d.ioi_count+=1;
+  // Mark the IOI push notification as read locally
+  (d.notifications||[]).forEach(n=>{if(n.type==='ioi_pushed'&&!n.read){n.read=true;}});
+  NOTIFS.forEach(n=>{if(n.deal_id===d.id&&n.type==='ioi_pushed'&&!n.read)n.read=true;});
+  renderNotifBell(NOTIFS.filter(n=>!n.read).length);
   renderSwitcher();
   renderHeader();
   renderStageJourney();
@@ -1001,14 +1062,23 @@ async function acceptAdminIOI(){
   toast('IOI accepted — deal advanced to Due Diligence','ok');
   // Persist decision via API
   api('POST','/api/v2?resource=advisor&op=respond-package',{dealId:d.id,packageId:d.pushed_ioi.id,decision:'accepted'}).catch(()=>{});
+  // Mark notification read on server
+  api('POST','/api/v2?resource=advisor&op=notifications',{action:'mark-read',ids:'all',dealId:d.id}).catch(()=>{});
 }
 
 async function declineAdminIOI(){
   const d=DEALS[currentDealIdx];
   if(!d.pushed_ioi)return;
   d.pushed_ioi.status='declined';
+  // Mark the IOI push notification as read locally
+  (d.notifications||[]).forEach(n=>{if(n.type==='ioi_pushed'&&!n.read){n.read=true;}});
+  NOTIFS.forEach(n=>{if(n.deal_id===d.id&&n.type==='ioi_pushed'&&!n.read)n.read=true;});
+  renderNotifBell(NOTIFS.filter(n=>!n.read).length);
+  renderSwitcher();
   renderOverview();
   toast('IOI declined — admin has been notified');
+  // Mark notification read on server
+  api('POST','/api/v2?resource=advisor&op=notifications',{action:'mark-read',ids:'all',dealId:d.id}).catch(()=>{});
   // Persist decision via API
   api('POST','/api/v2?resource=advisor&op=respond-package',{dealId:d.id,packageId:d.pushed_ioi.id,decision:'declined'}).catch(()=>{});
 }
@@ -1767,6 +1837,122 @@ function renderMockDeals(){
   renderSwitcher();renderHeader();renderStageJourney();renderOverview();renderMaterials();
 }
 
+/* ── NOTIFICATIONS ── */
+let NOTIFS=[];
+
+async function loadNotifications(){
+  try{
+    const r=await fetchSilent('/api/v2?resource=advisor&op=notifications');
+    if(!r||!r.ok)return;
+    NOTIFS=r.notifications||[];
+    // Merge unread flag back into DEALS so deal card banners stay accurate
+    for(const d of DEALS){
+      d.notifications=(NOTIFS.filter(n=>n.deal_id===d.id)||[]);
+    }
+    renderNotifBell(r.unread_count||0);
+    renderSwitcher(); // refresh banners
+  }catch(e){/* non-fatal */}
+}
+
+function renderNotifBell(count){
+  const btn=document.getElementById('notif-bell-btn');
+  if(!btn)return;
+  // Remove existing badge
+  const old=document.getElementById('notif-badge');
+  if(old)old.remove();
+  if(count>0){
+    btn.classList.add('has-unread');
+    const badge=document.createElement('span');
+    badge.id='notif-badge';
+    badge.className='notif-badge';
+    badge.textContent=count>9?'9+':count;
+    document.getElementById('notif-bell-wrap').appendChild(badge);
+  }else{
+    btn.classList.remove('has-unread');
+  }
+}
+
+function toggleNotifPanel(){
+  const panel=document.getElementById('notif-panel');
+  if(!panel)return;
+  const isOpen=panel.classList.contains('open');
+  if(isOpen){panel.classList.remove('open');return;}
+  renderNotifList();
+  panel.classList.add('open');
+}
+
+function renderNotifList(){
+  const list=document.getElementById('notif-list');
+  if(!list)return;
+  if(!NOTIFS.length){list.innerHTML='<div class="notif-empty">All caught up</div>';return;}
+  list.innerHTML=NOTIFS.map(n=>{
+    const unreadCls=n.read?'':'unread';
+    const icon=n.type==='ioi_pushed'?'$':'↑';
+    const iconCls=n.type==='ioi_pushed'?'ioi':'stage';
+    let text='';
+    if(n.type==='ioi_pushed'){
+      text=`New IOI package · <strong>${fmU(n.amount)}</strong> from ${n.investor_firm||'investor'}`;
+    }else if(n.type==='stage_change'){
+      text=`Deal advanced from <strong>${STAGE_LABEL[n.from_stage]||n.from_stage}</strong> → <strong>${STAGE_LABEL[n.to_stage]||n.to_stage}</strong>`;
+    }
+    const ts=n.pushed_at||n.advanced_at||'';
+    const timeStr=ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    const dealIdx=DEALS.findIndex(d=>d.id===n.deal_id);
+    return`<div class="notif-item ${unreadCls}" onclick="notifClick('${n.id}','${n.deal_id}','${n.type}',${dealIdx})">
+      <div class="notif-icon ${iconCls}">${icon}</div>
+      <div class="notif-body">
+        <div class="notif-deal">${n.deal_name||''}</div>
+        <div class="notif-text">${text}</div>
+        <div class="notif-time">${timeStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function notifClick(notifId,dealId,type,dealIdx){
+  // Close panel
+  document.getElementById('notif-panel').classList.remove('open');
+  // Mark read locally
+  const n=NOTIFS.find(x=>x.id===notifId);
+  if(n)n.read=true;
+  renderNotifBell(NOTIFS.filter(x=>!x.read).length);
+  // Also update on deal
+  if(dealIdx>=0&&DEALS[dealIdx]){
+    const dn=DEALS[dealIdx].notifications?.find(x=>x.id===notifId);
+    if(dn)dn.read=true;
+  }
+  renderSwitcher();
+  // Persist mark-read
+  api('POST','/api/v2?resource=advisor&op=notifications',{action:'mark-read',ids:[notifId]}).catch(()=>{});
+  // Navigate to deal
+  if(dealIdx>=0){
+    showView('deal',document.querySelector('.ntab'));
+    switchDeal(dealIdx);
+    // For IOI push — stay on Overview (already default); for stage change to DD — open Dataroom tab
+    if(type==='stage_change'||type==='ioi_pushed'){
+      // After render, switch to overview to show the IOI push card or DD status
+      setTimeout(()=>showTab('overview',document.querySelector('.ctab')),80);
+    }
+  }
+}
+
+async function markAllNotifRead(){
+  NOTIFS.forEach(n=>{n.read=true;});
+  for(const d of DEALS){if(d.notifications)d.notifications.forEach(n=>{n.read=true;});}
+  renderNotifBell(0);
+  renderNotifList();
+  renderSwitcher();
+  api('POST','/api/v2?resource=advisor&op=notifications',{action:'mark-read',ids:'all'}).catch(()=>{});
+}
+
+// Close panel on outside click
+document.addEventListener('click',function(e){
+  const wrap=document.getElementById('notif-bell-wrap');
+  if(wrap&&!wrap.contains(e.target)){
+    document.getElementById('notif-panel')?.classList.remove('open');
+  }
+});
+
 async function load(){
   renderLoading();
   const me=await fetchSilent('/api/me');
@@ -1791,6 +1977,8 @@ async function load(){
         document.getElementById('deal-tabs')&&(document.getElementById('deal-tabs').style.display='');
         document.getElementById('stage-journey')&&(document.getElementById('stage-journey').style.display='');
         renderSwitcher();renderHeader();renderStageJourney();renderOverview();renderMaterials();
+        // Load notifications after deals are set
+        loadNotifications();
       } else {
         // No live deals yet — show mock data so portal always looks populated
         renderMockDeals();

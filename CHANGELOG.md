@@ -4,6 +4,23 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor notification chain: IOI push + stage change alerts
+
+### Changes
+- `api/v2.js` `push-package`: appends `{ type:'ioi_pushed', ioi_id, investor_firm, amount, pushed_at, read:false }` to `deal.notifications[]` whenever admin pushes an IOI package to an advisor
+- `api/v2.js` `deals` POST update handler: appends `{ type:'stage_change', from_stage, to_stage, advanced_at, read:false }` to `deal.notifications[]` whenever a stage transition is detected
+- `api/v2.js` new `resource=advisor&op=notifications` endpoint: GET returns all notifications across advisor's deals sorted newest-first with `unread_count`; POST `action=mark-read` marks notification(s) as read by id or `'all'` (optionally scoped to `dealId`)
+- `advisor-portal.html` CSS: added `.notif-bell-wrap`, `.notif-bell-btn`, `.notif-badge`, `.notif-panel`, `.notif-item`, `.ds-ioi-banner` styles; bell pulses via existing `breathe` animation when unread
+- `advisor-portal.html` nav: added notification bell button with badge and dropdown panel between role-badge and theme toggle
+- `advisor-portal.html` `adaptDeal`: carries `notifications` array from API response
+- `advisor-portal.html` `renderSwitcher`: shows gold/amber "New IOI Package · $X" banner pill on deal switcher button when deal has unread `ioi_pushed` notification
+- `advisor-portal.html` `renderOverview`: added prominent blue "DD Room Active" context banner for deals in `dd` stage with "Open DD Room →" shortcut button
+- `advisor-portal.html` `acceptAdminIOI` / `declineAdminIOI`: marks IOI push notifications as read locally + persists to server on advisor action
+- `advisor-portal.html` `loadNotifications()`: fetches notifications endpoint on load, merges data back into DEALS, refreshes bell badge and switcher banners
+- `advisor-portal.html` `renderNotifBell`, `toggleNotifPanel`, `renderNotifList`, `notifClick`, `markAllNotifRead`: full notification dropdown UI — click navigates to deal, marks notification read, outside-click closes panel
+
+---
+
 ## [2026-05-01] — Admin portal nav fix, auto-reseed, mock name scrub (frontend)
 
 ### Changes
