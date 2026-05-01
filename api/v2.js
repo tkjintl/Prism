@@ -1,7 +1,7 @@
 import { verifyToken, signToken, signResetCode, verifyResetToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
 import { ok, bad, unauth, getCookie, setCookieHeader } from './_lib/http.js';
 import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, healthCheck } from './_lib/storage.js';
-import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals } from './_lib/deal-storage.js';
+import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
   sendDataRoomAccess, sendAccessApplication,
@@ -440,6 +440,7 @@ export default async function handler(req, res) {
       await seedAdvisors();
       await seedInvestors();
       const dealIds = await seedDeals(true); // force=true so re-seeding updates existing records
+      await seedIois(true);
       return ok(res, { seeded: true, dealIds });
     }
 
