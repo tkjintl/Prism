@@ -605,7 +605,7 @@ async function fetchSilent(url){try{const r=await fetch(url,{credentials:'includ
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
 function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--surface,#131210);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
 const LOGO_COLORS={infra:{c:'#7B8FA1',bg:'rgba(123,143,161,0.12)',bd:'rgba(123,143,161,0.3)'},credit:{c:'#5b85b8',bg:'rgba(91,133,184,0.12)',bd:'rgba(91,133,184,0.3)'},pe:{c:'#C5A572',bg:'rgba(197,165,114,0.12)',bd:'rgba(197,165,114,0.3)'},re:{c:'#5a9e72',bg:'rgba(90,158,114,0.12)',bd:'rgba(90,158,114,0.3)'}};
-function adaptDeal(d,idx){const lc=LOGO_COLORS[d.asset_class]||LOGO_COLORS.credit;return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,featured:idx===0,tagline:d.mk_notes||d.tagline||'Private investment opportunity via Aurum Prism.',thesis:d.mk_notes||d.thesis||'',highlights:Array.isArray(d.highlights)&&d.highlights.length?d.highlights:[{icon:'◆',s:'Curated Opportunity',b:'Reviewed and approved by the Aurum Prism investment committee.'}],company:d.originator||d.name,ticker:(d.name||'???').replace(/[^A-Z]/gi,'').slice(0,3).toUpperCase(),logo_color:lc.c,logo_bg:lc.bg,logo_bd:lc.bd,ioi_investors:[]};}
+function adaptDeal(d,idx){const lc=LOGO_COLORS[d.asset_class]||LOGO_COLORS.credit;return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,hurdle:d.hurdle||d.hurdle_rate||8,featured:idx===0,tagline:d.mk_notes||d.tagline||'Private investment opportunity via Aurum Prism.',thesis:d.mk_notes||d.thesis||'',highlights:Array.isArray(d.highlights)&&d.highlights.length?d.highlights:[{icon:'◆',s:'Curated Opportunity',b:'Reviewed and approved by the Aurum Prism investment committee.'}],company:d.originator||d.name,ticker:(d.name||'???').replace(/[^A-Z]/gi,'').slice(0,3).toUpperCase(),logo_color:lc.c,logo_bg:lc.bg,logo_bd:lc.bd,ioi_investors:[]};}
 
 /* ── MOCK DATA ── */
 let DEALS = [
@@ -697,6 +697,14 @@ let ndaSigned  = {};
 const fmU    = n => { if(!n)return'—'; if(n>=1e9)return'$'+(n/1e9).toFixed(1)+'B'; if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M'; if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K'; return'$'+n; };
 const fmFull = n => '$'+n.toLocaleString();
 
+function fmtAmtInput(el) {
+  const raw = parseInt(el.value.replace(/[^0-9]/g,'')) || 0;
+  el.value = raw ? raw.toLocaleString('en-US') : '';
+}
+function readAmt(el) {
+  return parseInt((el.value||'').replace(/[^0-9]/g,'')) || 0;
+}
+
 function toast(msg, k='') {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast show ' + k;
@@ -714,8 +722,10 @@ function showView(name, btn) {
 
 /* ── LOBBY ── */
 function initLobby() {
-  const featured = DEALS.find(d => d.featured) || DEALS[0];
-  const others   = DEALS.filter(d => !d.featured);
+  // Exclude preview-mode deals from public marketplace
+  const publicDeals = DEALS.filter(d => !d.launch_mode || d.launch_mode !== 'preview');
+  const featured = publicDeals.find(d => d.featured) || publicDeals[0];
+  const others   = publicDeals.filter(d => !d.featured);
   const pct      = Math.round(featured.ioi_agg / featured.target_alloc * 100);
   const days     = Math.round((new Date(featured.closing) - new Date()) / 86400000);
   const overSub  = pct >= 90;
@@ -799,11 +809,10 @@ function initLobby() {
 }
 
 /* ── DEAL DETAIL ── */
-function openDeal(id, action) {
+async function openDeal(id, action) {
   const d = DEALS.find(x => x.id === id);
   if(!d) return;
   activeDeal = id;
-  const signed  = !!ndaSigned[id];
   const ci      = STAGE_ORDER.indexOf(d.stage);
   const pct     = Math.round(d.ioi_agg / d.target_alloc * 100);
   const days    = Math.round((new Date(d.closing) - new Date()) / 86400000);
@@ -816,24 +825,48 @@ function openDeal(id, action) {
     return `<div class="tl-node ${cls}"><div class="tl-circle">${icon}</div><div class="tl-lbl">${STAGE_LABELS[s]}</div></div>`;
   }).join('')}</div></div>`;
 
-  // Documents
-  const DOCS = [
-    {key:'nda',    icon:'🔑', label:'NDA Template',          name:'NDA_'+d.ticker+'_v2.pdf',           size:'284 KB',  gate:'public'},
-    {key:'teaser', icon:'📄', label:'Investment Deck',        name:d.ticker+'_Investment_Deck.pdf',      size:'3.2 MB',  gate:'nda'},
-    {key:'im',     icon:'📄', label:'Information Memorandum', name:d.ticker+'_Memorandum_v3.pdf',        size:'5.8 MB',  gate:'nda'},
-    {key:'financials',icon:'📊',label:'Financial Summary',    name:d.ticker+'_Financials_Q1_2026.xlsx',  size:'1.1 MB',  gate:'nda'},
-    {key:'model',  icon:'📊', label:'Financial Model',        name:'Model — Due Diligence Stage',        size:'DD Only', gate:'dd'},
-  ];
-  const docsHtml = DOCS.map(doc => {
-    const locked  = doc.gate === 'dd' || (doc.gate === 'nda' && !signed);
-    const isPublic = doc.gate === 'public';
-    return `<div class="doc-card ${locked && !isPublic ? 'locked' : 'unlocked'}" onclick="${!locked || isPublic ? `toast('Opening ${doc.label}…','ok')` : `toast('Sign NDA to unlock','err')`}">
-      <div class="doc-card-icon">${doc.icon}</div>
+  // Fetch real docs from API
+  let realDocs = [];
+  let apiNdaSigned = false;
+  const docsRes = await fetchSilent(`/api/v2?resource=inst&op=inst-deal-docs&dealId=${id}`);
+  if (docsRes?.docs?.length) {
+    realDocs = docsRes.docs;
+    apiNdaSigned = docsRes.nda_signed || false;
+    if (apiNdaSigned) ndaSigned[id] = true;
+  }
+  const signed = !!ndaSigned[id];
+
+  // Documents — gated by IOI submission stage
+  const SLOT_ICON = { nda: '🔑', mgmt: '📄', fin: '📊', term: '📋' };
+  const hasIoi = PORTFOLIO.some(p => p.deal_id === id);
+  const ndaDocEntry = { slot: 'nda', label: 'NDA Template', name: 'NDA_'+d.ticker+'_v1.pdf', gate: 'public', accessible: true };
+  let docs;
+  if (!hasIoi) {
+    docs = [ndaDocEntry];
+  } else {
+    const fullFallback = [
+      ndaDocEntry,
+      { slot: 'mgmt', label: 'Management Presentation', name: d.ticker+'_ManagementDeck.pdf', gate: 'nda', accessible: signed },
+      { slot: 'fin',  label: 'Financial Summary',       name: d.ticker+'_Financials.xlsx',    gate: 'nda', accessible: signed },
+      { slot: 'term', label: 'Term Sheet',               name: d.ticker+'_TermSheet.pdf',      gate: 'nda', accessible: signed },
+    ];
+    docs = realDocs.length ? realDocs.map(doc => ({...doc, accessible: doc.gate === 'public' || signed})) : fullFallback;
+  }
+
+  const docsLockedNote = !hasIoi
+    ? `<div style="font-size:12px;color:var(--text-3);font-family:var(--sans);margin-top:10px;padding:10px 12px;background:var(--bg-3);border-radius:var(--r);border:1px solid var(--border)">Additional documents — Management Presentation, Financials, Term Sheet — unlock after submitting an expression of interest.</div>`
+    : '';
+
+  const docsHtml = docs.map(doc => {
+    const locked = !doc.accessible;
+    const icon = SLOT_ICON[doc.slot] || '📄';
+    return `<div class="doc-card ${locked ? 'locked' : 'unlocked'}" onclick="${!locked ? `viewInvestorDoc('${id}','${doc.slot}')` : `toast('Sign NDA to unlock','err')`}">
+      <div class="doc-card-icon">${icon}</div>
       <div class="doc-card-type">${doc.label}</div>
-      <div class="doc-card-name">${isPublic || (!locked) ? doc.name : doc.key === 'model' ? doc.name : '••••••••••.pdf'}</div>
-      <div class="doc-card-size">${isPublic || (!locked) ? doc.size : '—'}</div>
-      <div class="doc-lock-badge ${locked && !isPublic ? 'dlb-locked' : 'dlb-unlocked'}">
-        ${isPublic ? '🌐 Public' : locked ? '🔒 ' + (doc.gate === 'dd' ? 'DD Stage' : 'NDA Required') : '🔓 Available'}
+      <div class="doc-card-name">${locked ? '••••••••••.pdf' : (doc.name || doc.label)}</div>
+      <div class="doc-card-size">${locked ? '—' : (doc.size || 'Available')}</div>
+      <div class="doc-lock-badge ${locked ? 'dlb-locked' : 'dlb-unlocked'}">
+        ${doc.gate === 'public' ? '🌐 Public' : locked ? '🔒 NDA Required' : '🔓 Available'}
       </div>
     </div>`;
   }).join('');
@@ -864,6 +897,7 @@ function openDeal(id, action) {
     <div class="docs-section">
       <div class="chart-lbl" style="margin-bottom:12px">Deal Documents</div>
       <div class="docs-grid">${docsHtml}</div>
+      ${docsLockedNote}
     </div>`;
 
   // Right panel
@@ -903,12 +937,12 @@ function openDeal(id, action) {
         </div>` : ''}
         <div id="ioi-form-inner" style="${!signed ? 'opacity:.35;pointer-events:none' : ''}">
           <label class="ioi-lbl">Indication Amount (USD)</label>
-          <input type="number" class="ioi-input" id="ioi-input" value="${d.min_ticket}" min="${d.min_ticket}" step="${d.min_ticket >= 250000 ? 250000 : 50000}">
-          <input type="range" class="ioi-slider" id="ioi-slider" min="${d.min_ticket}" max="${Math.min(d.target_alloc, 10000000)}" step="${d.min_ticket >= 250000 ? 250000 : 50000}" value="${d.min_ticket}">
+          <input type="text" inputmode="numeric" class="ioi-input" id="ioi-input" value="500,000" oninput="fmtAmtInput(this);syncSlider()">
+          <input type="range" class="ioi-slider" id="ioi-slider" min="100000" max="5000000" step="100000" value="500000">
           <div class="slider-marks">
-            <span class="sm">${fmU(d.min_ticket)}</span>
-            <span class="sm">${fmU(Math.min(d.target_alloc, 10000000) / 2)}</span>
-            <span class="sm">${fmU(Math.min(d.target_alloc, 10000000))}</span>
+            <span class="sm">$100K</span>
+            <span class="sm">$2.5M</span>
+            <span class="sm">$5M</span>
           </div>
           <div class="ioi-est">
             <span class="ioi-est-lbl">Est. annual return at base case</span>
@@ -956,14 +990,18 @@ function openDeal(id, action) {
 
   // Slider sync
   function syncSlider() {
-    const v = parseInt(document.getElementById('ioi-input').value) || 0;
-    document.getElementById('ioi-slider').value = v;
-    document.getElementById('ioi-est').textContent = fmFull(Math.round(v * d.target_irr / 100)) + ' / yr';
+    const v = readAmt(document.getElementById('ioi-input'));
+    const sldEl = document.getElementById('ioi-slider');
+    if(sldEl) sldEl.value = Math.min(v, 5000000);
+    const estEl = document.getElementById('ioi-est');
+    if(estEl) estEl.textContent = v > 0 ? fmFull(Math.round(v * d.target_irr / 100)) + ' / yr' : '—';
   }
-  const inp = document.getElementById('ioi-input');
   const sld = document.getElementById('ioi-slider');
-  if(inp) inp.addEventListener('input', syncSlider);
-  if(sld) sld.addEventListener('input', function() { document.getElementById('ioi-input').value = this.value; syncSlider(); });
+  if(sld) sld.addEventListener('input', function() {
+    const inp = document.getElementById('ioi-input');
+    inp.value = parseInt(this.value).toLocaleString('en-US');
+    syncSlider();
+  });
   syncSlider();
 
   document.getElementById('view-deal').classList.add('open');
@@ -971,7 +1009,7 @@ function openDeal(id, action) {
   if(action === 'ioi') setTimeout(() => document.getElementById('ioi-form')?.scrollIntoView({ behavior: 'smooth' }), 450);
 }
 
-function signNda(dealId) {
+async function signNda(dealId) {
   const checked = document.getElementById('nda-toggle').checked;
   ndaSigned[dealId] = checked;
   const inner = document.getElementById('ioi-form-inner');
@@ -980,6 +1018,8 @@ function signNda(dealId) {
     inner.style.pointerEvents = checked ? '' : 'none';
   }
   if(checked) {
+    // Record NDA sign via API (fire and forget — don't block UI)
+    api('POST', '/api/v2?resource=inst&op=record-nda', { dealId }).catch(() => {});
     toast('NDA agreed — documents unlocked', 'ok');
     // Refresh doc cards
     setTimeout(() => openDeal(dealId), 300);
@@ -994,8 +1034,8 @@ function checkAcks() {
 
 async function submitIoi() {
   const d   = DEALS.find(x => x.id === activeDeal);
-  const amt = parseInt(document.getElementById('ioi-input')?.value) || 0;
-  if(!d || amt < d.min_ticket) { toast(`Minimum indication: ${fmU(d?.min_ticket || 0)}`, 'err'); return; }
+  const amt = readAmt(document.getElementById('ioi-input'));
+  if(!d || amt < 100000) { toast('Minimum indication: $100K', 'err'); return; }
   const cta = document.getElementById('ioi-cta');
   if(cta){cta.disabled=true;cta.textContent='Submitting…';}
   const r = await api('POST','/api/marketplace/ioi',{deal_id:d.id,amount:amt,notes:''});
@@ -1035,6 +1075,22 @@ function closeDeal() {
   activeDeal = null;
 }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDeal(); });
+
+async function viewInvestorDoc(dealId, slot) {
+  const res = await fetchSilent(`/api/v2?resource=admin&op=deal-docs&dealId=${dealId}`);
+  if (!res?.docs?.[slot]) { toast('Document not available', 'err'); return; }
+  const doc = res.docs[slot];
+  const b64 = doc.data;
+  if (!b64) { toast('Document not available', 'err'); return; }
+  try {
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    const blob = new Blob([arr], { type: doc.type || 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } catch { toast('Error opening document', 'err'); }
+}
 
 /* ── PORTFOLIO ── */
 function renderPortfolio() {

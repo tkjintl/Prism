@@ -404,6 +404,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .lr-check-warn{background:var(--amber-bg);border:1px solid var(--amber-bd);color:var(--amber)}
 .lr-check-lbl{color:var(--text-2)}
 .lr-check-lbl.missing{color:var(--text-3)}
+/* Launch Review tabs */
+.lr-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 clamp(20px,5vw,72px);background:var(--surface)}
+[data-theme="dark"] .lr-tabs{background:var(--bg-2)}
+.lr-tab{padding:12px 20px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);border-bottom:2px solid transparent;transition:all .15s;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none}
+.lr-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.lr-tab:hover:not(.active){color:var(--text-2)}
 @media(max-width:640px){.dp-row{grid-template-columns:1fr auto}.dp-bar-wrap,.dp-advisor{display:none}}
 
 /* ── DEAL DETAIL PANEL ── */
@@ -815,6 +821,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     </div>
     <button class="lr-publish-btn" id="lr-publish-btn" onclick="confirmPublish()">Publish to Investor Portal →</button>
   </div>
+  <div class="lr-tabs">
+    <button class="lr-tab active" id="lr-tab-edit" onclick="switchLRTab('edit')">Edit Content</button>
+    <button class="lr-tab" id="lr-tab-preview" onclick="switchLRTab('preview')">Investor Preview</button>
+  </div>
+  <div id="lr-edit-view">
   <div class="lr-body">
     <div class="lr-cols">
       <!-- LEFT: content review -->
@@ -938,6 +949,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       </div>
     </div>
   </div>
+  </div><!-- /lr-edit-view -->
+  <div id="lr-preview-view" style="display:none;padding:40px clamp(20px,5vw,72px)">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border)">INVESTOR PORTAL PREVIEW — as seen by approved investors</div>
+    <div id="lr-preview-content"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1026,6 +1042,13 @@ const fmU=n=>{
   if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';
   return'$'+n;
 };
+function fmtAmtInput(el){
+  const raw=parseInt(el.value.replace(/[^0-9]/g,''))||0;
+  el.value=raw?raw.toLocaleString('en-US'):'';
+}
+function readAmt(el){
+  return parseInt((el.value||'').replace(/[^0-9]/g,''))||0;
+}
 const pendingCount=()=>DEALS.reduce((s,d)=>s+d.iois.filter(i=>i.status==='pending').length,0);
 
 function toast(msg,k=''){
@@ -1585,9 +1608,10 @@ function renderPipeline(){
                 <label class="ds-param-lbl">Platform Allocation <span style="color:var(--text-3)">— how much to market to investors</span></label>
                 <div class="ds-param-input-wrap">
                   <span class="ds-param-prefix">$</span>
-                  <input class="ds-param-input" id="pa-alloc-${s.id}" type="number"
+                  <input class="ds-param-input" id="pa-alloc-${s.id}" type="text" inputmode="numeric"
                     placeholder="${(s.target_alloc||s.target_alloc_usd||0).toLocaleString()}"
-                    value="${s.platform_alloc_usd||''}"
+                    value="${s.platform_alloc_usd ? s.platform_alloc_usd.toLocaleString() : ''}"
+                    oninput="fmtAmtInput(this)"
                     title="Advisor stated capacity: ${fmU(s.target_alloc||s.target_alloc_usd)}">
                   <span class="ds-param-hint">Advisor capacity: ${fmU(s.target_alloc||s.target_alloc_usd)}</span>
                 </div>
@@ -1596,9 +1620,10 @@ function renderPipeline(){
                 <label class="ds-param-lbl">Platform Min Ticket <span style="color:var(--text-3)">— our platform minimum</span></label>
                 <div class="ds-param-input-wrap">
                   <span class="ds-param-prefix">$</span>
-                  <input class="ds-param-input" id="pa-ticket-${s.id}" type="number"
+                  <input class="ds-param-input" id="pa-ticket-${s.id}" type="text" inputmode="numeric"
                     placeholder="${(s.min_ticket||s.min_ticket_usd||0).toLocaleString()}"
-                    value="${s.platform_min_ticket_usd||''}"
+                    value="${s.platform_min_ticket_usd ? s.platform_min_ticket_usd.toLocaleString() : ''}"
+                    oninput="fmtAmtInput(this)"
                     title="Advisor requested: ${fmU(s.min_ticket||s.min_ticket_usd)}">
                   <span class="ds-param-hint">Advisor ask: ${fmU(s.min_ticket||s.min_ticket_usd)}</span>
                 </div>
@@ -1663,8 +1688,8 @@ function renderPipeline(){
 
 /* ── PLATFORM PARAMS ── */
 async function savePlatformParams(dealId){
-  const alloc=parseInt(document.getElementById('pa-alloc-'+dealId)?.value)||null;
-  const ticket=parseInt(document.getElementById('pa-ticket-'+dealId)?.value)||null;
+  const alloc=readAmt(document.getElementById('pa-alloc-'+dealId))||null;
+  const ticket=readAmt(document.getElementById('pa-ticket-'+dealId))||null;
   await api('POST','/api/v2?resource=admin&op=set-platform-params',{dealId,platform_alloc_usd:alloc,platform_min_ticket_usd:ticket});
   const sub=NEW_SUBMISSIONS.find(s=>s.id===dealId);
   if(sub){if(alloc)sub.platform_alloc_usd=alloc;if(ticket)sub.platform_min_ticket_usd=ticket;}
@@ -1820,20 +1845,20 @@ function showAIOutput(deal,generated){
     tagline:`${deal.name} — ${deal.geography} capital at institutional scale`,
     thesis:`${deal.name} offers qualified investors a compelling opportunity in ${(deal.geography||'').toLowerCase()} ${deal.asset_class==='infra'?'infrastructure':'private markets'}, targeting ${deal.target_irr}% net IRR over a ${deal.term}-month investment horizon. The fund employs a ${(deal.structure||'').toLowerCase()} structure with a minimum ticket of ${fmU(deal.min_ticket)}, making it accessible to institutional allocators and sophisticated family offices. The advisor team has an established track record in the sector with institutional-grade diligence processes.`,
     highlights:[
-      `${deal.target_irr}% target net IRR with ${(deal.structure||'').toLowerCase()} capital protection`,
-      `${deal.term}-month investment term with quarterly reporting to investors`,
-      `${fmU(deal.target_alloc)} total raise — ${deal.ioi_agg?Math.round(deal.ioi_agg/deal.target_alloc*100)+'% already indicated':'accepting IOIs'}`,
-      `Target close ${deal.closing?new Date(deal.closing).toLocaleDateString('en-US',{month:'long',year:'numeric'}):'TBD'} — limited remaining capacity`,
+      { icon: '◆', s: `${deal.target_irr}% Target IRR`, b: `${(deal.structure||'').toLowerCase()} capital structure targeting ${deal.target_irr}% net IRR.` },
+      { icon: '📅', s: `${deal.term}-Month Term`, b: `Fixed ${deal.term}-month investment horizon with quarterly reporting.` },
+      { icon: '🌍', s: `${(deal.geography||'').split('·')[0].trim()} Focus`, b: `Geographic focus with institutional-grade diligence and deal structuring.` },
+      { icon: '🏦', s: `Minimum ${fmU(deal.min_ticket)}`, b: `Accessible to institutional allocators and sophisticated family offices.` },
     ],
     stats:{irr:`${deal.target_irr}%`,term:`${deal.term}mo`,ticket:fmU(deal.min_ticket),geo:(deal.geography||'').split('·')[0].trim()}
   }:{
     tagline:'Infrastructure capital at the convergence of Asia and North America',
     thesis:'Pacific Bridge Infrastructure offers a compelling senior secured opportunity in cross-Pacific transport and logistics infrastructure, targeting 11% net IRR over an 84-month term. The fund structure provides downside protection through first-lien security on hard assets.',
     highlights:[
-      '11% target net IRR with senior secured capital position',
-      '84-month investment term with semi-annual distributions',
-      '$60M total raise — 97.5% already indicated by qualified investors',
-      'Target close July 2026 — limited remaining allocation',
+      { icon: '◆', s: '11% Target IRR', b: 'Senior secured capital structure targeting 11% net IRR with first-lien asset security.' },
+      { icon: '📅', s: '84-Month Term', b: 'Fixed 84-month investment horizon with semi-annual distributions to investors.' },
+      { icon: '🌍', s: 'Asia-Pacific Focus', b: 'Cross-Pacific transport and logistics infrastructure with institutional-grade diligence.' },
+      { icon: '🏦', s: 'Minimum $500K', b: 'Accessible to institutional allocators and sophisticated family offices.' },
     ],
     stats:{irr:'11%',term:'84mo',ticket:'$500K',geo:'Asia-Pacific'},
   };
@@ -1853,7 +1878,7 @@ function showAIOutput(deal,generated){
     </div>
     <div class="ai-out-section" style="animation-delay:.25s">
       <div class="ai-out-label">Key Highlights</div>
-      <div class="ai-highlights">${outputs.highlights.map((h,i)=>`<div class="ai-hl-item"><div class="ai-hl-bullet">${i+1}</div><span>${h}</span></div>`).join('')}</div>
+      <div class="ai-highlights">${outputs.highlights.map((h,i)=>{const text=typeof h==='string'?h:`<strong>${h.s}</strong> — ${h.b}`;return`<div class="ai-hl-item"><div class="ai-hl-bullet">${i+1}</div><span>${text}</span></div>`;}).join('')}</div>
     </div>
     <div class="ai-out-section" style="animation-delay:.35s">
       <div class="ai-out-label">Key Stats</div>
@@ -2281,6 +2306,9 @@ function openLaunchReview(deal,content){
   requestAnimationFrame(()=>panel.classList.add('lrp-open'));
   panel.scrollTop=0;
 
+  // Reset to Edit tab on open
+  switchLRTab('edit');
+
   // Header
   document.getElementById('lr-deal-name').textContent=deal.name||'Untitled Deal';
   document.getElementById('lr-stage-chip').textContent=(STAGE_LABELS[deal.stage]||deal.stage||'Review').toUpperCase();
@@ -2353,8 +2381,9 @@ function handleAllSegments(cb){
 function buildHighlightRow(text,num){
   const row=document.createElement('div');
   row.className='lr-highlight-row';
+  const displayText=typeof text==='object'&&text!==null?(text.s&&text.b?`${text.s} — ${text.b}`:text.s||text.b||''):(text||'');
   row.innerHTML=`<div class="lr-hl-num">${num}</div>
-    <input class="lr-hl-input" type="text" value="${(text||'').replace(/"/g,'&quot;')}" placeholder="Key highlight…">
+    <input class="lr-hl-input" type="text" value="${displayText.replace(/"/g,'&quot;')}" placeholder="Key highlight…">
     <button class="lr-hl-del" onclick="removeHighlight(this)" title="Remove">×</button>`;
   return row;
 }
@@ -2438,6 +2467,65 @@ function buildLaunchChecklist(deal,content){
       <div class="lr-check-icon ${item.ok?'lr-check-ok':'lr-check-warn'}">${item.ok?'✓':'·'}</div>
       <span class="lr-check-lbl${item.ok?'':' missing'}">${item.label}</span>
     </div>`).join('');
+}
+
+function switchLRTab(tab){
+  document.getElementById('lr-edit-view').style.display=tab==='edit'?'':'none';
+  document.getElementById('lr-preview-view').style.display=tab==='preview'?'':'none';
+  document.querySelectorAll('.lr-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('lr-tab-'+tab).classList.add('active');
+  if(tab==='preview')renderLRPreview();
+}
+
+function renderLRPreview(){
+  const deal=_launchDeal;
+  if(!deal)return;
+  const tagline=document.getElementById('lr-tagline')?.value||_launchContent?.tagline||'';
+  const thesis=document.getElementById('lr-thesis')?.value||_launchContent?.thesis||'';
+  // Read highlights from editable input rows
+  const hlEls=document.querySelectorAll('.lr-hl-input');
+  const highlights=Array.from(hlEls).map(el=>{
+    const txt=el.value||'';
+    return{icon:'◆',s:txt.split(' — ')[0]?.slice(0,50)||txt.slice(0,50),b:txt.split(' — ')[1]||txt};
+  });
+  const irr=document.getElementById('lr-stat-irr')?.value||deal.target_irr||'—';
+  const term=document.getElementById('lr-stat-term')?.value||deal.term||'—';
+  const ticket=document.getElementById('lr-stat-ticket')?.value||fmU(deal.min_ticket||deal.min_ticket_usd||0);
+  const alloc=deal.target_alloc||deal.target_alloc_usd||0;
+  const ioi_agg=deal.ioi_agg||0;
+  const pct=alloc>0?Math.round(ioi_agg/alloc*100):0;
+  const hlCards=highlights.map((h,i)=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;animation-delay:${i*55}ms">
+      <div style="font-size:16px;margin-bottom:6px">${h.icon}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${h.s}</div>
+      <div style="font-size:13px;color:var(--text-2);line-height:1.6">${h.b}</div>
+    </div>`).join('');
+  const statGrid=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px">
+      <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3)">Target IRR</div><div style="font-family:var(--mono);font-size:20px;color:var(--gold)">${irr}%</div></div>
+      <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3)">Term</div><div style="font-family:var(--mono);font-size:20px">${term}mo</div></div>
+      <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3)">Min Ticket</div><div style="font-family:var(--mono);font-size:20px">${ticket}</div></div>
+      <div style="padding:14px 16px;background:var(--surface)"><div style="font-size:11px;color:var(--text-3)">Allocation</div><div style="font-family:var(--mono);font-size:20px">${fmU(alloc)}</div></div>
+    </div>`;
+  document.getElementById('lr-preview-content').innerHTML=`
+    <div style="max-width:900px">
+      <div style="margin-bottom:8px"><span style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)">Featured Opportunity</span></div>
+      <h1 style="font-family:var(--serif);font-style:italic;font-size:clamp(32px,5vw,56px);color:var(--text);margin-bottom:12px;line-height:1.1">${deal.name||'—'}</h1>
+      <p style="font-size:14px;color:var(--text-2);line-height:1.8;max-width:560px;margin-bottom:28px">${tagline}</p>
+      <div style="display:grid;grid-template-columns:1fr 360px;gap:40px;align-items:start">
+        <div>
+          <p style="font-size:14px;line-height:1.9;color:var(--text-2);margin-bottom:24px;padding:14px 16px;background:var(--bg-3);border-radius:4px;border-left:2px solid var(--gold-bd)">${thesis}</p>
+          <div style="display:grid;gap:8px;margin-bottom:28px">${hlCards}</div>
+        </div>
+        <div>${statGrid}
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px">
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px">Express Interest</div>
+            <div style="font-size:12px;color:var(--text-3);padding:12px;background:var(--bg-3);border-radius:var(--r);text-align:center">Subscription bar: ${pct}% indicated<br><span style="font-family:var(--mono)">${fmU(ioi_agg)} of ${fmU(alloc)}</span></div>
+            <div style="margin-top:12px;width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden"><div style="width:${Math.min(pct,100)}%;height:100%;background:var(--gold)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
 }
 
 async function confirmPublish(){

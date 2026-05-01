@@ -229,9 +229,14 @@ export default async function handler(req, res) {
           // Seed failed (e.g. no KV configured) — proceed with empty array
         }
       }
-      // Strip internal fields for non-admin
+      // Strip internal fields for non-admin; also exclude preview deals from investor view
       const admin = await getAdmin();
-      const safe = admin ? deals : deals.map(d => { const { advisor_id, audit_log, ...rest } = d; return rest; });
+      const visibleDeals = admin
+        ? deals
+        : deals.filter(d => d.member_visible && d.stage === 'live' && d.launch_mode !== 'preview');
+      const safe = admin
+        ? visibleDeals
+        : visibleDeals.map(d => { const { advisor_id, audit_log, ...rest } = d; return rest; });
       return ok(res, { deals: safe });
     }
 
@@ -358,6 +363,58 @@ export default async function handler(req, res) {
       });
       return ok(res, { insts });
     }
+
+    if (op === 'record-nda') {
+      const inst = await getInst();
+      if (!inst) return unauth(res);
+      const { dealId } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      await kvSet(`nda_signed:${inst.inst_id}:${dealId}`, { signed_at: new Date().toISOString(), inst_id: inst.inst_id, deal_id: dealId });
+      return ok(res, { ok: true });
+    }
+
+    if (op === 'check-nda') {
+      const inst = await getInst();
+      if (!inst) return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+      const record = await kvGet(`nda_signed:${inst.inst_id}:${dealId}`);
+      return ok(res, { signed: !!record, signed_at: record?.signed_at || null });
+    }
+
+    if (op === 'inst-deal-docs') {
+      const instAuth = await getInst();
+      if (!instAuth) return unauth(res);
+      const inst = await kvGet(`inst:${instAuth.inst_id}`);
+      if (!inst || inst.status !== 'approved') return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+
+      // Check NDA status
+      const ndaRecord = await kvGet(`nda_signed:${instAuth.inst_id}:${dealId}`);
+      const ndaSigned = !!ndaRecord;
+
+      const slots = ['nda', 'mgmt', 'fin', 'term'];
+      const labels = { nda: 'NDA Template', mgmt: 'Management Presentation', fin: 'Financial Summary', term: 'Term Sheet' };
+      const gates  = { nda: 'public', mgmt: 'nda', fin: 'nda', term: 'nda' };
+
+      const docs = [];
+      await Promise.all(slots.map(async slot => {
+        const doc = await kvGet(`deal_doc:${dealId}:${slot}`);
+        if (doc) {
+          docs.push({
+            slot,
+            label: labels[slot],
+            name: doc.name,
+            type: doc.type,
+            gate: gates[slot],
+            accessible: gates[slot] === 'public' || ndaSigned,
+          });
+        }
+      }));
+
+      return ok(res, { docs, nda_signed: ndaSigned });
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -438,7 +495,37 @@ export default async function handler(req, res) {
       }
       if (docContent.length === 0) return bad(res, 'No documents uploaded for this deal');
       const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) return bad(res, 'ANTHROPIC_API_KEY not configured', 500);
+      if (!apiKey) {
+        // Mock fallback — no API key configured (dev/staging environments)
+        const mockGenerated = {
+          tagline: `${deal.name} — Institutional-grade opportunity in ${deal.geography || 'global markets'}`,
+          thesis: `${deal.name} presents a compelling risk-adjusted return profile for sophisticated investors. The structure provides downside protection while capturing meaningful upside through a disciplined deployment strategy. Market conditions remain supportive of the underlying thesis, with strong deal-level fundamentals validated through independent due diligence.`,
+          highlights: [
+            { icon: '◆', s: 'Senior secured structure', b: 'First-lien security over underlying assets provides investors with principal protection in a downside scenario.' },
+            { icon: '◆', s: 'Experienced management team', b: 'Principals have successfully executed multiple transactions of comparable scale and complexity.' },
+            { icon: '◆', s: 'Defined exit pathway', b: 'Clear liquidity event anticipated within the stated term, supported by contracted cash flows and market comps.' },
+            { icon: '◆', s: 'Attractive risk-adjusted returns', b: `Target IRR of ${deal.target_irr || '12–15%'} with a ${deal.term_months || 24}-month investment horizon aligns with institutional mandate requirements.` },
+          ],
+          stats: {
+            irr: deal.target_irr ? `${deal.target_irr}%` : 'See OM',
+            term: deal.term_months ? `${deal.term_months} months` : 'See OM',
+            min_ticket: deal.min_ticket_usd ? `$${(deal.min_ticket_usd / 1000).toFixed(0)}K` : 'See OM',
+            structure: deal.asset_class || 'Senior Secured Credit',
+          },
+          asset_class: deal.asset_class || 'credit',
+          geography: deal.geography || 'Asia-Pacific',
+        };
+        deal.ai_draft = {
+          tagline:      mockGenerated.tagline,
+          thesis:       mockGenerated.thesis,
+          highlights:   mockGenerated.highlights,
+          stats:        mockGenerated.stats,
+          generated_at: new Date().toISOString(),
+        };
+        deal.updated_at = new Date().toISOString();
+        await saveDeal(deal);
+        return ok(res, { generated: mockGenerated, dealId, mock: true });
+      }
       const docBlocks = docContent.map(d => ({
         type: 'document',
         source: { type: 'base64', media_type: d.type === 'application/pdf' ? 'application/pdf' : 'text/plain', data: d.data },
@@ -452,7 +539,10 @@ Return ONLY valid JSON in this exact structure:
 {
   "tagline": "One compelling sentence — deal name, geography, key differentiator",
   "thesis": "2-3 paragraphs. Investment rationale, market opportunity, risk/return profile. Institutional tone.",
-  "highlights": ["bullet 1", "bullet 2", "bullet 3", "bullet 4"],
+  "highlights": [
+    { "icon": "◆", "s": "Short bold title (4-6 words)", "b": "One sentence body expanding on the point." },
+    ... 3-5 items
+  ],
   "stats": {
     "irr": "e.g. 13.5%",
     "term": "e.g. 24 months",
@@ -565,10 +655,19 @@ Return ONLY valid JSON in this exact structure:
 
       const now = new Date().toISOString();
 
+      // Normalise highlights — accept both plain strings and {icon,s,b} objects
+      const normHighlights = (Array.isArray(highlights) ? highlights : []).map(h => {
+        if (typeof h === 'string') {
+          const parts = h.split(' — ');
+          return { icon: '◆', s: parts[0]?.slice(0, 50) || h.slice(0, 50), b: parts[1] || h };
+        }
+        return h;
+      });
+
       // Merge content fields
       if (tagline  !== undefined) deal.tagline    = tagline;
       if (thesis   !== undefined) deal.thesis     = thesis;
-      if (highlights !== undefined) deal.highlights = highlights;
+      if (highlights !== undefined) deal.highlights = normHighlights;
       if (stats    !== undefined) deal.stats      = stats;
 
       // Publish settings

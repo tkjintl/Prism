@@ -4,6 +4,73 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Investor portal: doc gating, IOI slider UX
+
+### `investor-portal.html`
+- **Doc visibility gating:** Before an investor has submitted an IOI (`PORTFOLIO.some(p => p.deal_id === id)`), only the NDA Template is shown in the documents section. All other docs (Management Presentation, Financials, Term Sheet) are hidden until after IOI submission. A note below the doc grid explains what unlocks after submitting.
+- **IOI slider range:** Fixed $100K–$5M universal range replacing per-deal `min_ticket`/`target_alloc` dynamic range. Slider step is $100K throughout.
+- **IOI amount formatting:** Input changed from `type="number"` to `type="text" inputmode="numeric"`. Added `fmtAmtInput(el)` and `readAmt(el)` helpers (mirrors advisor portal pattern). Input shows comma-formatted values live; `readAmt` strips commas before parsing. Slider→input sync now writes formatted value.
+- **`submitIoi` validation:** Reads amount via `readAmt()`; minimum check is flat $100K instead of per-deal `min_ticket`.
+
+---
+
+## [2026-05-01] — Admin portal platform params input formatting
+
+### `admin-portal.html`
+- Added `fmtAmtInput(el)` and `readAmt(el)` helpers adjacent to `fmU` — format thousands on input, strip commas on read.
+- Platform Allocation and Platform Min Ticket inputs in pending deal cards changed from `type="number"` to `type="text" inputmode="numeric"` with `oninput="fmtAmtInput(this)"` so values display with comma separators.
+- `savePlatformParams` now uses `readAmt()` instead of `parseInt(…value)` to correctly strip commas before posting to the API.
+
+---
+
+## [2026-05-01] — Advisor wizard amount field formatting
+
+### `advisor-portal.html`
+- Added `fmtAmtInput(el)` and `readAmt(el)` helpers after `fmU` — format thousands on keyup, strip commas on read.
+- Wizard step 2 alloc and min-ticket inputs changed from `type="number"` to `type="text" inputmode="numeric"` with live `oninput` formatting and comma placeholders.
+- `wizSubmit()` reads both fields via `readAmt()` instead of `parseInt()` so comma-formatted values parse correctly.
+
+---
+
+## [2026-05-01] — Six investor/admin portal fixes
+
+### `investor-portal.html`
+- **Fix 1 — hurdle field normalisation:** `adaptDeal()` now maps `hurdle: d.hurdle || d.hurdle_rate || 8` so API deals using `hurdle_rate` (underscore) display correctly in the stat grid and return chart hurdle line.
+- **Fix 2 — real API docs in deal detail:** `openDeal()` is now `async`. Fetches document metadata from `resource=inst&op=inst-deal-docs` before rendering. Falls back to four static placeholder slots if the API returns nothing. NDA state from the API (`nda_signed`) is merged into local `ndaSigned` map so re-renders are consistent. Added `viewInvestorDoc(dealId, slot)` that fetches binary from `resource=admin&op=deal-docs` and opens it in a new tab.
+- **Fix 3 — NDA sign recorded via API:** `signNda()` is now `async`. On NDA acceptance, fires `POST resource=inst&op=record-nda` (fire-and-forget, does not block UI). All existing re-render and toast logic preserved.
+- **Fix 4 — preview-mode deals filtered from marketplace:** `initLobby()` now pre-filters `DEALS` to `publicDeals` (excludes `launch_mode === 'preview'`). Featured deal and deal grid both derived from `publicDeals`.
+
+### `admin-portal.html`
+- **Fix 5 — highlights format in Deal Studio fallback mocks:** All hardcoded highlight arrays in `showAIOutput()` (both the generic deal fallback and the Pacific Bridge fallback) now use `{icon, s, b}` object format. `buildHighlightRow()` updated to flatten objects to `"s — b"` string for the editable input field. Highlights rendering in the AI output panel handles both string and object formats via inline ternary.
+- **Fix 6 — Investor Preview tab in Review & Launch panel:** Added `.lr-tabs` tab strip below the header with "Edit Content" and "Investor Preview" tabs. Existing two-column edit layout wrapped in `#lr-edit-view`. Added `#lr-preview-view` pane with full investor-facing deal preview. Added `switchLRTab(tab)` and `renderLRPreview()` functions — preview reads live field values from the edit form. Panel always opens on Edit tab.
+
+---
+
+## [2026-05-01] — Highlights schema, NDA ops, investor doc gate, launch_mode filter
+
+### `api/v2.js`
+
+**Fix 1 — `ai-generate` op: highlights as structured objects**
+- Updated Claude prompt to request highlights as `{icon, s, b}` objects instead of plain strings. Each item has a diamond icon, a short bold title (4-6 words), and a one-sentence body.
+- Replaced `if (!apiKey) return bad(...)` hard error with a structured mock fallback that returns realistic `{icon, s, b}` highlights, tagline, thesis, and stats derived from the deal record. Mock response includes `mock: true` flag so callers can detect it.
+
+**Fix 2 — `publish-deal` op: normalise highlights on save**
+- Added `normHighlights` normalisation step before persisting highlights. Plain strings are split on ` — ` and converted to `{icon, s, b}` objects. Structured objects are passed through unchanged. Older deals posted from the admin UI before the schema update are handled transparently.
+
+**Fix 3 — New `record-nda` POST op (resource=inst)**
+- Records investor NDA acceptance to `nda_signed:{inst_id}:{dealId}` in KV with timestamp and IDs. Auth-gated to valid `prism_inst` cookie.
+
+**Fix 4 — New `check-nda` GET op (resource=inst)**
+- Returns `{signed, signed_at}` for a given investor + deal combination. Auth-gated to valid `prism_inst` cookie.
+
+**Fix 5 — New `inst-deal-docs` GET op (resource=inst)**
+- Serves document metadata (not binary content) to approved investors. Documents in slots `mgmt`, `fin`, `term` require NDA signature (`gate: 'nda'`); the NDA template itself is `gate: 'public'`. Returns `accessible` boolean per doc based on live NDA state.
+
+**Fix 6 — Marketplace `launch_mode` filter**
+- Non-admin users (investors, advisors) now only see deals where `member_visible && stage === 'live' && launch_mode !== 'preview'`. Deals with null/undefined `launch_mode` (older records) are included — the filter only excludes the explicit `'preview'` value. Admins continue to see all live deals unfiltered.
+
+---
+
 ## [2026-05-01] — Wizard field IDs, Company Overview, Hurdle Rate, admin platform params UI
 
 ### `advisor-portal.html`

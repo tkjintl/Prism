@@ -624,6 +624,13 @@ const fmU=n=>{
   if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';
   return'$'+n;
 };
+function fmtAmtInput(el) {
+  const raw = parseInt(el.value.replace(/[^0-9]/g,'')) || 0;
+  el.value = raw ? raw.toLocaleString('en-US') : '';
+}
+function readAmt(el) {
+  return parseInt((el.value||'').replace(/[^0-9]/g,'')) || 0;
+}
 
 function toast(msg,k=''){
   const t=document.getElementById('toast');
@@ -1045,8 +1052,8 @@ function renderWizard(){
       <div><label class="field-label">Term (months)</label><input class="field-input" id="wiz-term" type="number" placeholder="e.g. 36"></div>
     </div></div>
     <div class="field-section"><div class="field-row">
-      <div><label class="field-label">Allocation Target (USD)</label><input class="field-input" id="wiz-alloc" type="number" placeholder="e.g. 30000000"></div>
-      <div><label class="field-label">Minimum Ticket (USD)</label><input class="field-input" id="wiz-min-ticket" type="number" placeholder="e.g. 250000"></div>
+      <div><label class="field-label">Allocation Target (USD)</label><input class="field-input" id="wiz-alloc" type="text" inputmode="numeric" placeholder="e.g. 30,000,000" oninput="fmtAmtInput(this)"></div>
+      <div><label class="field-label">Minimum Ticket (USD)</label><input class="field-input" id="wiz-min-ticket" type="text" inputmode="numeric" placeholder="e.g. 250,000" oninput="fmtAmtInput(this)"></div>
     </div></div>
     <div class="field-section"><div class="field-row">
       <div><label class="field-label">Hurdle Rate (%)</label><input class="field-input" id="wiz-hurdle" type="number" placeholder="e.g. 8"></div>
@@ -1138,11 +1145,11 @@ async function wizSubmit(){
     geography:document.getElementById('wiz-geography')?.value||'',
     company_overview:document.getElementById('wiz-company-overview')?.value?.trim()||'',
     mk_notes:document.getElementById('wiz-thesis')?.value?.trim()||'',
-    target_alloc_usd:parseInt(document.getElementById('wiz-alloc')?.value)||10000000,
+    target_alloc_usd:readAmt(document.getElementById('wiz-alloc'))||10000000,
     target_irr:parseFloat(document.getElementById('wiz-irr')?.value)||12,
     term_months:parseInt(document.getElementById('wiz-term')?.value)||24,
     hurdle_rate:parseFloat(document.getElementById('wiz-hurdle')?.value)||8,
-    min_ticket_usd:parseInt(document.getElementById('wiz-min-ticket')?.value)||250000,
+    min_ticket_usd:readAmt(document.getElementById('wiz-min-ticket'))||250000,
     closing_date:document.getElementById('wiz-closing')?.value||'',
     docs:Object.entries(WIZ_DOCS).map(([slot,d])=>({slot,name:d.name,type:d.type})),
   };
