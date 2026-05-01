@@ -4,6 +4,21 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: pre-publish preview modal + investors popup 2-step IOI package flow
+
+### Changes
+- `admin-portal.html` ("Publish Live →" buttons): Both buttons in the "Ready to Publish" column and the new-deal card now call `previewBeforePublish(dealId, btn)` instead of `publishDeal` directly.
+- `admin-portal.html` (`previewBeforePublish`): Opens a full-page `#publish-preview-modal` (z-index 700, blur backdrop, max-width 680px, scrollable inner panel) showing the deal exactly as investors will see it — serif italic deal name, tagline, asset/geo/structure chips, thesis block, highlights list with icons, and an economics sidebar (IRR, allocation, min ticket, term, closing date).
+- `admin-portal.html` (`confirmPublishLive`, `closePublishPreview`): "Confirm & Publish Live →" footer button calls the existing `publishDeal` and then closes the modal; "Back" button closes without publishing.
+- `admin-portal.html` (`openInvestorsPopup`): Appended a "Next: Review IOI Package →" gold button at the bottom of the investor list body (Step 1 of 2).
+- `admin-portal.html` (`showInvestorsStep2`): Replaces the modal body with a dark/gold IOI Package panel showing: AURUM|PRISM + A TACC PLATFORM header, IOI PACKAGE + date + LIVE badge, deal name in serif italic, capital amount in 52px gold mono, % of target + investor count, confidentiality strip, recommended action box, optional note textarea, and "Open Due Diligence →" / Cancel / ← Back footer buttons.
+- `admin-portal.html` (`confirmPushFromPopup`): Marks all approved IOIs as pushed, sets `deal.stage = 'dd'`, closes the popup, re-renders overview/KPIs/pipeline, and shows a toast — equivalent to the existing `confirmPush` logic without requiring the separate push modal.
+
+### Why
+Admin needed to review advisor-confirmed deal content before it went live on the investor portal. The investors popup also needed a natural next step from "see who indicated" to "formally open DD with an IOI summary for the advisor."
+
+---
+
 ## [2026-05-01] — Fix: notification click shows overlay popup + highlights field name normalization
 
 ### Changes

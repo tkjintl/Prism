@@ -1694,7 +1694,7 @@ function renderOverview(){
         ${!generated ?
           `<button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])">✦ Generate with AI →</button>` :
           s.advisor_review_status === 'approved' ?
-            `<button class="att-btn att-approve" onclick="publishDeal('${s.id}',this)">Publish Live →</button>` :
+            `<button class="att-btn att-approve" onclick="previewBeforePublish('${s.id}',this)">Publish Live →</button>` :
           s.advisor_review_status === 'pending' ?
             `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.08em;padding:4px 0">&#x23F3; Awaiting Advisor Review</span>` :
             `<button class="att-btn att-review" onclick="sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
@@ -1711,7 +1711,7 @@ function renderOverview(){
       <div class="ov-ac-name">${s.name}</div>
       <div class="ov-ac-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''}<br>${s.target_irr}% IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()}</div>
       <div class="ov-ac-actions">
-        <button class="att-btn att-approve" onclick="publishDeal('${s.id}',this)">Publish Live →</button>
+        <button class="att-btn att-approve" onclick="previewBeforePublish('${s.id}',this)">Publish Live →</button>
       </div>
     </div>`
   );
@@ -3556,6 +3556,10 @@ function openInvestorsPopup(dealId){
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">${approved.length} approved investor${approved.length===1?'':'s'}${pctStr}</div>
     <div style="font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:600">${fmU(totalAmt)}</div>
   </div>`;
+  // Add Next button after summary footer
+  bodyHtml+=`<div style="padding:12px 20px;flex-shrink:0">
+    <button onclick="showInvestorsStep2('${dealId}')" style="width:100%;padding:12px;background:var(--gold);border:none;border-radius:3px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:#1A1410;cursor:pointer;transition:all .15s" onmouseenter="this.style.background='var(--gold-b)'" onmouseleave="this.style.background='var(--gold)'">Next: Review IOI Package →</button>
+  </div>`;
   document.getElementById('inv-popup-body').innerHTML=bodyHtml;
   const popup=document.getElementById('investors-popup');
   popup.style.display='flex';
@@ -4080,6 +4084,171 @@ async function load(){
 load();
 const _adp=document.getElementById('admin-deal-panel');
 const _idp=document.getElementById('ioi-detail-panel');
+
+/* ── PUBLISH PREVIEW MODAL ── */
+function previewBeforePublish(dealId, btn) {
+  const s = NEW_SUBMISSIONS.find(x => x.id === dealId);
+  if (!s) { publishDeal(dealId, btn); return; }
+
+  // Populate header name
+  document.getElementById('ppm-deal-name').textContent = s.name;
+
+  // Build economics sidebar items
+  const econ = [
+    { lbl: 'Target IRR', val: s.target_irr ? s.target_irr + '%' : '—' },
+    { lbl: 'Allocation', val: fmU(s.platform_alloc_usd || s.target_alloc) },
+    { lbl: 'Min Ticket', val: fmU(s.platform_min_ticket_usd || s.min_ticket) },
+    { lbl: 'Term', val: s.term ? s.term + ' months' : '—' },
+    { lbl: 'Closing Date', val: s.closing || '—' },
+  ];
+  const econHtml = econ.map(e =>
+    `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--border)">
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">${e.lbl}</span>
+      <span style="font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)">${e.val}</span>
+    </div>`
+  ).join('');
+
+  // Chips
+  const chipStyle = 'padding:3px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--gold-bd);color:var(--gold);background:var(--gold-bg)';
+  const chips = [s.asset_class, s.geography, s.structure].filter(Boolean)
+    .map(c => `<span style="${chipStyle}">${c}</span>`).join('');
+
+  // Highlights
+  const hl = s.highlights || [];
+  const hlHtml = hl.length > 0
+    ? `<div style="margin-top:24px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px">Highlights</div>
+        ${hl.map(h => `<div style="display:flex;gap:14px;margin-bottom:16px">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--gold-bg);border:1px solid var(--gold-bd);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${h.icon || '◆'}</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">${h.s || h.title || ''}</div>
+            <div style="font-size:12px;color:var(--text-2);line-height:1.5">${h.b || h.body || ''}</div>
+          </div>
+        </div>`).join('')}
+      </div>`
+    : '';
+
+  const bodyHtml = `
+    <div style="display:grid;grid-template-columns:1fr 220px;gap:28px;align-items:start">
+      <div>
+        <div style="font-family:var(--serif);font-style:italic;font-size:30px;color:var(--text);margin-bottom:10px">${s.name}</div>
+        ${s.tagline ? `<div style="font-size:14px;color:var(--text-2);margin-bottom:16px;line-height:1.5">${s.tagline}</div>` : ''}
+        ${chips ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">${chips}</div>` : ''}
+        ${s.thesis ? `<div style="font-size:14px;color:var(--text-2);line-height:1.7;padding:16px 20px;background:var(--bg-3);border-left:2px solid var(--gold-bd);border-radius:0 3px 3px 0">${s.thesis}</div>` : ''}
+        ${hlHtml}
+      </div>
+      <div style="background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r);padding:18px;position:sticky;top:0">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px">Economics</div>
+        ${econHtml}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('ppm-body').innerHTML = bodyHtml;
+  const confirmBtn = document.getElementById('ppm-confirm-btn');
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = 'Confirm & Publish Live →';
+  confirmBtn.onclick = () => confirmPublishLive(dealId, confirmBtn);
+
+  const modal = document.getElementById('publish-preview-modal');
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => { modal.style.opacity = '1'; });
+}
+
+function closePublishPreview() {
+  const modal = document.getElementById('publish-preview-modal');
+  modal.style.display = 'none';
+}
+
+async function confirmPublishLive(dealId, btn) {
+  await publishDeal(dealId, btn);
+  closePublishPreview();
+}
+
+
+/* ── IOI PACKAGE STEP 2 ── */
+function showInvestorsStep2(dealId) {
+  const deal = DEALS.find(d => d.id === dealId);
+  if (!deal) return;
+  const iois = deal.iois || [];
+  const approved = iois.filter(i => i.status === 'approved');
+  const approvedTotal = approved.reduce((s, i) => s + i.amount, 0);
+  const pctOfTarget = deal.target_alloc > 0 ? Math.round(approvedTotal / deal.target_alloc * 100) : 0;
+  const investorCount = approved.length;
+  const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const fmtCapital = n => {
+    if (!n) return '$0';
+    if (n >= 1e6) return '$' + (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+    return '$' + n;
+  };
+
+  const pkg = `
+  <div style="background:#0A0908;border-radius:4px;overflow:hidden;font-family:var(--mono)">
+    <!-- Header bar -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:20px 24px 16px;border-bottom:1px solid rgba(197,165,114,.15)">
+      <div>
+        <div style="font-size:11px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;font-weight:600">AURUM | PRISM</div>
+        <div style="font-size:8px;letter-spacing:.18em;color:rgba(197,165,114,.5);text-transform:uppercase;margin-top:2px">A TACC PLATFORM</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase">IOI PACKAGE</div>
+        <div style="font-size:9px;color:rgba(197,165,114,.5);margin-top:2px">${dateStr}</div>
+        <div style="margin-top:5px;display:inline-block;padding:2px 8px;border:1px solid var(--gold-bd);border-radius:20px;font-size:8px;letter-spacing:.14em;color:var(--gold)">LIVE</div>
+      </div>
+    </div>
+
+    <!-- Deal title block -->
+    <div style="padding:24px 24px 0">
+      <div style="font-family:var(--serif);font-style:italic;font-size:30px;color:#EDE8DF;line-height:1.1;margin-bottom:8px">${deal.name}</div>
+      <div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(197,165,114,.55)">PREPARED FOR ${(deal.advisor || '—').toUpperCase()} · ${(deal.advisor_firm || '').toUpperCase()}</div>
+    </div>
+
+    <!-- Capital block -->
+    <div style="padding:32px 24px;text-align:center;border-top:1px solid rgba(197,165,114,.08);margin-top:20px">
+      <div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(197,165,114,.5);margin-bottom:8px">APPROVED CAPITAL INDICATED</div>
+      <div style="font-family:var(--mono);font-size:52px;font-weight:500;color:var(--gold);letter-spacing:-.01em;line-height:1;tabular-nums">${fmtCapital(approvedTotal)}</div>
+      <div style="font-size:11px;color:rgba(237,232,223,.4);margin-top:10px;letter-spacing:.04em">${pctOfTarget}% of ${fmtCapital(deal.target_alloc)} target &nbsp;·&nbsp; ${investorCount} investor${investorCount !== 1 ? 's' : ''}</div>
+    </div>
+
+    <!-- Confidentiality strip -->
+    <div style="padding:9px 24px;border-top:1px solid rgba(197,165,114,.12);border-bottom:1px solid rgba(197,165,114,.12);text-align:center;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(197,165,114,.4)">CONFIDENTIAL &nbsp;·&nbsp; AGGREGATE SUMMARY ONLY &nbsp;·&nbsp; INVESTOR NAMES NOT DISCLOSED</div>
+
+    <!-- Recommended action -->
+    <div style="margin:20px 24px 0;padding:14px 18px;border-left:2px solid var(--gold);background:rgba(197,165,114,.04)">
+      <div style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:5px">RECOMMENDED ACTION</div>
+      <div style="font-size:12px;color:rgba(237,232,223,.7);line-height:1.5">Schedule close calls with approved investors to finalise terms and move to due diligence.</div>
+    </div>
+
+    <!-- Note textarea -->
+    <div style="margin:16px 24px 20px">
+      <label style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:rgba(197,165,114,.5);display:block;margin-bottom:6px">NOTE TO ADVISOR <span style="opacity:.5">(OPTIONAL)</span></label>
+      <textarea id="ioi-pkg-note" rows="3" placeholder="Add any context, instructions, or deal notes for the advisor…" style="width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(197,165,114,.2);color:#EDE8DF;font-family:var(--mono);font-size:11px;padding:10px 12px;outline:none;resize:vertical;border-radius:2px;box-sizing:border-box;transition:border-color .15s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(197,165,114,.2)'"></textarea>
+    </div>
+
+    <!-- Footer buttons -->
+    <div style="padding:14px 24px 20px;border-top:1px solid rgba(197,165,114,.1);display:flex;gap:10px">
+      <button onclick="openInvestorsPopup('${dealId}')" style="flex:0 0 auto;padding:10px 18px;background:none;border:1px solid rgba(237,232,223,.18);border-radius:3px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(237,232,223,.5);cursor:pointer;transition:all .15s" onmouseenter="this.style.borderColor='rgba(237,232,223,.4)';this.style.color='rgba(237,232,223,.8)'" onmouseleave="this.style.borderColor='rgba(237,232,223,.18)';this.style.color='rgba(237,232,223,.5)'">&#8592; Back</button>
+      <button onclick="closeInvestorsPopup()" style="flex:1;padding:10px 18px;background:none;border:1px solid rgba(237,232,223,.18);border-radius:3px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgba(237,232,223,.5);cursor:pointer;transition:all .15s" onmouseenter="this.style.borderColor='rgba(237,232,223,.4)'" onmouseleave="this.style.borderColor='rgba(237,232,223,.18)'">Cancel</button>
+      <button onclick="confirmPushFromPopup('${dealId}', this)" style="flex:1;padding:10px 18px;background:var(--gold);border:none;border-radius:3px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:#1A1410;cursor:pointer;transition:all .15s" onmouseenter="this.style.background='var(--gold-b)'" onmouseleave="this.style.background='var(--gold)'">Open Due Diligence →</button>
+    </div>
+  </div>`;
+
+  document.getElementById('inv-popup-body').innerHTML = pkg;
+}
+
+async function confirmPushFromPopup(dealId, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Opening…'; }
+  const d = DEALS.find(x => x.id === dealId);
+  if (!d) return;
+  d.iois.filter(i => i.status === 'approved').forEach(i => i.pushed = true);
+  d.stage = 'dd';
+  closeInvestorsPopup();
+  renderOverview(); renderKPIs(); renderPipeline();
+  toast('Due diligence opened — advisor notified', 'ok');
+  api('POST', '/api/v2?resource=admin&op=push-package', { dealId, ioiId: (d.iois.find(i => i.pushed) || {}).id }).catch(() => {});
+}
+
 </script>
 <div id="investors-popup" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(10,9,8,.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeInvestorsPopup()">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:640px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
@@ -4091,6 +4260,25 @@ const _idp=document.getElementById('ioi-detail-panel');
       <button onclick="closeInvestorsPopup()" style="background:none;border:none;color:var(--text-3);font-size:20px;cursor:pointer;line-height:1;padding:4px 6px;flex-shrink:0">&#x2715;</button>
     </div>
     <div id="inv-popup-body" style="overflow-y:auto;flex:1"></div>
+  </div>
+</div>
+
+<!-- Publish Preview Modal -->
+<div id="publish-preview-modal" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 20px" onclick="if(event.target===this)closePublishPreview()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:680px;margin:auto;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.4)">
+    <!-- Modal header -->
+    <div style="padding:20px 28px 16px;border-bottom:1px solid var(--border);background:var(--bg-3);flex-shrink:0">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Investor Portal Preview</div>
+      <div id="ppm-deal-name" style="font-family:var(--serif);font-style:italic;font-size:22px;color:var(--text);margin-bottom:5px">—</div>
+      <div style="font-size:12px;color:var(--text-3)">This is exactly what investors will see. Review before publishing.</div>
+    </div>
+    <!-- Modal body (scrollable) -->
+    <div id="ppm-body" style="overflow-y:auto;flex:1;padding:28px"></div>
+    <!-- Modal footer -->
+    <div style="padding:16px 28px;border-top:1px solid var(--border);display:flex;gap:12px;justify-content:flex-end;flex-shrink:0;background:var(--bg-3)">
+      <button onclick="closePublishPreview()" style="padding:10px 22px;border:1px solid var(--border-m);border-radius:3px;font-size:13px;color:var(--text-2);background:none;cursor:pointer;font-family:inherit;transition:all .15s" onmouseenter="this.style.color='var(--text)'" onmouseleave="this.style.color='var(--text-2)'">Back</button>
+      <button id="ppm-confirm-btn" style="padding:10px 22px;background:var(--gold);border:none;border-radius:3px;font-size:13px;font-weight:600;color:#1A1410;cursor:pointer;font-family:inherit;transition:all .15s" onmouseenter="this.style.background='var(--gold-b)'" onmouseleave="this.style.background='var(--gold)'">Confirm &amp; Publish Live →</button>
+    </div>
   </div>
 </div>
 </body>
