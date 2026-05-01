@@ -1100,8 +1100,11 @@ const CLOSING_DEFS=[
 
 function renderMaterials(){
   const d=DEALS[currentDealIdx];
+  const inDD=['dd','close','realized'].includes(d.stage);
   const showClosing=d.stage==='dd'||d.stage==='close';
-  const coreDefs=DOC_DEFS;
+
+  // Core docs: exclude Financial Model until DD stage
+  const coreDefs=DOC_DEFS.filter(def=>def.id!=='model'||(def.id==='model'&&inDD));
 
   function docCard(def){
     const doc=d.documents[def.id];
@@ -1131,6 +1134,29 @@ function renderMaterials(){
 
   let html=`<div class="section-title" style="margin-bottom:16px">Core Documents</div>
   <div class="materials-grid">${coreDefs.map(docCard).join('')}</div>`;
+
+  /* Due Diligence section — Financial Model + Data Room — only at DD+ */
+  if(inDD){
+    const modelDef=DOC_DEFS.find(x=>x.id==='model');
+    const drFiles=(d.dataroom||[]).filter(f=>f.name); // file-type items only
+    html+=`<div style="margin-top:28px">
+      <div class="section-title" style="margin-bottom:4px;color:var(--blue)">Due Diligence</div>
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text-3);margin-bottom:16px;text-transform:uppercase">DD-stage documents and data room — visible to approved investors only</div>
+      <div class="materials-grid" style="margin-bottom:20px">${modelDef?docCard(modelDef):''}</div>
+      <div class="dr-header">
+        <div class="section-title" style="margin:0;font-size:13px">Data Room Files</div>
+        <button class="doc-btn" onclick="showTab('dataroom',Array.from(document.querySelectorAll('.ctab')).find(b=>b.id==='ctab-dataroom'))">Open Full Dataroom →</button>
+      </div>
+      <div class="dr-files">${drFiles.length?drFiles.map(f=>`
+        <div class="dr-file-row">
+          <span class="dr-file-icon">${f.icon||'📄'}</span>
+          <div class="dr-file-name">${f.name}</div>
+          <div class="dr-file-folder">${f.folder||''}</div>
+          <div class="dr-file-accesses">👁 ${f.accesses||0} view${f.accesses!==1?'s':''}</div>
+        </div>`).join(''):`<div style="padding:20px;text-align:center;color:var(--text-3);font-size:12px">No files yet — upload via the Dataroom tab.</div>`}
+      </div>
+    </div>`;
+  }
 
   /* closing docs — only in DD/Close stage */
   if(showClosing&&d.closing_docs){
