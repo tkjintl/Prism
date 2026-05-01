@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor portal: Overview + Performance merge, Prism Platform Documents in Materials
+
+### Changes
+- `advisor-portal.html`: Removed Performance tab button from tab nav; emptied static `#tab-performance` panel (hidden, display:none) to eliminate duplicate DOM IDs.
+- `advisor-portal.html`: `renderOverview()` now appends a "Raise Progress" section (ring chart, investor composition, closing countdown, min ticket) at the bottom of the Overview tab and calls `animatePerf()` after `innerHTML` is set — consolidating what was previously a separate Performance tab.
+- `advisor-portal.html`: `renderMaterials()` now shows a "Prism Platform Documents" section above Core Documents with four read-only reference cards: IOI Interest Summary, Investor Portal Listing, AI-Generated Deal Brief, Platform Deal Report.
+- `advisor-portal.html`: Added CSS for `.prism-docs-grid`, `.prism-doc-card`, `.pdc-icon`, `.pdc-body`, `.pdc-label`, `.pdc-desc`, `.pdc-btn`.
+
+---
+
 ## [2026-05-01] — Advisor Review: full-page overlay + investor-style deal preview with inline editing
 
 ### Changes

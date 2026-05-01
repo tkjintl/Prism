@@ -308,6 +308,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .cc-bar-track{height:4px;background:var(--border);border-radius:2px;margin-top:12px;overflow:hidden}
 .cc-bar-fill{height:100%;background:linear-gradient(to right,var(--amber),var(--gold));border-radius:2px}
 
+/* PRISM DOCS */
+.prism-docs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:28px}
+@media(min-width:900px){.prism-docs-grid{grid-template-columns:repeat(4,1fr)}}
+.prism-doc-card{border:1px solid var(--border);border-radius:var(--r);padding:16px;background:var(--surface);display:flex;flex-direction:column;gap:10px}
+.pdc-icon{font-size:20px;line-height:1}
+.pdc-body{flex:1}
+.pdc-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;font-family:var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.pdc-desc{font-size:11px;color:var(--text-3);line-height:1.55}
+.pdc-btn{margin-top:auto;padding:6px 14px;border:1px solid var(--border-m);border-radius:3px;background:none;color:var(--text-2);font-family:var(--mono);font-size:10px;letter-spacing:.08em;cursor:pointer;transition:all .15s;align-self:flex-start}
+.pdc-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+
 /* WIZARD */
 .submit-wrap{padding:clamp(28px,5vh,56px) clamp(20px,5vw,72px) 80px}
 .submit-back{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text-3);transition:color .15s;margin-bottom:24px}
@@ -585,7 +596,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   <div class="content-tabs" id="deal-tabs">
     <button class="ctab on" onclick="showTab('overview',this)">Overview</button>
     <button class="ctab" onclick="showTab('materials',this)">Materials</button>
-    <button class="ctab" onclick="showTab('performance',this)">Performance</button>
+
     <button class="ctab" id="ctab-dataroom" onclick="showTab('dataroom',this)" style="display:none">Dataroom / Q&amp;A</button>
     <button class="ctab" id="ctab-review" onclick="showTab('review',this)" style="display:none;color:var(--gold)">&#x2756; Review &amp; Edit</button>
   </div>
@@ -604,46 +615,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div id="review-edit-content"></div>
   </div>
 
-  <!-- Tab: Performance -->
-  <div class="tab-panel" id="tab-performance">
-    <div class="perf-layout">
-      <div>
-        <div class="ring-card">
-          <div class="perf-ring-wrap">
-            <svg viewBox="0 0 140 140" width="160" height="160">
-              <circle class="pr-track" cx="70" cy="70" r="58"/>
-              <circle class="pr-fill" id="perf-ring" cx="70" cy="70" r="58"
-                style="stroke-dasharray:364;stroke-dashoffset:364"/>
-            </svg>
-            <div class="pr-label">
-              <div class="pr-pct" id="perf-pct">—</div>
-              <div class="pr-sub">Subscribed</div>
-            </div>
-          </div>
-          <div class="ring-card-title" id="perf-ring-title">—</div>
-          <div class="ring-card-detail" id="perf-ring-detail"></div>
-        </div>
-      </div>
-      <div class="perf-stats-col">
-        <div class="ps-card">
-          <div class="ps-label">Investor Composition</div>
-          <div class="anon-investors" id="anon-investors"></div>
-          <div class="anon-note">Individual identities are managed by the platform.</div>
-        </div>
-        <div class="closing-countdown">
-          <div class="ps-label">Closing Countdown</div>
-          <div class="cc-days" id="cc-days">—</div>
-          <div class="cc-label" id="cc-label">days until target close</div>
-          <div class="cc-bar-track"><div class="cc-bar-fill" id="cc-bar" style="width:0"></div></div>
-        </div>
-        <div class="ps-card">
-          <div class="ps-label">Minimum Ticket</div>
-          <div class="ps-val gold" id="ps-ticket">—</div>
-          <div class="ps-sub" id="ps-ticket-sub"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Tab: Performance (hidden — content merged into Overview) -->
+  <div class="tab-panel" id="tab-performance" style="display:none"></div>
 </div>
 
 <!-- ══ VIEW: SUBMIT NEW DEAL ══ -->
@@ -1103,7 +1076,46 @@ function renderOverview(){
       <div class="act-time">${a.time}</div>
     </div>`).join('')}</div>`;
 
+  html+=`<div class="section-title" style="margin-top:28px;margin-bottom:16px">Raise Progress</div>
+  <div class="perf-layout">
+    <div>
+      <div class="ring-card">
+        <div class="perf-ring-wrap">
+          <svg viewBox="0 0 140 140" width="160" height="160">
+            <circle class="pr-track" cx="70" cy="70" r="58"/>
+            <circle class="pr-fill" id="perf-ring" cx="70" cy="70" r="58" style="stroke-dasharray:364;stroke-dashoffset:364"/>
+          </svg>
+          <div class="pr-label">
+            <div class="pr-pct" id="perf-pct">—</div>
+            <div class="pr-sub">Subscribed</div>
+          </div>
+        </div>
+        <div class="ring-card-title" id="perf-ring-title">—</div>
+        <div class="ring-card-detail" id="perf-ring-detail"></div>
+      </div>
+    </div>
+    <div class="perf-stats-col">
+      <div class="ps-card">
+        <div class="ps-label">Investor Composition</div>
+        <div class="anon-investors" id="anon-investors"></div>
+        <div class="anon-note">Individual identities are managed by the platform.</div>
+      </div>
+      <div class="closing-countdown">
+        <div class="ps-label">Closing Countdown</div>
+        <div class="cc-days" id="cc-days">—</div>
+        <div class="cc-label" id="cc-label">days until target close</div>
+        <div class="cc-bar-track"><div class="cc-bar-fill" id="cc-bar" style="width:0"></div></div>
+      </div>
+      <div class="ps-card">
+        <div class="ps-label">Minimum Ticket</div>
+        <div class="ps-val gold" id="ps-ticket">—</div>
+        <div class="ps-sub" id="ps-ticket-sub"></div>
+      </div>
+    </div>
+  </div>`;
+
   document.getElementById('tab-overview').innerHTML=html;
+  setTimeout(()=>animatePerf(),50);
 }
 
 async function acceptAdminIOI(){
@@ -1190,7 +1202,42 @@ function renderMaterials(){
     </div>`;
   }
 
-  let html=`<div class="section-title" style="margin-bottom:16px">Core Documents</div>
+  let html=`<div class="section-title" style="margin-bottom:16px">Prism Platform Documents</div>
+  <div class="prism-docs-grid">
+    <div class="prism-doc-card">
+      <div class="pdc-icon">📬</div>
+      <div class="pdc-body">
+        <div class="pdc-label">IOI Interest Summary</div>
+        <div class="pdc-desc">Package of approved investor indications forwarded to this deal. Generated by Prism at time of package push.</div>
+      </div>
+      <button class="pdc-btn" onclick="toast('Opening IOI Interest Summary…','ok')">View</button>
+    </div>
+    <div class="prism-doc-card">
+      <div class="pdc-icon">🌐</div>
+      <div class="pdc-body">
+        <div class="pdc-label">Investor Portal Listing</div>
+        <div class="pdc-desc">The deal page shown to investors on the Prism platform — includes name, thesis, highlights, and economics as published.</div>
+      </div>
+      <button class="pdc-btn" onclick="toast('Opening portal listing preview…','ok')">View</button>
+    </div>
+    <div class="prism-doc-card">
+      <div class="pdc-icon">🤖</div>
+      <div class="pdc-body">
+        <div class="pdc-label">AI-Generated Deal Brief</div>
+        <div class="pdc-desc">The structured deal brief generated by Prism AI at submission. Used as the basis for the investor-facing listing.</div>
+      </div>
+      <button class="pdc-btn" onclick="toast('Opening AI deal brief…','ok')">View</button>
+    </div>
+    <div class="prism-doc-card">
+      <div class="pdc-icon">📊</div>
+      <div class="pdc-body">
+        <div class="pdc-label">Platform Deal Report</div>
+        <div class="pdc-desc">Full Prism analytics snapshot: IOI pipeline, investor composition, stage history, and capital breakdown.</div>
+      </div>
+      <button class="pdc-btn" onclick="toast('Generating report…','ok')">View</button>
+    </div>
+  </div>
+  <div class="section-title" style="margin-bottom:16px;margin-top:28px">Core Documents</div>
   <div class="materials-grid">${DOC_DEFS.map(docCard).join('')}</div>`;
 
   /* closing docs — only in DD/Close stage */
