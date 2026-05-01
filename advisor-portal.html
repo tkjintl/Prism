@@ -767,7 +767,7 @@ function toggleTheme(){
   document.getElementById('theme-btn').textContent=dark?'☾':'☀';
 }
 async function logout(){
-  await fetch('/api/advisor/logout',{method:'POST',credentials:'include'});
+  await fetch('/api/v2?resource=advisor&op=logout',{method:'POST',credentials:'include'});
   window.location.href='/login';
 }
 

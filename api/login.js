@@ -36,8 +36,22 @@ export default async function handler(req, res) {
     }
 
     if (!isAdmin) return bad(res, 'Invalid credentials', 401);
-    const token = await signToken({ email: emailLower, role: 'admin' }, '12h');
-    res.setHeader('Set-Cookie', setCookieHeader('prism_admin', token, cookieOpts(43200)));
+    const adminToken = await signToken({ email: emailLower, role: 'admin' }, '12h');
+    const cookies = [setCookieHeader('prism_admin', adminToken, cookieOpts(43200))];
+
+    // If this admin email also maps to an advisor account, issue advisor cookie too
+    // so they can navigate advisor-portal without a separate login
+    const { kvGet: _kvGet } = await import('./_lib/storage.js');
+    const advId = await _kvGet(`advisor_email:${emailLower}`);
+    if (advId) {
+      const adv = await _kvGet(`advisor:${advId}`);
+      if (adv) {
+        const advToken = await signToken({ advisor_id: adv.id, email: adv.email, firm: adv.firm_name, role: 'advisor' }, '7d');
+        cookies.push(setCookieHeader('prism_advisor', advToken, cookieOpts(604800)));
+      }
+    }
+
+    res.setHeader('Set-Cookie', cookies);
     return ok(res, { role: 'admin' });
   }
 

@@ -96,7 +96,12 @@ export default async function handler(req, res) {
       if (!adv) return unauth(res);
       const full = await kvGet(`advisor:${adv.advisor_id}`);
       if (!full) return unauth(res);
-      const deals = await listDeals({ advisor_id: adv.advisor_id });
+      let deals = await listDeals({ advisor_id: adv.advisor_id });
+      // Auto-seed on fresh deploy so advisor always sees their deals
+      if (deals.length === 0) {
+        try { await seedAdvisors(); await seedDeals(); deals = await listDeals({ advisor_id: adv.advisor_id }); }
+        catch (e) { /* seed unavailable */ }
+      }
       // Hydrate pushed_ioi from the latest package for each deal
       const enrichedDeals = await Promise.all(deals.map(async deal => {
         const pkgListKey = `packages:deal:${deal.id}`;

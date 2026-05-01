@@ -4,6 +4,17 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — API audit fix: 5 confirmed break points repaired
+
+### Fixes
+- `login.js`: admin login for tkj@theaurumcc.com now also issues `prism_advisor` cookie (same login gives both admin and advisor portal access)
+- `api/v2.js` op=me: added seed fallback — if listDeals returns 0 for advisor, auto-seeds before responding (same pattern as marketplace)
+- `admin-portal.html` load(): removed `dealsR.deals.length` guard — API data always replaces mock data even if empty; mock IDs (d9, tacc1 etc.) no longer used for API calls
+- `investor-portal.html` load(): removed `.length` guard — API data always replaces mock data so published deals appear immediately
+- `advisor-portal.html`: fixed logout URL from 404 `/api/advisor/logout` → correct `/api/v2?resource=advisor&op=logout`
+
+---
+
 ## [2026-05-01] — TACC Singapore deals, System tab with seed, delete control.html
 
 ### Changes

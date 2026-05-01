@@ -1824,10 +1824,10 @@ async function load(){
       fetchSilent('/api/v2?resource=deals&op=marketplace'),
       fetchSilent('/api/v2?resource=marketplace&op=my-iois')
     ]);
-    let updated=false;
-    if(dealsR?.deals&&dealsR.deals.length){DEALS=dealsR.deals.map((d,i)=>adaptDeal(d,i));updated=true;}
-    if(ioisR?.iois&&ioisR.iois.length){PORTFOLIO=ioisR.iois.map(i=>({deal_id:i.deal_id,amount:i.amount,status:i.status,submitted:new Date(i.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}),pipeline_step:i.status==='approved'?3:i.status==='rejected'?2:1}));updated=true;}
-    if(updated)initLobby();
+    // Always replace with live API data so published deals appear immediately
+    if(dealsR?.deals){DEALS=dealsR.deals.map((d,i)=>adaptDeal(d,i));}
+    if(ioisR?.iois){PORTFOLIO=ioisR.iois.map(i=>({deal_id:i.deal_id,amount:i.amount,status:i.status,submitted:new Date(i.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}),pipeline_step:i.status==='approved'?3:i.status==='rejected'?2:1}));}
+    initLobby();
   }
 }
 load();
