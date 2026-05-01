@@ -4,6 +4,37 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin deal detail: rich IOI summary + push-package preview modal
+
+### `admin-portal.html`
+- **IOI Summary section** in `buildDealDetailHTML()` replaced with a four-part block:
+  - Stats bar (4 `.ddp-metric` cards in `ddp-ioi-stats` grid): Total Indicated, Approved Capital, # Investors, Pending — computed live from `deal.iois`
+  - Funnel row (`.ddp-funnel`): Views/NDAs shown with `.muted` class and `~` prefix; IOIs, Approved, Pushed use real data and `.real` gold border
+  - Breakdown cards (`.ddp-breakdown-row`): By Investor Type and By Geography, grouped + summed client-side; graceful empty state when `deal.iois` is absent
+  - Full IOI table (`ddp-ioi-table-full`, 6 columns): Investor · Type/Geo · Amount · Status · Submitted · Actions. Pending rows get Approve + Decline buttons calling existing `actIoi()` then re-calling `openDealDetail()`; settled rows show badge only
+- **`pushPackage(dealId)`** — now fetches push-preview first; falls back to local `DEALS` state; guards against zero approved IOIs
+- **New `showPushPreviewModal(preview)`** — opens `#push-preview-modal` with deal/advisor, approved capital block, composition, geographies, disclosure note, conditional already-pushed warning
+- **New `confirmPushPackage(dealId)`** — actual POST, marks local IOIs pushed, closes modal, refreshes queue/overview/detail panel
+- **New `closePushPreviewModal()`** — hides overlay; overlay-click listener wired
+- **New CSS block**: `ddp-ioi-stats`, funnel classes, breakdown classes, push-preview classes, `ddp-ioi-table-full`
+- **Modal HTML**: `#push-preview-modal` added before `#toast`, reusing `.modal-overlay` / `.modal-box`
+
+---
+
+## [2026-05-01] — IOI seeding, deal-detail iois array, push-preview op, push-package email
+
+### `api/_lib/deal-storage.js`
+- **`seedDeals()`** now calls `seedIois()` after deals are written so a single seed run populates both.
+- **New export `seedIois()`** — writes 4 IOI records per active deal (2 approved, 1 pending, 1 rejected) using realistic investor names and amounts. Skips any IOI that already exists in Redis. Bridgeford (not member_visible) intentionally excluded. IOI status values use `'rejected'` to match what `reject-ioi` writes, keeping `deal-detail` summary counts correct.
+
+### `api/v2.js`
+- **`deal-detail` op** — now returns full `iois` array alongside existing `ioi_summary`. Each row includes `id`, `investor_firm`, `institution_type`, `geo`, `amount`, `status`, `submitted_at`, `pushed`, `data_room_access`.
+- **New op `push-preview`** (`GET ?resource=admin&op=push-preview&dealId=xxx`) — returns aggregate push package preview: approved count, total, pct of target, type breakdown, geo breakdown, `alreadyPushed` flag, suggested action. No investor names included (compliance boundary).
+- **`push-package` op** — after persisting the package, attempts to email the deal's advisor via new `sendIoiPackage()`. Aggregate stats only (no investor names). Wrapped in try/catch — email failure does not block push success.
+
+### `api/_lib/email.js`
+- **New export `sendIoiPackage(advisorEmail, dealName, stats)`** — sends "New IOI Package — [Deal Name]" email to advisor with approved count, indicated total, % of target, and type breakdown table.
+
 ## [2026-05-01] — Admin deal detail panel: full-screen tear sheet with Prism economics
 
 ### `admin-portal.html`

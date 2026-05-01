@@ -129,6 +129,25 @@ export async function sendAdvisorWelcome(advisor, tempPassword) {
   ));
 }
 
+// ── IOI push package notification to advisor ──────────────────
+export async function sendIoiPackage(advisorEmail, dealName, stats) {
+  // stats: { approvedCount, indicatedTotal, pct, typeLines, packageId }
+  await send(advisorEmail, `New IOI Package — ${dealName}`, base('IOI Package',
+    `<h3>${dealName}</h3>
+    <p style="color:#C5A572;font-family:monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase">IOI Package Ready</p>
+    <p>An IOI package has been compiled for your deal. Below is an aggregate summary. Individual investor identities are held by the platform operator per compliance policy.</p>
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:13px">
+      <tr><td style="padding:4px 0;color:#a89f94">Approved indications</td><td style="padding:4px 0;text-align:right;color:#ede8df;font-family:monospace">${stats.approvedCount}</td></tr>
+      <tr><td style="padding:4px 0;color:#a89f94">Total indicated amount</td><td style="padding:4px 0;text-align:right;color:#ede8df;font-family:monospace">$${Number(stats.indicatedTotal).toLocaleString()}</td></tr>
+      <tr><td style="padding:4px 0;color:#a89f94">% of target allocation</td><td style="padding:4px 0;text-align:right;color:#C5A572;font-family:monospace">${stats.pct}%</td></tr>
+    </table>
+    <p style="color:#635e58;font-size:11px;font-family:monospace;text-transform:uppercase;letter-spacing:.1em">By investor type</p>
+    <table style="width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:13px">${stats.typeLines}</table>
+    <p style="margin-top:12px;font-size:11px;color:#635e58">Package ID: <span style="font-family:monospace">${stats.packageId}</span><br>Platform operators will coordinate next steps. Do not contact investors directly.</p>
+    <a href="${SITE}/advisor" class="btn">View Advisor Portal →</a>`
+  ));
+}
+
 // ── Password reset code ────────────────────────────────────────
 export async function sendPasswordReset(email, code) {
   await send(email, 'Reset your Aurum Prism password', base('Password Reset',

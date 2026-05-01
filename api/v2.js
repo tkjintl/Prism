@@ -5,7 +5,7 @@ import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals } from 
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
   sendDataRoomAccess, sendAccessApplication,
-  sendAdvisorWelcome, sendPasswordReset,
+  sendAdvisorWelcome, sendPasswordReset, sendIoiPackage,
 } from './_lib/email.js';
 import bcrypt from 'bcryptjs';
 
@@ -680,6 +680,17 @@ Return ONLY valid JSON in this exact structure:
       const enriched = {
         ...deal,
         ioi_summary,
+        iois: dealIois.map(i => ({
+          id: i.id,
+          investor_firm: i.investor_firm || i.investor_email || i.investor_id,
+          institution_type: i.institution_type || '',
+          geo: i.geo || '',
+          amount: i.amount || 0,
+          status: i.status,
+          submitted_at: i.submitted_at,
+          pushed: i.pushed || false,
+          data_room_access: i.data_room_access || false,
+        })),
         docs: docs.length ? docs : (deal.docs || []),
         advisor_name,
         advisor_firm,
@@ -733,6 +744,78 @@ Return ONLY valid JSON in this exact structure:
 
       await saveDeal(deal);
       return ok(res, { ok: true, deal });
+    }
+
+    // ── push-preview ──────────────────────────────────────────────
+    if (op === 'push-preview') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      // Fetch IOIs for this deal
+      const ioiKeys = await kvKeys('ioi:IOI-*');
+      const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const dealIois = allIois.filter(i => i.deal_id === dealId);
+      const approvedIois = dealIois.filter(i => i.status === 'approved');
+
+      const approvedTotal = approvedIois.reduce((s, i) => s + (i.amount || 0), 0);
+      const targetAlloc = deal.target_alloc_usd || 0;
+      const pctOfTarget = targetAlloc > 0 ? Math.round(approvedTotal / targetAlloc * 100) : 0;
+      const alreadyPushed = approvedIois.some(i => i.pushed === true);
+
+      // Type breakdown
+      const typeMap = {};
+      for (const ioi of approvedIois) {
+        const t = ioi.institution_type || 'Unknown';
+        if (!typeMap[t]) typeMap[t] = { type: t, count: 0, amount: 0 };
+        typeMap[t].count += 1;
+        typeMap[t].amount += ioi.amount || 0;
+      }
+
+      // Geo breakdown
+      const geoMap = {};
+      for (const ioi of approvedIois) {
+        const g = ioi.geo || 'Unknown';
+        if (!geoMap[g]) geoMap[g] = { geo: g, count: 0, amount: 0 };
+        geoMap[g].count += 1;
+        geoMap[g].amount += ioi.amount || 0;
+      }
+
+      // Advisor info
+      let advisorName = '', advisorFirm = '';
+      if (deal.advisor_id && deal.advisor_id.startsWith('adv-')) {
+        const adv = await kvGet(`advisor:${deal.advisor_id}`);
+        if (adv) { advisorName = adv.name || ''; advisorFirm = adv.firm_name || ''; }
+      }
+
+      let suggestedAction = 'No approved IOIs yet — review pending indications before pushing.';
+      if (approvedIois.length > 0 && alreadyPushed) {
+        suggestedAction = 'Package already pushed. Re-push will update the advisor with current approved IOIs.';
+      } else if (approvedIois.length > 0 && pctOfTarget >= 80) {
+        suggestedAction = 'Round substantially covered — schedule close calls with approved investors.';
+      } else if (approvedIois.length > 0) {
+        suggestedAction = 'Schedule close calls with approved investors.';
+      }
+
+      return ok(res, {
+        preview: {
+          dealId,
+          dealName: deal.name,
+          advisorName,
+          advisorFirm,
+          approvedCount: approvedIois.length,
+          approvedTotal,
+          pctOfTarget,
+          typeBreakdown: Object.values(typeMap),
+          geoBreakdown: Object.values(geoMap),
+          alreadyPushed,
+          suggestedAction,
+        },
+      });
     }
 
     // ── push-package ──────────────────────────────────────────────
@@ -801,6 +884,35 @@ Return ONLY valid JSON in this exact structure:
       });
       deal.updated_at = new Date().toISOString();
       await saveDeal(deal);
+
+      // Notify advisor — aggregate stats only, no investor names (compliance boundary)
+      if (deal.advisor_id && deal.advisor_id.startsWith('adv-')) {
+        try {
+          const adv = await kvGet(`advisor:${deal.advisor_id}`);
+          if (adv?.email) {
+            const pct = targetAlloc > 0 ? Math.round(indicatedTotal / targetAlloc * 100) : 0;
+            // Build type summary string
+            const typeMap = {};
+            for (const ioi of approvedIois) {
+              const t = ioi.institution_type || 'Other';
+              typeMap[t] = (typeMap[t] || 0) + (ioi.amount || 0);
+            }
+            const typeLines = Object.entries(typeMap)
+              .map(([t, amt]) => `<tr><td style="padding:4px 0;color:#a89f94">${t}</td><td style="padding:4px 0;text-align:right;color:#ede8df;font-family:monospace">$${Number(amt).toLocaleString()}</td></tr>`)
+              .join('');
+
+            await sendIoiPackage(adv.email, deal.name, {
+              approvedCount: approvedIois.length,
+              indicatedTotal,
+              pct,
+              typeLines,
+              packageId: pkg.packageId,
+            });
+          }
+        } catch (emailErr) {
+          console.error('[push-package] advisor email failed (non-fatal):', emailErr.message);
+        }
+      }
 
       return ok(res, { ok: true, package: pkg });
     }

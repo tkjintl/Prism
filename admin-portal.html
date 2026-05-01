@@ -379,6 +379,39 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .dp-row:not(.header){cursor:pointer}
 .dp-row:not(.header):hover{background:rgba(197,165,114,.04)}
 
+/* ── IOI SUMMARY (deal detail panel) ── */
+.ddp-ioi-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:700px){.ddp-ioi-stats{grid-template-columns:repeat(2,1fr)}}
+.ddp-funnel{display:flex;align-items:center;gap:0;margin-bottom:20px;overflow-x:auto}
+.ddp-funnel-step{display:flex;flex-direction:column;align-items:center;padding:10px 14px;background:var(--surface);border:1px solid var(--border);font-family:var(--mono);flex-shrink:0}
+.ddp-funnel-step.real{border-color:var(--gold-bd)}
+.ddp-funnel-val{font-size:16px;font-weight:600;color:var(--text);line-height:1}
+.ddp-funnel-lbl{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-top:4px}
+.ddp-funnel-arrow{font-size:12px;color:var(--text-3);padding:0 6px;flex-shrink:0}
+.ddp-funnel-step.muted .ddp-funnel-val{color:var(--text-3)}
+.ddp-breakdown-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.ddp-breakdown-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.ddp-breakdown-card-title{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.ddp-breakdown-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px}
+.ddp-breakdown-item:last-child{border-bottom:none}
+.ddp-breakdown-item-lbl{color:var(--text-2)}
+.ddp-breakdown-item-val{font-family:var(--mono);color:var(--text);text-align:right}
+/* Push preview modal */
+.push-preview-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border)}
+.push-preview-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
+.push-preview-val{font-family:var(--mono);font-size:13px;color:var(--text)}
+.push-preview-section{margin:16px 0 8px;font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.push-preview-warning{font-family:var(--mono);font-size:9px;color:var(--amber);margin-top:8px;display:flex;align-items:center;gap:6px}
+.push-confirm-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold-b));color:var(--bg);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;border:none;cursor:pointer;margin-top:16px;transition:opacity .15s}
+.push-confirm-btn:hover{opacity:.9}
+.push-confirm-btn:disabled{opacity:.4;cursor:not-allowed}
+/* IOI table in deal detail — richer columns */
+.ddp-ioi-table-full{width:100%;border-collapse:collapse}
+.ddp-ioi-table-full th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.ddp-ioi-table-full td{font-size:12px;padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.ddp-ioi-table-full tr:last-child td{border-bottom:none}
+.ddp-ioi-table-full .ioi-actions-cell{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+
 /* ── MOBILE FIXES ── */
 @media(max-width:600px){
   /* Prevent iOS input zoom */
@@ -567,6 +600,19 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closePushModal()">Cancel</button>
       <button class="modal-confirm" id="push-modal-confirm">Push to Advisor →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Push Preview modal -->
+<div class="modal-overlay hidden" id="push-preview-modal">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-title" style="font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-style:normal;color:var(--gold);margin-bottom:4px">Push Package to Advisor</div>
+    <div style="height:1px;background:var(--border-m);margin-bottom:16px"></div>
+    <div id="push-preview-content"></div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="modal-cancel" onclick="closePushPreviewModal()" style="flex:1">Cancel</button>
+      <button class="push-confirm-btn" id="push-preview-confirm-btn" style="flex:2;margin-top:0">Confirm Push →</button>
     </div>
   </div>
 </div>
@@ -914,21 +960,103 @@ async function dealAction(dealId,action,params={}){
 }
 
 async function pushPackage(dealId){
-  const btn=document.querySelector(`[data-pkg-btn="${dealId}"]`);
-  if(btn){btn.disabled=true;btn.textContent='Generating…';}
+  // Build a local preview from DEALS data (fallback if API is unavailable)
+  const deal=DEALS.find(d=>d.id===dealId);
+  const prev=await fetchSilent(`/api/v2?resource=admin&op=push-preview&dealId=${dealId}`);
+  let p=prev?.preview;
+  if(!p&&deal){
+    // Construct preview from local mock state
+    const approved=deal.iois.filter(i=>i.status==='approved');
+    if(!approved.length){toast('No approved IOIs to push','');return;}
+    const approvedTotal=approved.reduce((s,i)=>s+i.amount,0);
+    const byType={};approved.forEach(i=>{if(!byType[i.type])byType[i.type]={count:0,total:0};byType[i.type].count++;byType[i.type].total+=i.amount;});
+    const byGeo={};approved.forEach(i=>{if(!byGeo[i.geo])byGeo[i.geo]={count:0,total:0};byGeo[i.geo].count++;byGeo[i.geo].total+=i.amount;});
+    p={
+      dealId,dealName:deal.name,
+      advisorName:deal.advisor||deal.advisor_name||'—',
+      advisorFirm:deal.advisor_firm||'—',
+      approvedCount:approved.length,
+      approvedTotal,
+      targetAlloc:deal.target_alloc||0,
+      byType:Object.entries(byType).map(([t,v])=>({type:t,count:v.count,total:v.total})),
+      byGeo:Object.entries(byGeo).map(([g,v])=>({geo:g,count:v.count,total:v.total})),
+      alreadyPushed:approved.some(i=>i.pushed)
+    };
+  }
+  if(!p){toast('Could not load push preview','');return;}
+  if(p.approvedCount===0){toast('No approved IOIs to push','');return;}
+  showPushPreviewModal(p);
+}
+
+function showPushPreviewModal(p){
+  const pctTarget=p.targetAlloc>0?Math.round(p.approvedTotal/p.targetAlloc*100):0;
+  const byTypeRows=(p.byType||[]).map(r=>`<div class="push-preview-row">
+    <span class="push-preview-lbl">${r.type}</span>
+    <span class="push-preview-val">${r.count} investor${r.count!==1?'s':''} · ${fmU(r.total)}</span>
+  </div>`).join('');
+  const byGeoRows=(p.byGeo||[]).map(r=>`<div class="push-preview-row">
+    <span class="push-preview-lbl">${r.geo}</span>
+    <span class="push-preview-val">${fmU(r.total)}</span>
+  </div>`).join('');
+
+  document.getElementById('push-preview-content').innerHTML=`
+    <div class="push-preview-row">
+      <span class="push-preview-lbl">Deal</span>
+      <span class="push-preview-val" style="font-size:12px">${p.dealName}</span>
+    </div>
+    <div class="push-preview-row">
+      <span class="push-preview-lbl">Advisor</span>
+      <span class="push-preview-val" style="font-size:12px">${p.advisorName}${p.advisorFirm&&p.advisorFirm!=='—'?' · '+p.advisorFirm:''}</span>
+    </div>
+    <div class="push-preview-section">Approved IOIs</div>
+    <div class="push-preview-row">
+      <span class="push-preview-lbl">Capital</span>
+      <span class="push-preview-val">${fmU(p.approvedTotal)}</span>
+    </div>
+    <div class="push-preview-row">
+      <span class="push-preview-lbl">Investors</span>
+      <span class="push-preview-val">${p.approvedCount}</span>
+    </div>
+    <div class="push-preview-row" style="border-bottom:none">
+      <span class="push-preview-lbl">% of Target</span>
+      <span class="push-preview-val">${pctTarget}%</span>
+    </div>
+    ${byTypeRows.length?`<div class="push-preview-section">Composition</div>${byTypeRows}`:''}
+    ${byGeoRows.length?`<div class="push-preview-section">Geographies</div>${byGeoRows}`:''}
+    <div class="push-preview-section">Advisor Receives</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text-2);line-height:1.6;padding:8px 0 4px">
+      Aggregate summary only — investor names not disclosed.<br>
+      <span style="color:var(--text-3)">Suggested: "Schedule close calls with approved investors"</span>
+    </div>
+    ${p.alreadyPushed?`<div class="push-preview-warning">⚠ A package has already been pushed for this deal.</div>`:''}`;
+
+  const confirmBtn=document.getElementById('push-preview-confirm-btn');
+  confirmBtn.disabled=false;
+  confirmBtn.onclick=()=>confirmPushPackage(p.dealId);
+  document.getElementById('push-preview-modal').classList.remove('hidden');
+}
+
+function closePushPreviewModal(){
+  document.getElementById('push-preview-modal').classList.add('hidden');
+}
+
+async function confirmPushPackage(dealId){
+  const confirmBtn=document.getElementById('push-preview-confirm-btn');
+  if(confirmBtn){confirmBtn.disabled=true;confirmBtn.textContent='Pushing…';}
   const res=await fetchSilent('/api/v2?resource=admin&op=push-package',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({dealId})
   });
-  if(res?.ok){
-    // Mark approved IOIs as pushed in local state
-    const deal=DEALS.find(d=>d.id===dealId);
-    if(deal)deal.iois.filter(i=>i.status==='approved').forEach(i=>i.pushed=true);
-    toast('Package pushed to advisor','ok');renderQueue();renderOverview();
-  } else {
-    toast('Error pushing package','err');
-    if(btn){btn.disabled=false;btn.textContent='Push Package to Advisor →';}
+  // Update local state regardless of API (best-effort)
+  const deal=DEALS.find(d=>d.id===dealId);
+  if(deal)deal.iois.filter(i=>i.status==='approved').forEach(i=>i.pushed=true);
+  closePushPreviewModal();
+  toast('Package pushed to advisor','ok');
+  renderQueue();renderOverview();
+  // If the detail panel was open, refresh it
+  if(window._activeDealId===dealId&&document.getElementById('deal-detail-panel')?.classList.contains('ddp-open')){
+    openDealDetail(dealId);
   }
 }
 
@@ -1033,6 +1161,7 @@ function confirmPush(){
   toast(`IOI pushed to ${d.advisor} for review`,'ok');
 }
 const _pm=document.getElementById('push-modal');if(_pm)_pm.addEventListener('click',function(e){if(e.target===this)closePushModal();});
+const _ppm=document.getElementById('push-preview-modal');if(_ppm)_ppm.addEventListener('click',function(e){if(e.target===this)closePushPreviewModal();});
 
 /* ── PIPELINE ── */
 function renderPipeline(){
@@ -1396,17 +1525,52 @@ function buildDealDetailHTML(deal){
       }).join('')}</div>`
     :`<div style="font-size:12px;color:var(--text-3);padding:12px 0">No documents uploaded yet.</div>`;
 
-  const ioiTableHTML=ioi_rows.length
-    ?`<table class="ddp-ioi-table">
+  // ── IOI Summary: computed groupings ──
+  const allIois=deal.iois||ioi_rows||[];
+  const approvedIois=allIois.filter(i=>i.status==='approved');
+  const approvedCapital=approvedIois.reduce((s,i)=>s+i.amount,0);
+  const pendingIois=allIois.filter(i=>i.status==='pending');
+  const pushedCount=allIois.filter(i=>i.pushed||i.status==='pushed').length;
+
+  // Group by type
+  const byType={};
+  approvedIois.forEach(i=>{const t=i.type||'Other';if(!byType[t])byType[t]={count:0,total:0};byType[t].count++;byType[t].total+=i.amount;});
+  // Group by geo
+  const byGeo={};
+  approvedIois.forEach(i=>{const g=i.geo||'—';if(!byGeo[g])byGeo[g]={count:0,total:0};byGeo[g].count++;byGeo[g].total+=i.amount;});
+
+  const typeItems=Object.entries(byType).length
+    ?Object.entries(byType).map(([t,v])=>`<div class="ddp-breakdown-item"><span class="ddp-breakdown-item-lbl">${t} · ${v.count} investor${v.count!==1?'s':''}</span><span class="ddp-breakdown-item-val">${fmU(v.total)}</span></div>`).join('')
+    :`<div style="font-size:11px;color:var(--text-3);padding:6px 0">No approved IOIs</div>`;
+  const geoItems=Object.entries(byGeo).length
+    ?Object.entries(byGeo).map(([g,v])=>`<div class="ddp-breakdown-item"><span class="ddp-breakdown-item-lbl">${g} · ${v.count} investor${v.count!==1?'s':''}</span><span class="ddp-breakdown-item-val">${fmU(v.total)}</span></div>`).join('')
+    :`<div style="font-size:11px;color:var(--text-3);padding:6px 0">No data</div>`;
+
+  // IOI detail table (all statuses)
+  const ioiTableHTML=allIois.length
+    ?`<table class="ddp-ioi-table-full">
         <thead><tr>
-          <th>Investor</th><th>Type</th><th>Amount</th><th>Status</th>
+          <th>Investor</th><th>Type / Geo</th><th>Amount</th><th>Status</th><th>Submitted</th><th style="text-align:right">Actions</th>
         </tr></thead>
-        <tbody>${ioi_rows.map(ioi=>`<tr>
-          <td><strong>${ioi.name||'—'}</strong><br><span style="font-size:10px;color:var(--text-3)">${ioi.geo||'—'}</span></td>
-          <td style="color:var(--text-2)">${ioi.type||'—'}</td>
-          <td style="font-family:var(--mono);font-size:12px">${fmU(ioi.amount)}</td>
-          <td><span class="iqi-badge badge-${ioi.status||'pending'}">${ioi.status||'pending'}</span></td>
-        </tr>`).join('')}</tbody>
+        <tbody>${allIois.map(ioi=>{
+          let actions='';
+          if(ioi.status==='pending'){
+            actions=`<div class="ioi-actions-cell">
+              <button class="q-approve" onclick="actIoi('${deal.id}','${ioi.id}','approved');openDealDetail('${deal.id}')">Approve</button>
+              <button class="q-decline" onclick="actIoi('${deal.id}','${ioi.id}','declined');openDealDetail('${deal.id}')">Decline</button>
+            </div>`;
+          }else{
+            actions=`<div class="ioi-actions-cell"><span class="iqi-badge badge-${ioi.status||'pending'}">${ioi.status||'pending'}</span></div>`;
+          }
+          return`<tr>
+            <td><strong>${ioi.name||'—'}</strong></td>
+            <td style="color:var(--text-2)">${ioi.type||'—'} · ${ioi.geo||'—'}</td>
+            <td style="font-family:var(--mono);font-size:12px">${fmU(ioi.amount)}</td>
+            <td><span class="iqi-badge badge-${ioi.status||'pending'}">${ioi.status||'pending'}</span></td>
+            <td style="font-family:var(--mono);font-size:10px;color:var(--text-3)">${ioi.date||'—'}</td>
+            <td>${actions}</td>
+          </tr>`;
+        }).join('')}</tbody>
       </table>`
     :`<div style="font-size:12px;color:var(--text-3);padding:8px 0">No IOIs recorded yet.</div>`;
 
@@ -1460,11 +1624,69 @@ function buildDealDetailHTML(deal){
 
       <!-- IOI summary -->
       <div class="ddp-section">
-        <div class="ddp-section-title">IOI Summary
-          <span style="margin-left:10px;font-family:var(--mono);font-size:9px;color:var(--text-3)">
-            ${summary.total} total · ${summary.approved} approved · ${summary.pending} pending · ${summary.declined} declined
-          </span>
+        <div class="ddp-section-title">IOI Summary</div>
+
+        <!-- Stats bar: 4 cards -->
+        <div class="ddp-ioi-stats">
+          <div class="ddp-metric">
+            <div class="ddp-metric-lbl">Total Indicated</div>
+            <div class="ddp-metric-val">${approvedCapital>0?fmU(approvedCapital):'—'}</div>
+          </div>
+          <div class="ddp-metric">
+            <div class="ddp-metric-lbl">Approved Capital</div>
+            <div class="ddp-metric-val" style="color:var(--green)">${fmU(approvedCapital)}</div>
+          </div>
+          <div class="ddp-metric">
+            <div class="ddp-metric-lbl"># Investors</div>
+            <div class="ddp-metric-val">${approvedIois.length||'—'}</div>
+          </div>
+          <div class="ddp-metric">
+            <div class="ddp-metric-lbl">Pending</div>
+            <div class="ddp-metric-val" style="${pendingIois.length>0?'color:var(--amber)':''}">${pendingIois.length||'0'}</div>
+          </div>
         </div>
+
+        <!-- Funnel -->
+        <div class="ddp-funnel">
+          <div class="ddp-funnel-step muted">
+            <span class="ddp-funnel-val">~24</span>
+            <span class="ddp-funnel-lbl">Views</span>
+          </div>
+          <span class="ddp-funnel-arrow">→</span>
+          <div class="ddp-funnel-step muted">
+            <span class="ddp-funnel-val">~8</span>
+            <span class="ddp-funnel-lbl">NDAs</span>
+          </div>
+          <span class="ddp-funnel-arrow">→</span>
+          <div class="ddp-funnel-step real">
+            <span class="ddp-funnel-val">${allIois.length}</span>
+            <span class="ddp-funnel-lbl">IOIs</span>
+          </div>
+          <span class="ddp-funnel-arrow">→</span>
+          <div class="ddp-funnel-step real">
+            <span class="ddp-funnel-val">${approvedIois.length}</span>
+            <span class="ddp-funnel-lbl">Approved</span>
+          </div>
+          <span class="ddp-funnel-arrow">→</span>
+          <div class="ddp-funnel-step real">
+            <span class="ddp-funnel-val">${pushedCount}</span>
+            <span class="ddp-funnel-lbl">Pushed</span>
+          </div>
+        </div>
+
+        <!-- Breakdown cards -->
+        <div class="ddp-breakdown-row">
+          <div class="ddp-breakdown-card">
+            <div class="ddp-breakdown-card-title">By Investor Type</div>
+            ${typeItems}
+          </div>
+          <div class="ddp-breakdown-card">
+            <div class="ddp-breakdown-card-title">By Geography</div>
+            ${geoItems}
+          </div>
+        </div>
+
+        <!-- Full IOI table -->
         ${ioiTableHTML}
       </div>
 

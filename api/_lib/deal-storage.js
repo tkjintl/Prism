@@ -158,5 +158,70 @@ export async function seedDeals() {
       results.push(id);
     }
   }
+
+  // Seed IOIs for active (member_visible) deals
+  await seedIois();
+
   return results;
+}
+
+// IOI seed data — realistic mix of Family Office and Institutional investors
+// Only seeds if the first IOI for a deal does not already exist
+export async function seedIois() {
+  // Deals that have member_visible:true and are worth seeding IOIs for
+  // Keyed by deal id → array of IOI records to create
+  const IOI_SEED = {
+    'DL-PACI1': [
+      { suffix:'001', investor_firm:'Harrison Family Office',      institution_type:'Family Office',   geo:'US', amount:5000000, status:'approved', daysAgo:18 },
+      { suffix:'002', investor_firm:'GIC Private Ltd',             institution_type:'Institutional',   geo:'SG', amount:8000000, status:'approved', daysAgo:14 },
+      { suffix:'003', investor_firm:'Alto Family Office',          institution_type:'Family Office',   geo:'AU', amount:3500000, status:'pending',  daysAgo:7  },
+      { suffix:'004', investor_firm:'Manulife Investment Mgmt',    institution_type:'Institutional',   geo:'HK', amount:4000000, status:'rejected', daysAgo:21 },
+    ],
+    'DL-PROJ1': [
+      { suffix:'001', investor_firm:'Meridian Capital LP',         institution_type:'Family Office',   geo:'US', amount:6000000, status:'approved', daysAgo:10 },
+      { suffix:'002', investor_firm:'Temasek Holdings',            institution_type:'Institutional',   geo:'SG', amount:10000000,status:'approved', daysAgo:8  },
+      { suffix:'003', investor_firm:'Whitehaven Capital',          institution_type:'Family Office',   geo:'AU', amount:2500000, status:'pending',  daysAgo:4  },
+      { suffix:'004', investor_firm:'AIA Group',                   institution_type:'Institutional',   geo:'HK', amount:7000000, status:'rejected', daysAgo:12 },
+    ],
+    'DL-METR1': [
+      { suffix:'001', investor_firm:'Northbridge Family Office',   institution_type:'Family Office',   geo:'US', amount:3000000, status:'approved', daysAgo:5  },
+      { suffix:'002', investor_firm:'Prudential Asset Mgmt',       institution_type:'Institutional',   geo:'SG', amount:4500000, status:'approved', daysAgo:3  },
+      { suffix:'003', investor_firm:'Harrison Family Office',      institution_type:'Family Office',   geo:'HK', amount:2000000, status:'pending',  daysAgo:2  },
+      { suffix:'004', investor_firm:'Alto Family Office',          institution_type:'Family Office',   geo:'AU', amount:2800000, status:'rejected', daysAgo:9  },
+    ],
+    'DL-SUMM1': [
+      { suffix:'001', investor_firm:'GIC Private Ltd',             institution_type:'Institutional',   geo:'SG', amount:5500000, status:'approved', daysAgo:15 },
+      { suffix:'002', investor_firm:'Meridian Capital LP',         institution_type:'Family Office',   geo:'US', amount:3200000, status:'approved', daysAgo:11 },
+      { suffix:'003', investor_firm:'Whitehaven Capital',          institution_type:'Family Office',   geo:'AU', amount:2200000, status:'pending',  daysAgo:6  },
+      { suffix:'004', investor_firm:'Manulife Investment Mgmt',    institution_type:'Institutional',   geo:'HK', amount:4800000, status:'rejected', daysAgo:19 },
+    ],
+  };
+  // Bridgeford (DL-BRID1) is not member_visible — skip IOI seeding for it
+
+  const seeded = [];
+  for (const [dealId, iois] of Object.entries(IOI_SEED)) {
+    for (const spec of iois) {
+      const ioiId = `IOI-${dealId}-${spec.suffix}`;
+      const existing = await kvGet(`ioi:${ioiId}`);
+      if (existing) continue; // already seeded — skip
+
+      const ioi = {
+        id: ioiId,
+        deal_id: dealId,
+        investor_id: `INV-SEED-${dealId}-${spec.suffix}`,
+        investor_firm: spec.investor_firm,
+        institution_type: spec.institution_type,
+        geo: spec.geo,
+        amount: spec.amount,
+        status: spec.status,
+        submitted_at: new Date(Date.now() - spec.daysAgo * 86400000).toISOString(),
+        pushed: false,
+        data_room_access: spec.status === 'approved',
+        notes: '',
+      };
+      await kvSet(`ioi:${ioiId}`, ioi);
+      seeded.push(ioiId);
+    }
+  }
+  return seeded;
 }
