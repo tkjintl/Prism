@@ -52,9 +52,10 @@ canvas#c{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;op
 .hero-inner{max-width:1240px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:80px;position:relative;z-index:2;align-items:center}
 
 .hero-left{}
-.hero-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:22px}
-.hero-eyebrow-line{width:28px;height:1px;background:var(--goldD)}
-.hero-eyebrow-txt{font-family:var(--mono);font-size:7px;letter-spacing:.32em;color:var(--goldD);text-transform:uppercase}
+.hero-eyebrow{margin-bottom:28px}
+.hero-eyebrow-presents{font-family:var(--mono);font-size:8px;letter-spacing:.38em;color:var(--goldD);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.hero-eyebrow-presents::before{content:'';display:block;width:22px;height:1px;background:var(--goldD);flex-shrink:0}
+.hero-eyebrow-name{font-family:var(--serif);font-style:italic;font-size:clamp(38px,4vw,54px);color:var(--goldB);letter-spacing:-.01em;line-height:1;display:block}
 .hero-label{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:7px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;padding:5px 12px;border:1px solid var(--amberBd);background:var(--amberW);margin-bottom:28px}
 .hero-label-dot{width:5px;height:5px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -351,7 +352,10 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   <div class="hero-vign"></div>
   <div class="hero-inner">
     <div class="hero-left">
-      <div class="hero-eyebrow"><div class="hero-eyebrow-line"></div><span class="hero-eyebrow-txt">Aurum Prism · prism.theaurumcc.com</span></div>
+      <div class="hero-eyebrow">
+        <div class="hero-eyebrow-presents">TACC Presents</div>
+        <span class="hero-eyebrow-name">Aurum Prism</span>
+      </div>
       <div class="hero-label"><span class="hero-label-dot"></span>Now Accepting Applications · Early Access Open</div>
       <h1>Where private deals<em>meet qualified capital.</em></h1>
       <p class="hero-sub">Aurum Prism is a private deal platform for qualified institutional investors and deal advisors — curating credit, pre-IPO equity, real estate, and infrastructure across the US and Asia-Pacific. Apply for early access.</p>
