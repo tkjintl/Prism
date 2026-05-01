@@ -33,8 +33,12 @@ button{cursor:pointer;font-family:inherit;border:none}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;height:58px;background:rgba(7,7,6,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);display:flex;align-items:center;padding:0 48px;gap:0;transition:background .3s}
-.n-seal{width:30px;height:30px;border:1px solid var(--goldBd);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold);margin-right:14px;flex-shrink:0}
-.n-brand{font-family:var(--mono);font-size:8px;letter-spacing:.28em;color:var(--sub);text-transform:uppercase;margin-right:auto}
+.n-wordmark{display:flex;flex-direction:column;justify-content:center;gap:3px;margin-right:auto}
+.n-wm-tacc{font-family:var(--mono);font-size:6px;letter-spacing:.28em;color:var(--muted);text-transform:uppercase}
+.n-wm-name{display:flex;align-items:center;line-height:1}
+.n-wm-aurum{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
+.n-wm-rule{display:block;width:1px;height:12px;background:var(--goldBd);margin:0 10px;flex-shrink:0}
+.n-wm-prism{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
 .n-tag{font-family:var(--mono);font-size:6px;letter-spacing:.18em;color:var(--goldD);text-transform:uppercase;padding:2px 8px;border:1px solid var(--goldBd);margin-right:16px}
 .n-links{display:flex;gap:0}
 .n-link{font-family:var(--mono);font-size:7.5px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;padding:0 16px;height:58px;display:flex;align-items:center;transition:color .14s;border-right:1px solid var(--border)}
@@ -55,10 +59,10 @@ canvas#c{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;op
 .hero-eyebrow{margin-bottom:28px}
 .hero-eyebrow-presents{font-family:var(--mono);font-size:7.5px;letter-spacing:.32em;color:var(--goldD);text-transform:uppercase;margin-bottom:10px;display:block}
 .hero-eyebrow-name{display:flex;align-items:center;gap:0;line-height:1}
-.hero-eyebrow-name .ew-aurum{font-family:var(--mono);font-size:clamp(26px,3vw,36px);font-weight:400;letter-spacing:.28em;color:var(--text);text-transform:uppercase}
-.hero-eyebrow-name .ew-rule{display:block;width:1px;height:clamp(22px,2.4vw,30px);background:var(--goldBdS);margin:0 clamp(14px,1.4vw,20px);flex-shrink:0}
-.hero-eyebrow-name .ew-prism{font-family:var(--mono);font-size:clamp(26px,3vw,36px);font-weight:400;letter-spacing:.28em;color:var(--gold);text-transform:uppercase}
-.hero-eyebrow-rule{display:block;width:40px;height:1px;background:var(--goldBd);margin-top:14px}
+.hero-eyebrow-name .ew-aurum{font-family:var(--mono);font-size:clamp(32px,3.5vw,46px);font-weight:400;letter-spacing:.26em;color:var(--text);text-transform:uppercase}
+.hero-eyebrow-name .ew-rule{display:block;width:1px;height:clamp(26px,2.8vw,36px);background:var(--goldBdS);margin:0 clamp(16px,1.6vw,24px);flex-shrink:0}
+.hero-eyebrow-name .ew-prism{font-family:var(--mono);font-size:clamp(32px,3.5vw,46px);font-weight:400;letter-spacing:.26em;color:var(--gold);text-transform:uppercase}
+.hero-eyebrow-rule{display:block;width:56px;height:1px;background:var(--goldBd);margin-top:14px}
 .hero-label{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:7px;letter-spacing:.18em;color:var(--amber);text-transform:uppercase;padding:5px 12px;border:1px solid var(--amberBd);background:var(--amberW);margin-bottom:28px}
 .hero-label-dot{width:5px;height:5px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -339,8 +343,14 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
 
 <!-- NAV -->
 <nav id="sitenav">
-  <div class="n-seal" style="font-family:Georgia,serif;font-style:italic;font-size:15px;letter-spacing:-.04em;font-weight:500">Au</div>
-  <div class="n-brand">Aurum Prism</div>
+  <div class="n-wordmark">
+    <div class="n-wm-tacc">A TACC Platform</div>
+    <div class="n-wm-name">
+      <span class="n-wm-aurum">Aurum</span>
+      <span class="n-wm-rule" aria-hidden="true"></span>
+      <span class="n-wm-prism">Prism</span>
+    </div>
+  </div>
   <div class="n-links">
     <a class="n-link" href="#platform">Platform</a>
     <a class="n-link" href="#access">Access Tiers</a>

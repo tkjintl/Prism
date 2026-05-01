@@ -35,8 +35,12 @@ button{cursor:pointer;font-family:inherit;border:none;background:none}
 
 /* TOP STRIP */
 .top-strip{height:48px;background:rgba(6,6,5,.97);border-bottom:1px solid var(--wire);display:flex;align-items:center;padding:0 24px;flex-shrink:0}
-.ts-seal{width:28px;height:28px;border:1px solid var(--goldBd);background:var(--goldW);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:12px;color:var(--gold);margin-right:12px;animation:glow 3s ease-in-out infinite}
-.ts-brand{font-family:var(--mono);font-size:8px;letter-spacing:.36em;color:var(--gold);text-transform:uppercase}
+.ts-wordmark{display:flex;flex-direction:column;justify-content:center;gap:3px}
+.ts-wm-tacc{font-family:var(--mono);font-size:6px;letter-spacing:.26em;color:var(--muted);text-transform:uppercase}
+.ts-wm-name{display:flex;align-items:center;line-height:1}
+.ts-wm-aurum{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
+.ts-wm-rule{display:block;width:1px;height:12px;background:var(--goldBd);margin:0 10px;flex-shrink:0}
+.ts-wm-prism{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
 .ts-back{margin-left:auto;font-family:var(--mono);font-size:7px;letter-spacing:.12em;color:#635e58;text-decoration:none;transition:color .14s;padding:5px 10px;border:1px solid var(--wire)}
 .ts-back:hover{color:var(--gold);border-color:var(--goldBd)}
 
@@ -120,8 +124,14 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 </div>
 
 <div class="top-strip">
-  <div class="ts-seal"><em style="font-family:Georgia,serif;font-style:italic;font-size:15px;letter-spacing:-.04em;font-weight:500">Au</em></div>
-  <div class="ts-brand">Aurum Prism</div>
+  <div class="ts-wordmark">
+    <div class="ts-wm-tacc">A TACC Platform</div>
+    <div class="ts-wm-name">
+      <span class="ts-wm-aurum">Aurum</span>
+      <span class="ts-wm-rule" aria-hidden="true"></span>
+      <span class="ts-wm-prism">Prism</span>
+    </div>
+  </div>
   <a href="/" class="ts-back">← Back to Site</a>
 </div>
 

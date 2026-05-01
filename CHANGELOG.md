@@ -4,6 +4,49 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Universal brand wordmark rollout across all 5 portals
+
+### `index.html`, `admin-portal.html`, `advisor-portal.html`, `investor-portal.html`, `login.html`
+- **Replaced** all Au seal + plain text logo instances with the locked two-line split wordmark: "A TACC Platform" label (6px muted mono) above "AURUM | PRISM" (13px mono, `--text` / 1px gold rule / `--gold`).
+- **index.html hero eyebrow** — scaled up from `clamp(26px,3vw,36px)` → `clamp(32px,3.5vw,46px)`, letter-spacing `.28em` → `.26em`, rule height and margin enlarged, `.hero-eyebrow-rule` widened from 40px to 56px.
+- **index.html nav** — removed `.n-seal` + `.n-brand`; added `.n-wordmark` block with `margin-right:auto` to hold left alignment against the link group.
+- **Admin, advisor, investor portals** — removed `.nav-mark`, `.nav-brand-name`, `.nav-brand-tag`; added `.nav-wordmark` / `.nav-wm-*` classes.
+- **login.html** — removed `.ts-seal`, `.ts-brand`; added `.ts-wordmark` / `.ts-wm-*` classes.
+- CSS variable used for gold rule: `--goldBd` (index.html, login.html) · `--gold-bd` (admin, advisor, investor portals).
+
+## [2026-05-01] — Hero eyebrow: replace italic serif lockup with mono split-wordmark
+
+### `index.html` — `.hero-eyebrow`, `.hero-eyebrow-presents`, `.hero-eyebrow-name`
+- **Removed** italic Cormorant Garamond `.hero-eyebrow-name` — the large italic serif read as letterhead, not product identity.
+- **Replaced** with Option B split-wordmark: "AURUM" in `var(--text)` mono caps + 1px gold vertical rule + "PRISM" in `var(--gold)` mono caps. Both sides `clamp(26px,3vw,36px)`, `letter-spacing:.28em`, weight 400. The two-part brand split communicates product identity at a glance.
+- **Changed sub-line** from "TACC Presents" to "A TACC Platform" — less ceremony, more category clarity. Rendered in 7.5px muted mono above the wordmark.
+- **Added** `.hero-eyebrow-rule` — a 40px × 1px gold rule below the wordmark separating the lockup from the h1, replacing the old `::before` pseudo-element line.
+- **Removed** the old `::before` rule decoration from `.hero-eyebrow-presents`.
+
+## [2026-05-01] — Hero prism: fix rogue diagonal particles, align connectors to base vertices
+
+### `index.html` — SVG animated circles, `.hero-prism-scene`, `.hp-side`, `.hp-flow-line`
+- **Removed 3 SVG `<circle>` "deal flow particles"** that animated diagonally from (40,10)→(200,130) and (55,0)→(200,130). These read as a random broken diagonal streak; removed entirely.
+- **Added base-travel animation** along the prism's bottom edge (52,264)→(348,264): a dashed baseline stroke, a gold arrowhead polyline at the right vertex, and a gold dot that travels left-to-right at 2.8s ease-in with opacity and radius breathing. Communicates "deals enter left → capital exits right" unambiguously.
+- **Changed `.hero-prism-scene` `align-items` from `center` to `flex-end`** — side text blocks now hang at the bottom of the flex container, aligning with the prism base vertices rather than floating at mid-height.
+- **Added `padding-bottom:14%` to `.hp-side`** — shifts the connector lines down so they meet the prism at vertex height (~56px from bottom of 320px SVG).
+- **Updated `.hp-flow-line` gradients** — left line: `rgba(197,165,114,.2)→rgba(197,165,114,.7)` (more opaque at prism edge). Right line: reversed. Both now visually terminate at the prism base corner.
+
+## [2026-05-01] — Hero prism animation overhaul: directionality over float
+
+### `index.html` — `.hero-prism-scene` / `.hp-flow-line` / SVG particles
+- **Removed `animation:prismFloat`** from `.hero-prism-scene` — the whole scene no longer bounces. Text labels are now completely static.
+- **Removed `@keyframes prismFloat`** entirely.
+- **Added `position:relative;overflow:visible`** to `.hp-flow-line` so pseudo-element can escape the 1px line container.
+- **Added `.hp-flow-line::after`** — a 5px gold dot (`rgba(197,165,114,.95)`) with a double `box-shadow` glow that animates `left: 0 → calc(100% - 5px)` via `@keyframes dotFlow` (2.6s, ease-in-out, infinite). Fades in at 10% and out at 90% for a clean loop.
+- **Added `.hp-side-right .hp-flow-line::after { animation-delay: 1.3s }`** — right connector dot starts 1.3s after the left, reading as "capital flows out after deals flow in."
+- **Added `@keyframes dotFlow`** (replaces `prismFloat`).
+- **Added 3 SVG `<circle>` beam particles** inside the prism SVG — positioned after the incoming beam `<line>` elements, before the `<polygon>`, so the prism body renders on top as they reach the refraction point. Particles travel `(40,10)→(200,130)` and `(55,0)→(200,130)` at 2.2s / 2.2s+0.85s delay / 2.6s+1.7s delay, with fill-opacity fade in/out. White and gold fills respectively.
+- **`prismGlow` on `.hp-prism-wrap` retained** — ambient drop-shadow breathe unchanged.
+- **All other SVG animations retained** — `beamPulse`, `raySpectrum`, `vertexGlow`, `particleDrift`, `breatheGlow`.
+
+---
+
 ## [2026-05-01] — Admin IOI Queue: deal-grouped view with raise controls and package push
 
 ### `admin-portal.html` — IOI Queue tab redesigned
