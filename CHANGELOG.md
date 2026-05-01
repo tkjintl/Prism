@@ -4,6 +4,22 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin Overview dashboard: scrollable queue columns, New Deals label, sign-up access panel, richer visuals
+
+### `admin-portal.html` — `renderOverview()`, `renderKPIs()`, CSS
+- **Action queue columns now scroll:** `.ov-col-body` has `max-height:380px; overflow-y:auto` — each column caps at ~380px and scrolls internally instead of pushing the page down.
+- **"Pending Review" renamed to "New Deals":** column title and card tags updated; meta text now clarifies these are advisor submissions awaiting AI generation + review.
+- **Overview header bar:** thin row above the queue showing today's date (long format) and a live "X actions require your attention" / "All clear" summary with an amber pulse dot.
+- **KPI top-border accent:** moved the accent line from the bottom to the top of each tile for stronger visual hierarchy (gold/amber/green).
+- **KPI count-up animation:** integer KPI values animate from 0 on each render via a cubic-ease `requestAnimationFrame` loop (600ms). Currency strings such as "$12M" are intentionally skipped.
+- **Stage map connector line:** a faint horizontal rule sits behind the lane headers via a CSS `::after` pseudo-element. Lanes with a pending IOI show a small amber pulse dot beside their count badge.
+- **IOI Intelligence sparklines:** each deal row now renders a CSS-only mini bar chart (up to 6 bars, height proportional to IOI amounts) above the meta pills.
+- **Activity feed:** rows have a 2px coloured left border by activity type (gold=IOI, amber=submit, blue=stage change, green=push) plus alternating row tint.
+- **Sign-up access cycle panel:** two-column grid below the bottom panels — "Advisor Access" and "Investor Access" — each in a standard `.ov-panel` with fixed max-height and internal scroll. Rows show a green/amber status dot, name, firm/type, date, and a pill badge. Backed by `MOCK_ADVISORS` / `MOCK_INVESTORS` defined inline in `renderOverview`.
+- **Panel headers enhanced:** `.ov-panel-hd` now supports a secondary right-aligned subtext (`ov-panel-hd-sub`) showing event count or grouping label.
+
+---
+
 ## [2026-05-01] — Admin portal: Add Deal wizard panel + IOI detail slide-in + table fix
 
 ### `admin-portal.html`
