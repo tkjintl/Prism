@@ -560,7 +560,484 @@ a{color:inherit;text-decoration:none}
   .ci-wire-val{padding:8px 12px}
 }
 .inv-deal-ring{display:flex;align-items:center;justify-content:flex-start;gap:20px;width:100%;background:rgba(13,12,10,.85);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:18px 20px;backdrop-filter:blur(10px)}
+
+/* ══════════════════════════════════════════
+   MOBILE OVERRIDES — INVESTOR PORTAL
+   Target: 390px iPhone 15 as baseline
+   Breakpoints: ≤768px tablet+phone, ≤480px phone-only
+══════════════════════════════════════════ */
+
+/* ── 1. NAV: logo left, avatar right, tabs below ── */
+@media(max-width:768px){
+  .nav{
+    height:auto;
+    flex-wrap:wrap;
+    padding:0 16px;
+    gap:0;
+    align-items:stretch;
+  }
+  /* Top row: wordmark + right controls */
+  .nav-wordmark{
+    padding:10px 0;
+    flex:1;
+  }
+  /* Hide the vertical divider between wordmark and tabs on mobile */
+  .nav-div{display:none}
+  /* Tabs go on second row, full width, scrollable */
+  .nav-tabs{
+    order:99;
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    flex-wrap:nowrap;
+    border-top:1px solid var(--border);
+    padding:0 0 0 0;
+    scrollbar-width:none;
+  }
+  .nav-tabs::-webkit-scrollbar{display:none}
+  .ntab{
+    flex-shrink:0;
+    padding:10px 16px;
+    font-size:13px;
+    min-height:44px;
+    display:flex;
+    align-items:center;
+  }
+  /* Right controls: compress — show only avatar, hide text labels */
+  .nav-r{
+    gap:8px;
+    padding:8px 0;
+    align-items:center;
+  }
+  .nav-user-info{display:none}
+  /* Sign out text: keep but shrink */
+  .nav-r > button:last-child{
+    font-size:9px;
+    padding:4px 6px;
+  }
+  /* Update --nav-h to account for two-row nav */
+  :root{--nav-h:88px}
+}
+
+/* ── 2. LOBBY HERO: stack columns, hide decorative visual ── */
+@media(max-width:768px){
+  .lobby-hero{
+    grid-template-columns:1fr !important;
+    min-height:auto;
+    min-height:60vh;
+  }
+  /* Hide prism SVG column entirely — decorative only */
+  .hero-visual{display:none !important}
+  /* Greeting: pin to top of content area, not overlapping body */
+  .lobby-greeting{
+    position:static;
+    display:block;
+    padding:20px 20px 0;
+    font-size:13px;
+    pointer-events:auto;
+  }
+  /* Hero content: full-width padding, no justify centering needed */
+  .hero-content{
+    padding:16px 20px 40px;
+    justify-content:flex-start;
+  }
+  /* Deal name: clamp down from 78px max */
+  .hero-deal-name{
+    font-size:clamp(28px,8vw,48px) !important;
+    margin-bottom:10px;
+  }
+  /* Tagline: full width */
+  .hero-tagline{
+    max-width:100%;
+    font-size:14px;
+    margin-bottom:20px;
+  }
+  /* Hero eyebrow */
+  .hero-eyebrow{margin-bottom:14px}
+  /* Urgency badge: allow wrap */
+  .urgency-badge{
+    flex-wrap:wrap;
+    white-space:normal;
+    max-width:100%;
+    margin-bottom:12px;
+  }
+}
+
+/* ── 3. HERO STATS: 2×2 grid on mobile ── */
+@media(max-width:768px){
+  .hero-stats{
+    display:grid !important;
+    grid-template-columns:1fr 1fr;
+    gap:16px 0;
+    margin-bottom:24px;
+  }
+  .hero-stat{
+    padding:0 12px 0 0;
+    margin-right:0;
+    border-right:none;
+    border-bottom:none;
+  }
+  /* Only right column items get a left border as separator */
+  .hero-stat:nth-child(2n){
+    padding-left:16px;
+    border-left:1px solid var(--border);
+  }
+  .hero-stat-val{font-size:18px}
+  .hero-stat-lbl{font-size:10px}
+}
+
+/* ── 4. HERO ACTIONS: full-width stacked column ── */
+@media(max-width:768px){
+  .hero-actions{
+    flex-direction:column;
+    gap:10px;
+    align-items:stretch;
+  }
+  .hero-actions .btn-primary,
+  .hero-actions .btn-ghost{
+    width:100%;
+    text-align:center;
+    padding:15px 20px;
+    justify-content:center;
+  }
+  /* Social proof compact */
+  .social-proof{
+    margin-top:14px;
+    font-size:11px;
+    flex-wrap:wrap;
+  }
+}
+
+/* ── 5. HERO CAROUSEL DOTS ── */
+@media(max-width:768px){
+  .hero-dots{
+    position:static;
+    padding:8px 20px 16px;
+    grid-column:1/-1;
+  }
+}
+
+/* ── 6. DEAL DETAIL OVERLAY: full-screen fixed ── */
+@media(max-width:768px){
+  #view-deal{
+    position:fixed;
+    inset:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    z-index:100;
+  }
+  .dd-inner{
+    padding:calc(var(--nav-h) + 16px) 16px 80px;
+  }
+  /* Back button: large touch target */
+  .dd-back{
+    min-height:44px;
+    padding:10px 0;
+    font-size:14px;
+    margin-bottom:20px;
+    display:flex;
+    align-items:center;
+  }
+  /* Deal detail grid: single column */
+  .dd-grid{
+    grid-template-columns:1fr !important;
+    gap:24px;
+  }
+  /* Action panel: un-stick, flow naturally */
+  .action-sticky{
+    position:static !important;
+    top:auto !important;
+  }
+  /* Deal name inside detail view */
+  .dd-name{
+    font-size:clamp(28px,7vw,44px);
+  }
+  /* Thesis body */
+  .dd-thesis{
+    max-width:100%;
+    font-size:14px;
+  }
+}
+
+/* ── 7. DEAL DETAIL TABS (data room / Q&A) ── */
+@media(max-width:768px){
+  .inv-dr-tabs{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    flex-wrap:nowrap;
+    scrollbar-width:none;
+  }
+  .inv-dr-tabs::-webkit-scrollbar{display:none}
+  .inv-dr-tab{
+    flex-shrink:0;
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    white-space:nowrap;
+  }
+}
+
+/* ── 8. IOI FORM: full stretch, large inputs ── */
+@media(max-width:768px){
+  .ioi-form{border-radius:var(--r)}
+  .ioi-body{padding:16px}
+  .ioi-cta{
+    width:100%;
+    padding:16px;
+    font-size:14px;
+  }
+  /* IOI confirmation buttons: full width column */
+  .ioi-confirm-btns{
+    width:100%;
+    max-width:100%;
+  }
+  .ioi-confirm{
+    padding:28px 16px 24px;
+  }
+  /* Prevent amount display from overflowing */
+  .ioi-confirm-amount{
+    font-size:clamp(20px,6vw,28px);
+  }
+}
+
+/* ── 9. PORTFOLIO VIEW ── */
+@media(max-width:768px){
+  .portfolio-hero{
+    padding:20px 16px 0;
+  }
+  .ph-stats{
+    gap:20px;
+    padding-bottom:20px;
+    flex-wrap:wrap;
+  }
+  .ph-stat-val{font-size:20px}
+  .portfolio-body{
+    padding:20px 16px;
+  }
+  /* Position cards: single column */
+  .pos-grid{
+    grid-template-columns:1fr !important;
+  }
+  /* Allocation section: stack */
+  .alloc-section{
+    grid-template-columns:1fr !important;
+  }
+  /* Allocation ring: center on mobile, reduce size */
+  .alloc-ring-wrap{
+    align-items:center;
+  }
+}
+
+/* ── 10. INV-DEAL-RING (hero subscription ring) ── */
+@media(max-width:768px){
+  /* Ring is inside hero-visual which is hidden — no-op, but guard anyway */
+  .inv-deal-ring{
+    padding:12px 14px;
+    gap:12px;
+  }
+  .inv-deal-ring .ring-wrap{
+    width:80px !important;
+    height:80px !important;
+    flex-shrink:0;
+  }
+  .inv-deal-ring .ring-pct{font-size:14px}
+  .inv-deal-ring .ring-sub{font-size:8px}
+}
+
+/* ── 11. STAT GRID (action panel) ── */
+@media(max-width:768px){
+  .stat-grid{
+    grid-template-columns:1fr 1fr;
+  }
+  .stat-val{font-size:15px}
+}
+
+/* ── 12. RETURN CHART / EQUITY SCENARIOS ── */
+@media(max-width:768px){
+  .eq-scenarios{
+    grid-template-columns:1fr 1fr 1fr;
+    gap:6px;
+  }
+  .eq-sc{padding:10px 8px}
+  .eq-sc-irr{font-size:15px}
+  .eq-sc-moic{font-size:12px}
+  .return-chart{height:130px;gap:6px}
+  /* Value path table: allow horizontal scroll */
+  .vp-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+
+/* ── 13. STAGE TIMELINE ── */
+@media(max-width:768px){
+  .tl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tl-inner{min-width:360px}
+  .tl-lbl{font-size:7px}
+}
+
+/* ── 14. DOCS GRID ── */
+@media(max-width:768px){
+  .docs-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ── 15. SECTION PADDING ── */
+@media(max-width:768px){
+  .section{
+    padding:28px 16px;
+  }
+  .section-hd{
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:16px;
+  }
+}
+
+/* ── 16. FILE VIEWER MODAL ── */
+@media(max-width:768px){
+  .vdr-viewer-bar{
+    padding:10px 14px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .vdr-viewer-close{
+    min-height:44px;
+    padding:8px 16px;
+  }
+}
+
+/* ── 17. CLOSING INSTRUCTIONS ── */
+@media(max-width:768px){
+  .closing-instr-wrap{
+    padding:24px 16px 60px;
+  }
+  .ci-actions{flex-direction:column}
+  .ci-pdf-btn,
+  .ci-back-btn{
+    width:100%;
+    text-align:center;
+    padding:13px 16px;
+  }
+}
+
+/* ── 18. WIRE TABLE ── */
+@media(max-width:768px){
+  .ci-wire-row{grid-template-columns:1fr}
+  .ci-wire-lbl{border-right:none;border-bottom:1px solid var(--border);padding:8px 12px}
+  .ci-wire-val{padding:8px 12px}
+}
+
+/* ═══════════════════════════
+   PHONE-ONLY (≤480px)
+═══════════════════════════ */
+
+/* ── A. Tightest nav ── */
+@media(max-width:480px){
+  .nav{padding:0 12px}
+  .nav-wm-aurum,.nav-wm-prism{font-size:11px}
+  .nav-wm-tacc{font-size:5px}
+  :root{--nav-h:84px}
+}
+
+/* ── B. Hero: phone-specific tightening ── */
+@media(max-width:480px){
+  .lobby-greeting{padding:14px 16px 0;font-size:12px}
+  .hero-content{padding:12px 16px 32px}
+  .hero-deal-name{font-size:clamp(26px,9vw,40px) !important}
+  .hero-stats{
+    grid-template-columns:1fr 1fr;
+    gap:12px 0;
+  }
+  .hero-stat-val{font-size:16px}
+  .hero-stat-lbl{font-size:9px}
+  .hero-eyebrow{font-size:8px;margin-bottom:10px}
+}
+
+/* ── C. Deal cards: guaranteed 1 column ── */
+@media(max-width:480px){
+  .deal-grid{grid-template-columns:1fr !important}
+  .dc-header{padding:14px 14px 10px}
+  .dc-body{padding:0 14px 12px}
+  .dc-footer{padding:9px 14px}
+}
+
+/* ── D. Deal detail on phones ── */
+@media(max-width:480px){
+  .dd-inner{padding:calc(var(--nav-h) + 12px) 12px 72px}
+  .dd-name{font-size:clamp(24px,8vw,36px)}
+  .dd-thesis{font-size:13px}
+  .hl-card{padding:12px 14px}
+}
+
+/* ── E. Docs grid: 1 col on phones ── */
+@media(max-width:480px){
+  .docs-grid{grid-template-columns:1fr !important}
+}
+
+/* ── F. Equity scenarios: stack on tiny screens ── */
+@media(max-width:480px){
+  .eq-scenarios{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .eq-sc{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    align-items:center;
+    text-align:left;
+    padding:10px 12px;
+    gap:4px 8px;
+  }
+  .eq-sc-name{grid-column:1/-1;margin-bottom:4px}
+  .eq-sc-irr-lbl,.eq-sc-moic-lbl,.eq-sc-exit-lbl{display:none}
+}
+
+/* ── G. Stat grid: 1 col on phones ── */
+@media(max-width:480px){
+  .stat-grid{grid-template-columns:1fr}
+  .stat-val{font-size:14px}
+}
+
+/* ── H. Portfolio: tighter phone padding ── */
+@media(max-width:480px){
+  .portfolio-hero{padding:16px 12px 0}
+  .portfolio-body{padding:16px 12px}
+  .ph-name{font-size:clamp(22px,6vw,32px)}
+  .ph-stats{gap:16px}
+  .ph-stat-val{font-size:18px}
+  /* Hide allocation ring on smallest phones — legend only */
+  .alloc-ring-wrap{display:none}
+  .alloc-section{grid-template-columns:1fr !important}
+}
+
+/* ── I. Section padding on phones ── */
+@media(max-width:480px){
+  .section{padding:20px 12px}
+}
+
+/* ── J. IOI form on phones ── */
+@media(max-width:480px){
+  .ioi-body{padding:12px}
+  .ioi-head{padding:12px 14px}
+  .ioi-input{padding:11px 12px}
+  .slider-marks .sm{font-size:8px}
+}
+
+/* ── K. Toast: prevent overflow ── */
+@media(max-width:480px){
+  .toast{
+    left:12px;
+    right:12px;
+    transform:translateY(20px);
+    white-space:normal;
+    text-align:center;
+  }
+  .toast.show{transform:translateY(0)}
+}
+
+/* ── L. Demo badge: keep out of tap zones ── */
+@media(max-width:480px){
+  .demo-badge{bottom:8px;right:8px;font-size:7px;padding:4px 8px}
+}
 </style>
+<link rel="stylesheet" href="/mobile.css">
 </head>
 <body>
 
