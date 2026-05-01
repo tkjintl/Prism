@@ -638,7 +638,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
 function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--bg-2,#fff);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again to continue.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
-function adaptDeal(d){return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,documents:d.documents||{},dataroom:(d.docs||[]).filter(f=>f.access==='dd'),activity:(d.qa||[]).map(m=>({type:'msg',text:m.text||'',time:new Date(m.at).toLocaleDateString('en-US',{month:'short',day:'numeric'})})),pushed_ioi:d.pushed_ioi||null,closing_docs:d.closing_docs||{},investors_by_type:[],notifications:d.notifications||[]};}
+function adaptDeal(d){return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,thesis:d.thesis||d.ai_draft?.thesis||'',tagline:d.tagline||d.ai_draft?.tagline||'',highlights:(d.highlights&&d.highlights.length?d.highlights:d.ai_draft?.highlights||[]),documents:d.documents||{},dataroom:(d.docs||[]).filter(f=>f.access==='dd'),activity:(d.qa||[]).map(m=>({type:'msg',text:m.text||'',time:new Date(m.at).toLocaleDateString('en-US',{month:'short',day:'numeric'})})),pushed_ioi:d.pushed_ioi||null,closing_docs:d.closing_docs||{},investors_by_type:[],notifications:d.notifications||[]};}
 
 /* ─── DATA ─── */
 let DEALS = [
@@ -1528,7 +1528,7 @@ function openPrismDoc(type){
     <div class="pdv-section-lbl">Investment Thesis</div>
     <div class="pdv-thesis">${d.thesis||'No thesis set.'}</div>
     ${hls.length?`<div class="pdv-divider"></div><div class="pdv-section-lbl">Key Highlights</div>
-    <div class="pdv-highlights">${hls.map(h=>`<div class="pdv-hl-row"><span class="pdv-hl-icon">${h.icon}</span><div><div class="pdv-hl-title">${h.title}</div><div class="pdv-hl-body">${h.body}</div></div></div>`).join('')}</div>`:''}
+    <div class="pdv-highlights">${hls.map(h=>`<div class="pdv-hl-row"><span class="pdv-hl-icon">${h.icon}</span><div><div class="pdv-hl-title">${h.title||h.s||''}</div><div class="pdv-hl-body">${h.body||h.b||''}</div></div></div>`).join('')}</div>`:''}
     <div class="pdv-divider"></div>
     <div class="pdv-section-lbl">Economics</div>
     <div class="pdv-kv-row"><span class="pdv-k">Target IRR</span><span class="pdv-v gold">${d.target_irr}%</span></div>
@@ -2127,8 +2127,8 @@ function renderReviewEdit(){
                 <div style="display:flex;gap:12px;padding:12px;background:var(--bg-3);border:1px solid var(--border);border-radius:4px;cursor:pointer" onclick="revEditHighlight(${i})" id="rev-hl-row-${i}">
                   <div style="font-size:18px;width:28px;flex-shrink:0">${h.icon||'◆'}</div>
                   <div style="flex:1">
-                    <div style="font-size:13px;font-weight:600;color:var(--text-1,var(--text));margin-bottom:2px">${h.s||''}</div>
-                    <div style="font-size:12px;color:var(--text-2);line-height:1.5">${h.b||''}</div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text-1,var(--text));margin-bottom:2px">${h.s||h.title||''}</div>
+                    <div style="font-size:12px;color:var(--text-2);line-height:1.5">${h.b||h.body||''}</div>
                   </div>
                   <div style="font-size:10px;color:var(--text-3);flex-shrink:0;align-self:center">✎</div>
                 </div>`).join(''):`<div style="padding:12px;background:var(--bg-3);border:1px dashed var(--border-m);border-radius:4px;font-size:12px;color:var(--text-3);text-align:center">No highlights — add from the deal profile data.</div>`}
@@ -2414,11 +2414,20 @@ function notifClick(notifId,dealId,type,dealIdx){
     if(type==='stage_change'||type==='ioi_pushed'){
       setTimeout(()=>showTab('overview',document.querySelector('.ctab')),80);
     }else if(type==='deal_review_requested'){
+      // Show full-page review overlay so advisor sees a proper popup, not a raw tab switch
       setTimeout(()=>{
-        const reviewBtn=document.getElementById('ctab-review');
-        if(reviewBtn&&reviewBtn.style.display!=='none')showTab('review',reviewBtn);
-        else showTab('overview',document.querySelector('.ctab'));
-      },80);
+        const deal=dealIdx>=0?DEALS[dealIdx]:null;
+        if(deal){
+          _pendingReviewDealId=deal.id;
+          const box=document.getElementById('rno-deal-name');
+          if(box)box.textContent=deal.name||'';
+          const overlay=document.getElementById('review-notify-overlay');
+          if(overlay)overlay.style.display='flex';
+        }else{
+          const reviewBtn=document.getElementById('ctab-review');
+          if(reviewBtn&&reviewBtn.style.display!=='none')showTab('review',reviewBtn);
+        }
+      },120);
     }
   }
 }

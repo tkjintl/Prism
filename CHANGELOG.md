@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix: notification click shows overlay popup + highlights field name normalization
+
+### Changes
+- `advisor-portal.html` (`adaptDeal`): Added explicit fallbacks — `thesis: d.thesis || d.ai_draft?.thesis`, `tagline: d.tagline || d.ai_draft?.tagline`, `highlights: d.highlights?.length ? d.highlights : d.ai_draft?.highlights`. Ensures deals loaded before the `send-to-advisor-review` API fix still show content.
+- `advisor-portal.html` (`notifClick`): For `deal_review_requested` type — now sets `_pendingReviewDealId` and shows the `#review-notify-overlay` full-page popup instead of jumping directly to the Review & Edit tab. The overlay's "Review Now" button then navigates. This is the expected UX: advisor sees the popup, reads context, then clicks in.
+- `advisor-portal.html` (`renderReviewEdit`): Highlights now render with `h.s || h.title` and `h.b || h.body` so both API format (`{s, b}`) and mock/legacy format (`{title, body}`) work.
+- `advisor-portal.html` (`openPrismDoc listing`): Same `h.title || h.s` / `h.body || h.b` normalization applied to the Materials doc viewer.
+
+---
+
 ## [2026-05-01] — Fix: AI-generated deal content not reaching advisor review
 
 ### Changes
