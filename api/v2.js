@@ -642,7 +642,7 @@ export default async function handler(req, res) {
       const inst = await kvGet(`inst:${instId}`);
       if (!inst || inst.status !== 'approved') return bad(res, 'Access not yet approved or invalid credentials', 401);
       if (inst.code !== code.toUpperCase().trim()) return bad(res, 'Invalid access code', 401);
-      const token = await signToken({ inst_id: instId, email: inst.email, firm: inst.firm_name, role: 'inst' }, '30d');
+      const token = await signToken({ inst_id: instId, email: inst.email, name: inst.contact_name || '', firm: inst.firm_name, role: 'inst' }, '30d');
       res.setHeader('Set-Cookie', setCookieHeader('prism_inst', token, cookieOpts(2592000)));
       return ok(res, { inst: sanitizeInst(inst) });
     }

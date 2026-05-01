@@ -652,7 +652,7 @@ a{color:inherit;text-decoration:none}
           </svg>
         </div>
         <!-- Investor stats ring -->
-        <div class="inv-ring-row" id="inv-ring-row">
+        <div class="inv-ring-row" id="inv-ring-row" style="display:none">
           <div class="ring-wrap" style="width:112px;height:112px;flex-shrink:0">
             <svg width="112" height="112" viewBox="0 0 112 112" style="transform:rotate(-90deg);display:block">
               <circle cx="56" cy="56" r="47" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="5"/>
@@ -1813,7 +1813,7 @@ async function load(){
     var _invHour=new Date().getHours();
     var _invGreet=_invHour<12?'Good morning':_invHour<17?'Good afternoon':'Good evening';
     var _greetEl=document.getElementById('hero-greeting');
-    if(_greetEl)_greetEl.textContent=_invGreet+(me.name?', '+me.name:'');
+    if(_greetEl)_greetEl.textContent=_invGreet+((me.name||me.firm)?', '+(me.name||me.firm):'');
     if(me.firm){
       const el=document.getElementById('nav-user-name');
       const av=document.getElementById('nav-avatar');
@@ -1826,6 +1826,7 @@ async function load(){
     ]);
     // Replace with live API data when available; mock data stays as fallback
     var _invDeals=dealsR&&dealsR.deals?dealsR.deals.length:0;var _invIois=ioisR&&ioisR.iois?ioisR.iois.length:0;var _invAmt=ioisR&&ioisR.iois?ioisR.iois.reduce(function(s,x){return s+(x.amount||0);},0):0;var _invPct=_invDeals>0?Math.round(_invIois/_invDeals*100):0;(function(){var rp=document.getElementById("inv-ring-pct");if(rp)rp.textContent=_invPct+"%";var ri=document.getElementById("inv-ring-ioi");if(ri)ri.textContent=_invAmt>0?("$"+(_invAmt>=1e6?(_invAmt/1e6).toFixed(1)+"M":_invAmt.toLocaleString())):"—";var rd=document.getElementById("inv-ring-deals");if(rd)rd.textContent=_invDeals+" open opportunit"+(_invDeals===1?"y":"ies");var rs=document.getElementById("inv-ring-status");if(rs)rs.textContent=_invIois+" indication"+(_invIois===1?"":"s")+" submitted";setTimeout(function(){var r=document.getElementById("inv-ring-fill");if(r)r.style.strokeDashoffset=String(Math.round(295*(1-_invPct/100)));},300);})();
+    var _ringRow=document.getElementById("inv-ring-row");if(_ringRow)_ringRow.style.display=_invDeals>0?"flex":"none";
     if(dealsR?.deals&&dealsR.deals.length){DEALS=dealsR.deals.map((d,i)=>adaptDeal(d,i));}
     if(ioisR?.iois&&ioisR.iois.length){PORTFOLIO=ioisR.iois.map(i=>({deal_id:i.deal_id,amount:i.amount,status:i.status,submitted:new Date(i.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}),pipeline_step:i.status==='approved'?3:i.status==='rejected'?2:1}));}
     initLobby();
