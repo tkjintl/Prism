@@ -127,9 +127,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .sj-label{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);white-space:nowrap}
 .sj-stage.done .sj-label{color:var(--text-2)}
 .sj-stage.curr .sj-label{color:var(--gold);font-weight:500}
-.sj-stage.done:hover .sj-circle{border-color:var(--gold-bd);background:var(--gold-bg);transform:scale(1.08)}
-.sj-stage.sj-viewing .sj-circle{outline:2px solid var(--gold);outline-offset:3px}
-.sj-stage.sj-viewing .sj-label{color:var(--gold);font-weight:500}
+
 
 /* CONTENT TABS */
 .content-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 clamp(20px,5vw,72px);background:var(--surface)}
@@ -804,7 +802,6 @@ const STAGE_LABEL={live:'Live & IOI',review:'In Review',dd:'Due Diligence',close
 const DOT_CLS={live:'dot-live',review:'dot-review',dd:'dot-dd',close:'dot-dd'};
 
 let currentDealIdx=0;
-let viewedStage=null; // null = current stage; set to a past stage id for view-only browsing
 let wStep=1;
 let wizData={}; // persists values across wizard steps
 
@@ -881,7 +878,6 @@ function showTab(name,btn){
 function switchDeal(idx){
   if(idx===currentDealIdx)return;
   currentDealIdx=idx;
-  viewedStage=null;
   renderSwitcher();
   renderHeader();
   renderStageJourney();
@@ -941,30 +937,14 @@ function renderStageJourney(){
   const d=DEALS[currentDealIdx];
   const ci=STAGE_IDX[d.stage]??3;
   document.getElementById('stage-journey').innerHTML=STAGES.map((s,i)=>{
-    const isPast=i<ci;
-    const isCurr=i===ci;
-    const isViewing=viewedStage===s.id;
-    let cls=isPast?'done':isCurr?'curr':'';
-    if(isViewing) cls+=' sj-viewing';
-    const icon=isPast?'✓':i+1;
-    const clickable=isPast||isCurr;
-    const onclick=clickable?`onclick="setViewedStage('${s.id}',${isCurr})"`:'' ;
-    const cursor=clickable?'cursor:pointer':'';
+    const cls=i<ci?'done':i===ci?'curr':'';
+    const icon=i<ci?'✓':i+1;
     const conn=i<STAGES.length-1?`<div class="sj-connector ${i<ci?'done':''}"></div>`:'';
-    return`<div class="sj-stage ${cls}" style="${cursor}" ${onclick} title="${clickable&&!isCurr?'View '+s.label+' documents':s.label}">
+    return`<div class="sj-stage ${cls}">
       <div class="sj-circle">${icon}</div>
       <div class="sj-label">${s.label}</div>
     </div>${conn}`;
   }).join('');
-}
-
-function setViewedStage(stageId, isCurrent){
-  viewedStage = isCurrent ? null : (viewedStage===stageId ? null : stageId);
-  renderStageJourney();
-  // Switch to Materials tab so user sees the stage content
-  const matTab=Array.from(document.querySelectorAll('.ctab')).find(b=>b.textContent.trim()==='Materials');
-  if(matTab && !matTab.classList.contains('active')) showTab('materials', matTab);
-  else renderMaterials();
 }
 
 /* ── OVERVIEW ── */
@@ -1142,15 +1122,12 @@ const CLOSING_DEFS=[
 
 function renderMaterials(){
   const d=DEALS[currentDealIdx];
-  const effectiveStage=viewedStage||d.stage;
-  const isViewingPast=!!viewedStage&&viewedStage!==d.stage;
-  const showClosing=['dd','close'].includes(effectiveStage);
-  const coreDefs=DOC_DEFS;
+  const showClosing=d.stage==='dd'||d.stage==='close';
 
-  function docCard(def, readOnly=false){
+  function docCard(def){
     const doc=d.documents[def.id];
     if(doc){
-      return`<div class="doc-card" id="dc-${def.id}" style="${readOnly?'opacity:.85':''}">
+      return`<div class="doc-card" id="dc-${def.id}">
         <div class="doc-icon ${def.iconClass}">${def.iconEmoji}</div>
         <div class="doc-type-label">${def.label}</div>
         <div class="doc-name">${doc.name}</div>
@@ -1158,15 +1135,8 @@ function renderMaterials(){
         <span class="doc-access-badge ${def.accessClass}">${def.accessLabel}</span>
         <div class="doc-actions">
           <button class="doc-btn" onclick="toast('Opening preview…','ok')">View</button>
-          ${readOnly?'':`<button class="doc-btn" onclick="simulateUpload('${def.id}')">Replace</button>`}
+          <button class="doc-btn" onclick="simulateUpload('${def.id}')">Replace</button>
         </div>
-      </div>`;
-    }
-    if(readOnly){
-      return`<div class="doc-card empty" id="dc-${def.id}" style="opacity:.6;pointer-events:none">
-        <div class="doc-icon di-empty" style="opacity:.4">—</div>
-        <div class="doc-type-label">${def.label}</div>
-        <div class="doc-name" style="color:var(--text-3)">Not uploaded at this stage</div>
       </div>`;
     }
     return`<div class="doc-card empty" id="dc-${def.id}" onclick="simulateUpload('${def.id}')">
@@ -1180,24 +1150,12 @@ function renderMaterials(){
     </div>`;
   }
 
-  let html='';
-  if(isViewingPast){
-    html+=`<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:var(--r);margin-bottom:20px">
-      <span style="color:var(--amber);font-size:14px">◷</span>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:600;color:var(--amber)">Viewing: ${STAGES.find(s=>s.id===viewedStage)?.label||viewedStage} — Read Only</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:1px">Documents as they stood at this stage. No edits can be made.</div>
-      </div>
-      <button onclick="setViewedStage('${d.stage}',true)" style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:5px 12px;border:1px solid var(--amber-bd);color:var(--amber);background:none;border-radius:2px;cursor:pointer;white-space:nowrap">Back to Current →</button>
-    </div>`;
-  }
-
-  html+=`<div class="section-title" style="margin-bottom:16px">Core Documents</div>
-  <div class="materials-grid">${coreDefs.map(def=>docCard(def,isViewingPast)).join('')}</div>`;
+  let html=`<div class="section-title" style="margin-bottom:16px">Core Documents</div>
+  <div class="materials-grid">${DOC_DEFS.map(docCard).join('')}</div>`;
 
   /* closing docs — only in DD/Close stage */
   if(showClosing&&d.closing_docs){
-    const released=effectiveStage==='close';
+    const released=d.stage==='close';
     html+=`<div class="closing-section">
       <div class="closing-header">
         <div class="closing-title-wrap">
