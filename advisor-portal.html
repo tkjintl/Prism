@@ -97,7 +97,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .cc-re{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 .sc-live{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 .sc-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
-.sc-ioi_review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg);animation:breathe 2.5s infinite}
 .sc-dd{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
 .sc-close{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 .action-required-tag{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);border:1px solid var(--amber-bd);background:var(--amber-bg)}
@@ -194,7 +193,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 /* MATERIALS */
 .materials-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:32px}
-@media(min-width:900px){.materials-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:900px){.materials-grid,.closing-grid{grid-template-columns:repeat(3,1fr)}}
 .doc-card{border:1px solid var(--border);border-radius:var(--r);padding:18px;background:var(--surface);transition:all .2s var(--ease);position:relative;overflow:hidden}
 .doc-card.empty{background:var(--bg-3);border-style:dashed;cursor:pointer}
 .doc-card:not(.empty):hover{border-color:var(--border-m);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.06)}
@@ -243,7 +242,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .closing-title-wrap{}
 .closing-title{font-size:11px;font-weight:600;color:var(--text-2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
 .closing-note{font-size:12px;color:var(--text-3);line-height:1.6}
-.closing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.closing-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 .closing-slot{border:1.5px dashed var(--border-m);border-radius:var(--r);padding:20px;background:var(--bg-3);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
 .closing-slot.uploaded{border-style:solid;border-color:var(--green-bd);background:var(--green-bg);cursor:default}
 .closing-slot.released{border-style:solid;border-color:var(--blue-bd);background:var(--blue-bg);cursor:default}
@@ -528,7 +527,7 @@ function adaptDeal(d){return{...d,target_alloc:d.target_alloc_usd||d.target_allo
 let DEALS = [
   {
     id:'d1', name:'Pacific Bridge Infrastructure', ticker:'PBI', asset_class:'infra',
-    stage:'ioi_review',
+    stage:'live',
     geography:'Asia-Pacific · North America', structure:'Senior Secured Infra Debt',
     target_irr:11, target_alloc:60000000, term:84, min_ticket:500000,
     closing:'2026-07-31',
@@ -605,15 +604,14 @@ const STAGES=[
   {id:'docs',label:'Documents'},
   {id:'review',label:'In Review'},
   {id:'live',label:'Live & IOI'},
-  {id:'ioi_review',label:'IOI Review'},
   {id:'dd',label:'Due Diligence'},
   {id:'close',label:'Close'},
 ];
-const STAGE_IDX={setup:0,docs:1,review:2,live:3,ioi_review:4,dd:5,close:6};
+const STAGE_IDX={setup:0,docs:1,review:2,live:3,dd:4,close:5};
 const CLASS_CHIP={infra:'cc-infra',credit:'cc-credit',pe:'cc-pe',re:'cc-re'};
-const STAGE_CHIP_CLS={live:'sc-live',review:'sc-review',ioi_review:'sc-ioi_review',dd:'sc-dd',close:'sc-close'};
-const STAGE_LABEL={live:'Live & IOI',review:'In Review',ioi_review:'IOI Review · Action Required',dd:'Due Diligence',close:'Close'};
-const DOT_CLS={live:'dot-live',review:'dot-review',ioi_review:'dot-ioi',dd:'dot-dd',close:'dot-dd'};
+const STAGE_CHIP_CLS={live:'sc-live',review:'sc-review',dd:'sc-dd',close:'sc-close'};
+const STAGE_LABEL={live:'Live & IOI',review:'In Review',dd:'Due Diligence',close:'Close'};
+const DOT_CLS={live:'dot-live',review:'dot-review',dd:'dot-dd',close:'dot-dd'};
 
 let currentDealIdx=0;
 let wStep=1;
@@ -689,7 +687,7 @@ function renderSwitcher(){
 function renderHeader(){
   const d=DEALS[currentDealIdx];
   const pct=Math.round(d.ioi_agg/d.target_alloc*100);
-  const isActionRequired=d.stage==='ioi_review'&&d.pushed_ioi&&d.pushed_ioi.status==='pending';
+  const isActionRequired=d.pushed_ioi&&d.pushed_ioi.status==='pending';
   document.getElementById('dh-tag').innerHTML=
     `<span class="class-chip ${CLASS_CHIP[d.asset_class]}">${d.asset_class.toUpperCase()}</span>
      <span class="stage-chip ${STAGE_CHIP_CLS[d.stage]||'sc-review'}">${STAGE_LABEL[d.stage]||d.stage}</span>
@@ -727,26 +725,25 @@ function renderOverview(){
   const d=DEALS[currentDealIdx];
   const days=Math.round((new Date(d.closing)-new Date())/86400000);
   const isLive=d.stage==='live';
-  const isIOIReview=d.stage==='ioi_review';
-  const hasActionIOI=isIOIReview&&d.pushed_ioi&&d.pushed_ioi.status==='pending';
+  const hasActionIOI=d.pushed_ioi&&d.pushed_ioi.status==='pending';
 
   let html='';
 
   /* context banner */
-  if(isLive){
+  if(hasActionIOI){
+    html+=`<div class="context-banner cb-review">
+      <div class="cb-icon">⚡</div>
+      <div>
+        <div class="cb-text-main">Admin has forwarded an investor IOI package for your review</div>
+        <div class="cb-text-sub">Review the indication below. Accepting advances your deal to Due Diligence and notifies the investor.</div>
+      </div>
+    </div>`;
+  } else if(isLive){
     html+=`<div class="context-banner cb-live">
       <div class="cb-icon">●</div>
       <div>
         <div class="cb-text-main">Your deal is live and collecting investor interest</div>
         <div class="cb-text-sub">Investors can view your deck and submit expressions of interest. Admin reviews all IOIs before forwarding to you.</div>
-      </div>
-    </div>`;
-  } else if(hasActionIOI){
-    html+=`<div class="context-banner cb-review">
-      <div class="cb-icon">⚡</div>
-      <div>
-        <div class="cb-text-main">Admin has forwarded an investor IOI for your review</div>
-        <div class="cb-text-sub">Review the indication below. Accepting advances your deal to Due Diligence and notifies the investor.</div>
       </div>
     </div>`;
   } else if(d.pushed_ioi&&d.pushed_ioi.status==='accepted'){

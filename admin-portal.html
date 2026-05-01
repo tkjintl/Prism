@@ -122,7 +122,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .dp-row{display:grid;grid-template-columns:minmax(160px,1.8fr) 130px 150px 110px 68px 140px;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s}
 .dp-row:last-child{border-bottom:none}
 .dp-row:hover{background:var(--bg-3)}
-.dp-row.header{background:var(--bg-3);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);padding:10px 18px}
+.dp-row.header{background:var(--bg-3);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);padding:13px 18px}
 .dp-name{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text)}
 .dp-sub{font-size:11px;color:var(--text-3);margin-top:1px}
 .dp-advisor{font-size:12px;color:var(--text-2)}
@@ -414,10 +414,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ddp-alloc-label{font-family:var(--mono);font-size:10px;color:var(--text-3)}
 .ddp-desc{font-size:13px;color:var(--text-2);line-height:1.75;background:var(--surface);border:1px solid var(--border);padding:16px;border-radius:var(--r)}
 /* IOI table */
-.ddp-ioi-table{width:100%;border-collapse:collapse}
-.ddp-ioi-table th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
-.ddp-ioi-table td{font-size:12px;padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text)}
-.ddp-ioi-table tr:last-child td{border-bottom:none}
+.ddp-ioi-table,.ddp-ioi-table-full{width:100%;border-collapse:collapse}
+.ddp-ioi-table th,.ddp-ioi-table-full th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:9px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.ddp-ioi-table td,.ddp-ioi-table-full td{font-size:12px;padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.ddp-ioi-table tr:last-child td,.ddp-ioi-table-full tr:last-child td{border-bottom:none}
 /* Docs */
 .ddp-doc-list{display:flex;flex-direction:column;gap:8px}
 .ddp-doc-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
@@ -526,10 +526,6 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .pp-confirm-btn:hover{opacity:.88}
 .pp-confirm-btn:disabled{opacity:.4;cursor:not-allowed}
 /* IOI table in deal detail — richer columns */
-.ddp-ioi-table-full{width:100%;border-collapse:collapse}
-.ddp-ioi-table-full th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
-.ddp-ioi-table-full td{font-size:12px;padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text)}
-.ddp-ioi-table-full tr:last-child td{border-bottom:none}
 .ddp-ioi-table-full .ioi-actions-cell{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
 
 /* ── MOBILE FIXES ── */
@@ -1580,8 +1576,7 @@ function renderPipeline(){
           <div class="ds-card-footer">
             <div class="ds-advisor">From ${s.advisor} · ${s.advisor_firm} · Submitted ${s.submitted}</div>
             <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
-            <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}')">✦ Generate with AI</button>
-            <button class="att-btn att-approve" onclick="approveDeal('${s.id}',this)">Approve &amp; Publish</button>
+            <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}')">✦ Generate with AI →</button>
           </div>
         </div>`).join('')}
       </div>`;
@@ -1592,7 +1587,7 @@ function renderPipeline(){
   document.getElementById('active-deals-count').textContent=`${DEALS.length} Deals`;
   document.getElementById('deal-pipeline-table').innerHTML=`
     <div class="dp-row header">
-      <div>Deal</div><div>Allocation</div><div>Indicated</div><div>Stage</div><div>Close</div><div>Actions</div>
+      <div>Deal</div><div>Advisor</div><div>Indicated</div><div>Stage</div><div>Close</div><div>Actions</div>
     </div>
     ${DEALS.map((d,i)=>{
       const pct=Math.round(d.ioi_agg/d.target_alloc*100);
@@ -1613,7 +1608,6 @@ function renderPipeline(){
         <span class="dp-stage-chip ${STAGE_CHIP[d.stage]||'sc-review'}">${STAGE_LABELS[d.stage]||d.stage}</span>
         <div style="font-family:var(--mono);font-size:11px;color:${days>90?'var(--green)':days>45?'var(--amber)':'var(--red)'}">${days}d</div>
         <div class="dp-actions" onclick="event.stopPropagation()">
-          <button class="dp-btn" onclick="openDealDetail('${d.id}')">View</button>
           ${nextStage?`<button class="dp-btn advance" onclick="openModal('${d.id}','${nextStage}')">→ ${STAGE_LABELS[nextStage]}</button>`:''}
         </div>
       </div>`;
