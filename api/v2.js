@@ -434,7 +434,7 @@ export default async function handler(req, res) {
       if (!admin) return unauth(res);
       await seedAdvisors();
       await seedInvestors();
-      const dealIds = await seedDeals();
+      const dealIds = await seedDeals(true); // force=true so re-seeding updates existing records
       return ok(res, { seeded: true, dealIds });
     }
 
@@ -1621,7 +1621,7 @@ function sanitizeInst(inst) {
 
 async function seedAdvisors() {
   const advisors = [
-    { id:'adv-tkj', email:'tkj@theaurumcc.com', firm_name:'TACC Pte Ltd', name:'Thomas K J', intro_fee_pct:1, carry_pct:0, status:'active', requires_setup:false, temp_pw:'1234' },
+    { id:'adv-tkj', email:'tkj@theaurumcc.com', firm_name:'TACC Pte Ltd', name:'Thomas K J', intro_fee_pct:1, carry_pct:0, status:'active', requires_setup:false, temp_pw:'1234', is_admin:true },
     { id:'adv-sg1', email:'sarah@capitalgroup.sg', firm_name:'SG Capital Group', name:'Sarah Chen', intro_fee_pct:1, carry_pct:0, status:'active', requires_setup:false },
     { id:'adv-mc1', email:'jtan@meridiancap.com', firm_name:'Meridian Capital', name:'James Tan', intro_fee_pct:1, carry_pct:0, status:'active', requires_setup:false },
     { id:'adv-pb1', email:'dliu@pacificbridge.com', firm_name:'Pacific Bridge Partners', name:'David Liu', intro_fee_pct:1.5, carry_pct:5, status:'active', requires_setup:false },

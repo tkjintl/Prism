@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — TKJ account: admin + advisor dual role, DD deal assigned, force reseed
+
+### Changes
+- `login.js`: tkj@theaurumcc.com / 1234 now works as **admin** login — falls back to KV advisor with `is_admin:true` flag when not in ADMIN_USERS env var
+- `v2.js` seedAdvisors: added `is_admin:true` to adv-tkj record; always force-updates on reseed
+- `deal-storage.js` seedDeals: Summit Energy Credit (DD stage) reassigned from adv-mc1 → adv-tkj so tkj sees 3 deals including one in DD phase; `force` param added — "Load Test Data" passes `force:true` to update existing KV records
+- Why: operator (tkj) needed to log into both admin and advisor portals with same credentials, and needed a DD-stage deal to test the dataroom feature
+
+---
+
 ## [2026-05-01] — API connectivity audit — all three portals wired to backend
 
 ### Problems fixed

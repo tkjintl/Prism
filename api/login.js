@@ -19,9 +19,24 @@ export default async function handler(req, res) {
         return [pair.slice(0, colonIdx).toLowerCase(), pair.slice(colonIdx + 1)];
       })
     );
-    if (!adminMap[email.toLowerCase()]) return bad(res, 'Invalid credentials', 401);
-    if (adminMap[email.toLowerCase()] !== password) return bad(res, 'Invalid credentials', 401);
-    const token = await signToken({ email: email.toLowerCase(), role: 'admin' }, '12h');
+    const emailLower = email.toLowerCase().trim();
+    let isAdmin = adminMap[emailLower] && adminMap[emailLower] === password;
+
+    // Fallback: allow KV advisors flagged is_admin:true (e.g. tkj@theaurumcc.com)
+    if (!isAdmin) {
+      const { kvGet } = await import('./_lib/storage.js');
+      const advId = await kvGet(`advisor_email:${emailLower}`);
+      if (advId) {
+        const adv = await kvGet(`advisor:${advId}`);
+        if (adv?.is_admin) {
+          const match = await bcrypt.compare(password, adv.password_hash);
+          if (match) isAdmin = true;
+        }
+      }
+    }
+
+    if (!isAdmin) return bad(res, 'Invalid credentials', 401);
+    const token = await signToken({ email: emailLower, role: 'admin' }, '12h');
     res.setHeader('Set-Cookie', setCookieHeader('prism_admin', token, cookieOpts(43200)));
     return ok(res, { role: 'admin' });
   }

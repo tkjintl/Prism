@@ -141,7 +141,7 @@ export async function updateDeal(id, updates, actorId) {
 }
 
 // Seed data for testing
-export async function seedDeals() {
+export async function seedDeals(force = false) {
   const DEALS = [
     { name:'Pacific Credit V', asset_class:'credit', geography:'East Asia', deal_structure:'Senior Secured', target_alloc_usd:5e6, target_irr:14, term_months:24, hurdle_rate:8, originator:'Pacific Capital Management', mk_notes:'Asia-Pacific private credit facility. Senior secured against Grade-A commercial real estate in Singapore CBD. LTV collar with personal guarantee. Three prior funds all returning above 12% net IRR.', highlights:[{s:'Strong IOI Momentum',b:'11 IOIs received. Round 96% indicated.'},{s:'Senior Secured',b:'First-lien position against Grade-A CRE in Singapore CBD.'},{s:'Proven GP Track Record',b:'Three prior credit vehicles, all distributed above hurdle at >12% net IRR.'}], stage:'ioi', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:50000, ioi_count:11, ioi_agg_usd:4800000, deployed_usd:775000, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
     { name:'Project Helios', asset_class:'pe', geography:'SE Asia', deal_structure:'Equity Secondary', target_alloc_usd:12e6, target_irr:22, term_months:30, hurdle_rate:10, originator:'SG Capital Group', mk_notes:'Late-stage pre-IPO secondary in a Singapore-headquartered enterprise AI platform. Revenue growing at 3x YoY with IPO targeted for H1 2028. Offered at 12% discount to latest primary round. Platform routes through a fully-documented SPV.', highlights:[{s:'Pre-IPO Discount',b:'12% below latest primary round. IPO targeted H1 2028.'},{s:'3x Revenue Growth',b:'$38M ARR growing at 200%+, Fortune 500 customer base.'}], stage:'terms', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:15, min_ticket_usd:100000, ioi_count:7, ioi_agg_usd:8200000, deployed_usd:200000, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
@@ -149,16 +149,19 @@ export async function seedDeals() {
     { name:'Bridgeford Infrastructure II', asset_class:'infra', geography:'Europe', deal_structure:'Mezzanine', target_alloc_usd:2e6, target_irr:11, term_months:60, hurdle_rate:7, originator:'Bridgeford Partners', mk_notes:'European transport infrastructure mezzanine debt. Toll-road portfolio across France and Germany. Inflation-linked cash flows subordinated to senior bank debt.', highlights:[], stage:'review', member_visible:false, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:100000, ioi_count:0, ioi_agg_usd:0, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
     { name:'Summit Energy Credit', asset_class:'credit', geography:'Americas', deal_structure:'Senior Secured', target_alloc_usd:6e6, target_irr:13, term_months:18, hurdle_rate:8, originator:'Summit Capital', mk_notes:'Senior secured credit facility to a US renewable energy developer with contracted cash flows from 12-year PPAs. Collateral covers 1.8x loan value.', highlights:[{s:'Contracted Cash Flows',b:'12-year PPAs with investment-grade utilities. No merchant exposure.'},{s:'Overcollateralized',b:'Collateral coverage of 1.8x loan value. First-lien on all project assets.'}], stage:'dd', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:100000, ioi_count:5, ioi_agg_usd:3100000, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
   ];
+  // adv-tkj gets 3 deals including one in DD stage (DL-SUMM1)
+  const ADVISOR_MAP = { 'DL-PACI1':'adv-tkj', 'DL-PROJ1':'adv-tkj', 'DL-SUMM1':'adv-tkj', 'DL-METR1':'adv-sg1', 'DL-BRID1':'adv-sg1' };
   const results = [];
   for (const d of DEALS) {
     const id = 'DL-' + d.name.replace(/[^A-Za-z]/g,'').slice(0,4).toUpperCase() + '1';
-    const exists = await kvGet(`deal:${id}`);  // check the actual key that will be saved
-    if (!exists) {
-      // Assign deals across advisors for realistic test data; first two go to adv-tkj (default test account)
-      const ADVISOR_MAP = { 'DL-PACI1':'adv-tkj', 'DL-PROJ1':'adv-tkj', 'DL-METR1':'adv-sg1', 'DL-BRID1':'adv-sg1', 'DL-SUMM1':'adv-mc1' };
+    const exists = await kvGet(`deal:${id}`);
+    if (!exists || force) {
       const assignedAdvisor = ADVISOR_MAP[id] || 'adv-sg1';
-      const deal = { id, ...d, advisor_id: assignedAdvisor, advisor_admin_mode:false, qa:[], audit_log:[], created_at:new Date().toISOString(), updated_at:new Date().toISOString() };
-      await saveDeal(deal);  // use saveDeal so the index gets updated
+      const existing = exists || {};
+      const deal = { ...existing, id, ...d, advisor_id: assignedAdvisor, advisor_admin_mode:false,
+        qa: existing.qa || [], audit_log: existing.audit_log || [],
+        created_at: existing.created_at || new Date().toISOString(), updated_at:new Date().toISOString() };
+      await saveDeal(deal);
       results.push(id);
     }
   }
