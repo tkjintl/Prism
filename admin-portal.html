@@ -2844,7 +2844,7 @@ function showAIOutput(deal,generated){
     }
   }:deal?{
     tagline:`${deal.name} — ${deal.geography} capital at institutional scale`,
-    thesis:`${deal.name} offers qualified investors a compelling opportunity in ${(deal.geography||'').toLowerCase()} ${deal.asset_class==='infra'?'infrastructure':'private markets'}, targeting ${deal.target_irr}% net IRR${deal.asset_class!=='Equity'?` over a ${deal.term}-month investment horizon':'''}. The fund employs a ${(deal.structure||'').toLowerCase()} structure with a minimum ticket of ${fmU(deal.min_ticket)}, making it accessible to institutional allocators and sophisticated family offices. The advisor team has an established track record in the sector with institutional-grade diligence processes.`,
+    thesis:`${deal.name} offers qualified investors a compelling opportunity in ${(deal.geography||'').toLowerCase()} ${deal.asset_class==='infra'?'infrastructure':'private markets'}, targeting ${deal.target_irr}% net IRR${deal.asset_class!=='Equity'?' over a '+deal.term+'-month investment horizon':''}. The fund employs a ${(deal.structure||'').toLowerCase()} structure with a minimum ticket of ${fmU(deal.min_ticket)}, making it accessible to institutional allocators and sophisticated family offices. The advisor team has an established track record in the sector with institutional-grade diligence processes.`,
     highlights:[
       { icon: '◆', s: `${deal.target_irr}% Target IRR`, b: `${(deal.structure||'').toLowerCase()} capital structure targeting ${deal.target_irr}% net IRR.` },
       ...(deal.asset_class!=='Equity'?[{ icon: '📅', s: `${deal.term}-Month Term`, b: `Fixed ${deal.term}-month investment horizon with quarterly reporting.` }]:[]),
