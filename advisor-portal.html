@@ -2755,43 +2755,6 @@ function renderDashboard() {
     if(ring) ring.style.strokeDashoffset = String(Math.round(295 * (1 - pctAll/100)));
   }, 120);
   root.innerHTML =
-  '<div class="dash-hero">' +
-    '<div class="dash-hero-inner">' +
-      '<div class="dash-hero-left">' +
-        '<div class="dash-hero-eyebrow">' +
-          '<span class="dash-hero-dot"></span>' +
-          '<span>AURUM</span>' +
-          '<span style="width:1px;height:10px;background:var(--gold-bd);display:inline-block;margin:0 6px"></span>' +
-          '<span>PRISM</span>' +
-        '</div>' +
-        '<div class="dash-hero-name">'+greeting+', <em>'+advisorName+'</em></div>' +
-        (advisorFirm ? '<div class="dash-hero-firm">'+advisorFirm+'</div>' : '') +
-      '</div>' +
-      '<div class="dash-hero-kpis">' +
-        '<div class="dash-hero-kpi">' +
-          '<div class="dash-hkpi-val">'+DEALS.length+'</div>' +
-          '<div class="dash-hkpi-lbl">Active Deals</div>' +
-        '</div>' +
-        '<div class="dash-hero-kpi-div"></div>' +
-        '<div class="dash-hero-kpi">' +
-          '<div class="dash-hkpi-val">'+fmU(totalIoi)+'</div>' +
-          '<div class="dash-hkpi-lbl">Capital Indicated</div>' +
-        '</div>' +
-        '<div class="dash-hero-kpi-div"></div>' +
-        '<div class="dash-hero-kpi">' +
-          '<div class="dash-hkpi-val">'+totalInvestors+'</div>' +
-          '<div class="dash-hkpi-lbl">Active Investors</div>' +
-        '</div>' +
-        (actions.length>0 ?
-          '<div class="dash-hero-kpi-div"></div>' +
-          '<div class="dash-hero-kpi">' +
-            '<div class="dash-hkpi-val dash-amber-text">'+actions.length+'</div>' +
-            '<div class="dash-hkpi-lbl">Actions Required</div>' +
-          '</div>' : '') +
-      '</div>' +
-    '</div>' +
-    '<div class="dash-hero-bar"></div>' +
-  '</div>' +
 
   (actions.length > 0 ?
   '<div class="dash-section">' +
