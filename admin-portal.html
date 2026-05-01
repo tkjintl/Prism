@@ -170,7 +170,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 /* IOI QUEUE — deal-grouped cards */
 .ioi-deal-group{border:1px solid var(--border);border-radius:var(--r);background:var(--surface);margin-bottom:20px;overflow:hidden;animation:fadeUp .4s var(--ease) both}
-.ioi-deal-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg-3)}
+.ioi-deal-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg-3);transition:background .15s}
+.ioi-deal-hd:hover{background:var(--bg-2)}
+.iqg-chip{font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:2px;letter-spacing:.06em}
+.chip-amber{background:rgba(202,138,4,.12);color:var(--amber);border:1px solid rgba(202,138,4,.2)}
+.chip-gold{background:rgba(197,165,114,.1);color:var(--gold);border:1px solid rgba(197,165,114,.2)}
+.chip-violet{background:rgba(139,92,246,.1);color:var(--violet,#8b5cf6);border:1px solid rgba(139,92,246,.2)}
 .ioi-deal-hd-left{flex:1;min-width:0}
 .ioi-deal-title{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text);margin-bottom:3px}
 .ioi-deal-advisor{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
@@ -1894,11 +1899,22 @@ function buildDealGroup(g,gi=0){
   }).filter(Boolean).join('')
   :'<div class="ioi-empty">No IOIs yet</div>';
 
-  return`<div class="ioi-deal-group" style="animation-delay:${gi*60}ms">
-    <div class="ioi-deal-hd">
-      <div class="ioi-deal-hd-left">
-        <div class="ioi-deal-title">${g.dealName}</div>
-        <div class="ioi-deal-advisor">${g.advisor}</div>
+  const pendingCount=g.iois.filter(i=>i.status==='pending').length;
+  const approvedCount=g.iois.filter(i=>i.status==='approved'&&!i.pushed).length;
+  const summaryChips=[
+    pendingCount>0?`<span class="iqg-chip chip-amber">${pendingCount} pending</span>`:'',
+    approvedCount>0?`<span class="iqg-chip chip-gold">${approvedCount} approved</span>`:'',
+    g.approvedCount>0&&g.iois.filter(i=>i.pushed).length>0?`<span class="iqg-chip chip-violet">${g.iois.filter(i=>i.pushed).length} in package</span>`:'',
+  ].filter(Boolean).join('');
+
+  return`<div class="ioi-deal-group" id="iqg-${g.dealId}" style="animation-delay:${gi*60}ms">
+    <div class="ioi-deal-hd" style="cursor:pointer" onclick="toggleIoiGroup('${g.dealId}')">
+      <div class="ioi-deal-hd-left" style="display:flex;align-items:center;gap:10px">
+        <div class="ds-chevron" id="iqg-chev-${g.dealId}">›</div>
+        <div>
+          <div class="ioi-deal-title">${g.dealName}</div>
+          <div class="ioi-deal-advisor" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${g.advisor}${summaryChips?'<span style="display:inline-flex;gap:4px;margin-left:2px">'+summaryChips+'</span>':''}</div>
+        </div>
       </div>
       <div class="ioi-deal-hd-right">
         <div class="ioi-sub-wrap">
@@ -1908,21 +1924,23 @@ function buildDealGroup(g,gi=0){
         <span class="ioi-raise-status ${raiseMap[rs]||'irs-open'}">${raiseLabel[rs]||'Open'}</span>
       </div>
     </div>
-    <div class="ioi-table">
-      <div class="ioi-row hdr">
-        <div>Investor</div><div>Type · Geography</div><div>Amount</div><div>Date</div><div>Status</div><div>Actions</div>
+    <div class="iqg-body" id="iqg-body-${g.dealId}" style="display:none">
+      <div class="ioi-table">
+        <div class="ioi-row hdr">
+          <div>Investor</div><div>Type · Geography</div><div>Amount</div><div>Date</div><div>Status</div><div>Actions</div>
+        </div>
+        ${ioiRows}
       </div>
-      ${ioiRows}
-    </div>
-    <div class="ioi-deal-footer">
-      <div class="ioi-footer-left" id="footer-left-${g.dealId}">
-        <button class="ioi-action-btn" onclick="openCloseRaiseModal('${g.dealId}')">Close Raise</button>
-        <button class="ioi-action-btn" onclick="openDelayRaiseModal('${g.dealId}')">Delay Raise</button>
-        <button class="ioi-action-btn" id="inc-btn-${g.dealId}" onclick="showIncreaseTarget('${g.dealId}')">Increase Target</button>
-        <span id="inc-inline-${g.dealId}" style="display:none"></span>
+      <div class="ioi-deal-footer">
+        <div class="ioi-footer-left" id="footer-left-${g.dealId}">
+          <button class="ioi-action-btn" onclick="openCloseRaiseModal('${g.dealId}')">Close Raise</button>
+          <button class="ioi-action-btn" onclick="openDelayRaiseModal('${g.dealId}')">Delay Raise</button>
+          <button class="ioi-action-btn" id="inc-btn-${g.dealId}" onclick="showIncreaseTarget('${g.dealId}')">Increase Target</button>
+          <span id="inc-inline-${g.dealId}" style="display:none"></span>
+        </div>
+        <button class="ioi-pkg-btn" data-pkg-btn="${g.dealId}" onclick="pushPackage('${g.dealId}')"
+          ${g.approvedCount===0?'disabled':''}>Push Package to Advisor →</button>
       </div>
-      <button class="ioi-pkg-btn" data-pkg-btn="${g.dealId}" onclick="pushPackage('${g.dealId}')"
-        ${g.approvedCount===0?'disabled':''}>Push Package to Advisor →</button>
     </div>
   </div>`;
 }
@@ -2237,6 +2255,15 @@ const _pm=document.getElementById('push-modal');if(_pm)_pm.addEventListener('cli
 const _ppm=document.getElementById('push-preview-modal');if(_ppm)_ppm.addEventListener('click',function(e){if(e.target===this)closePushPreviewModal();});
 
 /* ── PIPELINE ── */
+function toggleIoiGroup(dealId){
+  const body=document.getElementById('iqg-body-'+dealId);
+  const chev=document.getElementById('iqg-chev-'+dealId);
+  if(!body)return;
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  chev.style.transform=open?'rotate(90deg)':'rotate(0)';
+}
+
 function toggleSubmission(id){
   const body=document.getElementById('dsc-body-'+id);
   const chev=document.getElementById('dsc-chev-'+id);
