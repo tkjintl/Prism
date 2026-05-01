@@ -95,7 +95,7 @@ a{color:inherit;text-decoration:none}
 .lobby-hero{min-height:calc(100vh - var(--nav-h));display:grid;position:relative;overflow:hidden}
 @media(min-width:900px){.lobby-hero{grid-template-columns:55% 45%}}
 .hero-content{padding:clamp(44px,9vh,88px) clamp(24px,5vw,72px);display:flex;flex-direction:column;justify-content:center;animation:fadeUp .9s var(--ease) both;z-index:2;position:relative}
-.hero-greeting{font-family:var(--serif);font-style:italic;font-size:clamp(13px,1.2vw,16px);color:var(--text-2);margin-bottom:14px;letter-spacing:-.01em;opacity:.85}
+.hero-greeting{font-family:var(--serif);font-style:italic;font-size:clamp(15px,1.4vw,20px);color:var(--text);margin-bottom:14px;letter-spacing:-.01em;opacity:.85}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
 .eyebrow-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
 .hero-deal-name{font-family:var(--serif);font-style:italic;font-size:clamp(42px,7vw,78px);font-weight:400;line-height:1.04;color:var(--text);margin-bottom:14px;letter-spacing:-.015em}
@@ -559,6 +559,7 @@ a{color:inherit;text-decoration:none}
   .ci-wire-lbl{border-right:none;border-bottom:1px solid var(--border);padding:8px 12px}
   .ci-wire-val{padding:8px 12px}
 }
+.inv-deal-ring{display:flex;align-items:center;gap:16px;width:100%;background:rgba(13,12,10,.85);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;backdrop-filter:blur(10px)}
 </style>
 </head>
 <body>
@@ -652,22 +653,22 @@ a{color:inherit;text-decoration:none}
           </svg>
         </div>
         <!-- Investor stats ring -->
-        <div class="inv-ring-row" id="inv-ring-row" style="display:none">
+        <div class="inv-deal-ring" id="inv-deal-ring">
           <div class="ring-wrap" style="width:112px;height:112px;flex-shrink:0">
-            <svg width="112" height="112" viewBox="0 0 112 112" style="transform:rotate(-90deg);display:block">
-              <circle cx="56" cy="56" r="47" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="5"/>
-              <circle cx="56" cy="56" r="47" fill="none" stroke="#C5A572" stroke-width="5" stroke-linecap="round"
-                      stroke-dasharray="295" id="inv-ring-fill" style="stroke-dashoffset:295;transition:stroke-dashoffset 1.8s cubic-bezier(0.22,1,0.36,1)"/>
+            <svg width="112" height="112" viewBox="0 0 112 112">
+              <circle class="ring-track" cx="56" cy="56" r="47"/>
+              <circle class="ring-fill" id="hero-ring" cx="56" cy="56" r="47" style="stroke-dasharray:295;stroke-dashoffset:295"/>
             </svg>
             <div class="ring-label">
-              <div class="ring-pct" id="inv-ring-pct">—</div>
-              <div class="ring-sub">Portfolio</div>
+              <div class="ring-pct" id="hero-ring-pct">—</div>
+              <div class="ring-sub">Subscribed</div>
             </div>
           </div>
-          <div class="inv-ring-detail">
-            <div id="inv-ring-ioi" style="color:#C5A572;font-weight:500;font-size:13px;font-family:'JetBrains Mono',monospace">—</div>
-            <div id="inv-ring-deals" style="font-size:11px;color:rgba(237,232,223,0.6);margin-top:2px">— open opportunities</div>
-            <div id="inv-ring-status" style="font-size:10px;color:rgba(237,232,223,0.45);margin-top:6px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em">— indications submitted</div>
+          <div class="ring-detail-card">
+            <strong id="hero-sub-amt">—</strong>
+            <div style="font-size:11px;color:var(--text-3);margin-top:3px" id="hero-alloc-disp">— target</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:8px;font-family:var(--mono);letter-spacing:.06em" id="hero-inv-count">— investors</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:4px;font-family:var(--mono);letter-spacing:.06em" id="hero-days">—</div>
           </div>
         </div>
       </div>
@@ -1814,11 +1815,12 @@ async function load(){
     var _invGreet=_invHour<12?'Good morning':_invHour<17?'Good afternoon':'Good evening';
     var _greetEl=document.getElementById('hero-greeting');
     if(_greetEl)_greetEl.textContent=_invGreet+((me.name||me.firm)?', '+(me.name||me.firm):'');
-    if(me.firm){
+    if(me.name||me.firm){
       const el=document.getElementById('nav-user-name');
       const av=document.getElementById('nav-avatar');
-      if(el)el.textContent=me.firm;
-      if(av)av.textContent=me.firm.slice(0,2).toUpperCase();
+      const _navName=me.name||me.firm;
+      if(el)el.textContent=_navName;
+      if(av)av.textContent=_navName.slice(0,2).toUpperCase();
     }
     const [dealsR,ioisR]=await Promise.all([
       fetchSilent('/api/v2?resource=deals&op=marketplace'),

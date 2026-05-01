@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Investor Portal: Fix greeting visibility and restore ring IDs
+
+### Changes
+- `investor-portal.html`: `.hero-greeting` CSS — font-size upgraded from `clamp(13px,1.2vw,16px)` to `clamp(15px,1.4vw,20px)`; color changed from `var(--text-2)` to `var(--text)` so greeting is legible.
+- `investor-portal.html`: Ring HTML replaced — previous patch had introduced `inv-ring-row`/`inv-ring-fill`/`inv-ring-pct` IDs that `applyHeroSlide()` never writes to. Restored canonical IDs: `hero-ring`, `hero-ring-pct`, `hero-sub-amt`, `hero-alloc-disp`, `hero-inv-count`, `hero-days` inside a new `.inv-deal-ring` wrapper.
+- Added `.inv-deal-ring` CSS (flex row, dark backdrop, gold border, blur).
+- `load()`: nav name now prefers `me.name` over `me.firm` (was `me.firm`-only).
+
+---
+
 ## [2026-05-01] — Advisor Portal: Fix hero right-panel visual overlap
 
 ### Changes
