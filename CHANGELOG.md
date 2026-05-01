@@ -4,6 +4,13 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix Deploy Capital card layout in Overview tab
+
+### Changes
+- `admin-portal.html` `renderOverview()` `pushCards`: added `min-width:0` to the left content flex child so deal name ellipsis truncation works correctly; set `flex-shrink:0` and explicit `width:80px` on the right % panel so it holds its size without crowding left content; matched left padding to the base `.ov-action-card` value (12px 16px) so card height is consistent with other columns
+
+---
+
 ## [2026-05-01] — Advisor notification chain: IOI push + stage change alerts
 
 ### Changes
