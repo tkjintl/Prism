@@ -95,6 +95,7 @@ a{color:inherit;text-decoration:none}
 .lobby-hero{min-height:calc(100vh - var(--nav-h));display:grid;position:relative;overflow:hidden}
 @media(min-width:900px){.lobby-hero{grid-template-columns:55% 45%}}
 .hero-content{padding:clamp(44px,9vh,88px) clamp(24px,5vw,72px);display:flex;flex-direction:column;justify-content:center;animation:fadeUp .9s var(--ease) both;z-index:2;position:relative}
+.hero-greeting{font-family:var(--serif);font-style:italic;font-size:clamp(13px,1.2vw,16px);color:var(--text-2);margin-bottom:14px;letter-spacing:-.01em;opacity:.85}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
 .eyebrow-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
 .hero-deal-name{font-family:var(--serif);font-style:italic;font-size:clamp(42px,7vw,78px);font-weight:400;line-height:1.04;color:var(--text);margin-bottom:14px;letter-spacing:-.015em}
@@ -588,6 +589,7 @@ a{color:inherit;text-decoration:none}
 <div id="view-lobby" class="view active">
   <div class="lobby-hero" id="hero-zone">
     <div class="hero-content">
+      <div class="hero-greeting" id="hero-greeting"></div>
       <div class="urgency-badge" id="hero-urgency" style="display:none"><span class="ub-dot"></span>Nearly Oversubscribed</div>
       <div class="hero-eyebrow"><span class="eyebrow-dot"></span><span id="hero-eyebrow-txt">Featured Opportunity</span></div>
       <h1 class="hero-deal-name" id="hero-name">—</h1>
@@ -1829,6 +1831,10 @@ async function load(){
   if(!me||me._unauth)return;
   if(me.ok){
     // Update nav with real investor info
+    var _invHour=new Date().getHours();
+    var _invGreet=_invHour<12?'Good morning':_invHour<17?'Good afternoon':'Good evening';
+    var _greetEl=document.getElementById('hero-greeting');
+    if(_greetEl)_greetEl.textContent=_invGreet+(me.name?', '+me.name:'');
     if(me.firm){
       const el=document.getElementById('nav-user-name');
       const av=document.getElementById('nav-avatar');
