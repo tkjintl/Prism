@@ -4,6 +4,17 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor portal: Stage-aware Next Step guide + enriched activity log
+
+### Changes
+- `advisor-portal.html`: Added **"Next Step" guide card** above the activity log in `renderOverview()` — dynamically computed from `d.stage`. States: Under Admin Review (amber), Deal Live (green), IOI Awaiting Decision (gold, when `pushed_ioi.status==='pending'`), Due Diligence Active (blue), Closing Stage (gold), Deal Realized (green).
+- `advisor-portal.html`: Each guide card shows stage icon, title, and a plain-English description of exactly what the advisor should do at that stage.
+- `advisor-portal.html`: Added `publish` and `review` activity types (icons: ● and ✎) to the icon/emoji maps so stage-transition entries render correctly.
+- `advisor-portal.html`: Enriched activity arrays for all 4 mock deals to include full lifecycle history: review confirmation, publish, IOI events, stage transitions, investor access events — in chronological order from most recent.
+- `advisor-portal.html`: Renamed "Recent Activity" section to "Activity Log".
+
+---
+
 ## [2026-05-01] — Admin portal: "See Investors" replaced with inline popup modal
 
 ### Changes

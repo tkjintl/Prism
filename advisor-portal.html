@@ -683,11 +683,13 @@ let DEALS = [
       {name:'Infrastructure_Pipeline.pdf',size:'5.1 MB',folder:'Assets',accesses:4,icon:'📄'},
     ],
     activity:[
-      {type:'ioi',text:'Admin forwarded a <strong>$5M Family Office IOI</strong> for your review',time:'1 hour ago'},
+      {type:'ioi',text:'Admin forwarded a <strong>$5M Family Office IOI</strong> — your decision required',time:'1 hour ago'},
       {type:'access',text:'Investor accessed your <strong>Financial Model</strong>',time:'4 hours ago'},
       {type:'ioi',text:'New investor indicated <strong>$3.5M</strong> — pending admin review',time:'1 day ago'},
       {type:'stage',text:'Deal reached <strong>97.5% indicated</strong> of target allocation',time:'2 days ago'},
       {type:'admin',text:'Admin featured this deal on the investor portal homepage',time:'5 days ago'},
+      {type:'publish',text:'Deal profile confirmed and published live to the investor portal',time:'3 weeks ago'},
+      {type:'review',text:'Advisor review completed — deal profile approved for publication',time:'3 weeks ago'},
     ],
   },
   {
@@ -727,7 +729,10 @@ let DEALS = [
       {type:'ioi',text:'New investor indicated <strong>$1.5M</strong> — pending admin review',time:'4 hours ago'},
       {type:'access',text:'Investor accessed your <strong>Information Memo</strong>',time:'8 hours ago'},
       {type:'ioi',text:'New investor indicated <strong>$2.0M</strong> — admin approved',time:'2 days ago'},
-      {type:'stage',text:'Deal live — <strong>70% indicated</strong> of target allocation',time:'5 days ago'},
+      {type:'ioi',text:'New investor indicated <strong>$1.0M</strong> — admin approved',time:'3 days ago'},
+      {type:'stage',text:'Deal reached <strong>70% indicated</strong> of target allocation',time:'5 days ago'},
+      {type:'publish',text:'Deal profile confirmed and published live to the investor portal',time:'2 weeks ago'},
+      {type:'review',text:'Advisor review completed — deal profile approved for publication',time:'2 weeks ago'},
     ],
   },
   {
@@ -761,9 +766,12 @@ let DEALS = [
     closing_docs:{fund_docs:null,ppm:null,wire:null},
     dataroom:[],
     activity:[
-      {type:'stage',text:'Deal advanced to <strong>Due Diligence</strong> — data room now active',time:'2 days ago'},
+      {type:'stage',text:'Due Diligence activated — data room now accessible to approved investors',time:'2 days ago'},
       {type:'access',text:'Investor accessed the <strong>Financial Model</strong>',time:'3 days ago'},
-      {type:'ioi',text:'IOI accepted — <strong>$3M Family Office</strong> advancing to DD',time:'5 days ago'},
+      {type:'ioi',text:'IOI accepted — <strong>$3M Family Office (Singapore)</strong> advanced to Due Diligence',time:'5 days ago'},
+      {type:'admin',text:'Admin opened Due Diligence — IOI package forwarded and accepted',time:'5 days ago'},
+      {type:'stage',text:'Deal reached <strong>100%+ indicated</strong> of target — oversubscribed',time:'1 week ago'},
+      {type:'publish',text:'Deal profile confirmed and published live to the investor portal',time:'3 weeks ago'},
     ],
   },
   {
@@ -797,10 +805,12 @@ let DEALS = [
       {name:'Legal_Opinions.pdf',size:'2.2 MB',folder:'Legal',accesses:2,icon:'📄'},
     ],
     activity:[
-      {type:'stage',text:'Deal advanced to <strong>Close</strong> — wiring instructions active',time:'2 days ago'},
-      {type:'ioi',text:'<strong>Atlas Endowment</strong> $12M IOI confirmed',time:'4 days ago'},
-      {type:'ioi',text:'<strong>Canmore Group</strong> $12M IOI confirmed',time:'6 days ago'},
-      {type:'stage',text:'Deal reached <strong>96% indicated</strong> of target allocation',time:'8 days ago'},
+      {type:'stage',text:'Deal advanced to <strong>Close</strong> — closing documents and wire instructions active',time:'2 days ago'},
+      {type:'access',text:'Investor downloaded <strong>CCP3 Fund Documents</strong>',time:'3 days ago'},
+      {type:'ioi',text:'<strong>Atlas Endowment</strong> $12M IOI confirmed and closing',time:'4 days ago'},
+      {type:'ioi',text:'<strong>Canmore Group</strong> $12M IOI confirmed and closing',time:'6 days ago'},
+      {type:'stage',text:'Due Diligence completed — deal advanced to Close stage',time:'2 weeks ago'},
+      {type:'publish',text:'Deal profile confirmed and published live to the investor portal',time:'6 weeks ago'},
     ],
   },
 ];
@@ -1089,10 +1099,28 @@ function renderOverview(){
     <div class="ov-sub">${c.sub}</div>
   </div>`).join('')}</div>`;
 
+  /* next step guide */
+  const _stageGuides={
+    review:{icon:'⏳',col:'var(--amber)',bg:'var(--amber-bg)',bd:'var(--amber-bd)',title:'Under Admin Review',body:'The Aurum team is reviewing your deal profile. You will be notified when it goes live on the investor portal.'},
+    live_ioi:{icon:'⚡',col:'var(--gold)',bg:'var(--gold-bg)',bd:'var(--gold-bd)',title:'IOI Awaiting Your Decision',body:'Admin has forwarded an investor IOI for your review. Accept to open Due Diligence for this investor — or decline. This is your deal, your call.'},
+    live:{icon:'●',col:'var(--green)',bg:'var(--green-bg)',bd:'var(--green-bd)',title:'Deal Live — Collecting Interest',body:'Investors can view your deck and submit expressions of interest. Admin screens all IOIs before forwarding approved ones to you for a decision.'},
+    dd:{icon:'◆',col:'var(--blue)',bg:'var(--blue-bg)',bd:'var(--blue-bd)',title:'Due Diligence Active',body:'Approved investors have access to your data room. Upload closing documents in the Materials tab when ready. Answer investor questions in the Dataroom tab.'},
+    close:{icon:'✦',col:'var(--gold)',bg:'var(--gold-bg)',bd:'var(--gold-bd)',title:'Closing Stage',body:'Upload fund documents, PPM, and wire instructions in Materials → Closing Documents. Confirm banking details so Aurum can deploy committed capital.'},
+    realized:{icon:'✓',col:'var(--green)',bg:'var(--green-bg)',bd:'var(--green-bd)',title:'Deal Realized',body:'This deal has been successfully closed and realized. All documents are archived.'},
+  };
+  const _guideKey=d.stage==='live'&&d.pushed_ioi&&d.pushed_ioi.status==='pending'?'live_ioi':d.stage;
+  const _guide=_stageGuides[_guideKey];
+  if(_guide)html+=`<div style="border:1px solid ${_guide.bd};border-left:3px solid ${_guide.col};border-radius:var(--r);padding:14px 16px;background:${_guide.bg};margin-bottom:4px;display:flex;gap:12px;align-items:flex-start">
+    <div style="font-size:15px;flex-shrink:0;margin-top:1px;color:${_guide.col}">${_guide.icon}</div>
+    <div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:${_guide.col};margin-bottom:4px">Next Step</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${_guide.title}</div>
+    <div style="font-size:12px;color:var(--text-2);line-height:1.65">${_guide.body}</div></div>
+  </div>`;
+
   /* activity */
-  const actIcons={ioi:'act-ioi',access:'act-access',stage:'act-stage',admin:'act-admin'};
-  const actEmoji={ioi:'↑',access:'👁',stage:'✓',admin:'✓'};
-  html+=`<div class="section-title">Recent Activity</div>
+  const actIcons={ioi:'act-ioi',access:'act-access',stage:'act-stage',admin:'act-admin',publish:'act-stage',review:'act-admin'};
+  const actEmoji={ioi:'↑',access:'👁',stage:'✓',admin:'✓',publish:'●',review:'✎'};
+  html+=`<div class="section-title" style="margin-top:20px">Activity Log</div>
   <div class="activity-feed">${d.activity.map((a,i)=>`
     <div class="activity-item" style="animation-delay:${i*50}ms">
       <div class="act-icon-wrap ${actIcons[a.type]}">${actEmoji[a.type]}</div>
