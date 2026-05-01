@@ -1631,7 +1631,12 @@ function buildMockDealDetail(dealId){
       pct_subscribed:target>0?Math.round(d.ioi_agg/target*100):0
     },
     ioi_rows:(d.iois||[]).filter(i=>i.status!=='declined'),
-    docs:d.docs||[],
+    docs:d.docs&&d.docs.length?d.docs:[
+      {slot:'nda',name:`NDA_${(d.name||'Deal').replace(/\s+/g,'_')}_v1.pdf`,type:'application/pdf'},
+      {slot:'mgmt',name:`${(d.name||'Deal').replace(/\s+/g,'_')}_ManagementPresentation.pdf`,type:'application/pdf'},
+      {slot:'fin',name:`${(d.name||'Deal').replace(/\s+/g,'_')}_FinancialSummary.xlsx`,type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'},
+      {slot:'term',name:`${(d.name||'Deal').replace(/\s+/g,'_')}_TermSheet.pdf`,type:'application/pdf'},
+    ],
     recent_audit:(d.audit_log||[
       {action:'Deal advanced to '+STAGE_LABELS[d.stage],actor:'Admin',ts:new Date(Date.now()-86400000).toISOString()},
       {action:'IOI package pushed to '+d.advisor,actor:'Admin',ts:new Date(Date.now()-172800000).toISOString()},
@@ -1669,13 +1674,29 @@ function buildDealDetailHTML(deal){
   // Doc slots
   const docLabels={nda:'NDA Template',mgmt:'Management Presentation',fin:'Financial Summary',term:'Term Sheet'};
   const docSlots=['nda','mgmt','fin','term'];
-  const availDocs=docSlots.filter(s=>docs.find?.(d=>d.slot===s));
+  const allDocSlots=[...docSlots,...docs.filter(d=>!docSlots.includes(d.slot)).map(d=>d.slot)];
+  const availDocs=allDocSlots.filter(s=>docs.find?.(d=>d.slot===s));
+
+  function docTypeIcon(type){
+    if(!type)return'PDF';
+    if(type.includes('sheet')||type.includes('excel')||type.includes('xls'))return'XLS';
+    if(type.includes('word')||type.includes('doc'))return'DOC';
+    return'PDF';
+  }
 
   const docsHTML=availDocs.length
     ?`<div class="ddp-doc-list">${availDocs.map(slot=>{
         const doc=docs.find(d=>d.slot===slot)||{};
+        const icon=docTypeIcon(doc.type);
+        const isXls=icon==='XLS';
         return`<div class="ddp-doc-row">
-          <div class="ddp-doc-name">${doc.name||docLabels[slot]}</div>
+          <div style="display:flex;align-items:center;gap:10px;min-width:0">
+            <span style="font-family:var(--mono);font-size:8px;letter-spacing:.06em;padding:2px 5px;border-radius:2px;flex-shrink:0;${isXls?'background:rgba(46,110,72,.12);color:var(--green);border:1px solid var(--green-bd)':'background:rgba(139,50,40,.08);color:var(--red);border:1px solid var(--red-bd)'}">${icon}</span>
+            <div style="min-width:0">
+              <div style="font-size:10px;font-family:var(--mono);letter-spacing:.06em;color:var(--text-3);text-transform:uppercase;margin-bottom:1px">${docLabels[slot]||slot}</div>
+              <div class="ddp-doc-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px">${doc.name||docLabels[slot]||slot}</div>
+            </div>
+          </div>
           <button class="ddp-doc-view" onclick="viewDoc('${deal.id}','${slot}')">↗ View</button>
         </div>`;
       }).join('')}</div>`
