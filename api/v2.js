@@ -435,6 +435,48 @@ export default async function handler(req, res) {
       await saveDeal(deal);
       return ok(res, { ok: true, decision, stage: deal.stage });
     }
+
+    // ── advisor-confirm-deal ──────────────────────────────────────
+    if (op === 'advisor-confirm-deal') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { dealId, edits } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      if (edits) {
+        if (edits.name) deal.name = edits.name;
+        if (edits.target_irr != null) deal.target_irr = edits.target_irr;
+        if (edits.target_alloc_usd != null) deal.target_alloc_usd = edits.target_alloc_usd;
+        if (edits.min_ticket_usd != null) deal.min_ticket_usd = edits.min_ticket_usd;
+        if (edits.term_months != null) deal.term_months = edits.term_months;
+        if (edits.closing_date) deal.closing_date = edits.closing_date;
+        if (edits.geography) deal.geography = edits.geography;
+        if (edits.structure) deal.structure = edits.structure;
+        if (edits.thesis) deal.thesis = edits.thesis;
+        if (edits.highlights) deal.highlights = edits.highlights;
+      }
+
+      deal.advisor_review_status = 'approved';
+      deal.advisor_confirmed_at = new Date().toISOString();
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({ at: new Date().toISOString(), actor: adv.email, action: 'advisor_confirmed_deal', meta: { edits: Object.keys(edits || {}) } });
+
+      deal.notifications = deal.notifications || [];
+      deal.notifications.push({
+        id: `notif_${Date.now()}`,
+        type: 'advisor_confirmed_deal',
+        deal_name: deal.name,
+        advisor_name: adv.name || adv.email,
+        confirmed_at: new Date().toISOString(),
+        read: false,
+      });
+
+      deal.updated_at = new Date().toISOString();
+      await saveDeal(deal);
+      return ok(res, { ok: true, deal });
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -1594,6 +1636,33 @@ Return ONLY valid JSON in this exact structure:
       }
 
       return ok(res, { ok: true, package: pkg });
+    }
+
+    // ── send-to-advisor-review ────────────────────────────────────
+    if (op === 'send-to-advisor-review') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      deal.advisor_review_status = 'pending';
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({ at: new Date().toISOString(), actor: admin.email, action: 'sent_for_advisor_review', meta: {} });
+
+      deal.notifications = deal.notifications || [];
+      deal.notifications.push({
+        id: `notif_${Date.now()}`,
+        type: 'deal_review_requested',
+        deal_name: deal.name,
+        sent_at: new Date().toISOString(),
+        read: false,
+      });
+
+      deal.updated_at = new Date().toISOString();
+      await saveDeal(deal);
+      return ok(res, { ok: true });
     }
   }
 

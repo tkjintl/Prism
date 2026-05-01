@@ -1593,7 +1593,7 @@ function renderKPIs(){
   const tiles=[
     {lbl:'Approved Capital',val:fmU(totalIndicated),rawNum:totalIndicated,sub:`${DEALS.length} active deals`,cls:'kpi-gold'},
     {lbl:'Investor Indications',val:totalPending>0?`${totalPending} pending`:'All clear',rawNum:totalPending,sub:'awaiting approval',cls:totalPending>0?'kpi-alert':'kpi-green'},
-    {lbl:'New Submissions',val:NEW_SUBMISSIONS.length||'—',rawNum:NEW_SUBMISSIONS.length,sub:'from advisors',cls:NEW_SUBMISSIONS.length>0?'kpi-alert':''},
+    {lbl:'New Submissions',val:NEW_SUBMISSIONS.length||'—',rawNum:NEW_SUBMISSIONS.length,sub:(()=>{const ap=NEW_SUBMISSIONS.filter(s=>s.advisor_review_status==='approved').length;return ap>0?ap+' ready to publish':'from advisors';})(),cls:NEW_SUBMISSIONS.length>0?'kpi-alert':''},
     {lbl:'Ready for DD',val:approvedUnpushed||'—',rawNum:approvedUnpushed,sub:'awaiting DD open',cls:approvedUnpushed>0?'kpi-gold':''},
     {lbl:'Actions Required',val:actionsRequired>0?actionsRequired:'All clear',rawNum:actionsRequired,sub:'total open items',cls:actionsRequired>0?'kpi-alert':'kpi-green'},
   ];
@@ -1654,12 +1654,20 @@ function renderOverview(){
 
   // Column 1: New Deals (advisor submissions awaiting AI generation + review)
   const submissionCards = NEW_SUBMISSIONS.map(s => {
+    const generated = !!(s.thesis || s.tagline || s.ai_content || s.generated);
     return `<div class="ov-action-card">
       <div class="ov-ac-tag amber">New Deal · ${s.submitted||'Recent'}</div>
       <div class="ov-ac-name">${s.name}</div>
-      <div class="ov-ac-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''}<br>${s.target_irr}% IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()}<br><span style="color:var(--text-3);font-style:italic">Awaiting AI generation + review</span></div>
+      <div class="ov-ac-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''}<br>${s.target_irr}% IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()}</div>
       <div class="ov-ac-actions">
-        <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])">✦ Generate with AI →</button>
+        ${!generated ?
+          `<button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])">✦ Generate with AI →</button>` :
+          s.advisor_review_status === 'approved' ?
+            `<button class="att-btn att-approve" onclick="publishDeal('${s.id}',this)">Publish Live →</button>` :
+          s.advisor_review_status === 'pending' ?
+            `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.08em;padding:4px 0">&#x23F3; Awaiting Advisor Review</span>` :
+            `<button class="att-btn att-review" onclick="sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
+        }
         <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
       </div>
     </div>`;
@@ -2251,6 +2259,35 @@ async function approveDeal(dealId,btn){
     toast(r?.error||'Approval failed','err');
   }
 }
+
+async function sendToAdvisorReview(dealId,btn){
+  if(!dealId){toast('No deal selected','err');return;}
+  if(btn){btn.disabled=true;btn.textContent='Sending…';}
+  const res=await api('POST','/api/v2?resource=admin&op=send-to-advisor-review',{dealId});
+  if(res?.ok){
+    const s=NEW_SUBMISSIONS.find(x=>x.id===dealId);
+    if(s){s.advisor_review_status='pending';s.generated=true;}
+    renderOverview();renderKPIs();
+    toast('Sent to advisor for review','ok');
+  }else{
+    if(btn){btn.disabled=false;btn.textContent='Send to Advisor →';}
+    toast('Failed to send','err');
+  }
+}
+
+async function publishDeal(dealId,btn){
+  if(btn){btn.disabled=true;btn.textContent='Publishing…';}
+  const r=await api('POST','/api/v2?resource=deals',{action:'update',id:dealId,member_visible:true,stage:'live'});
+  if(r?.ok){
+    NEW_SUBMISSIONS=NEW_SUBMISSIONS.filter(s=>s.id!==dealId);
+    const d=r.deal;if(d){DEALS.push(adaptDeal(d,[]));}
+    renderPipeline();renderOverview();renderKPIs();
+    toast('Deal published to investor portal','ok');
+  }else{
+    if(btn){btn.disabled=false;btn.textContent='Publish Live →';}
+    toast(r?.error||'Publish failed','err');
+  }
+}
 async function declineDeal(dealId,btn){
   if(btn){btn.disabled=true;}
   NEW_SUBMISSIONS=NEW_SUBMISSIONS.filter(s=>s.id!==dealId);
@@ -2727,7 +2764,10 @@ function showAIOutput(deal,generated){
       </div>
     </div>
     <div class="ai-out-section" style="animation-delay:.45s">
-      <button class="ai-apply-btn" onclick="openLaunchReview(_launchDeal,_launchContent)">Review &amp; Launch →</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="ai-apply-btn" id="ai-send-advisor-btn" onclick="(()=>{const d=_launchDeal;if(d){const s=NEW_SUBMISSIONS.find(x=>x.id===d.id);if(s){s.thesis=document.querySelector('.ai-out-thesis')?.textContent||s.thesis||'';s.generated=true;}sendToAdvisorReview(d?.id,document.getElementById('ai-send-advisor-btn'));}})()">Send to Advisor →</button>
+        <button style="padding:12px 20px;border:1px solid var(--border-m);color:var(--text-2);font-size:12px;border-radius:2px;background:none;cursor:pointer" onclick="openLaunchReview(_launchDeal,_launchContent)">Review &amp; Launch →</button>
+      </div>
     </div>
   </div>`;
 }

@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor review step: AI-gen → advisor edits → admin publishes
+
+### Changes
+- `api/v2.js`: New `admin` op `send-to-advisor-review` — sets `deal.advisor_review_status='pending'`, appends `deal_review_requested` notification for advisor, writes audit log entry
+- `api/v2.js`: New `advisor` op `advisor-confirm-deal` — saves advisor edits to deal fields (name, IRR, allocation, min ticket, term, closing date, geography, structure, thesis, highlights), sets `advisor_review_status='approved'`, appends `advisor_confirmed_deal` notification for admin, writes audit log entry
+- `admin-portal.html`: "Generate with AI →" deal cards in Overview now show state-dependent actions: Generate → Send to Advisor → Awaiting Advisor Review → Publish Live. Added `sendToAdvisorReview()` and `publishDeal()` functions. AI Deal Studio output panel now shows "Send to Advisor →" as primary action. KPI "New Submissions" tile sub-label shows count of advisor-approved deals ready to publish.
+- `advisor-portal.html`: New `deal_review_requested` notification type in bell dropdown with gold icon and navigation to review tab. REVIEW badge on deal switcher pill for deals pending review. New hidden "Review & Edit" ctab shown when `advisor_review_status === 'pending'`. New `tab-review` panel with editable form for all deal fields. `renderReviewEdit()`, `reviewField()`, `reviewTextarea()`, and `confirmDealReview()` functions added. Clicking a review-request notification navigates directly to the Review & Edit tab.
+
+---
+
 ## [2026-05-01] — Rename Push to "Open Due Diligence" + auto-DD trigger
 
 ### Changes

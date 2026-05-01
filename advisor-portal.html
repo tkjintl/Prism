@@ -562,6 +562,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ctab" onclick="showTab('materials',this)">Materials</button>
     <button class="ctab" onclick="showTab('performance',this)">Performance</button>
     <button class="ctab" id="ctab-dataroom" onclick="showTab('dataroom',this)" style="display:none">Dataroom / Q&amp;A</button>
+    <button class="ctab" id="ctab-review" onclick="showTab('review',this)" style="display:none;color:var(--gold)">&#x2756; Review &amp; Edit</button>
   </div>
 
   <!-- Tab: Overview -->
@@ -572,6 +573,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
   <!-- Tab: Dataroom / Q&A -->
   <div class="tab-panel" id="tab-dataroom"></div>
+
+  <!-- Tab: Review & Edit -->
+  <div class="tab-panel" id="tab-review">
+    <div id="review-edit-content"></div>
+  </div>
 
   <!-- Tab: Performance -->
   <div class="tab-panel" id="tab-performance">
@@ -873,6 +879,7 @@ function showTab(name,btn){
   if(name==='performance')setTimeout(animatePerf,100);
   if(name==='materials')renderMaterials();
   if(name==='dataroom'){renderDataroom();loadVdrAndQa();}
+  if(name==='review')renderReviewEdit();
 }
 
 function switchDeal(idx){
@@ -894,6 +901,7 @@ function renderSwitcher(){
   sw.innerHTML=`<span class="ds-label">Your Deals</span>`+
     DEALS.map((d,i)=>{
       const unreadIoi=(d.notifications||[]).find(n=>!n.read&&n.type==='ioi_pushed');
+      const needsReview=(d.notifications||[]).some(n=>n.type==='deal_review_requested'&&!n.read);
       const bannerHtml=unreadIoi
         ?`<div class="ds-ioi-banner"><span class="ds-ioi-dot"></span>New IOI Package · ${fmU(unreadIoi.amount)}</div>`
         :'';
@@ -902,6 +910,7 @@ function renderSwitcher(){
           <span class="ds-pill-dot ${DOT_CLS[d.stage]||'dot-review'}"></span>
           ${d.name}
           <span class="ds-pill-stage">${STAGE_LABEL[d.stage]||d.stage}</span>
+          ${needsReview?`<span style="background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:2px 6px;border-radius:10px;font-weight:700">REVIEW</span>`:''}
         </div>
         ${bannerHtml}
       </button>`;
@@ -930,6 +939,8 @@ function renderHeader(){
   },300);
   const drTab=document.getElementById('ctab-dataroom');
   if(drTab) drTab.style.display=d.stage==='dd'?'':'none';
+  const reviewTab=document.getElementById('ctab-review');
+  if(reviewTab) reviewTab.style.display=d.advisor_review_status==='pending'?'':'none';
 }
 
 /* ── STAGE JOURNEY ── */
@@ -1832,6 +1843,78 @@ async function wizHandleFile(slot,input){
   }
 }
 
+/* ── REVIEW & EDIT ── */
+function renderReviewEdit(){
+  const d=DEALS[currentDealIdx];
+  if(!d){document.getElementById('review-edit-content').innerHTML='';return;}
+  document.getElementById('review-edit-content').innerHTML=`
+    <div style="max-width:680px">
+      <div style="margin-bottom:24px">
+        <div style="font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Deal Profile Review</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.6">Review and edit the AI-generated deal profile below. Once confirmed, the Aurum team will do a final review before publishing to investors.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        ${reviewField('Deal Name','rev-name',d.name||'')}
+        ${reviewField('Target IRR (%)','rev-irr',d.target_irr||'')}
+        ${reviewField('Target Allocation (USD)','rev-alloc',d.target_alloc||d.target_alloc_usd||'')}
+        ${reviewField('Min Ticket (USD)','rev-ticket',d.min_ticket||d.min_ticket_usd||'')}
+        ${reviewField('Term (months)','rev-term',d.term||d.term_months||'')}
+        ${reviewField('Closing Date','rev-closing',d.closing||d.closing_date||'')}
+        ${reviewField('Geography','rev-geo',d.geography||'')}
+        ${reviewField('Structure','rev-structure',d.structure||'')}
+        ${reviewTextarea('Investment Thesis','rev-thesis',d.thesis||'')}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:32px">
+        <button onclick="confirmDealReview()" style="flex:1;padding:14px 24px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer">Confirm &amp; Send to Admin →</button>
+      </div>
+    </div>`;
+}
+
+function reviewField(label,id,val){
+  return`<div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">${label}</div>
+    <input id="${id}" value="${String(val).replace(/"/g,'&quot;')}" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border-m);border-radius:3px;font-size:13px;color:var(--text);font-family:var(--sans)">
+  </div>`;
+}
+
+function reviewTextarea(label,id,val){
+  return`<div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">${label}</div>
+    <textarea id="${id}" rows="5" style="width:100%;padding:10px 12px;background:var(--surface);border:1px solid var(--border-m);border-radius:3px;font-size:13px;color:var(--text);font-family:var(--sans);resize:vertical;line-height:1.6">${val}</textarea>
+  </div>`;
+}
+
+async function confirmDealReview(){
+  const d=DEALS[currentDealIdx];
+  if(!d)return;
+  const edits={
+    name:document.getElementById('rev-name')?.value?.trim(),
+    target_irr:parseFloat(document.getElementById('rev-irr')?.value)||undefined,
+    target_alloc_usd:parseFloat(String(document.getElementById('rev-alloc')?.value||'').replace(/[^0-9.]/g,''))||undefined,
+    min_ticket_usd:parseFloat(String(document.getElementById('rev-ticket')?.value||'').replace(/[^0-9.]/g,''))||undefined,
+    term_months:parseInt(document.getElementById('rev-term')?.value)||undefined,
+    closing_date:document.getElementById('rev-closing')?.value?.trim(),
+    geography:document.getElementById('rev-geo')?.value?.trim(),
+    structure:document.getElementById('rev-structure')?.value?.trim(),
+    thesis:document.getElementById('rev-thesis')?.value?.trim(),
+  };
+  Object.keys(edits).forEach(k=>{if(!edits[k])delete edits[k];});
+  const res=await api('POST','/api/v2?resource=advisor&op=advisor-confirm-deal',{dealId:d.id,edits});
+  if(res?.ok){
+    d.advisor_review_status='approved';
+    (d.notifications||[]).filter(n=>n.type==='deal_review_requested').forEach(n=>n.read=true);
+    NOTIFS.filter(n=>n.deal_id===d.id&&n.type==='deal_review_requested').forEach(n=>n.read=true);
+    renderNotifBell(NOTIFS.filter(n=>!n.read).length);
+    renderSwitcher();
+    const reviewTab=document.getElementById('ctab-review');
+    if(reviewTab)reviewTab.style.display='none';
+    toast('Deal confirmed and sent to admin for publishing','ok');
+    showTab('overview',document.querySelector('.ctab'));
+  }else{
+    toast('Failed to confirm — try again','err');
+  }
+}
+
 /* ── INIT ── */
 function renderEmpty(){
   const sw=document.querySelector('.deal-switcher');
@@ -1913,15 +1996,17 @@ function renderNotifList(){
   if(!NOTIFS.length){list.innerHTML='<div class="notif-empty">All caught up</div>';return;}
   list.innerHTML=NOTIFS.map(n=>{
     const unreadCls=n.read?'':'unread';
-    const icon=n.type==='ioi_pushed'?'$':'↑';
-    const iconCls=n.type==='ioi_pushed'?'ioi':'stage';
+    let icon=n.type==='ioi_pushed'?'$':n.type==='deal_review_requested'?'✦':'↑';
+    let iconCls=n.type==='ioi_pushed'?'ioi':n.type==='deal_review_requested'?'stage':'stage';
     let text='';
     if(n.type==='ioi_pushed'){
       text=`New IOI package · <strong>${fmU(n.amount)}</strong> from ${n.investor_firm||'investor'}`;
     }else if(n.type==='stage_change'){
       text=`Deal advanced from <strong>${STAGE_LABEL[n.from_stage]||n.from_stage}</strong> → <strong>${STAGE_LABEL[n.to_stage]||n.to_stage}</strong>`;
+    }else if(n.type==='deal_review_requested'){
+      text=`Deal profile ready for review · <strong>${n.deal_name||''}</strong>`;
     }
-    const ts=n.pushed_at||n.advanced_at||'';
+    const ts=n.pushed_at||n.advanced_at||n.sent_at||'';
     const timeStr=ts?new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
     const dealIdx=DEALS.findIndex(d=>d.id===n.deal_id);
     return`<div class="notif-item ${unreadCls}" onclick="notifClick('${n.id}','${n.deal_id}','${n.type}',${dealIdx})">
@@ -1954,10 +2039,15 @@ function notifClick(notifId,dealId,type,dealIdx){
   if(dealIdx>=0){
     showView('deal',document.querySelector('.ntab'));
     switchDeal(dealIdx);
-    // For IOI push — stay on Overview (already default); for stage change to DD — open Dataroom tab
+    // For IOI push — stay on Overview (already default); for stage change to DD — open Dataroom tab; for review request — open Review tab
     if(type==='stage_change'||type==='ioi_pushed'){
-      // After render, switch to overview to show the IOI push card or DD status
       setTimeout(()=>showTab('overview',document.querySelector('.ctab')),80);
+    }else if(type==='deal_review_requested'){
+      setTimeout(()=>{
+        const reviewBtn=document.getElementById('ctab-review');
+        if(reviewBtn&&reviewBtn.style.display!=='none')showTab('review',reviewBtn);
+        else showTab('overview',document.querySelector('.ctab'));
+      },80);
     }
   }
 }
