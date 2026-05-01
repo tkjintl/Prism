@@ -806,6 +806,27 @@ const DOT_CLS={live:'dot-live',review:'dot-review',dd:'dot-dd',close:'dot-dd'};
 let currentDealIdx=0;
 let viewedStage=null; // null = current stage; set to a past stage id for view-only browsing
 let wStep=1;
+let wizData={}; // persists values across wizard steps
+
+function wizSaveStep(){
+  if(wStep===1){
+    wizData.name=(document.getElementById('wiz-name')?.value||'').trim();
+    wizData.asset_class=document.getElementById('wiz-asset-class')?.value||'';
+    wizData.structure=document.getElementById('wiz-structure')?.value||'';
+    wizData.geography=(document.getElementById('wiz-geography')?.value||'').trim();
+    wizData.company_overview=(document.getElementById('wiz-company-overview')?.value||'').trim();
+    wizData.thesis=(document.getElementById('wiz-thesis')?.value||'').trim();
+  }else if(wStep===2){
+    wizData.irr=document.getElementById('wiz-irr')?.value||'';
+    wizData.term=document.getElementById('wiz-term')?.value||'';
+    wizData.alloc=document.getElementById('wiz-alloc')?.value||'';
+    wizData.min_ticket=document.getElementById('wiz-min-ticket')?.value||'';
+    wizData.hurdle=document.getElementById('wiz-hurdle')?.value||'';
+    wizData.closing=document.getElementById('wiz-closing')?.value||'';
+  }
+}
+function wizNext(){wizSaveStep();wStep++;renderWizard();}
+function wizBack(){wStep--;renderWizard();}
 const WIZARD_STEPS=['Deal Identity','Terms','Documents','Review'];
 
 const fmU=n=>{
@@ -1676,38 +1697,42 @@ function renderWizard(){
 
   let html='';
   if(wStep===1){
+    const ac=wizData.asset_class||'';
+    const st=wizData.structure||'';
+    const acOpts=['Infrastructure','Private Equity','Private Credit','Real Estate'].map(o=>`<option${ac===o?' selected':''}>${o}</option>`).join('');
+    const stOpts=['Senior Secured','Common Equity','Preferred Equity','Mezzanine'].map(o=>`<option${st===o?' selected':''}>${o}</option>`).join('');
     html=`<div class="field-section"><label class="field-label">Deal Name</label>
-      <input class="field-input" id="wiz-name" type="text" placeholder="e.g. Pacific Bridge Infrastructure IV"></div>
+      <input class="field-input" id="wiz-name" type="text" placeholder="e.g. Pacific Bridge Infrastructure IV" value="${wizData.name||''}"></div>
     <div class="field-section"><div class="field-row">
       <div><label class="field-label">Asset Class</label>
-        <select class="field-select" id="wiz-asset-class"><option value="">Select…</option><option>Infrastructure</option><option>Private Equity</option><option>Private Credit</option><option>Real Estate</option></select></div>
+        <select class="field-select" id="wiz-asset-class"><option value="">Select…</option>${acOpts}</select></div>
       <div><label class="field-label">Structure</label>
-        <select class="field-select" id="wiz-structure"><option value="">Select…</option><option>Senior Secured</option><option>Common Equity</option><option>Preferred Equity</option><option>Mezzanine</option></select></div>
+        <select class="field-select" id="wiz-structure"><option value="">Select…</option>${stOpts}</select></div>
     </div></div>
     <div class="field-section"><label class="field-label">Geography</label>
-      <input class="field-input" id="wiz-geography" type="text" placeholder="e.g. North America, Asia-Pacific"></div>
+      <input class="field-input" id="wiz-geography" type="text" placeholder="e.g. North America, Asia-Pacific" value="${wizData.geography||''}"></div>
     <div class="field-section"><label class="field-label">Company Overview <span class="field-req">*</span></label>
-      <textarea class="field-ta" id="wiz-company-overview" placeholder="e.g. Pacific Bridge Infrastructure is a Singapore-based infrastructure developer operating toll-road concessions across South-East Asia and North America. The company has $2.4B in assets under management across 14 active concession contracts."></textarea>
+      <textarea class="field-ta" id="wiz-company-overview" placeholder="e.g. Pacific Bridge Infrastructure is a Singapore-based infrastructure developer…">${wizData.company_overview||''}</textarea>
       <div class="field-hint">A 2–4 sentence description of the business, issuer, or asset. Who is the borrower/issuer, what do they do, where do they operate?</div></div>
     <div class="field-section"><label class="field-label">Deal Thesis <span class="field-req">*</span></label>
-      <textarea class="field-ta" id="wiz-thesis" placeholder="Describe the opportunity and why now…"></textarea></div>
-    <div class="wiz-nav"><div></div><button class="wiz-next" onclick="wStep++;renderWizard()">Continue →</button></div>`;
+      <textarea class="field-ta" id="wiz-thesis" placeholder="Describe the opportunity and why now…">${wizData.thesis||''}</textarea></div>
+    <div class="wiz-nav"><div></div><button class="wiz-next" onclick="wizNext()">Continue →</button></div>`;
   }else if(wStep===2){
     html=`<div class="field-section"><div class="field-row">
-      <div><label class="field-label">Target IRR (%)</label><input class="field-input" id="wiz-irr" type="number" placeholder="e.g. 14"></div>
-      <div><label class="field-label">Term (months)</label><input class="field-input" id="wiz-term" type="number" placeholder="e.g. 36"></div>
+      <div><label class="field-label">Target IRR (%)</label><input class="field-input" id="wiz-irr" type="number" placeholder="e.g. 14" value="${wizData.irr||''}"></div>
+      <div><label class="field-label">Term (months)</label><input class="field-input" id="wiz-term" type="number" placeholder="e.g. 36" value="${wizData.term||''}"></div>
     </div></div>
     <div class="field-section"><div class="field-row">
-      <div><label class="field-label">Allocation Target (USD)</label><input class="field-input" id="wiz-alloc" type="text" inputmode="numeric" placeholder="e.g. 30,000,000" oninput="fmtAmtInput(this)"></div>
-      <div><label class="field-label">Minimum Ticket (USD)</label><input class="field-input" id="wiz-min-ticket" type="text" inputmode="numeric" placeholder="e.g. 250,000" oninput="fmtAmtInput(this)"></div>
+      <div><label class="field-label">Allocation Target (USD)</label><input class="field-input" id="wiz-alloc" type="text" inputmode="numeric" placeholder="e.g. 30,000,000" oninput="fmtAmtInput(this)" value="${wizData.alloc||''}"></div>
+      <div><label class="field-label">Minimum Ticket (USD)</label><input class="field-input" id="wiz-min-ticket" type="text" inputmode="numeric" placeholder="e.g. 250,000" oninput="fmtAmtInput(this)" value="${wizData.min_ticket||''}"></div>
     </div></div>
     <div class="field-section"><div class="field-row">
-      <div><label class="field-label">Hurdle Rate (%)</label><input class="field-input" id="wiz-hurdle" type="number" placeholder="e.g. 8"></div>
-      <div><label class="field-label">Target Closing Date</label><input class="field-input" id="wiz-closing" type="date"></div>
+      <div><label class="field-label">Hurdle Rate (%)</label><input class="field-input" id="wiz-hurdle" type="number" placeholder="e.g. 8" value="${wizData.hurdle||''}"></div>
+      <div><label class="field-label">Target Closing Date</label><input class="field-input" id="wiz-closing" type="date" value="${wizData.closing||''}"></div>
     </div></div>
     <div class="wiz-nav">
-      <button class="wiz-back" onclick="wStep--;renderWizard()">← Back</button>
-      <button class="wiz-next" onclick="wStep++;renderWizard()">Continue →</button>
+      <button class="wiz-back" onclick="wizBack()">← Back</button>
+      <button class="wiz-next" onclick="wizNext()">Continue →</button>
     </div>`;
   }else if(wStep===3){
     html=`<div class="doc-req-note">All four documents are required before your deal can go live. Upload your NDA first — investors must sign before accessing any materials.</div>
@@ -1748,8 +1773,8 @@ function renderWizard(){
       </div>
     </div>
     <div class="wiz-nav">
-      <button class="wiz-back" onclick="wStep--;renderWizard()">← Back</button>
-      <button class="wiz-next" onclick="wStep++;renderWizard()">Review →</button>
+      <button class="wiz-back" onclick="wizBack()">← Back</button>
+      <button class="wiz-next" onclick="wizNext()">Review →</button>
     </div>`;
   }else if(wStep===4){
     html=`<div class="review-checklist">
@@ -1763,7 +1788,7 @@ function renderWizard(){
       Once approved, your deal appears in the investor portal. All IOIs go to admin first — they will forward one selected indication for your review. Stage advances (Live → DD → Close) are controlled by the platform admin.
     </div>
     <div class="wiz-nav">
-      <button class="wiz-back" onclick="wStep--;renderWizard()">← Back</button>
+      <button class="wiz-back" onclick="wizBack()">← Back</button>
       <button class="wiz-submit" onclick="wizSubmit()">Submit for Review →</button>
     </div>`;
   }else{
@@ -1771,32 +1796,32 @@ function renderWizard(){
       <div class="success-icon">✓</div>
       <div class="success-title">Deal Submitted</div>
       <div class="success-body">Your deal is in the Aurum review queue. You'll receive a confirmation email shortly. Review takes 1–2 business days.</div>
-      <button class="btn-gold" onclick="wStep=1;renderWizard()">Submit Another Deal</button>
+      <button class="btn-gold" onclick="wStep=1;wizData={};renderWizard()">Submit Another Deal</button>
     </div>`;
   }
   document.getElementById('wizard-form').innerHTML=html;
 }
 
 async function wizSubmit(){
-  const name=document.getElementById('wiz-name')?.value?.trim();
-  if(!name){toast('Enter a deal name','err');return;}
+  // Read from wizData (persisted across steps) — DOM inputs are gone at step 4
+  const name=wizData.name||'';
+  if(!name){toast('Enter a deal name','err');wStep=1;renderWizard();return;}
 
-  const assetClassRaw=document.getElementById('wiz-asset-class')?.value||'';
   const assetClassMap={'Infrastructure':'infra','Private Equity':'pe','Private Credit':'credit','Real Estate':'re'};
 
   const payload={
     name,
-    asset_class:assetClassMap[assetClassRaw]||'credit',
-    deal_structure:document.getElementById('wiz-structure')?.value||'',
-    geography:document.getElementById('wiz-geography')?.value||'',
-    company_overview:document.getElementById('wiz-company-overview')?.value?.trim()||'',
-    mk_notes:document.getElementById('wiz-thesis')?.value?.trim()||'',
-    target_alloc_usd:readAmt(document.getElementById('wiz-alloc'))||10000000,
-    target_irr:parseFloat(document.getElementById('wiz-irr')?.value)||12,
-    term_months:parseInt(document.getElementById('wiz-term')?.value)||24,
-    hurdle_rate:parseFloat(document.getElementById('wiz-hurdle')?.value)||8,
-    min_ticket_usd:readAmt(document.getElementById('wiz-min-ticket'))||250000,
-    closing_date:document.getElementById('wiz-closing')?.value||'',
+    asset_class:assetClassMap[wizData.asset_class]||'credit',
+    deal_structure:wizData.structure||'',
+    geography:wizData.geography||'',
+    company_overview:wizData.company_overview||'',
+    mk_notes:wizData.thesis||'',
+    target_alloc_usd:readAmt({value:wizData.alloc})||10000000,
+    target_irr:parseFloat(wizData.irr)||12,
+    term_months:parseInt(wizData.term)||24,
+    hurdle_rate:parseFloat(wizData.hurdle)||8,
+    min_ticket_usd:readAmt({value:wizData.min_ticket})||250000,
+    closing_date:wizData.closing||'',
     docs:Object.entries(WIZ_DOCS).map(([slot,d])=>({slot,name:d.name,type:d.type})),
   };
 
