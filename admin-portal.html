@@ -230,6 +230,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ds-stat-val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text)}
 .ds-card-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;justify-content:flex-end}
 .ds-advisor{font-size:12px;color:var(--text-3);margin-right:auto}
+.ds-overview{font-size:13px;color:var(--text-2);line-height:1.7;padding:12px 18px;border-bottom:1px solid var(--border);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ds-admin-params{padding:12px 18px;border-bottom:1px solid var(--border);background:rgba(197,165,114,.02)}
+.ds-param-label{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.ds-param-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:10px}
+.ds-param-field{display:flex;flex-direction:column;gap:5px}
+.ds-param-lbl{font-size:11px;color:var(--text-3)}
+.ds-param-input-wrap{display:flex;align-items:center;gap:6px;position:relative}
+.ds-param-prefix{font-family:var(--mono);font-size:12px;color:var(--text-3)}
+.ds-param-input{flex:1;background:var(--bg);border:1px solid var(--border-m);color:var(--text);font-family:var(--mono);font-size:12px;padding:7px 10px;outline:none;border-radius:0;min-width:0}
+.ds-param-input:focus{border-color:var(--gold-bd)}
+.ds-param-hint{font-family:var(--mono);font-size:9px;color:var(--text-3);white-space:nowrap}
+.ds-param-save-row{display:flex;align-items:center;gap:10px}
+.ds-param-save-btn{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--gold-bd);color:var(--gold);background:var(--gold-bg);cursor:pointer;transition:all .15s;border-radius:2px}
+.ds-param-save-btn:hover{background:var(--gold);color:var(--bg)}
+.ds-param-saved{font-family:var(--mono);font-size:9px;color:var(--green)}
 
 /* MODALS */
 .modal-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);animation:fadeIn .2s}
@@ -1557,10 +1572,42 @@ function renderPipeline(){
             </div>
             <span class="iqi-badge badge-pending">Under Review</span>
           </div>
+          ${(s.company_overview||s.mk_notes)?`<div class="ds-overview">${s.company_overview||s.mk_notes}</div>`:''}
           <div class="ds-card-body">
             <div><div class="ds-stat-lbl">Target IRR</div><div class="ds-stat-val">${s.target_irr}%</div></div>
-            <div><div class="ds-stat-lbl">Allocation</div><div class="ds-stat-val">${fmU(s.target_alloc)}</div></div>
+            <div><div class="ds-stat-lbl">Capacity</div><div class="ds-stat-val">${fmU(s.target_alloc)}</div></div>
             <div><div class="ds-stat-lbl">Min Ticket</div><div class="ds-stat-val">${fmU(s.min_ticket)}</div></div>
+          </div>
+          <div class="ds-admin-params" id="ds-params-${s.id}">
+            <div class="ds-param-label">PLATFORM PARAMETERS <span style="opacity:.5;font-weight:400">(admin controls)</span></div>
+            <div class="ds-param-row">
+              <div class="ds-param-field">
+                <label class="ds-param-lbl">Platform Allocation <span style="color:var(--text-3)">— how much to market to investors</span></label>
+                <div class="ds-param-input-wrap">
+                  <span class="ds-param-prefix">$</span>
+                  <input class="ds-param-input" id="pa-alloc-${s.id}" type="number"
+                    placeholder="${(s.target_alloc||s.target_alloc_usd||0).toLocaleString()}"
+                    value="${s.platform_alloc_usd||''}"
+                    title="Advisor stated capacity: ${fmU(s.target_alloc||s.target_alloc_usd)}">
+                  <span class="ds-param-hint">Advisor capacity: ${fmU(s.target_alloc||s.target_alloc_usd)}</span>
+                </div>
+              </div>
+              <div class="ds-param-field">
+                <label class="ds-param-lbl">Platform Min Ticket <span style="color:var(--text-3)">— our platform minimum</span></label>
+                <div class="ds-param-input-wrap">
+                  <span class="ds-param-prefix">$</span>
+                  <input class="ds-param-input" id="pa-ticket-${s.id}" type="number"
+                    placeholder="${(s.min_ticket||s.min_ticket_usd||0).toLocaleString()}"
+                    value="${s.platform_min_ticket_usd||''}"
+                    title="Advisor requested: ${fmU(s.min_ticket||s.min_ticket_usd)}">
+                  <span class="ds-param-hint">Advisor ask: ${fmU(s.min_ticket||s.min_ticket_usd)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="ds-param-save-row">
+              <button class="ds-param-save-btn" onclick="savePlatformParams('${s.id}')">Save Parameters</button>
+              <span class="ds-param-saved" id="pa-saved-${s.id}" style="display:none">✓ Saved</span>
+            </div>
           </div>
           <!-- Doc status row -->
           <div style="padding:8px 18px;display:flex;align-items:center;gap:6px;border-top:1px solid var(--border);flex-wrap:wrap">
@@ -1612,6 +1659,18 @@ function renderPipeline(){
         </div>
       </div>`;
     }).join('')}`;
+}
+
+/* ── PLATFORM PARAMS ── */
+async function savePlatformParams(dealId){
+  const alloc=parseInt(document.getElementById('pa-alloc-'+dealId)?.value)||null;
+  const ticket=parseInt(document.getElementById('pa-ticket-'+dealId)?.value)||null;
+  await api('POST','/api/v2?resource=admin&op=set-platform-params',{dealId,platform_alloc_usd:alloc,platform_min_ticket_usd:ticket});
+  const sub=NEW_SUBMISSIONS.find(s=>s.id===dealId);
+  if(sub){if(alloc)sub.platform_alloc_usd=alloc;if(ticket)sub.platform_min_ticket_usd=ticket;}
+  const savedEl=document.getElementById('pa-saved-'+dealId);
+  if(savedEl){savedEl.style.display='inline';setTimeout(()=>savedEl.style.display='none',2000);}
+  toast('Parameters saved','ok');
 }
 
 /* ── STAGE MODAL ── */

@@ -4,6 +4,33 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Wizard field IDs, Company Overview, Hurdle Rate, admin platform params UI
+
+### `advisor-portal.html`
+- Step 1: Added `id` attributes to all existing fields (`wiz-name`, `wiz-asset-class`, `wiz-structure`, `wiz-geography`, `wiz-thesis`). Added new "Company Overview" textarea (`id="wiz-company-overview"`) between Geography and Deal Thesis with instructional hint text.
+- Step 2: Added `id` attributes to all existing fields (`wiz-irr`, `wiz-term`, `wiz-alloc`, `wiz-min-ticket`, `wiz-closing`). Added new "Hurdle Rate (%)" field (`id="wiz-hurdle"`). Rearranged layout into three clean 2-column rows: IRR/Term, Allocation/Min Ticket, Hurdle Rate/Closing Date.
+- Added `.field-hint` CSS class for helper text below textareas.
+
+### `admin-portal.html`
+- Pending submission cards: Added company overview blurb (`ds-overview`) below card header — shows `company_overview || mk_notes`, clamped to 3 lines.
+- Pending submission cards: Renamed "Allocation" stat label to "Capacity" to distinguish advisor-stated capacity from platform allocation.
+- Pending submission cards: Added inline "Platform Parameters" admin section (`ds-admin-params`) between stats row and docs row — lets admin set `platform_alloc_usd` and `platform_min_ticket_usd` before sending to Deal Studio, with "Save Parameters" button and confirmation flash.
+- Added `savePlatformParams(dealId)` function — POSTs to `resource=admin&op=set-platform-params`, updates local `NEW_SUBMISSIONS` state, shows confirmation toast.
+- Added CSS for all new components: `.ds-overview`, `.ds-admin-params`, `.ds-param-*` family.
+
+## [2026-05-01] — Deal wizard field capture fix + platform params op
+
+### `advisor-portal.html`
+- Replaced positional `querySelectorAll` selectors in `wizSubmit()` with ID-based reads (`wiz-name`, `wiz-asset-class`, `wiz-structure`, `wiz-geography`, `wiz-company-overview`, `wiz-thesis`, `wiz-alloc`, `wiz-irr`, `wiz-term`, `wiz-hurdle`, `wiz-min-ticket`, `wiz-closing`). Asset class now maps display labels to internal codes (`Infrastructure` → `infra`, etc.) instead of always sending `'credit'`. Geography and all new fields are captured correctly.
+
+### `api/_lib/deal-storage.js`
+- `createDeal()`: added `company_overview`, `platform_alloc_usd: null`, `platform_min_ticket_usd: null` to the deal object. `closing_date` now also accepts `data.closing` as fallback. Removed the duplicate `hurdle_rate` (was already present — no change needed).
+- `updateDeal()` allowed fields list: added `company_overview`, `platform_alloc_usd`, `platform_min_ticket_usd`, `admin_notes` so these fields can be patched via the standard update path.
+
+### `api/v2.js`
+- Added `resource=admin&op=set-platform-params` POST handler (admin auth required). Accepts `dealId`, `platform_alloc_usd`, `platform_min_ticket_usd`, `admin_notes`. Validates admin auth, loads deal, applies non-null positive numbers to platform override fields, sets `admin_notes` if provided, appends audit log entry `'Platform parameters set by admin'`, saves, returns `{ ok, deal: { id, platform_alloc_usd, platform_min_ticket_usd } }`. Placed before `publish-deal` op.
+- `deal-detail` op: `enriched` object now explicitly includes `platform_alloc_usd`, `platform_min_ticket_usd`, `company_overview`, `admin_notes` — these were previously only present if they happened to be on the deal record via the `...deal` spread; now they are always returned with safe defaults.
+
 ## [2026-05-01] — Review & Launch panel (Deal Studio → Investor Portal)
 
 ### `admin-portal.html`

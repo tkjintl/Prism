@@ -51,6 +51,7 @@ export async function createDeal(data, advisorId, adminId = null) {
     term_months: parseInt(data.term_months) || 24,
     hurdle_rate: parseFloat(data.hurdle_rate) || 8,
     originator: data.originator || '',
+    company_overview: data.company_overview || '',
     mk_notes: data.mk_notes || '',
     highlights: data.highlights || [],
     timeline: data.timeline || [],
@@ -63,7 +64,9 @@ export async function createDeal(data, advisorId, adminId = null) {
     tacc_carry_pct: parseFloat(data.tacc_carry_pct) || 12,
     min_ticket_usd: parseFloat(data.min_ticket_usd) || 50000,
     max_ticket_usd: parseFloat(data.max_ticket_usd) || 0,
-    closing_date: data.closing_date || null,
+    closing_date: data.closing_date || data.closing || null,
+    platform_alloc_usd: null,
+    platform_min_ticket_usd: null,
     ioi_count: 0,
     ioi_agg_usd: 0,
     deployed_usd: 0,
@@ -103,9 +106,10 @@ export async function updateDeal(id, updates, actorId) {
   const now = new Date().toISOString();
   const allowed = [
     'name','asset_class','geography','deal_structure','target_alloc_usd','target_irr',
-    'term_months','hurdle_rate','originator','mk_notes','highlights','timeline','docs',
+    'term_months','hurdle_rate','originator','company_overview','mk_notes','highlights','timeline','docs',
     'stage','member_visible','tacc_platform_fee_pct','tacc_carry_pct',
     'min_ticket_usd','max_ticket_usd','closing_date','deployed_usd',
+    'platform_alloc_usd','platform_min_ticket_usd','admin_notes',
   ];
 
   const prev_stage = deal.stage;

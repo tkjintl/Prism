@@ -305,6 +305,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .field-section{margin-bottom:20px}
 .field-label{display:block;font-size:11px;font-weight:500;color:var(--text-2);letter-spacing:.04em;margin-bottom:7px}
 .field-req{color:var(--red);margin-left:2px}
+.field-hint{font-size:11px;color:var(--text-3);line-height:1.6;margin-top:6px}
 .field-opt{color:var(--text-3);font-weight:400;margin-left:4px}
 .field-input{width:100%;padding:11px 13px;border-radius:3px;font-size:14px}
 .field-select{width:100%;padding:11px 13px;border-radius:3px;font-size:14px;appearance:none}
@@ -1023,29 +1024,34 @@ function renderWizard(){
   let html='';
   if(wStep===1){
     html=`<div class="field-section"><label class="field-label">Deal Name</label>
-      <input class="field-input" type="text" placeholder="e.g. Pacific Bridge Infrastructure IV"></div>
+      <input class="field-input" id="wiz-name" type="text" placeholder="e.g. Pacific Bridge Infrastructure IV"></div>
     <div class="field-section"><div class="field-row">
       <div><label class="field-label">Asset Class</label>
-        <select class="field-select"><option value="">Select…</option><option>Infrastructure</option><option>Private Equity</option><option>Private Credit</option><option>Real Estate</option></select></div>
+        <select class="field-select" id="wiz-asset-class"><option value="">Select…</option><option>Infrastructure</option><option>Private Equity</option><option>Private Credit</option><option>Real Estate</option></select></div>
       <div><label class="field-label">Structure</label>
-        <select class="field-select"><option value="">Select…</option><option>Senior Secured</option><option>Common Equity</option><option>Preferred Equity</option><option>Mezzanine</option></select></div>
+        <select class="field-select" id="wiz-structure"><option value="">Select…</option><option>Senior Secured</option><option>Common Equity</option><option>Preferred Equity</option><option>Mezzanine</option></select></div>
     </div></div>
     <div class="field-section"><label class="field-label">Geography</label>
-      <input class="field-input" type="text" placeholder="e.g. North America, Asia-Pacific"></div>
+      <input class="field-input" id="wiz-geography" type="text" placeholder="e.g. North America, Asia-Pacific"></div>
+    <div class="field-section"><label class="field-label">Company Overview <span class="field-req">*</span></label>
+      <textarea class="field-ta" id="wiz-company-overview" placeholder="e.g. Pacific Bridge Infrastructure is a Singapore-based infrastructure developer operating toll-road concessions across South-East Asia and North America. The company has $2.4B in assets under management across 14 active concession contracts."></textarea>
+      <div class="field-hint">A 2–4 sentence description of the business, issuer, or asset. Who is the borrower/issuer, what do they do, where do they operate?</div></div>
     <div class="field-section"><label class="field-label">Deal Thesis <span class="field-req">*</span></label>
-      <textarea class="field-ta" placeholder="Describe the opportunity and why now…"></textarea></div>
+      <textarea class="field-ta" id="wiz-thesis" placeholder="Describe the opportunity and why now…"></textarea></div>
     <div class="wiz-nav"><div></div><button class="wiz-next" onclick="wStep++;renderWizard()">Continue →</button></div>`;
   }else if(wStep===2){
     html=`<div class="field-section"><div class="field-row">
-      <div><label class="field-label">Target IRR (%)</label><input class="field-input" type="number" placeholder="e.g. 14"></div>
-      <div><label class="field-label">Term (months)</label><input class="field-input" type="number" placeholder="e.g. 36"></div>
+      <div><label class="field-label">Target IRR (%)</label><input class="field-input" id="wiz-irr" type="number" placeholder="e.g. 14"></div>
+      <div><label class="field-label">Term (months)</label><input class="field-input" id="wiz-term" type="number" placeholder="e.g. 36"></div>
     </div></div>
     <div class="field-section"><div class="field-row">
-      <div><label class="field-label">Allocation Target (USD)</label><input class="field-input" type="number" placeholder="e.g. 30000000"></div>
-      <div><label class="field-label">Minimum Ticket (USD)</label><input class="field-input" type="number" placeholder="e.g. 250000"></div>
+      <div><label class="field-label">Allocation Target (USD)</label><input class="field-input" id="wiz-alloc" type="number" placeholder="e.g. 30000000"></div>
+      <div><label class="field-label">Minimum Ticket (USD)</label><input class="field-input" id="wiz-min-ticket" type="number" placeholder="e.g. 250000"></div>
     </div></div>
-    <div class="field-section"><label class="field-label">Target Closing Date</label>
-      <input class="field-input" type="date"></div>
+    <div class="field-section"><div class="field-row">
+      <div><label class="field-label">Hurdle Rate (%)</label><input class="field-input" id="wiz-hurdle" type="number" placeholder="e.g. 8"></div>
+      <div><label class="field-label">Target Closing Date</label><input class="field-input" id="wiz-closing" type="date"></div>
+    </div></div>
     <div class="wiz-nav">
       <button class="wiz-back" onclick="wStep--;renderWizard()">← Back</button>
       <button class="wiz-next" onclick="wStep++;renderWizard()">Continue →</button>
@@ -1119,11 +1125,28 @@ function renderWizard(){
 }
 
 async function wizSubmit(){
-  const inputs=document.querySelectorAll('#wizard-form .field-input, #wizard-form .field-select, #wizard-form .field-ta');
-  const vals={};inputs.forEach((el,i)=>vals[i]=el.value);
-  const name=document.querySelector('#wizard-form input[type="text"]')?.value?.trim();
+  const name=document.getElementById('wiz-name')?.value?.trim();
   if(!name){toast('Enter a deal name','err');return;}
-  const payload={name,target_alloc_usd:parseInt(document.querySelectorAll('#wizard-form input[type="number"]')[0]?.value)||10000000,target_irr:parseFloat(document.querySelectorAll('#wizard-form input[type="number"]')[1]?.value)||12,asset_class:'credit',geography:'',mk_notes:document.querySelector('#wizard-form textarea')?.value||'',docs:Object.entries(WIZ_DOCS).map(([slot,d])=>({slot,name:d.name,type:d.type}))};
+
+  const assetClassRaw=document.getElementById('wiz-asset-class')?.value||'';
+  const assetClassMap={'Infrastructure':'infra','Private Equity':'pe','Private Credit':'credit','Real Estate':'re'};
+
+  const payload={
+    name,
+    asset_class:assetClassMap[assetClassRaw]||'credit',
+    deal_structure:document.getElementById('wiz-structure')?.value||'',
+    geography:document.getElementById('wiz-geography')?.value||'',
+    company_overview:document.getElementById('wiz-company-overview')?.value?.trim()||'',
+    mk_notes:document.getElementById('wiz-thesis')?.value?.trim()||'',
+    target_alloc_usd:parseInt(document.getElementById('wiz-alloc')?.value)||10000000,
+    target_irr:parseFloat(document.getElementById('wiz-irr')?.value)||12,
+    term_months:parseInt(document.getElementById('wiz-term')?.value)||24,
+    hurdle_rate:parseFloat(document.getElementById('wiz-hurdle')?.value)||8,
+    min_ticket_usd:parseInt(document.getElementById('wiz-min-ticket')?.value)||250000,
+    closing_date:document.getElementById('wiz-closing')?.value||'',
+    docs:Object.entries(WIZ_DOCS).map(([slot,d])=>({slot,name:d.name,type:d.type})),
+  };
+
   const btn=document.querySelector('.wiz-submit');if(btn){btn.disabled=true;btn.textContent='Submitting…';}
   const r=await api('POST','/api/advisor/deals',payload);
   if(btn){btn.disabled=false;btn.textContent='Submit for Review →';}

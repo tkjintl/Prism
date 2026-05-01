@@ -510,6 +510,44 @@ Return ONLY valid JSON in this exact structure:
       }
     }
 
+    if (op === 'set-platform-params') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const { dealId, platform_alloc_usd, platform_min_ticket_usd, admin_notes } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const now = new Date().toISOString();
+
+      if (typeof platform_alloc_usd === 'number' && platform_alloc_usd > 0) {
+        deal.platform_alloc_usd = platform_alloc_usd;
+      } else if (platform_alloc_usd === null) {
+        deal.platform_alloc_usd = null;
+      }
+
+      if (typeof platform_min_ticket_usd === 'number' && platform_min_ticket_usd > 0) {
+        deal.platform_min_ticket_usd = platform_min_ticket_usd;
+      } else if (platform_min_ticket_usd === null) {
+        deal.platform_min_ticket_usd = null;
+      }
+
+      if (admin_notes !== undefined) deal.admin_notes = admin_notes;
+
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({ at: now, actor: admin.email, action: 'Platform parameters set by admin', meta: { platform_alloc_usd: deal.platform_alloc_usd, platform_min_ticket_usd: deal.platform_min_ticket_usd } });
+      deal.updated_at = now;
+
+      await saveDeal(deal);
+
+      return ok(res, {
+        ok: true,
+        deal: { id: deal.id, platform_alloc_usd: deal.platform_alloc_usd, platform_min_ticket_usd: deal.platform_min_ticket_usd },
+      });
+    }
+
     if (op === 'publish-deal') {
       const admin = await getAdmin();
       if (!admin) return unauth(res);
@@ -758,6 +796,10 @@ Return ONLY valid JSON in this exact structure:
 
       const enriched = {
         ...deal,
+        platform_alloc_usd: deal.platform_alloc_usd || null,
+        platform_min_ticket_usd: deal.platform_min_ticket_usd || null,
+        company_overview: deal.company_overview || '',
+        admin_notes: deal.admin_notes || '',
         ioi_summary,
         iois: dealIois.map(i => ({
           id: i.id,
