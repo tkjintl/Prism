@@ -115,7 +115,7 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 <!-- SESSION BANNER: shown when investor cookie exists so user can choose portal -->
 <div id="session-banner" style="display:none;background:rgba(90,152,236,.08);border-bottom:1px solid rgba(90,152,236,.2);padding:8px 20px;align-items:center;justify-content:center;gap:12px;font-family:'JetBrains Mono',monospace;font-size:7.5px;flex-wrap:wrap">
   <span id="session-banner-text" style="color:#8ab4e8"></span>
-  <a href="/marketplace" style="color:#5a98ec;text-decoration:none;padding:4px 10px;border:1px solid rgba(90,152,236,.35);white-space:nowrap">Continue to Marketplace →</a>
+  <a href="/investor-portal" style="color:#5a98ec;text-decoration:none;padding:4px 10px;border:1px solid rgba(90,152,236,.35);white-space:nowrap">Continue to Investor Portal →</a>
   <button onclick="clearSession()" style="background:transparent;border:1px solid rgba(255,255,255,.1);color:#635e58;font-family:'JetBrains Mono',monospace;font-size:7.5px;padding:4px 10px;cursor:pointer;white-space:nowrap">Sign out &amp; switch portal</button>
 </div>
 
@@ -286,8 +286,8 @@ fetch('/api/me', { credentials:'include' })
   .then(d => {
     if (!d?.ok) return;
     // Admin and advisor: hard redirect immediately (unambiguous destination)
-    if (d.role === 'admin') { window.location.href = '/control'; return; }
-    if (d.role === 'advisor') { window.location.href = '/advisor'; return; }
+    if (d.role === 'admin') { window.location.href = '/admin-portal'; return; }
+    if (d.role === 'advisor') { window.location.href = '/advisor-portal'; return; }
     // Investor session: show banner instead of silent redirect — lets user choose
     if (d.role === 'inst') {
       const bar = document.getElementById('session-banner');
