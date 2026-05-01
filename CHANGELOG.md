@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Add universal mobile.css foundation (admin + advisor portals)
+
+### Changes
+- `mobile.css` (new): Universal mobile stylesheet covering 8 areas — typography floor (13px body, 11px badge/chip, 10px mono), 44×44px touch targets for all interactive elements, tab-row horizontal scroll (overflow-x: auto, no trap), `.sj-inner`/`.tl-inner` min-width: 0 flex-wrap fix, grid collapse (kpi 2-col, deal/docs 1-col), modal/drawer fullscreen bottom-sheet on ≤768px, body overflow-x: hidden + flex-row wrap, iOS font-size: 16px zoom suppression.
+- `admin-portal.html`: `<link rel="stylesheet" href="/mobile.css">` added immediately before `</head>` (line 818).
+- `advisor-portal.html`: same link added before `</head>` (line 503).
+- investor-portal.html NOT modified — handled by separate agent.
+
+---
+
 ## [2026-05-01] — Investor Portal: Fix greeting visibility and restore ring IDs
 
 ### Changes
