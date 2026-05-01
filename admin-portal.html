@@ -153,25 +153,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .at-body strong{color:var(--text);font-weight:500}
 .at-time{font-family:var(--mono);font-size:10px;color:var(--text-3);white-space:nowrap;margin-top:3px}
 
-/* IOI QUEUE */
-.ioi-queue-section{margin-bottom:36px}
-.iqs-deal-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--bg-3);border:1px solid var(--border);border-bottom:none;border-radius:var(--r) var(--r) 0 0}
-.iqs-deal-name{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--text)}
-.iqs-deal-meta{font-size:12px;color:var(--text-3);margin-top:1px}
-.iqs-summary{font-family:var(--mono);font-size:10px;color:var(--text-3)}
-.iqs-items{border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden}
-.iqi-row{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:13px 18px;background:var(--surface);border-bottom:1px solid var(--border);animation:rowSlide .4s var(--ease) both}
-.iqi-row:last-child{border-bottom:none}
-.iqi-row:hover{background:var(--bg-3)}
-.iqi-row.new-ioi{border-left:3px solid var(--gold);padding-left:15px}
-.iqi-avatar{width:36px;height:36px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border-m);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text-2);flex-shrink:0}
-.iqi-row.new-ioi .iqi-avatar{background:var(--gold-bg);border-color:var(--gold-bd);color:var(--gold)}
-.iqi-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
-.iqi-meta{font-size:11px;color:var(--text-3)}
-.iqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
-.iqi-amount{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text)}
-.iqi-date{font-family:var(--mono);font-size:9px;color:var(--text-3)}
-.iqi-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+/* IOI QUEUE — legacy helpers kept for badges used elsewhere */
 .iqi-badge{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid;white-space:nowrap}
 .badge-pending{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .badge-approved{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
@@ -181,10 +163,58 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .q-approve:hover{background:var(--green);color:#fff;border-color:var(--green)}
 .q-decline{padding:4px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--red-bd);color:var(--red);background:var(--red-bg);transition:all .15s;cursor:pointer;font-family:inherit}
 .q-decline:hover{background:var(--red);color:#fff;border-color:var(--red)}
-.q-push{padding:4px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--violet-bd);color:var(--violet);background:var(--violet-bg);transition:all .15s;cursor:pointer;font-family:inherit}
-.q-push:hover{background:var(--violet);color:#fff;border-color:var(--violet)}
-.q-push:disabled{opacity:.4;cursor:not-allowed}
-.empty-queue{padding:32px;text-align:center;font-size:14px;color:var(--text-3);border:1px solid var(--border);border-radius:var(--r);background:var(--surface)}
+.empty-queue{padding:40px;text-align:center;font-size:14px;color:var(--text-3);border:1px solid var(--border);border-radius:var(--r);background:var(--surface)}
+
+/* IOI QUEUE — deal-grouped cards */
+.ioi-deal-group{border:1px solid var(--border);border-radius:var(--r);background:var(--surface);margin-bottom:20px;overflow:hidden;animation:fadeUp .4s var(--ease) both}
+.ioi-deal-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg-3)}
+.ioi-deal-hd-left{flex:1;min-width:0}
+.ioi-deal-title{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text);margin-bottom:3px}
+.ioi-deal-advisor{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
+.ioi-deal-hd-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.ioi-sub-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;width:180px}
+.ioi-sub-label{font-family:var(--mono);font-size:10px;color:var(--text-2);white-space:nowrap}
+.ioi-sub-bar-track{height:4px;background:var(--border-m);border-radius:2px;overflow:hidden;width:100%}
+.ioi-sub-bar-fill{height:100%;background:var(--gold);border-radius:2px;transition:width 1s var(--ease)}
+.ioi-raise-status{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid;white-space:nowrap}
+.irs-open{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.irs-delayed{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.irs-closed{color:var(--text-3);border-color:var(--border-m);background:var(--bg-3)}
+
+/* IOI table rows */
+.ioi-table{display:flex;flex-direction:column}
+.ioi-row{display:grid;grid-template-columns:minmax(160px,1.8fr) 140px 100px 80px auto;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s;animation:rowSlide .35s var(--ease) both}
+.ioi-row:last-child{border-bottom:none}
+.ioi-row:hover{background:var(--bg-3)}
+.ioi-row.hdr{background:var(--bg-3);border-bottom:1px solid var(--border-m)}
+.ioi-row.hdr>*{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);font-weight:400}
+.ioi-row-name{font-size:13px;font-weight:500;color:var(--text)}
+.ioi-row-type{font-size:11px;color:var(--text-3);margin-top:1px}
+.ioi-row-typegeo{font-size:12px;color:var(--text-2)}
+.ioi-row-amount{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text);tabular-nums}
+.ioi-row-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+.ioi-empty{padding:20px;text-align:center;font-size:13px;color:var(--text-3);background:var(--surface)}
+
+/* Deal actions footer */
+.ioi-deal-footer{display:flex;align-items:center;justify-content:space-between;padding:11px 20px;border-top:1px solid var(--border);background:var(--bg-3);gap:10px;flex-wrap:wrap}
+.ioi-footer-left{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.ioi-action-btn{padding:5px 12px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--border-m);color:var(--text-2);background:transparent;transition:all .15s;cursor:pointer;font-family:inherit;white-space:nowrap}
+.ioi-action-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
+.ioi-target-inline{display:inline-flex;align-items:center;gap:5px;animation:fadeIn .2s}
+.ioi-target-input{width:90px;padding:4px 8px;font-size:12px;font-family:var(--mono)}
+.ioi-target-set{padding:4px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--gold-bd);color:var(--gold);background:var(--gold-bg);cursor:pointer;font-family:inherit;transition:all .15s}
+.ioi-target-set:hover{background:var(--gold);color:#fff}
+.ioi-pkg-btn{padding:7px 16px;border-radius:3px;font-size:12px;font-weight:500;font-family:var(--mono);letter-spacing:.06em;border:1px solid var(--gold-bd);color:var(--gold);background:var(--gold-bg);cursor:pointer;transition:all .15s;white-space:nowrap}
+.ioi-pkg-btn:hover:not(:disabled){background:var(--gold);color:var(--bg);border-color:var(--gold)}
+.ioi-pkg-btn:disabled{opacity:.38;cursor:not-allowed}
+
+@media(max-width:640px){
+  .ioi-row{grid-template-columns:1fr auto}
+  .ioi-row.hdr{display:none}
+  .ioi-row-typegeo,.ioi-row-amount-col{font-size:11px}
+  .ioi-sub-wrap{width:140px}
+  .ioi-deal-hd{flex-wrap:wrap}
+}
 
 /* DEAL SUBMISSIONS */
 .deal-submissions{display:flex;flex-direction:column;gap:10px;margin-bottom:36px}
@@ -653,51 +683,162 @@ function renderOverview(){
 }
 
 /* ── IOI QUEUE ── */
-function renderQueue(){
-  const hasPending=DEALS.some(d=>d.iois.some(i=>i.status==='pending'||i.status==='approved'));
-  if(!hasPending){
-    document.getElementById('ioi-queue-content').innerHTML=`<div class="empty-queue">✓ No pending IOIs — all reviewed</div>`;
+async function renderQueue(){
+  const wrap=document.getElementById('ioi-queue-content');
+  if(!wrap)return;
+
+  // Try live endpoint; fall back to building groups from local DEALS data
+  const res=await fetchSilent('/api/v2?resource=admin&op=ioi-by-deal');
+  let groups;
+  if(res?.groups?.length){
+    groups=res.groups;
+  } else {
+    // Build groups from local mock data so the UI is always populated
+    groups=DEALS.map(d=>{
+      const approved=d.iois.filter(i=>i.status==='approved');
+      const pct=d.target_alloc>0?Math.round(d.ioi_agg/d.target_alloc*100):0;
+      return{
+        dealId:d.id,dealName:d.name,advisor:d.advisor,advisorId:'',
+        targetAlloc:d.target_alloc,indicatedTotal:d.ioi_agg,pct,
+        status:d.stage,closingDate:d.closing?new Date(d.closing).toLocaleDateString('en-US',{month:'short',year:'numeric'}):'TBD',
+        raise_status:d.raise_status||'open',
+        iois:d.iois,
+        approvedCount:approved.length,
+        approvedTotal:approved.reduce((s,i)=>s+i.amount,0)
+      };
+    }).filter(g=>g.iois.some(i=>i.status!=='declined'));
+  }
+
+  if(!groups.length){
+    wrap.innerHTML='<div class="empty-queue">No active IOIs</div>';
     return;
   }
-  document.getElementById('ioi-queue-content').innerHTML=DEALS.map(d=>{
-    const relevantIOIs=d.iois.filter(i=>i.status!=='declined');
-    if(relevantIOIs.length===0)return'';
-    const pct=Math.round(d.ioi_agg/d.target_alloc*100);
-    const dealPushed=d.iois.some(i=>i.pushed);
-    return`<div class="ioi-queue-section">
-      <div class="iqs-deal-header">
-        <div>
-          <div class="iqs-deal-name">${d.name}</div>
-          <div class="iqs-deal-meta">${d.advisor} · ${d.geography} · ${d.target_irr}% IRR${dealPushed?' · <span style="color:var(--violet);font-family:var(--mono);font-size:9px;letter-spacing:.1em">1 IOI PUSHED</span>':''}</div>
-        </div>
-        <div class="iqs-summary">${fmU(d.ioi_agg)} / ${fmU(d.target_alloc)} · ${pct}%</div>
+  wrap.innerHTML=groups.map((g,gi)=>buildDealGroup(g,gi)).join('');
+}
+
+function buildDealGroup(g,gi=0){
+  const pct=Math.min(g.pct||0,100);
+  const raiseMap={open:'irs-open',delayed:'irs-delayed',closed:'irs-closed'};
+  const raiseLabel={open:'Open',delayed:'Delayed',closed:'Closed'};
+  const rs=g.raise_status||'open';
+
+  const ioiRows=g.iois&&g.iois.length?g.iois.map((ioi,i)=>{
+    let actions='';
+    if(ioi.status==='pending'){
+      actions=`<button class="q-approve" onclick="actIoiQueue('${g.dealId}','${ioi.id}','approved')">Approve</button>
+               <button class="q-decline" onclick="actIoiQueue('${g.dealId}','${ioi.id}','declined')">Decline</button>`;
+    } else if(ioi.pushed||ioi.status==='pushed'){
+      actions=`<span class="iqi-badge badge-pushed">In Package</span>`;
+    } else if(ioi.status==='approved'){
+      actions=`<span class="iqi-badge badge-approved">Approved</span>`;
+    } else if(ioi.status==='declined'){
+      return''; // hide declined from queue view
+    } else {
+      actions=`<span class="iqi-badge badge-${ioi.status}">${ioi.status}</span>`;
+    }
+    const init=(ioi.init||(ioi.name||'?').slice(0,2).toUpperCase());
+    return`<div class="ioi-row" id="iqi-${ioi.id}" style="animation-delay:${(gi*3+i)*35}ms">
+      <div>
+        <div class="ioi-row-name">${ioi.name||'—'}</div>
+        <div class="ioi-row-type">${init}</div>
       </div>
-      <div class="iqs-items">
-        ${relevantIOIs.map((ioi,i)=>`
-          <div class="iqi-row ${ioi.isNew?'new-ioi':''}" id="iqi-${ioi.id}" style="animation-delay:${i*40}ms">
-            <div class="iqi-avatar">${ioi.init}</div>
-            <div>
-              <div class="iqi-name">${ioi.name}</div>
-              <div class="iqi-meta">${ioi.type} · ${ioi.geo}</div>
-            </div>
-            <div class="iqi-right">
-              <div class="iqi-amount">${fmU(ioi.amount)}</div>
-              <div class="iqi-date">${ioi.date}</div>
-              <div class="iqi-actions">
-                ${ioi.status==='pending'?`
-                  <button class="q-approve" onclick="actIoiQueue('${d.id}','${ioi.id}','approved')">Approve</button>
-                  <button class="q-decline" onclick="actIoiQueue('${d.id}','${ioi.id}','declined')">Decline</button>
-                `:ioi.pushed?`<span class="iqi-badge badge-pushed">Pushed to Advisor</span>`
-                :ioi.status==='approved'?`
-                  <span class="iqi-badge badge-approved">Approved</span>
-                  <button class="q-push" onclick="openPushModal('${d.id}','${ioi.id}')" ${dealPushed?'disabled title="1 IOI already pushed to this advisor"':''}>Push →</button>
-                `:`<span class="iqi-badge badge-${ioi.status}">${ioi.status}</span>`}
-              </div>
-            </div>
-          </div>`).join('')}
+      <div class="ioi-row-typegeo">${ioi.type||'—'} · ${ioi.geo||'—'}</div>
+      <div class="ioi-row-amount">${fmU(ioi.amount)}</div>
+      <div>
+        <span class="iqi-badge badge-${ioi.status}">${ioi.status}</span>
       </div>
+      <div class="ioi-row-actions iqi-actions">${actions}</div>
     </div>`;
-  }).join('');
+  }).filter(Boolean).join('')
+  :'<div class="ioi-empty">No IOIs yet</div>';
+
+  return`<div class="ioi-deal-group" style="animation-delay:${gi*60}ms">
+    <div class="ioi-deal-hd">
+      <div class="ioi-deal-hd-left">
+        <div class="ioi-deal-title">${g.dealName}</div>
+        <div class="ioi-deal-advisor">${g.advisor}</div>
+      </div>
+      <div class="ioi-deal-hd-right">
+        <div class="ioi-sub-wrap">
+          <div class="ioi-sub-label">${fmU(g.indicatedTotal)} of ${fmU(g.targetAlloc)} · ${pct}%</div>
+          <div class="ioi-sub-bar-track"><div class="ioi-sub-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <span class="ioi-raise-status ${raiseMap[rs]||'irs-open'}">${raiseLabel[rs]||'Open'}</span>
+      </div>
+    </div>
+    <div class="ioi-table">
+      <div class="ioi-row hdr">
+        <div>Investor</div><div>Type · Geo</div><div>Amount</div><div>Status</div><div style="text-align:right">Actions</div>
+      </div>
+      ${ioiRows}
+    </div>
+    <div class="ioi-deal-footer">
+      <div class="ioi-footer-left" id="footer-left-${g.dealId}">
+        <button class="ioi-action-btn" onclick="dealAction('${g.dealId}','close_raise')">Close Raise</button>
+        <button class="ioi-action-btn" onclick="dealAction('${g.dealId}','delay')">Delay</button>
+        <button class="ioi-action-btn" id="inc-btn-${g.dealId}" onclick="showIncreaseTarget('${g.dealId}')">Increase Target</button>
+        <span id="inc-inline-${g.dealId}" style="display:none"></span>
+      </div>
+      <button class="ioi-pkg-btn" data-pkg-btn="${g.dealId}" onclick="pushPackage('${g.dealId}')"
+        ${g.approvedCount===0?'disabled':''}>Push Package to Advisor →</button>
+    </div>
+  </div>`;
+}
+
+function showIncreaseTarget(dealId){
+  const container=document.getElementById('inc-inline-'+dealId);
+  const btn=document.getElementById('inc-btn-'+dealId);
+  if(!container)return;
+  if(container.style.display==='inline-flex'){container.style.display='none';return;}
+  container.style.display='inline-flex';
+  container.className='ioi-target-inline';
+  container.innerHTML=`<span style="font-size:11px;color:var(--text-3);font-family:var(--mono)">New target:</span>
+    <input class="ioi-target-input" id="inc-val-${dealId}" type="number" placeholder="50000000" min="1">
+    <button class="ioi-target-set" onclick="commitIncreaseTarget('${dealId}')">Set</button>`;
+  setTimeout(()=>document.getElementById('inc-val-'+dealId)?.focus(),50);
+}
+
+function commitIncreaseTarget(dealId){
+  const inp=document.getElementById('inc-val-'+dealId);
+  const val=inp?parseInt(inp.value,10):NaN;
+  if(!val||val<1){toast('Enter a valid target amount','err');return;}
+  dealAction(dealId,'increase_target',{newTarget:val});
+}
+
+async function dealAction(dealId,action,params={}){
+  const res=await fetchSilent('/api/v2?resource=admin&op=deal-action',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({dealId,action,params})
+  });
+  // Update local mock state so the UI reflects the change immediately
+  const deal=DEALS.find(d=>d.id===dealId);
+  if(deal){
+    if(action==='close_raise')deal.raise_status='closed';
+    else if(action==='delay')deal.raise_status='delayed';
+    else if(action==='increase_target'&&params.newTarget){deal.target_alloc=params.newTarget;}
+  }
+  if(res?.ok||deal){toast('Deal updated','ok');renderQueue();renderKPIs();}
+  else toast('Error updating deal','err');
+}
+
+async function pushPackage(dealId){
+  const btn=document.querySelector(`[data-pkg-btn="${dealId}"]`);
+  if(btn){btn.disabled=true;btn.textContent='Generating…';}
+  const res=await fetchSilent('/api/v2?resource=admin&op=push-package',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({dealId})
+  });
+  if(res?.ok){
+    // Mark approved IOIs as pushed in local state
+    const deal=DEALS.find(d=>d.id===dealId);
+    if(deal)deal.iois.filter(i=>i.status==='approved').forEach(i=>i.pushed=true);
+    toast('Package pushed to advisor','ok');renderQueue();renderOverview();
+  } else {
+    toast('Error pushing package','err');
+    if(btn){btn.disabled=false;btn.textContent='Push Package to Advisor →';}
+  }
 }
 
 async function approveDeal(dealId,btn){

@@ -4,6 +4,30 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin IOI Queue: deal-grouped view with raise controls and package push
+
+### `admin-portal.html` — IOI Queue tab redesigned
+- **Replaced `renderQueue()`** with an async version that calls `GET /api/v2?resource=admin&op=ioi-by-deal`; falls back to building groups from local `DEALS` mock data if the endpoint returns nothing.
+- **Added `buildDealGroup(g, gi)`** — renders a three-zone card per deal: header bar (deal name, advisor chip, subscription progress bar with gold fill, raise-status badge), IOI table rows (Investor / Type·Geo / Amount / Status / Approve+Decline), and a footer with Close Raise / Delay / Increase Target controls on the left and a Push Package button on the right.
+- **Added `showIncreaseTarget(dealId)` / `commitIncreaseTarget(dealId)`** — toggle an inline input in the footer for entering a new allocation target; calls `dealAction` on confirm.
+- **Added `dealAction(dealId, action, params)`** — POST to `deal-action` op; also mutates local `DEALS` state immediately so UI reflects changes before server roundtrip.
+- **Added `pushPackage(dealId)`** — POST to `push-package` op; disables the button during the call; marks approved IOIs as `pushed` in local state on success; re-renders queue and overview.
+- **Container used:** `id="ioi-queue-content"` (unchanged).
+- **`actIoi()` and `actIoiQueue()` preserved** — IOI row actions divs retain `.iqi-actions` class so the existing inline DOM mutation in `actIoiQueue` still works.
+- **CSS:** Replaced the old `.ioi-queue-section` / `.iqs-*` / `.iqi-*` block with `.ioi-deal-group`, `.ioi-deal-hd`, `.ioi-sub-bar-track/fill`, `.ioi-table`, `.ioi-row`, `.ioi-deal-footer`, `.ioi-action-btn`, `.ioi-pkg-btn`, `.ioi-raise-status` + badge variants.
+
+---
+
+## [2026-05-01] — Admin IOI workflow: three new backend ops
+
+### `api/v2.js` — added `ioi-by-deal`, `deal-action`, `push-package` ops
+- **`GET ?resource=admin&op=ioi-by-deal`** — Returns all deals with their IOIs grouped, including `indicatedTotal`, `pct` of target filled, `approvedCount`, and `approvedTotal`. Fetches all IOIs in one pass and buckets by `deal_id`; resolves advisor display names from KV.
+- **`POST ?resource=admin&op=deal-action`** — Applies `close_raise`, `delay`, or `increase_target` mutations to a deal's raise state. Each action appends a typed entry to `deal.audit_log` and persists via `saveDeal()`.
+- **`POST ?resource=admin&op=push-package`** — Builds a snapshot package of all approved IOIs for a deal, stores it under `package:{packageId}`, appends the ID to `packages:deal:{dealId}` (JSON array), marks each approved IOI `pushed: true`, and appends a `package_pushed` audit log entry to the deal.
+- **Why:** Admin portal deal-grouped IOI queue view and raise-management controls require these ops. Existing per-IOI ops (`approve-ioi`, `reject-ioi`) are untouched.
+
+---
+
 ## [2026-05-01]
 
 ### Hero-right replaced with animated prism visual

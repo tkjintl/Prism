@@ -1,7 +1,7 @@
 import { verifyToken, signToken, signResetCode, verifyResetToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
 import { ok, bad, unauth, getCookie, setCookieHeader } from './_lib/http.js';
 import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, healthCheck } from './_lib/storage.js';
-import { createDeal, updateDeal, getDeal, listDeals, seedDeals } from './_lib/deal-storage.js';
+import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
   sendDataRoomAccess, sendAccessApplication,
@@ -506,6 +506,171 @@ Return ONLY valid JSON in this exact structure:
       inst.revoked_at = new Date().toISOString();
       await kvSet(`inst:${inst_id}`, inst);
       return ok(res);
+    }
+
+    // ── ioi-by-deal ──────────────────────────────────────────────
+    if (op === 'ioi-by-deal') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const deals = await listDeals();
+      // Fetch all IOIs once and bucket by deal_id
+      const ioiKeys = await kvKeys('ioi:IOI-*');
+      const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const ioiByDeal = {};
+      for (const ioi of allIois) {
+        if (!ioiByDeal[ioi.deal_id]) ioiByDeal[ioi.deal_id] = [];
+        ioiByDeal[ioi.deal_id].push(ioi);
+      }
+
+      // Fetch advisor name map (only advisors referenced by deals)
+      const advisorIdSet = new Set(deals.map(d => d.advisor_id).filter(Boolean));
+      const advisorMap = {};
+      await Promise.all([...advisorIdSet].map(async id => {
+        if (id.startsWith('adv-')) {
+          const adv = await kvGet(`advisor:${id}`);
+          if (adv) advisorMap[id] = adv.name || adv.firm_name || id;
+        } else {
+          advisorMap[id] = id; // admin-created deal — store actor id as-is
+        }
+      }));
+
+      const groups = deals.map(deal => {
+        const iois = ioiByDeal[deal.id] || [];
+        const indicatedTotal = iois.reduce((s, i) => s + (i.amount || 0), 0);
+        const targetAlloc = deal.target_alloc_usd || 0;
+        const pct = targetAlloc > 0 ? Math.round(indicatedTotal / targetAlloc * 100) : 0;
+        const approved = iois.filter(i => i.status === 'approved');
+        return {
+          dealId: deal.id,
+          dealName: deal.name,
+          advisor: advisorMap[deal.advisor_id] || '',
+          advisorId: deal.advisor_id || '',
+          targetAlloc,
+          indicatedTotal,
+          pct,
+          status: deal.stage,
+          closingDate: deal.closing_date || '',
+          iois: iois.map(i => ({
+            id: i.id,
+            name: i.investor_firm || i.investor_email || i.investor_id,
+            type: i.institution_type || '',
+            geo: i.geo || '',
+            amount: i.amount || 0,
+            status: i.status,
+            date: i.submitted_at,
+          })),
+          approvedCount: approved.length,
+          approvedTotal: approved.reduce((s, i) => s + (i.amount || 0), 0),
+        };
+      });
+
+      return ok(res, { groups });
+    }
+
+    // ── deal-action ───────────────────────────────────────────────
+    if (op === 'deal-action') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const { dealId, action, params = {} } = req.body || {};
+      if (!dealId || !action) return bad(res, 'dealId and action required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const now = new Date().toISOString();
+      deal.audit_log = deal.audit_log || [];
+
+      if (action === 'close_raise') {
+        deal.raise_status = 'closed';
+        deal.raise_closed_at = Date.now();
+        deal.audit_log.push({ at: now, actor: admin.email, action: 'raise_closed', meta: {} });
+      } else if (action === 'delay') {
+        deal.raise_status = 'delayed';
+        deal.raise_delay_note = params.note || '';
+        deal.audit_log.push({ at: now, actor: admin.email, action: 'raise_delayed', meta: { note: params.note || '' } });
+      } else if (action === 'increase_target') {
+        if (!params.newTarget || isNaN(parseFloat(params.newTarget))) return bad(res, 'params.newTarget must be a number');
+        const prev = deal.target_alloc_usd;
+        deal.target_alloc_usd = parseFloat(params.newTarget);
+        deal.audit_log.push({ at: now, actor: admin.email, action: 'target_increased', meta: { from: prev, to: deal.target_alloc_usd } });
+      } else {
+        return bad(res, `Unknown action: ${action}`);
+      }
+
+      deal.updated_at = now;
+      await saveDeal(deal);
+      return ok(res, { ok: true, deal });
+    }
+
+    // ── push-package ──────────────────────────────────────────────
+    if (op === 'push-package') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const { dealId } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      // Collect all IOIs for this deal
+      const ioiKeys = await kvKeys('ioi:IOI-*');
+      const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const dealIois = allIois.filter(i => i.deal_id === dealId);
+      const approvedIois = dealIois.filter(i => i.status === 'approved');
+
+      const indicatedTotal = approvedIois.reduce((s, i) => s + (i.amount || 0), 0);
+      const targetAlloc = deal.target_alloc_usd || 0;
+
+      const pkg = {
+        packageId: `pkg_${dealId}_${Date.now()}`,
+        dealId,
+        dealName: deal.name,
+        generatedAt: new Date().toISOString(),
+        targetAlloc,
+        indicatedTotal,
+        pct: targetAlloc > 0 ? Math.round(indicatedTotal / targetAlloc * 100) : 0,
+        raise_status: deal.raise_status || 'open',
+        iois: approvedIois.map(i => ({
+          id: i.id,
+          name: i.investor_firm || i.investor_email || i.investor_id,
+          type: i.institution_type || '',
+          geo: i.geo || '',
+          amount: i.amount || 0,
+          date: i.submitted_at,
+        })),
+        advisorId: deal.advisor_id,
+      };
+
+      // Persist package
+      await kvSet(`package:${pkg.packageId}`, pkg);
+
+      // Append packageId to the deal's package list (stored as JSON array)
+      const listKey = `packages:deal:${dealId}`;
+      const existing = await kvGet(listKey);
+      const pkgList = existing ? (Array.isArray(existing) ? existing : JSON.parse(existing)) : [];
+      pkgList.push(pkg.packageId);
+      await kvSet(listKey, pkgList);
+
+      // Mark all approved IOIs as pushed on their records
+      await Promise.all(approvedIois.map(async ioi => {
+        ioi.pushed = true;
+        ioi.pushed_at = new Date().toISOString();
+        await kvSet(`ioi:${ioi.id}`, ioi);
+      }));
+
+      // Audit log on deal
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({
+        at: new Date().toISOString(),
+        actor: admin.email,
+        action: 'package_pushed',
+        meta: { packageId: pkg.packageId, approvedCount: approvedIois.length, indicatedTotal },
+      });
+      deal.updated_at = new Date().toISOString();
+      await saveDeal(deal);
+
+      return ok(res, { ok: true, package: pkg });
     }
   }
 
