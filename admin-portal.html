@@ -982,25 +982,26 @@ function showAIOutput(deal){
 
 /* ── INIT ── */
 async function load(){
+  // Render mock data immediately so page is never blank
+  renderKPIs();renderOverview();updateQueueBadge();
+
+  // Check auth and overlay with live data if available
   const me=await fetchSilent('/api/me');
-  if(me?._unauth){window.location.href='/login';return;}
-  if(me?.ok&&me.role==='admin'){
+  if(!me||me._unauth)return; // not logged in — keep mock data visible
+  if(me.ok&&me.role!=='admin')return; // wrong role — keep mock data
+  if(me.ok&&me.role==='admin'){
     const [dealsR,ioisR]=await Promise.all([
-      api('GET','/api/v2?resource=deals'),
-      api('GET','/api/marketplace/deal-iois')
+      fetchSilent('/api/v2?resource=deals'),
+      fetchSilent('/api/marketplace/deal-iois')
     ]);
     const allIois=ioisR?.iois||[];
     if(dealsR?.deals&&dealsR.deals.length){
       const all=dealsR.deals.filter(d=>d.stage!=='killed').map(d=>adaptDeal(d,allIois));
       NEW_SUBMISSIONS=all.filter(d=>d.stage==='review').map(d=>({...d,submitted:new Date(d.created_at||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric'})}));
       DEALS=all.filter(d=>d.stage!=='review');
+      renderKPIs();renderOverview();updateQueueBadge();
     }
-  }else if(me?._unauth===undefined&&!me?.ok){
-    // Network error — fall back to mock data silently
-  }else if(me?.ok&&me.role!=='admin'){
-    window.location.href='/login';return;
   }
-  renderKPIs();renderOverview();updateQueueBadge();
 }
 load();
 </script>
