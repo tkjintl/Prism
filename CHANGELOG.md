@@ -4,6 +4,22 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin overview UX: layout reorder, column renames, clickable rows, package preview panel
+
+### `admin-portal.html`
+- **Sign-up grid moved up** — Advisor Access and Investor Access panels now appear above the Action Queue, not below it.
+- **Column 2 renamed**: "IOI Decisions" → "Inbound IOI from Investors".
+- **Column 3 renamed**: "Ready to Push" → "Deploy Capital".
+- **Inbound IOI cards** — investor name is now clickable (`openIoiDetail`), with a `↗` affordance.
+- **Deploy Capital cards** reworked — deal name is the primary identifier; investor + amount + advisor shown as secondary context. Two action buttons: "Preview Package →" (`openPackagePreview`) and "Push to Advisor" (`openPushModal`).
+- **IOI Intelligence rows** now clickable — clicking a row navigates to the IOI Queue tab and smooth-scrolls to that deal's first non-declined IOI. Hover tint added via `.ov-intel-row:hover`.
+- **`openPackagePreview(dealId, ioiId)`** added — full-screen slide-in panel showing Deal Economics, Investor IOI, Investment Thesis, Key Highlights, and a Package Summary callout. Bottom action bar has Cancel and "Push Package to [Advisor] →" buttons.
+- **`closePackagePreview()`** added.
+- **`#pkg-preview-panel`** HTML element added after the IOI detail panel.
+- `.ov-intel-row` CSS updated to include `cursor:pointer`, `transition`, `border-radius`, negative margin padding, and `:hover` rule.
+
+---
+
 ## [2026-05-01] — Mock data expansion, closing instructions (investor), banking details (advisor)
 
 ### `admin-portal.html`

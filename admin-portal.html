@@ -674,8 +674,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ov-at-body{flex:1;font-size:12px;color:var(--text-2);font-family:var(--sans);line-height:1.5}
 .ov-at-time{font-family:var(--mono);font-size:10px;color:var(--text-3);white-space:nowrap;margin-top:2px}
 /* IOI Intel */
-.ov-intel-row{padding:10px 16px;border-bottom:1px solid var(--border)}
+.ov-intel-row{padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-radius:4px;margin:0 -4px}
 .ov-intel-row:last-child{border-bottom:none}
+.ov-intel-row:hover{background:var(--bg-3)}
 .ov-intel-deal{font-size:12px;font-weight:600;color:var(--text);font-family:var(--sans);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ov-intel-bar-wrap{display:flex;align-items:center;gap:8px;margin-bottom:3px}
 .ov-intel-track{flex:1;height:4px;background:var(--bg-3);border-radius:2px;overflow:hidden}
@@ -1301,6 +1302,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   <div class="idp-action-strip" id="idp-actions"></div>
 </div>
 
+<!-- ══ PACKAGE PREVIEW PANEL ══ -->
+<div id="pkg-preview-panel" style="position:fixed;inset:0;z-index:900;background:var(--bg);transform:translateX(100%);transition:transform .35s var(--ease);overflow-y:auto;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:2">
+    <button class="lr-back" onclick="closePackagePreview()">← Back to Overview</button>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)">ADVISOR PACKAGE PREVIEW</div>
+    <div style="width:140px"></div>
+  </div>
+  <div id="pkg-preview-body" style="flex:1;padding:28px 32px;max-width:860px;margin:0 auto;width:100%"></div>
+  <div id="pkg-preview-actions" style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:16px 32px;display:flex;gap:12px;justify-content:flex-end"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="demo-badge">Admin Demo</div>
 
@@ -1580,11 +1592,11 @@ function renderOverview(){
     </div>`;
   });
 
-  // Column 2: IOI Decisions (pending approvals)
+  // Column 2: Inbound IOI from Investors (pending approvals)
   const ioiDecisionCards = DEALS.flatMap(d =>
     d.iois.filter(i => i.status === 'pending').map(ioi => `<div class="ov-action-card">
       <div class="ov-ac-tag gold">${d.name.length>24?d.name.substring(0,24)+'…':d.name}</div>
-      <div class="ov-ac-name">${ioi.name}</div>
+      <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${ioi.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
       <div class="ov-ac-meta">${ioi.type} · ${ioi.geo} · <strong>${fmU(ioi.amount)}</strong><br>${ioi.date}${ioi.isNew?' · <span style="color:var(--amber)">New</span>':''}</div>
       <div class="ov-ac-actions">
         <button class="att-btn att-approve" onclick="actIoi('${d.id}','${ioi.id}','approved');renderOverview();renderKPIs()">Approve</button>
@@ -1593,14 +1605,19 @@ function renderOverview(){
     </div>`)
   );
 
-  // Column 3: Ready to Push (approved, not yet pushed)
+  // Column 3: Deploy Capital (approved, not yet pushed)
   const pushCards = DEALS.flatMap(d =>
     d.iois.filter(i => i.status === 'approved' && !i.pushed).map(ioi => `<div class="ov-action-card">
-      <div class="ov-ac-tag violet">${d.name.length>24?d.name.substring(0,24)+'…':d.name}</div>
-      <div class="ov-ac-name">${ioi.name}</div>
-      <div class="ov-ac-meta">${ioi.type} · <strong>${fmU(ioi.amount)}</strong> approved<br>→ ${d.advisor}</div>
+      <div class="ov-ac-tag violet">Deploy Capital</div>
+      <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${ioi.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
+      <div class="ov-ac-meta">
+        <strong>${d.name}</strong><br>
+        ${ioi.type} · <strong>${fmU(ioi.amount)}</strong> approved<br>
+        Advisor: ${d.advisor} · ${d.advisor_firm||''}
+      </div>
       <div class="ov-ac-actions">
-        <button class="att-btn att-push" onclick="openPushModal('${d.id}','${ioi.id}')">Push to Advisor →</button>
+        <button class="att-btn att-push" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview Package →</button>
+        <button class="att-btn att-approve" onclick="openPushModal('${d.id}','${ioi.id}')">Push to Advisor</button>
       </div>
     </div>`)
   );
@@ -1676,7 +1693,7 @@ function renderOverview(){
       return `<div class="ov-spark-bar" style="height:${h}px;background:var(--gold);width:4px"></div>`;
     }).join('');
     const sparkHtml=ioiAmounts.length>0?`<div class="ov-spark">${sparkBars}</div>`:'';
-    return `<div class="ov-intel-row">
+    return `<div class="ov-intel-row" style="cursor:pointer" onclick="showView('queue',document.querySelectorAll('.ntab')[1]);setTimeout(()=>{ const el=document.getElementById('iqi-${d.iois.filter(i=>i.status!=='declined')[0]?.id}'); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },400)">
       <div class="ov-intel-deal" title="${d.name}">${d.name}</div>
       <div class="ov-intel-bar-wrap">
         <div class="ov-intel-track"><div class="ov-intel-fill" style="width:${pct}%"></div></div>
@@ -1713,10 +1730,20 @@ function renderOverview(){
 
   document.getElementById('overview-main').innerHTML=`
     ${headerBar}
+    <div class="ov-signup-grid">
+      <div class="ov-panel">
+        <div class="ov-panel-hd"><span>Advisor Access</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length} advisors</span></div>
+        <div class="ov-panel-body" style="max-height:220px">${advisorRows}</div>
+      </div>
+      <div class="ov-panel">
+        <div class="ov-panel-hd"><span>Investor Access</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length} investors</span></div>
+        <div class="ov-panel-body" style="max-height:220px">${investorRows}</div>
+      </div>
+    </div>
     <div class="ov-queue-grid">
       ${queueCol('ov-dot-amber','New Deals',submissionCards)}
-      ${queueCol('ov-dot-gold','IOI Decisions',ioiDecisionCards)}
-      ${queueCol('ov-dot-violet','Ready to Push',pushCards)}
+      ${queueCol('ov-dot-gold','Inbound IOI from Investors',ioiDecisionCards)}
+      ${queueCol('ov-dot-violet','Deploy Capital',pushCards)}
     </div>
     <div class="ov-stage-section">
       <div class="ov-section-hd">
@@ -1734,17 +1761,68 @@ function renderOverview(){
         <div class="ov-panel-hd"><span>IOI Intelligence</span><span class="ov-panel-hd-sub">by deal</span></div>
         <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
       </div>
-    </div>
-    <div class="ov-signup-grid">
-      <div class="ov-panel">
-        <div class="ov-panel-hd"><span>Advisor Access</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length} advisors</span></div>
-        <div class="ov-panel-body" style="max-height:220px">${advisorRows}</div>
-      </div>
-      <div class="ov-panel">
-        <div class="ov-panel-hd"><span>Investor Access</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length} investors</span></div>
-        <div class="ov-panel-body" style="max-height:220px">${investorRows}</div>
-      </div>
     </div>`;
+}
+
+/* ── PACKAGE PREVIEW ── */
+function closePackagePreview(){
+  document.getElementById('pkg-preview-panel').style.transform='translateX(100%)';
+}
+
+function openPackagePreview(dealId, ioiId){
+  const d = DEALS.find(x=>x.id===dealId);
+  if(!d){ toast('Deal not found','err'); return; }
+  const ioi = d.iois.find(i=>i.id===ioiId);
+  if(!ioi){ toast('IOI not found','err'); return; }
+
+  const panel = document.getElementById('pkg-preview-panel');
+  const body  = document.getElementById('pkg-preview-body');
+  const acts  = document.getElementById('pkg-preview-actions');
+
+  const highlightHtml = (d.highlights||[]).map(h=>`
+    <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:18px;width:28px;flex-shrink:0">${h.icon||'◆'}</div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:2px">${h.s||''}</div><div style="font-size:12px;color:var(--text-2);line-height:1.6">${h.b||''}</div></div>
+    </div>`).join('');
+
+  body.innerHTML = `
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Package for ${d.advisor}</div>
+    <div style="font-size:22px;font-family:var(--serif);color:var(--text-1);margin-bottom:4px">${d.name}</div>
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:28px">${d.asset_class?.toUpperCase()} · ${d.geography||''} · ${d.structure||''}</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px">
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r);padding:16px">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:var(--mono);margin-bottom:10px">Deal Economics</div>
+        ${[['Target IRR',d.target_irr+'%'],['Allocation',fmU(d.target_alloc)],['Min Ticket',fmU(d.min_ticket)],['Term',d.term+'mo'],['Structure',d.structure||'—']].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text-2)">${l}</span><span style="font-family:var(--mono);color:var(--text-1)">${v}</span></div>`).join('')}
+      </div>
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r);padding:16px">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:var(--mono);margin-bottom:10px">Investor IOI</div>
+        ${[['Investor',ioi.name],['Amount',fmU(ioi.amount)],['Type',ioi.type||'—'],['Geography',ioi.geo||'—'],['Date',ioi.date||'—'],['Status','Approved']].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text-2)">${l}</span><span style="font-family:var(--mono);color:var(--text-1)">${v}</span></div>`).join('')}
+      </div>
+    </div>
+
+    ${d.thesis?`<div style="margin-bottom:24px">
+      <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:var(--mono);margin-bottom:10px">Investment Thesis</div>
+      <div style="font-size:13px;color:var(--text-2);line-height:1.7;padding:16px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r)">${d.thesis}</div>
+    </div>`:''}
+
+    ${highlightHtml?`<div style="margin-bottom:24px">
+      <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:var(--mono);margin-bottom:10px">Key Highlights</div>
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r);padding:0 16px">${highlightHtml}</div>
+    </div>`:''}
+
+    <div style="background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.2);border-radius:var(--r);padding:14px 16px;font-size:12px;color:var(--text-2);line-height:1.6">
+      <strong style="color:var(--gold)">Package Summary</strong><br>
+      This package will be sent to <strong>${d.advisor}</strong> at <strong>${d.advisor_firm||'their firm'}</strong>.
+      It includes the investor IOI of <strong>${fmU(ioi.amount)}</strong> from <strong>${ioi.name}</strong>
+      along with the full deal brief. The advisor will be notified by email.
+    </div>`;
+
+  acts.innerHTML = `
+    <button class="att-btn att-decline" onclick="closePackagePreview()">Cancel</button>
+    <button class="att-btn att-push" style="padding:10px 22px;font-size:13px" onclick="closePackagePreview();openPushModal('${dealId}','${ioiId}')">Push Package to ${d.advisor} →</button>`;
+
+  panel.style.transform = 'translateX(0)';
 }
 
 /* ── IOI QUEUE ── */
