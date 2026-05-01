@@ -143,20 +143,46 @@ export async function updateDeal(id, updates, actorId) {
 // Seed data for testing
 export async function seedDeals(force = false) {
   const DEALS = [
-    // ── TACC Singapore (adv-tkj / tkj@theaurumcc.com) ──────────────────────────
-    { name:'Figure AI Series C', asset_class:'pe', geography:'United States', deal_structure:'Primary Equity', target_alloc_usd:15e6, target_irr:28, term_months:48, hurdle_rate:10, originator:'TACC Singapore', mk_notes:'Figure AI is building the world\'s most advanced humanoid robot, combining proprietary AI with full-stack hardware manufacturing. Series C led by strategic investors at a $2.6B valuation with letters of intent from Fortune 500 manufacturers. Revenue contracted through 2027.', highlights:[{s:'$2.6B Valuation',b:'Series C at significant discount to secondary market. Fortune 500 LOIs in place.'},{s:'Full-Stack Hardware + AI',b:'Vertical integration across silicon, actuators, and humanoid software.'},{s:'Manufacturing Revenue',b:'Contracted manufacturing orders with BMW and other OEMs from 2026.'}], stage:'ioi', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:15, min_ticket_usd:250000, ioi_count:6, ioi_agg_usd:9200000, deployed_usd:500000, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date: new Date(Date.now() + 60*24*60*60*1000).toISOString() },
-    { name:'Shield AI Series F', asset_class:'pe', geography:'United States', deal_structure:'Primary Equity', target_alloc_usd:10e6, target_irr:24, term_months:36, hurdle_rate:10, originator:'TACC Singapore', mk_notes:'Shield AI is the leading autonomous AI pilot for defence platforms. Series F at $5.3B valuation with $1B+ in US DoD contracted revenue. Preferred equity with structured downside protection. Primary customers include US Air Force, Navy, and NATO allies.', highlights:[{s:'$1B+ DoD Revenue',b:'Contracted revenue from US Air Force, Navy, and NATO allies.'},{s:'Preferred Equity',b:'Structured downside protection with 1.5x liquidation preference.'},{s:'Market Leader',b:'Hivemind AI deployed on F-16, V-22, and MQ-25 platforms.'}], stage:'dd', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:15, min_ticket_usd:500000, ioi_count:4, ioi_agg_usd:6800000, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date: new Date(Date.now() + 30*24*60*60*1000).toISOString() },
-    { name:'Anthropic Series E', asset_class:'pe', geography:'United States', deal_structure:'Co-Investment', target_alloc_usd:8e6, target_irr:30, term_months:36, hurdle_rate:12, originator:'TACC Singapore', mk_notes:'Co-investment alongside Anthropic\'s Series E at $18B valuation. Anthropic is the leading safety-focused AI lab with Claude as the market-leading enterprise AI. Revenue growing 10x YoY with major contracts from Google, Amazon, and Fortune 500 enterprises.', highlights:[{s:'10x YoY Revenue',b:'ARR growing from $100M to $1B+ in 12 months.'},{s:'Strategic Backers',b:'Google and Amazon as anchor investors with distribution agreements.'},{s:'Enterprise AI Leader',b:'Claude adopted by 60%+ of Fortune 500 AI-assisted workflows.'}], stage:'review', member_visible:false, tacc_platform_fee_pct:1, tacc_carry_pct:15, min_ticket_usd:500000, ioi_count:0, ioi_agg_usd:0, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
-    // ── SG Capital Group (adv-sg1) ──────────────────────────────────────────────
-    { name:'Pacific Credit V', asset_class:'credit', geography:'East Asia', deal_structure:'Senior Secured', target_alloc_usd:5e6, target_irr:14, term_months:24, hurdle_rate:8, originator:'Pacific Capital Management', mk_notes:'Asia-Pacific private credit facility. Senior secured against Grade-A commercial real estate in Singapore CBD. LTV collar with personal guarantee. Three prior funds all returning above 12% net IRR.', highlights:[{s:'Strong IOI Momentum',b:'11 IOIs received. Round 96% indicated.'},{s:'Senior Secured',b:'First-lien position against Grade-A CRE in Singapore CBD.'},{s:'Proven GP Track Record',b:'Three prior credit vehicles, all distributed above hurdle at >12% net IRR.'}], stage:'ioi', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:50000, ioi_count:11, ioi_agg_usd:4800000, deployed_usd:775000, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
-    { name:'Metro Core Logistics', asset_class:'re', geography:'United States', deal_structure:'Senior Secured', target_alloc_usd:8e6, target_irr:12, term_months:36, hurdle_rate:8, originator:'Anchor Real Estate Partners', mk_notes:'Last-mile logistics portfolio across five major US metros. Triple-net leases with Amazon, FedEx, and three Fortune 500 3PLs on 7-10 year terms. 8.2% stabilised NOI yield with inflation-linked rent escalators.', highlights:[{s:'Investment-Grade Tenants',b:'Amazon, FedEx, Fortune 500 3PLs on 7-10 year triple-net leases.'},{s:'Hybrid Return Profile',b:'8.5% current yield plus equity upside. CPI-linked escalators.'}], stage:'live', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:250000, ioi_count:3, ioi_agg_usd:1200000, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
-    { name:'Bridgeford Infrastructure II', asset_class:'infra', geography:'Europe', deal_structure:'Mezzanine', target_alloc_usd:2e6, target_irr:11, term_months:60, hurdle_rate:7, originator:'Bridgeford Partners', mk_notes:'European transport infrastructure mezzanine debt. Toll-road portfolio across France and Germany. Inflation-linked cash flows subordinated to senior bank debt.', highlights:[], stage:'review', member_visible:false, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:100000, ioi_count:0, ioi_agg_usd:0, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
+    // ── TACC Singapore (adv-tkj) ───────────────────────────────────────────────
+    { id:'DL-FIGU1', name:'Figure AI Series C',        asset_class:'pe',     geography:'United States',    deal_structure:'Preferred Equity',            target_alloc_usd:50e6,  target_irr:35, term_months:60, hurdle_rate:10, originator:'TACC Singapore',           mk_notes:'Figure AI is building the world\'s most advanced humanoid robot at a $2.6B Series C valuation. LOIs from Fortune 500 manufacturers. Full-stack hardware and AI.',  highlights:[{s:'$2.6B Valuation',b:'Series C at discount to secondary. Fortune 500 LOIs in place.'},{s:'Full-Stack Platform',b:'Proprietary silicon, actuators, and humanoid software.'},{s:'35% Target IRR',b:'Preferred equity with 1.25x liquidation preference.'}], stage:'ioi',    member_visible:true,  tacc_platform_fee_pct:1, tacc_carry_pct:15, min_ticket_usd:500000, ioi_count:6,  ioi_agg_usd:12000000, deployed_usd:500000,  prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date:new Date(Date.now()+60*24*60*60*1000).toISOString() },
+    { id:'DL-SHIE1', name:'Shield AI Series F',        asset_class:'pe',     geography:'United States',    deal_structure:'Preferred Equity',            target_alloc_usd:75e6,  target_irr:32, term_months:36, hurdle_rate:10, originator:'TACC Singapore',           mk_notes:'Shield AI is the leading autonomous AI pilot for defence platforms. Series F at $5.3B valuation with $1B+ in US DoD contracted revenue.',                              highlights:[{s:'$1B+ DoD Revenue',b:'Contracted US Air Force, Navy, and NATO revenue.'},{s:'Market Leader',b:'Hivemind AI deployed on F-16, V-22, MQ-25.'},{s:'Preferred Equity',b:'1.5x liquidation preference with structured downside protection.'}], stage:'dd', member_visible:true,  tacc_platform_fee_pct:1, tacc_carry_pct:15, min_ticket_usd:1000000,ioi_count:4,  ioi_agg_usd:6800000,  deployed_usd:0,       prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date:new Date(Date.now()+30*24*60*60*1000).toISOString() },
+    { id:'DL-ANTH1', name:'Anthropic Series E',        asset_class:'pe',     geography:'United States',    deal_structure:'Co-Investment',               target_alloc_usd:40e6,  target_irr:40, term_months:36, hurdle_rate:12, originator:'TACC Singapore',           mk_notes:'Co-invest alongside Anthropic Series E at $18B valuation. 10x YoY revenue. Major contracts from Google, Amazon, Fortune 500.',                                       highlights:[{s:'10x YoY Revenue',b:'ARR growing from $100M to $1B+ in 12 months.'},{s:'Strategic Backers',b:'Google and Amazon as anchor investors.'},{s:'Enterprise AI',b:'Claude adopted by 60%+ of Fortune 500 AI workflows.'}], stage:'review', member_visible:false, tacc_platform_fee_pct:1, tacc_carry_pct:15, min_ticket_usd:500000, ioi_count:0,  ioi_agg_usd:0,        deployed_usd:0,       prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
+    { id:'DL-SPAX1', name:'SpaceX Starship Round',     asset_class:'pe',     geography:'United States',    deal_structure:'Secondary Co-Invest',         target_alloc_usd:100e6, target_irr:28, term_months:60, hurdle_rate:10, originator:'TACC Singapore',           mk_notes:'Secondary/co-invest in SpaceX at current valuation. Participation in Starship commercial launch revenue and Starlink subscriber growth.',                           highlights:[{s:'Dominant Market Position',b:'Only operational super-heavy rocket. Starlink at 4M+ subscribers.'},{s:'Commercial Revenue',b:'Launch manifest sold out through 2028.'},{s:'Preferred Co-Invest',b:'Structured alongside existing institutional investors.'}], stage:'review', member_visible:false, tacc_platform_fee_pct:1, tacc_carry_pct:15, min_ticket_usd:2000000,ioi_count:0,  ioi_agg_usd:0,        deployed_usd:0,       prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
+
+    // ── Chen Capital Partners (adv-sg1 / Sarah Chen) ───────────────────────────
+    { id:'DL-PBRI1', name:'Pacific Bridge Infrastructure', asset_class:'infra', geography:'Asia-Pacific · North America', deal_structure:'Senior Secured', target_alloc_usd:60e6, target_irr:11, term_months:84, hurdle_rate:7, originator:'Chen Capital Partners', mk_notes:'Diversified infrastructure debt portfolio across Asia-Pacific and North American toll roads, ports, and digital infrastructure. Senior secured with inflation-linked cash flows.', highlights:[{s:'Senior Secured',b:'First-lien across 8 infrastructure assets in 5 jurisdictions.'},{s:'Inflation-Linked',b:'87% of cash flows linked to CPI escalators.'},{s:'Investment Grade',b:'Counterparties rated BBB+ or above.'}], stage:'live', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:500000, ioi_count:5, ioi_agg_usd:36000000, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date:new Date(Date.now()+90*24*60*60*1000).toISOString() },
+    { id:'DL-APEX1', name:'Apex Growth Partners Fund III', asset_class:'pe',   geography:'Global',          deal_structure:'LP Interest — Buyout',        target_alloc_usd:50e6, target_irr:24, term_months:84, hurdle_rate:8, originator:'Chen Capital Partners', mk_notes:'LP interest in global buyout fund targeting operational improvements in B2B software and services. Manager has $4.2B AUM with prior fund returning 2.4x MOIC net.',          highlights:[{s:'2.4x Prior Fund MOIC',b:'Track record across two prior vintage years.'},{s:'B2B Software Focus',b:'Operational value-add in mission-critical enterprise software.'},{s:'Global Diversification',b:'US, Europe, and Asia-Pacific exposure across 12 holdings.'}], stage:'dd',   member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:1000000,ioi_count:4, ioi_agg_usd:32000000, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date:new Date(Date.now()+180*24*60*60*1000).toISOString() },
+
+    // ── Marcus Chen Advisory (adv-mc1) ─────────────────────────────────────────
+    { id:'DL-CLWA1', name:'Clearwater Credit Partners II',  asset_class:'credit', geography:'North America',  deal_structure:'Senior Secured Credit',       target_alloc_usd:28e6, target_irr:13, term_months:36, hurdle_rate:8, originator:'Marcus Chen Advisory',  mk_notes:'Diversified senior secured credit portfolio across North American middle market companies. 16 portfolio positions, average LTV 58%, first-lien security across all loans.',   highlights:[{s:'First-Lien Security',b:'Senior secured across all 16 portfolio positions at 58% avg LTV.'},{s:'Monthly Distributions',b:'13% target IRR paid monthly.'},{s:'Track Record',b:'Prior credit vehicle distributed 112% of committed capital.'}], stage:'live', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:250000,ioi_count:4, ioi_agg_usd:19600000, deployed_usd:2000000, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date:new Date(Date.now()+120*24*60*60*1000).toISOString() },
+    { id:'DL-CLWB1', name:'Clearwater Credit Partners III', asset_class:'credit', geography:'North America',  deal_structure:'Senior Secured Credit',       target_alloc_usd:40e6, target_irr:14, term_months:30, hurdle_rate:8, originator:'Marcus Chen Advisory',  mk_notes:'Third vintage of the Clearwater senior secured credit strategy. Diversified first-lien portfolio across North American middle market. Round 96% indicated — final close imminent.', highlights:[{s:'96% Indicated',b:'Round substantially oversubscribed — final close imminent.'},{s:'Senior Secured',b:'First lien across all 18 portfolio positions.'},{s:'Monthly Income',b:'14% target IRR via monthly cash distributions.'}], stage:'close', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:250000,ioi_count:4, ioi_agg_usd:38500000, deployed_usd:35000000, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date:new Date(Date.now()+14*24*60*60*1000).toISOString() },
+
+    // ── Mehta Investment Group (adv-mg1 / Priya Mehta) ─────────────────────────
+    { id:'DL-VANA1', name:'Vantage Analytics Series C',    asset_class:'pe',     geography:'United States',  deal_structure:'Common Equity',               target_alloc_usd:45e6, target_irr:22, term_months:60, hurdle_rate:10, originator:'Mehta Investment Group', mk_notes:'Late-stage enterprise AI analytics platform serving Fortune 500 financial services clients. $42M ARR growing 180% YoY. Series C led by Tier 1 VCs at $380M pre-money.',  highlights:[{s:'$42M ARR',b:'180% YoY growth. 94% gross margins. NRR of 148%.'},{s:'Fortune 500 Clients',b:'12 of the top 25 global banks as paying customers.'},{s:'IPO Path',b:'Board targeting Nasdaq listing in H2 2027.'}], stage:'dd', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:500000,ioi_count:2, ioi_agg_usd:27900000, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date:new Date(Date.now()+45*24*60*60*1000).toISOString() },
+    { id:'DL-CASC1', name:'Cascade Software Series B',     asset_class:'pe',     geography:'Europe',         deal_structure:'Preferred Equity',            target_alloc_usd:18e6, target_irr:26, term_months:48, hurdle_rate:10, originator:'Mehta Investment Group', mk_notes:'B2B workflow automation SaaS targeting European mid-market. $8M ARR, 140% NRR. Series B at €65M pre-money led by Sequoia Europe.',                                         highlights:[{s:'140% NRR',b:'Best-in-class net revenue retention driven by product stickiness.'},{s:'$8M ARR',b:'Growing 220% YoY from 0 to €8M in 18 months.'},{s:'Low CAC',b:'Predominantly PLG motion — CAC payback under 6 months.'}], stage:'review', member_visible:false, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:250000,ioi_count:0, ioi_agg_usd:0, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
+
+    // ── Lim Capital SG (adv-lc1 / James Lim) ──────────────────────────────────
+    { id:'DL-NEXU1', name:'Nexus Digital Infrastructure',  asset_class:'pe',     geography:'Southeast Asia', deal_structure:'Preferred Equity + Warrants', target_alloc_usd:35e6, target_irr:28, term_months:48, hurdle_rate:10, originator:'Lim Capital SG',         mk_notes:'Cloud infrastructure platform across SEA — enterprise SaaS customer data centres in Indonesia, Vietnam, and the Philippines. Digital infrastructure buildout in line with government-led digitisation.',  highlights:[{s:'SEA Expansion',b:'Positioned for digital infrastructure buildout across Indonesia and Vietnam.'},{s:'Government Contracts',b:'3 national cloud MoUs signed with government agencies.'},{s:'28% Target IRR',b:'Preferred equity + warrant kicker on exit.'}], stage:'live', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:500000,ioi_count:0, ioi_agg_usd:0, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date:new Date(Date.now()+75*24*60*60*1000).toISOString() },
+    { id:'DL-HORI1', name:'Horizon Renewable Energy Fund', asset_class:'infra',  geography:'Southeast Asia', deal_structure:'Senior Secured Debt',         target_alloc_usd:45e6, target_irr:13, term_months:60, hurdle_rate:8, originator:'Lim Capital SG',         mk_notes:'Solar and wind portfolio across Southeast Asia with government-backed offtake agreements. 6 operational projects + 4 under construction. DSCR of 1.6x at P50.',            highlights:[{s:'Government Offtakes',b:'All projects backed by sovereign-guaranteed power purchase agreements.'},{s:'1.6x DSCR',b:'Debt service coverage at P50 with 30% downside buffer.'},{s:'Green Finance',b:'IFC-aligned taxonomy. Eligible for green bond secondary.'}], stage:'review', member_visible:false, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:500000,ioi_count:0, ioi_agg_usd:0, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
+
+    // ── Park & Associates (adv-pk1 / David Park) ───────────────────────────────
+    { id:'DL-MERI1', name:'Meridian Financial Corp',       asset_class:'pe',     geography:'United States',  deal_structure:'Growth Equity',               target_alloc_usd:22e6, target_irr:19, term_months:60, hurdle_rate:8, originator:'Park & Associates',       mk_notes:'Mid-market fintech lender targeting the US SME credit gap with proprietary AI-driven underwriting. Licensed in 32 states. Sub-2% default rate on $480M in originated loans.',  highlights:[{s:'AI Underwriting',b:'Proprietary model with sub-2% default rate across $480M originated.'},{s:'Regulatory Moat',b:'Licensed in 32 states with established bank partnerships.'},{s:'SME Credit Gap',b:'$800B+ addressable market in US SME credit.'}], stage:'review', member_visible:false, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:250000,ioi_count:0, ioi_agg_usd:0, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5 },
+
+    // ── Kim Real Estate Partners (adv-tk1 / Thomas Kim) ───────────────────────
+    { id:'DL-SUNB1', name:'SunBelt Residential Fund IV',   asset_class:'re',     geography:'United States — Southeast', deal_structure:'Preferred Equity', target_alloc_usd:38e6, target_irr:16, term_months:48, hurdle_rate:8, originator:'Kim Real Estate Partners', mk_notes:'Multifamily residential portfolio across Atlanta, Nashville, and Charlotte. 4 operating assets at 94% avg occupancy. Value-add strategy with 3-year renovation + disposition plan.',  highlights:[{s:'94% Occupancy',b:'Stabilised portfolio across 4 Sunbelt metro markets.'},{s:'Value-Add',b:'Renovation programme targeting 180bps yield expansion on exit.'},{s:'Migration Tailwind',b:'Sunbelt metros growing at 3x national average.'}], stage:'live', member_visible:true, tacc_platform_fee_pct:1, tacc_carry_pct:12, min_ticket_usd:250000,ioi_count:3, ioi_agg_usd:14100000, deployed_usd:0, prism_fee_pct:1.5, prism_carry_pct:10, prism_mgmt_fee_pct:0.5, closing_date:new Date(Date.now()+150*24*60*60*1000).toISOString() },
   ];
-  // TACC Singapore (adv-tkj): Figure AI (ioi), Shield AI (dd — dataroom testing), Anthropic (review)
-  const ADVISOR_MAP = { 'DL-FIGU1':'adv-tkj', 'DL-SHIE1':'adv-tkj', 'DL-ANTH1':'adv-tkj', 'DL-PACI1':'adv-sg1', 'DL-METR1':'adv-sg1', 'DL-BRID1':'adv-sg1' };
+  const ADVISOR_MAP = {
+    'DL-FIGU1':'adv-tkj', 'DL-SHIE1':'adv-tkj', 'DL-ANTH1':'adv-tkj', 'DL-SPAX1':'adv-tkj',
+    'DL-PBRI1':'adv-sg1', 'DL-APEX1':'adv-sg1',
+    'DL-CLWA1':'adv-mc1', 'DL-CLWB1':'adv-mc1',
+    'DL-VANA1':'adv-mg1', 'DL-CASC1':'adv-mg1',
+    'DL-NEXU1':'adv-lc1', 'DL-HORI1':'adv-lc1',
+    'DL-MERI1':'adv-pk1',
+    'DL-SUNB1':'adv-tk1',
+  };
   const results = [];
   for (const d of DEALS) {
-    const id = 'DL-' + d.name.replace(/[^A-Za-z]/g,'').slice(0,4).toUpperCase() + '1';
+    const id = d.id || ('DL-' + d.name.replace(/[^A-Za-z]/g,'').slice(0,4).toUpperCase() + '1');
     const exists = await kvGet(`deal:${id}`);
     if (!exists || force) {
       const assignedAdvisor = ADVISOR_MAP[id] || 'adv-sg1';
@@ -170,50 +196,80 @@ export async function seedDeals(force = false) {
   }
 
   // Seed IOIs for active (member_visible) deals
-  await seedIois();
+  await seedIois(force);
 
   return results;
 }
 
 // IOI seed data — realistic mix of Family Office and Institutional investors
-// Only seeds if the first IOI for a deal does not already exist
-export async function seedIois() {
-  // Deals that have member_visible:true and are worth seeding IOIs for
+// Accepts force param — when true, overwrites existing IOI records
+export async function seedIois(force = false) {
   // Keyed by deal id → array of IOI records to create
   const IOI_SEED = {
-    // TACC Singapore deals
+    // TACC — Figure AI
     'DL-FIGU1': [
-      { suffix:'001', investor_firm:'Temasek Holdings',            institution_type:'Institutional',   geo:'SG', amount:5000000, status:'approved', daysAgo:12 },
-      { suffix:'002', investor_firm:'GIC Private Ltd',             institution_type:'Institutional',   geo:'SG', amount:3000000, status:'approved', daysAgo:9  },
-      { suffix:'003', investor_firm:'Harrison Family Office',      institution_type:'Family Office',   geo:'US', amount:2500000, status:'pending',  daysAgo:4  },
-      { suffix:'004', investor_firm:'Alto Family Office',          institution_type:'Family Office',   geo:'AU', amount:2000000, status:'rejected', daysAgo:14 },
+      { suffix:'001', investor_firm:'Temasek Holdings',           institution_type:'Institutional',  geo:'SG', amount:5000000, status:'approved', daysAgo:12 },
+      { suffix:'002', investor_firm:'GIC Private Ltd',            institution_type:'Institutional',  geo:'SG', amount:3000000, status:'approved', daysAgo:9  },
+      { suffix:'003', investor_firm:'Harrison Family Office',     institution_type:'Family Office',  geo:'US', amount:2500000, status:'pending',  daysAgo:4  },
+      { suffix:'004', investor_firm:'Riviera Capital SG',         institution_type:'Institutional',  geo:'SG', amount:4000000, status:'pending',  daysAgo:2  },
+      { suffix:'005', investor_firm:'R. Nakashima Family Office', institution_type:'Family Office',  geo:'JP', amount:3500000, status:'rejected', daysAgo:14 },
     ],
+    // TACC — Shield AI (DD stage — has active IOIs)
     'DL-SHIE1': [
-      { suffix:'001', investor_firm:'GIC Private Ltd',             institution_type:'Institutional',   geo:'SG', amount:4000000, status:'approved', daysAgo:8  },
-      { suffix:'002', investor_firm:'Meridian Capital LP',         institution_type:'Family Office',   geo:'US', amount:3500000, status:'approved', daysAgo:6  },
-      { suffix:'003', investor_firm:'Manulife Investment Mgmt',    institution_type:'Institutional',   geo:'HK', amount:2000000, status:'pending',  daysAgo:3  },
+      { suffix:'001', investor_firm:'GIC Private Ltd',            institution_type:'Institutional',  geo:'SG', amount:4000000, status:'approved', daysAgo:8  },
+      { suffix:'002', investor_firm:'Meridian Asset Management',  institution_type:'Institutional',  geo:'SG', amount:3500000, status:'approved', daysAgo:6  },
+      { suffix:'003', investor_firm:'Pemberton Holdings',         institution_type:'Family Office',  geo:'UK', amount:2000000, status:'pending',  daysAgo:3  },
+      { suffix:'004', investor_firm:'Wellington Capital SG',      institution_type:'Institutional',  geo:'SG', amount:3000000, status:'rejected', daysAgo:10 },
     ],
-    // SG Capital Group deals
-    'DL-PACI1': [
-      { suffix:'001', investor_firm:'Harrison Family Office',      institution_type:'Family Office',   geo:'US', amount:5000000, status:'approved', daysAgo:18 },
-      { suffix:'002', investor_firm:'GIC Private Ltd',             institution_type:'Institutional',   geo:'SG', amount:8000000, status:'approved', daysAgo:14 },
-      { suffix:'003', investor_firm:'Alto Family Office',          institution_type:'Family Office',   geo:'AU', amount:3500000, status:'pending',  daysAgo:7  },
-      { suffix:'004', investor_firm:'Manulife Investment Mgmt',    institution_type:'Institutional',   geo:'HK', amount:4000000, status:'rejected', daysAgo:21 },
+    // Chen Capital — Pacific Bridge Infrastructure
+    'DL-PBRI1': [
+      { suffix:'001', investor_firm:'Harrison Family Office',     institution_type:'Family Office',  geo:'US', amount:5000000,  status:'approved', daysAgo:18 },
+      { suffix:'002', investor_firm:'Meridian Asset Management',  institution_type:'Institutional',  geo:'SG', amount:8000000,  status:'approved', daysAgo:14 },
+      { suffix:'003', investor_firm:'R. Nakashima Family Office', institution_type:'Family Office',  geo:'JP', amount:3500000,  status:'approved', daysAgo:10 },
+      { suffix:'004', investor_firm:'Atlas Capital Management',   institution_type:'Institutional',  geo:'US', amount:12000000, status:'approved', daysAgo:20 },
+      { suffix:'005', investor_firm:'Pemberton Holdings',         institution_type:'Family Office',  geo:'UK', amount:7500000,  status:'rejected', daysAgo:22 },
     ],
-    'DL-METR1': [
-      { suffix:'001', investor_firm:'Northbridge Family Office',   institution_type:'Family Office',   geo:'US', amount:3000000, status:'approved', daysAgo:5  },
-      { suffix:'002', investor_firm:'Prudential Asset Mgmt',       institution_type:'Institutional',   geo:'SG', amount:4500000, status:'approved', daysAgo:3  },
-      { suffix:'003', investor_firm:'Harrison Family Office',      institution_type:'Family Office',   geo:'HK', amount:2000000, status:'pending',  daysAgo:2  },
+    // Chen Capital — Apex Growth Partners
+    'DL-APEX1': [
+      { suffix:'001', investor_firm:'Pemberton Holdings',         institution_type:'Family Office',  geo:'UK', amount:10000000, status:'approved', daysAgo:8  },
+      { suffix:'002', investor_firm:'Riviera Capital SG',         institution_type:'Institutional',  geo:'SG', amount:12000000, status:'approved', daysAgo:6  },
+      { suffix:'003', investor_firm:'R. Nakashima Family Office', institution_type:'Family Office',  geo:'JP', amount:5000000,  status:'pending',  daysAgo:2  },
+      { suffix:'004', investor_firm:'Northfield Endowment',       institution_type:'Endowment',      geo:'US', amount:5000000,  status:'rejected', daysAgo:12 },
+    ],
+    // Marcus Chen — Clearwater Credit II
+    'DL-CLWA1': [
+      { suffix:'001', investor_firm:'Kessler Family Office',      institution_type:'Family Office',  geo:'US', amount:4000000, status:'pending',  daysAgo:3  },
+      { suffix:'002', investor_firm:'Wellington Capital SG',      institution_type:'Institutional',  geo:'SG', amount:6000000, status:'approved', daysAgo:8  },
+      { suffix:'003', investor_firm:'Harrison Family Office',     institution_type:'Family Office',  geo:'US', amount:3600000, status:'approved', daysAgo:12 },
+      { suffix:'004', investor_firm:'Stonegate Family Office',    institution_type:'Family Office',  geo:'US', amount:6000000, status:'approved', daysAgo:18 },
+    ],
+    // Marcus Chen — Clearwater Credit III (close stage)
+    'DL-CLWB1': [
+      { suffix:'001', investor_firm:'Harrison Family Office',     institution_type:'Family Office',  geo:'US', amount:8000000,  status:'approved', daysAgo:35 },
+      { suffix:'002', investor_firm:'Pemberton Holdings',         institution_type:'Family Office',  geo:'UK', amount:6500000,  status:'approved', daysAgo:32 },
+      { suffix:'003', investor_firm:'Stonegate Family Office',    institution_type:'Family Office',  geo:'CA', amount:12000000, status:'approved', daysAgo:28 },
+      { suffix:'004', investor_firm:'Atlas Capital Management',   institution_type:'Institutional',  geo:'US', amount:12000000, status:'approved', daysAgo:25 },
+    ],
+    // Mehta — Vantage Analytics (DD stage)
+    'DL-VANA1': [
+      { suffix:'001', investor_firm:'Riviera Capital SG',         institution_type:'Institutional',  geo:'SG', amount:8000000, status:'approved', daysAgo:10 },
+      { suffix:'002', investor_firm:'Meridian Asset Management',  institution_type:'Institutional',  geo:'SG', amount:5000000, status:'pending',  daysAgo:5  },
+      { suffix:'003', investor_firm:'Wellington Capital SG',      institution_type:'Institutional',  geo:'SG', amount:7500000, status:'approved', daysAgo:15 },
+    ],
+    // Kim Real Estate — SunBelt
+    'DL-SUNB1': [
+      { suffix:'001', investor_firm:'Stonegate Family Office',    institution_type:'Family Office',  geo:'US', amount:4000000, status:'pending',  daysAgo:3  },
+      { suffix:'002', investor_firm:'Kessler Family Office',      institution_type:'Family Office',  geo:'US', amount:1500000, status:'pending',  daysAgo:2  },
+      { suffix:'003', investor_firm:'Wellington Capital SG',      institution_type:'Institutional',  geo:'SG', amount:8600000, status:'approved', daysAgo:14 },
     ],
   };
-  // Bridgeford (DL-BRID1) and Anthropic (DL-ANTH1) not member_visible — skip IOI seeding
 
   const seeded = [];
   for (const [dealId, iois] of Object.entries(IOI_SEED)) {
     for (const spec of iois) {
       const ioiId = `IOI-${dealId}-${spec.suffix}`;
       const existing = await kvGet(`ioi:${ioiId}`);
-      if (existing) continue; // already seeded — skip
+      if (existing && !force) continue; // already seeded — skip unless forced
 
       const ioi = {
         id: ioiId,

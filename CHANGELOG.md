@@ -4,6 +4,15 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Expanded seed: 16 deals, 8 advisors, 14 investors, full IOI set
+
+### Changes
+- `deal-storage.js`: 16 deals across all asset classes (PE, credit, RE, infra) and 7 advisors; explicit IDs to avoid name-collision; IOI seed expanded to 8 active deals with realistic investor names
+- `v2.js`: seedAdvisors expanded to 8 advisors (TACC, Chen Capital, Marcus Chen, Mehta, Lim, Park, Kim RE, Pacific Bridge); seedInvestors expanded to 14 institutions including Harrison FO, Kessler FO, Wellington, Nakashima, Pemberton, Riviera Capital, Meridian AM, Stonegate
+- `seedIois` now accepts force param so re-seeding also refreshes IOI data
+
+---
+
 ## [2026-05-01] — Advisor portal: ZIP dataroom extraction + Q&A chat redesign
 
 ### Changes
