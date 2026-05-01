@@ -75,7 +75,7 @@ h1 em{color:var(--goldB);font-style:italic;display:block}
 
 /* Hero prism scene */
 .hero-right{position:relative;display:flex;align-items:center;justify-content:center}
-.hero-prism-scene{display:flex;align-items:center;justify-content:center;gap:0;width:100%}
+.hero-prism-scene{display:flex;align-items:center;justify-content:center;gap:0;width:100%;animation:prismFloat 5s ease-in-out infinite}
 .hp-side{display:flex;flex-direction:row;align-items:center;flex-shrink:0}
 .hp-side-right{flex-direction:row-reverse}
 .hp-side-text{display:flex;flex-direction:column;gap:8px;flex-shrink:0;min-width:100px}
@@ -85,14 +85,15 @@ h1 em{color:var(--goldB);font-style:italic;display:block}
 .hp-side-right .hp-side-text .hp-side-sub{text-align:left}
 .hp-flow-line{flex:1;min-width:12px;height:1px;background:linear-gradient(90deg,transparent,rgba(197,165,114,.55))}
 .hp-side-right .hp-flow-line{background:linear-gradient(90deg,rgba(197,165,114,.55),transparent)}
-.hp-prism-wrap{position:relative;flex-shrink:0;width:min(805px,85%);animation:prismBounceLP 5s ease-in-out infinite}
+.hp-prism-wrap{position:relative;flex-shrink:0;width:min(805px,85%);animation:prismGlow 5s ease-in-out infinite}
 .hp-prism-svg{width:100%;height:auto}
 @keyframes beamPulse   {0%,100%{opacity:.14}50%{opacity:.07}}
 @keyframes raySpectrum {0%,100%{opacity:.85;transform:scaleX(1)}50%{opacity:.45;transform:scaleX(.97)}}
 @keyframes vertexGlow  {0%,100%{r:4px;opacity:.55}50%{r:3px;opacity:.25}}
 @keyframes particleDrift{0%{transform:translate(0,0);opacity:.7}100%{transform:translate(10px,-8px);opacity:0}}
 @keyframes breatheGlow {0%,100%{opacity:.04;transform:scaleX(1)}50%{opacity:.09;transform:scaleX(1.06)}}
-@keyframes prismBounceLP{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 32px rgba(197,165,114,.10))}40%{transform:translateY(-22px);filter:drop-shadow(0 0 62px rgba(197,165,114,.22))}60%{transform:translateY(-17px);filter:drop-shadow(0 0 50px rgba(197,165,114,.16))}}
+@keyframes prismFloat  {0%,100%{transform:translateY(0)}40%{transform:translateY(-22px)}60%{transform:translateY(-17px)}}
+@keyframes prismGlow   {0%,100%{filter:drop-shadow(0 0 32px rgba(197,165,114,.10))}40%{filter:drop-shadow(0 0 62px rgba(197,165,114,.22))}60%{filter:drop-shadow(0 0 50px rgba(197,165,114,.16))}}
 
 /* STATS BAR — enhanced */
 .stats{background:var(--bg3);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:40px 48px;position:relative;overflow:hidden}
