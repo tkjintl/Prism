@@ -2838,20 +2838,20 @@ function showAIOutput(deal,generated){
     highlights:generated.highlights||[],
     stats:{
       irr:generated.stats?.irr||(deal?deal.target_irr+'%':'—'),
-      term:generated.stats?.term||(deal?deal.term+'mo':'—'),
+      ...((!deal||deal.asset_class!=='Equity')?{term:generated.stats?.term||(deal?deal.term+'mo':'—')}:{}),
       ticket:generated.stats?.min_ticket||(deal?fmU(deal.min_ticket):'—'),
       geo:generated.stats?.structure||generated.geography||(deal?(deal.geography||'').split('·')[0].trim():'—')
     }
   }:deal?{
     tagline:`${deal.name} — ${deal.geography} capital at institutional scale`,
-    thesis:`${deal.name} offers qualified investors a compelling opportunity in ${(deal.geography||'').toLowerCase()} ${deal.asset_class==='infra'?'infrastructure':'private markets'}, targeting ${deal.target_irr}% net IRR over a ${deal.term}-month investment horizon. The fund employs a ${(deal.structure||'').toLowerCase()} structure with a minimum ticket of ${fmU(deal.min_ticket)}, making it accessible to institutional allocators and sophisticated family offices. The advisor team has an established track record in the sector with institutional-grade diligence processes.`,
+    thesis:`${deal.name} offers qualified investors a compelling opportunity in ${(deal.geography||'').toLowerCase()} ${deal.asset_class==='infra'?'infrastructure':'private markets'}, targeting ${deal.target_irr}% net IRR${deal.asset_class!=='Equity'?` over a ${deal.term}-month investment horizon':'''}. The fund employs a ${(deal.structure||'').toLowerCase()} structure with a minimum ticket of ${fmU(deal.min_ticket)}, making it accessible to institutional allocators and sophisticated family offices. The advisor team has an established track record in the sector with institutional-grade diligence processes.`,
     highlights:[
       { icon: '◆', s: `${deal.target_irr}% Target IRR`, b: `${(deal.structure||'').toLowerCase()} capital structure targeting ${deal.target_irr}% net IRR.` },
-      { icon: '📅', s: `${deal.term}-Month Term`, b: `Fixed ${deal.term}-month investment horizon with quarterly reporting.` },
+      ...(deal.asset_class!=='Equity'?[{ icon: '📅', s: `${deal.term}-Month Term`, b: `Fixed ${deal.term}-month investment horizon with quarterly reporting.` }]:[]),
       { icon: '🌍', s: `${(deal.geography||'').split('·')[0].trim()} Focus`, b: `Geographic focus with institutional-grade diligence and deal structuring.` },
       { icon: '🏦', s: `Minimum ${fmU(deal.min_ticket)}`, b: `Accessible to institutional allocators and sophisticated family offices.` },
     ],
-    stats:{irr:`${deal.target_irr}%`,term:`${deal.term}mo`,ticket:fmU(deal.min_ticket),geo:(deal.geography||'').split('·')[0].trim()}
+    stats:{irr:`${deal.target_irr}%`,...(deal.asset_class!=='Equity'?{term:`${deal.term}mo`}:{}),ticket:fmU(deal.min_ticket),geo:(deal.geography||'').split('·')[0].trim()}
   }:{
     tagline:'Infrastructure capital at the convergence of Asia and North America',
     thesis:'Pacific Bridge Infrastructure offers a compelling senior secured opportunity in cross-Pacific transport and logistics infrastructure, targeting 11% net IRR over an 84-month term. The fund structure provides downside protection through first-lien security on hard assets.',
@@ -3092,7 +3092,7 @@ function buildDealDetailHTML(deal){
         <div class="ddp-section-title">Key Metrics</div>
         <div class="ddp-metrics">
           <div class="ddp-metric"><div class="ddp-metric-lbl">Target IRR</div><div class="ddp-metric-val">${deal.target_irr||'—'}%</div></div>
-          <div class="ddp-metric"><div class="ddp-metric-lbl">Term</div><div class="ddp-metric-val">${deal.term||'—'}mo</div></div>
+          ${deal.asset_class!=='Equity'?`<div class="ddp-metric"><div class="ddp-metric-lbl">Term</div><div class="ddp-metric-val">${deal.term||'—'}mo</div></div>`:''}
           <div class="ddp-metric"><div class="ddp-metric-lbl">Min Ticket</div><div class="ddp-metric-val">${fmU(deal.min_ticket)}</div></div>
           <div class="ddp-metric"><div class="ddp-metric-lbl">Asset Class</div><div class="ddp-metric-val" style="font-size:12px;text-transform:capitalize">${deal.asset_class||'—'}</div></div>
           <div class="ddp-metric"><div class="ddp-metric-lbl">Target Close</div><div class="ddp-metric-val" style="font-size:11px">${closing}</div></div>

@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Hide terms universally from Equity deal listings (all portals)
+
+### Changes
+- `admin-portal.html`: "Term" metric removed from Key Metrics grid for Equity deals. Auto-generated thesis no longer includes "X-month investment horizon" phrase for Equity. Term highlight excluded from AI-generated highlights array for Equity. `stats.term` omitted from generated stats for Equity.
+- `advisor-portal.html`: "Term" row hidden in deal Economics section for Equity. Quick stats subtitle no longer shows "X-month term" for Equity (shows IRR only).
+- `investor-portal.html`: Term Sheet document excluded from deal document list for Equity. "Term Sheet" removed from the doc-unlock hint text for Equity deals.
+- Private Credit and Real Estate continue to show terms unchanged.
+
+---
+
 ## [2026-05-01] — Admin portal: Rename "Open Due Diligence" → "Open Data Room" in See Investors popup
 
 ### Changes

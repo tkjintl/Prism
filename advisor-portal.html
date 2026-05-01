@@ -1586,7 +1586,7 @@ function openPrismDoc(type){
     <div class="pdv-kv-row"><span class="pdv-k">Target IRR</span><span class="pdv-v gold">${d.target_irr}%</span></div>
     <div class="pdv-kv-row"><span class="pdv-k">Target Allocation</span><span class="pdv-v">${fmU(d.target_alloc)}</span></div>
     <div class="pdv-kv-row"><span class="pdv-k">Minimum Ticket</span><span class="pdv-v">${fmU(d.min_ticket)}</span></div>
-    <div class="pdv-kv-row"><span class="pdv-k">Term</span><span class="pdv-v">${d.term} months</span></div>
+    ${d.asset_class!=='Equity'?'<div class="pdv-kv-row"><span class="pdv-k">Term</span><span class="pdv-v">'+d.term+' months</span></div>':''}
     <div class="pdv-kv-row"><span class="pdv-k">Target Close</span><span class="pdv-v">${new Date(d.closing).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span></div>`;
   } else if(type==='report'){
     title='Platform Deal Report';
@@ -1893,7 +1893,7 @@ function animatePerf(){
   const elapsed=Math.max(2,Math.min(96,Math.round((1-days/180)*100)));
   setTimeout(()=>{const b=document.getElementById('cc-bar');if(b){b.style.transition='width 1.2s var(--ease)';b.style.width=elapsed+'%';}},100);
   document.getElementById('ps-ticket').textContent=fmU(d.min_ticket);
-  document.getElementById('ps-ticket-sub').textContent=`${d.target_irr}% target IRR · ${d.term}-month term`;
+  document.getElementById('ps-ticket-sub').textContent=d.asset_class==='Equity'?`${d.target_irr}% target IRR`:`${d.target_irr}% target IRR · ${d.term}-month term`;
 }
 
 /* ── WIZARD ── */

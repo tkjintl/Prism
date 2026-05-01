@@ -1201,13 +1201,13 @@ async function openDeal(id, action) {
       ndaDocEntry,
       { slot: 'mgmt', label: 'Management Presentation', name: d.ticker+'_ManagementDeck.pdf', gate: 'nda', accessible: signed },
       { slot: 'fin',  label: 'Financial Summary',       name: d.ticker+'_Financials.xlsx',    gate: 'nda', accessible: signed },
-      { slot: 'term', label: 'Term Sheet',               name: d.ticker+'_TermSheet.pdf',      gate: 'nda', accessible: signed },
+      ...(d.asset_class!=='Equity'?[{ slot: 'term', label: 'Term Sheet', name: d.ticker+'_TermSheet.pdf', gate: 'nda', accessible: signed }]:[]),
     ];
     docs = realDocs.length ? realDocs.map(doc => ({...doc, accessible: doc.gate === 'public' || signed})) : fullFallback;
   }
 
   const docsLockedNote = !hasIoi
-    ? `<div style="font-size:12px;color:var(--text-3);font-family:var(--sans);margin-top:10px;padding:10px 12px;background:var(--bg-3);border-radius:var(--r);border:1px solid var(--border)">Additional documents — Management Presentation, Financials, Term Sheet — unlock after submitting an expression of interest.</div>`
+    ? `<div style="font-size:12px;color:var(--text-3);font-family:var(--sans);margin-top:10px;padding:10px 12px;background:var(--bg-3);border-radius:var(--r);border:1px solid var(--border)">Additional documents — Management Presentation, Financials${d.asset_class!=='Equity'?', Term Sheet':''} — unlock after submitting an expression of interest.</div>`
     : '';
 
   const docsHtml = docs.map(doc => {
