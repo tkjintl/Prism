@@ -2663,7 +2663,7 @@ function renderDashboard() {
     '</div>' +
     '<div class="dash-action-list">' +
       actions.map(function(a){
-        return '<div class="dash-action-card dash-ac-'+a.color+'" onclick="goDashAction('+a.idx+',''+a.tab+'')">'+
+        return '<div class="dash-action-card dash-ac-'+a.color+'" onclick="goDashAction('+a.idx+',\''+a.tab+'\')">' +
           '<div class="dac-icon">'+a.icon+'</div>'+
           '<div class="dac-body">'+
             '<div class="dac-label">'+a.label+'</div>'+
