@@ -635,7 +635,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       </div>
 
       <!-- Subscription ring + detail side by side -->
-      <div class="dhs-ring-float">
+      <div class="dhs-ring-float" id="dhs-ring-row">
         <div class="dhs-ring-wrap" style="width:112px;height:112px">
           <svg width="112" height="112" viewBox="0 0 112 112" style="transform:rotate(-90deg);display:block">
             <circle cx="56" cy="56" r="47" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="5"/>
@@ -2752,6 +2752,7 @@ function renderDashboard() {
   } else {
     if(ab) ab.style.display = 'none';
   }
+  var dhsRingRow=document.getElementById('dhs-ring-row');if(dhsRingRow)dhsRingRow.style.display=totalRaise>0?'':'none';
   var rp = document.getElementById('dhs-ring-pct');   if(rp) rp.textContent = pctAll + '%';
   var ra = document.getElementById('dhs-ring-amt');    if(ra) ra.innerHTML = '<strong style="color:#C5A572">' + fmU(totalIoi) + '</strong>';
   var rt = document.getElementById('dhs-ring-target'); if(rt) rt.textContent = fmU(totalRaise);
@@ -3199,7 +3200,7 @@ load();
 .dhs-sub-bar-track{height:2px;background:rgba(255,255,255,0.06)}
 .dhs-sub-bar-fill{height:100%;background:linear-gradient(to right,#C5A572,#E3C187);transition:width 2s cubic-bezier(0.22,1,0.36,1)}
 /* Right visual */
-.dhs-visual{display:flex;align-items:center;justify-content:center;padding:0;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(197,165,114,.03) 0%,transparent 70%);min-height:360px;animation:fadeIn 1.2s .15s both}
+.dhs-visual{display:flex;align-items:center;justify-content:flex-start;padding-left:clamp(12px,3vw,40px);position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(197,165,114,.03) 0%,transparent 70%);min-height:360px;animation:fadeIn 1.2s .15s both}
 .dhs-vis-inner{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(384px,88%)}
 .dhs-prism-wrap{width:100%;animation:prismRotate 6s ease-in-out infinite}
 .dhs-prism-svg{width:100%;height:auto}

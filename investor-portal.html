@@ -143,10 +143,10 @@ a{color:inherit;text-decoration:none}
 .hero-eyebrow.almost-full{color:var(--amber)}
 
 /* ── HERO VISUAL (prism side) ── */
-.inv-vis-inner{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(384px,88%)}
+.inv-vis-inner{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(440px,92%)}
 .inv-ring-row{display:flex;align-items:center;gap:16px;width:100%;background:rgba(13,12,10,.85);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;backdrop-filter:blur(10px)}
 .inv-ring-detail{flex:1;text-align:left}
-.hero-visual{display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(197,165,114,.03) 0%,transparent 70%);min-height:360px;animation:fadeIn 1.2s .15s both}
+.hero-visual{display:flex;align-items:center;justify-content:flex-start;padding-left:clamp(12px,3vw,40px);position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(197,165,114,.03) 0%,transparent 70%);min-height:360px;animation:fadeIn 1.2s .15s both}
 @media(min-width:900px){.hero-visual{min-height:auto}}
 .prism-svg-wrap{position:relative;width:min(360px,88%);animation:prismRotate 6s ease-in-out infinite}
 .prism-svg{width:100%;height:auto}
@@ -652,7 +652,7 @@ a{color:inherit;text-decoration:none}
           </svg>
         </div>
         <!-- Investor stats ring -->
-        <div class="inv-ring-row">
+        <div class="inv-ring-row" id="inv-ring-row">
           <div class="ring-wrap" style="width:112px;height:112px;flex-shrink:0">
             <svg width="112" height="112" viewBox="0 0 112 112" style="transform:rotate(-90deg);display:block">
               <circle cx="56" cy="56" r="47" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="5"/>
