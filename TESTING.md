@@ -4,10 +4,10 @@
 
 | Portal | URL | Who |
 |---|---|---|
-| Advisor | `https://prism.theaurumcc.com/advisor-portal` | Deal advisors |
-| Admin / Operator | `https://prism.theaurumcc.com/admin-portal` | Platform operator |
-| Investor | `https://prism.theaurumcc.com/investor-portal` | Institutional investors |
-| Login | `https://prism.theaurumcc.com/login` | All users — entry point |
+| Advisor | `https://prism-plum.vercel.app/advisor-portal` | Deal advisors |
+| Admin / Operator | `https://prism-plum.vercel.app/admin-portal` | Platform operator |
+| Investor | `https://prism-plum.vercel.app/investor-portal` | Institutional investors |
+| Login | `https://prism-plum.vercel.app/login` | All users — entry point |
 
 All portals redirect to `/login` if session is missing or expired.
 
@@ -106,7 +106,7 @@ All portals redirect to `/login` if session is missing or expired.
 
 ## API Health Check
 ```
-GET https://prism.theaurumcc.com/api/health
+GET https://prism-plum.vercel.app/api/health
 ```
 Returns `{ ok: true, kv: "connected" }` — if `kv` is not `"connected"` check Upstash env vars.
 
@@ -121,7 +121,7 @@ Returns `{ ok: true, kv: "connected" }` — if `kv` is not `"connected"` check U
 | `RESEND_API_KEY` | Email delivery — get from resend.com |
 | `KV_REST_API_URL` | Upstash Redis URL |
 | `KV_REST_API_TOKEN` | Upstash Redis token |
-| `SITE_URL` | `https://prism.theaurumcc.com` |
+| `SITE_URL` | `https://prism-plum.vercel.app` |
 | `NOTIFY_EMAILS` | Comma-separated emails for admin alerts |
 
 ---
