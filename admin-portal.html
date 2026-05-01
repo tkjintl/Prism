@@ -1617,11 +1617,10 @@ function renderOverview(){
   const pushCards = DEALS.flatMap(d =>
     d.iois.filter(i => i.status === 'approved' && !i.pushed).map(ioi => `<div class="ov-action-card">
       <div class="ov-ac-tag violet">Deploy Capital</div>
-      <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${ioi.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
+      <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${d.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
       <div class="ov-ac-meta">
-        <strong>${d.name}</strong><br>
-        ${ioi.type} · <strong>${fmU(ioi.amount)}</strong> approved<br>
-        Advisor: ${d.advisor} · ${d.advisor_firm||''}
+        ${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}<br>
+        ${ioi.name} · ${ioi.type} · <strong>${fmU(ioi.amount)}</strong> approved
       </div>
       <div class="ov-ac-actions">
         <button class="att-btn att-push" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview Package →</button>
