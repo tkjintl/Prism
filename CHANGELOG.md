@@ -4,6 +4,14 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: Approve/Decline pending IOIs directly in See Investors popup
+
+### Changes
+- `admin-portal.html` (`openInvestorsPopup`): Pending IOI rows now show inline **Approve** (green) and **Decline** (red) buttons instead of just a status badge. Approved and declined rows continue to show their badge as read-only.
+- `admin-portal.html` (`ioiActionInPopup`): New function — calls existing `actIoi()` to update state and fire the API, then re-renders the overview KPIs and refreshes the popup in-place. No navigation away required.
+
+---
+
 ## [2026-05-01] — Advisor portal: IOI Interest Summary styled as IOI Package template
 
 ### Changes
