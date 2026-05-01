@@ -4,6 +4,17 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix: AI-generated deal content not reaching advisor review
+
+### Changes
+- `api/v2.js` (`send-to-advisor-review` op): Promote `deal.ai_draft` fields (`thesis`, `tagline`, `highlights`) to top-level deal fields before saving, so advisor sees them on load. Highlights are normalised to `{icon, s, b}` in case field names differ. Also accept explicit `thesis`/`tagline`/`highlights` overrides in the request body. Audit log entry now records whether `ai_draft` promotion occurred.
+- `admin-portal.html` (`sendToAdvisorReview` function): Build a `payload` object that includes current `_launchContent` fields (`thesis`, `tagline`, `highlights`) when present, so content generated in Deal Studio is forwarded to the API even if it hasn't been saved to Redis via `ai-generate`.
+
+### Why
+`send-to-advisor-review` was only setting `advisor_review_status = 'pending'` — it never copied the AI-generated content from `deal.ai_draft` to top-level fields. Advisor portal reads `d.thesis`, `d.tagline`, `d.highlights` directly, so they were always `undefined` after "Send to Advisor" from Deal Studio.
+
+---
+
 ## [2026-05-01] — Advisor portal: Stage-aware Next Step guide + enriched activity log
 
 ### Changes

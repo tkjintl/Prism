@@ -2384,7 +2384,13 @@ async function approveDeal(dealId,btn){
 async function sendToAdvisorReview(dealId,btn){
   if(!dealId){toast('No deal selected','err');return;}
   if(btn){btn.disabled=true;btn.textContent='Sending…';}
-  const res=await api('POST','/api/v2?resource=admin&op=send-to-advisor-review',{dealId});
+  const payload={dealId};
+  if(_launchContent){
+    if(_launchContent.thesis)payload.thesis=_launchContent.thesis;
+    if(_launchContent.tagline)payload.tagline=_launchContent.tagline;
+    if(_launchContent.highlights)payload.highlights=_launchContent.highlights;
+  }
+  const res=await api('POST','/api/v2?resource=admin&op=send-to-advisor-review',payload);
   if(res?.ok){
     const s=NEW_SUBMISSIONS.find(x=>x.id===dealId);
     if(s){s.advisor_review_status='pending';s.generated=true;}

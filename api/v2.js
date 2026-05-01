@@ -1642,14 +1642,32 @@ Return ONLY valid JSON in this exact structure:
     if (op === 'send-to-advisor-review') {
       const admin = await getAdmin();
       if (!admin) return unauth(res);
-      const { dealId } = req.body || {};
+      const { dealId, thesis, tagline, highlights } = req.body || {};
       if (!dealId) return bad(res, 'dealId required');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
 
+      // Promote AI draft fields to top-level so advisor can read them
+      if (deal.ai_draft) {
+        if (!deal.thesis && deal.ai_draft.thesis) deal.thesis = deal.ai_draft.thesis;
+        if (!deal.tagline && deal.ai_draft.tagline) deal.tagline = deal.ai_draft.tagline;
+        if ((!deal.highlights || !deal.highlights.length) && deal.ai_draft.highlights?.length) {
+          deal.highlights = deal.ai_draft.highlights.map(h => ({
+            icon: h.icon || '◆',
+            s: h.s || h.title || '',
+            b: h.b || h.body || '',
+          }));
+        }
+      }
+
+      // Accept explicit overrides from request body (admin sending content directly)
+      if (thesis) deal.thesis = thesis;
+      if (tagline) deal.tagline = tagline;
+      if (highlights) deal.highlights = highlights;
+
       deal.advisor_review_status = 'pending';
       deal.audit_log = deal.audit_log || [];
-      deal.audit_log.push({ at: new Date().toISOString(), actor: admin.email, action: 'sent_for_advisor_review', meta: {} });
+      deal.audit_log.push({ at: new Date().toISOString(), actor: admin.email, action: 'sent_for_advisor_review', meta: { promoted_ai_draft: !!deal.ai_draft } });
 
       deal.notifications = deal.notifications || [];
       deal.notifications.push({
