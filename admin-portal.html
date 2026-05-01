@@ -1678,22 +1678,32 @@ function renderOverview(){
     </div>`)
   );
 
-  // Column 3: Deploy Capital (approved, not yet pushed)
+  // Column 3: Deploy Capital (approved, not yet pushed) — sorted highest % funded first
   const pushCards = DEALS.flatMap(d =>
-    d.iois.filter(i => i.status === 'approved' && !i.pushed).map(ioi => `<div class="ov-action-card">
-      <div class="ov-ac-tag violet">Deploy Capital</div>
-      <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${d.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
-      <div class="ov-ac-meta">
-        ${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}<br>
-        ${ioi.name} · ${ioi.type} · <strong>${fmU(ioi.amount)}</strong> approved
-      </div>
-      <div class="ov-ac-actions">
-        <button class="att-btn att-push" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview Package →</button>
-        <button class="att-btn att-approve" onclick="openPushModal('${d.id}','${ioi.id}')">Push to Advisor</button>
-        <button class="att-btn att-decline" onclick="killDeal('${d.id}',this)" style="background:rgba(220,38,38,.12);color:#ef4444;border-color:rgba(220,38,38,.25)">Kill Deal</button>
-      </div>
-    </div>`)
-  );
+    d.iois.filter(i => i.status === 'approved' && !i.pushed).map(ioi => {
+      const pct = d.target_alloc > 0 ? Math.round(d.ioi_agg / d.target_alloc * 100) : 0;
+      const pctColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : 'var(--amber)';
+      return { pct, html: `<div class="ov-action-card" style="display:flex;gap:0;padding:0;overflow:hidden">
+        <div style="flex:1;padding:16px 18px">
+          <div class="ov-ac-tag violet">Deploy Capital</div>
+          <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${d.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
+          <div class="ov-ac-meta">
+            ${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}<br>
+            ${ioi.name} · ${ioi.type} · <strong>${fmU(ioi.amount)}</strong> approved
+          </div>
+          <div class="ov-ac-actions">
+            <button class="att-btn att-push" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview Package →</button>
+            <button class="att-btn att-approve" onclick="openPushModal('${d.id}','${ioi.id}')">Push to Advisor</button>
+            <button class="att-btn att-decline" onclick="killDeal('${d.id}',this)" style="background:rgba(220,38,38,.12);color:#ef4444;border-color:rgba(220,38,38,.25)">Kill Deal</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 20px;border-left:1px solid var(--border);min-width:88px;gap:4px">
+          <div style="font-size:28px;font-weight:700;font-family:var(--mono);color:${pctColor};line-height:1">${pct}%</div>
+          <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">Funded</div>
+        </div>
+      </div>` };
+    })
+  ).sort((a,b) => b.pct - a.pct).map(x => x.html);
 
   const queueCol = (dotCls, title, cards) => {
     const badge = cards.length;
