@@ -123,6 +123,23 @@ a{color:inherit;text-decoration:none}
 .hero-sub-bar-wrap{position:absolute;bottom:0;left:0;right:0}
 .hero-sub-bar-track{height:2px;background:var(--border)}
 .hero-sub-bar-fill{height:100%;background:linear-gradient(to right,var(--gold),var(--gold-b));transition:width 2s var(--ease)}
+/* carousel dots + progress */
+.hero-dots{position:absolute;bottom:16px;left:clamp(24px,5vw,72px);display:flex;align-items:center;gap:8px;z-index:10}
+.hero-dot{width:20px;height:2px;border-radius:1px;background:var(--border-m);cursor:pointer;transition:all .3s var(--ease);position:relative;overflow:hidden}
+.hero-dot.active{background:var(--gold);width:32px}
+.hero-dot-fill{position:absolute;inset:0;background:var(--gold);transform:scaleX(0);transform-origin:left;border-radius:1px}
+.hero-dot.active .hero-dot-fill{animation:dotProgress var(--carousel-ms,6000ms) linear forwards}
+@keyframes dotProgress{to{transform:scaleX(1)}}
+/* slide transition */
+.hero-content{padding:clamp(44px,9vh,88px) clamp(24px,5vw,72px);display:flex;flex-direction:column;justify-content:center;z-index:2;position:relative;transition:opacity .45s var(--ease),transform .45s var(--ease)}
+.hero-content.slide-out{opacity:0;transform:translateY(-10px)}
+.hero-content.slide-in{animation:heroSlideIn .5s var(--ease) both}
+@keyframes heroSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+/* eyebrow colour variants */
+.hero-eyebrow.coming-soon .eyebrow-dot{background:var(--blue)}
+.hero-eyebrow.coming-soon{color:var(--blue)}
+.hero-eyebrow.almost-full .eyebrow-dot{background:var(--amber)}
+.hero-eyebrow.almost-full{color:var(--amber)}
 
 /* ── HERO VISUAL (prism side) ── */
 .hero-visual{display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(197,165,114,.03) 0%,transparent 70%);min-height:360px;animation:fadeIn 1.2s .15s both}
@@ -629,6 +646,9 @@ a{color:inherit;text-decoration:none}
       </div>
     </div>
 
+    <!-- Carousel dots -->
+    <div class="hero-dots" id="hero-dots" style="grid-column:1/-1"></div>
+
     <!-- Thin subscription bar at bottom of hero -->
     <div class="hero-sub-bar-wrap" style="grid-column:1/-1">
       <div class="hero-sub-bar-track"><div class="hero-sub-bar-fill" id="hero-sub-bar" style="width:0%"></div></div>
@@ -896,51 +916,43 @@ function showView(name, btn) {
 }
 
 /* ── LOBBY ── */
+let _carouselSlides = [];
+let _carouselIdx   = 0;
+let _carouselTimer = null;
+const CAROUSEL_MS  = 6000;
+
 function initLobby() {
-  // Exclude preview-mode deals from public marketplace
   const publicDeals = DEALS.filter(d => !d.launch_mode || d.launch_mode !== 'preview');
-  const featured = publicDeals.find(d => d.featured) || publicDeals[0];
-  const others   = publicDeals.filter(d => !d.featured);
-  const pct      = Math.round(featured.ioi_agg / featured.target_alloc * 100);
-  const days     = Math.round((new Date(featured.closing) - new Date()) / 86400000);
-  const overSub  = pct >= 90;
 
-  if(overSub) document.getElementById('hero-urgency').style.display = 'inline-flex';
-  document.getElementById('hero-eyebrow-txt').textContent = overSub ? 'Final Allocation — Closing Soon' : 'Featured Opportunity';
-  document.getElementById('hero-name').textContent     = featured.name;
-  document.getElementById('hero-tagline').textContent  = featured.tagline;
-  document.getElementById('hero-stats').innerHTML =
-    `<div class="hero-stat"><div class="hero-stat-val">${featured.target_irr}%</div><div class="hero-stat-lbl">Target IRR</div></div>
-     <div class="hero-stat"><div class="hero-stat-val">${fmU(featured.target_alloc)}</div><div class="hero-stat-lbl">Allocation</div></div>
-     <div class="hero-stat"><div class="hero-stat-val">${fmU(featured.min_ticket)}</div><div class="hero-stat-lbl">Min Ticket</div></div>
-     <div class="hero-stat"><div class="hero-stat-val">${featured.term}mo</div><div class="hero-stat-lbl">Term</div></div>`;
+  // Build 3 carousel slots
+  const featuredDeal  = publicDeals.find(d => d.featured) || publicDeals[0];
+  // "Almost Full" — highest subscription % among non-featured, at least 50% subscribed
+  const almostFull = publicDeals
+    .filter(d => d.id !== featuredDeal.id && d.target_alloc > 0)
+    .sort((a,b) => (b.ioi_agg/b.target_alloc) - (a.ioi_agg/a.target_alloc))
+    .find(d => d.ioi_agg / d.target_alloc >= 0.5)
+    || publicDeals.filter(d => d.id !== featuredDeal.id)[0];
+  // "Coming Soon" — a different deal (prefer one not already used, lowest subscription)
+  const usedIds = new Set([featuredDeal.id, almostFull?.id]);
+  const comingSoon = publicDeals.filter(d => !usedIds.has(d.id))[0] || publicDeals[1] || featuredDeal;
 
-  document.getElementById('hero-cta-1').onclick = () => openDeal(featured.id);
-  document.getElementById('hero-cta-2').onclick = () => openDeal(featured.id, 'ioi');
-  document.getElementById('hero-ring-pct').textContent  = pct + '%';
-  document.getElementById('hero-sub-amt').textContent   = fmU(featured.ioi_agg);
-  document.getElementById('hero-alloc-disp').textContent = fmU(featured.target_alloc);
-  document.getElementById('hero-inv-count').textContent = `${featured.ioi_count} investors`;
-  document.getElementById('hero-days').textContent      = `${days} days left`;
+  _carouselSlides = [
+    { deal: featuredDeal, mode: 'featured' },
+    { deal: comingSoon,   mode: 'coming_soon' },
+    { deal: almostFull || featuredDeal, mode: 'almost_full' },
+  ];
 
-  document.getElementById('social-proof').innerHTML =
-    `<div class="sp-avatars">${featured.ioi_investors.slice(0,5).map((n,i) => `<div class="sp-avatar" style="animation-delay:${i*80}ms">${n.slice(0,2).toUpperCase()}</div>`).join('')}</div>
-     <span><strong style="color:var(--text)">${featured.ioi_count} institutions</strong> have indicated interest</span>`;
+  // Render dot indicators
+  const dotsEl = document.getElementById('hero-dots');
+  dotsEl.innerHTML = _carouselSlides.map((_, i) =>
+    `<div class="hero-dot${i===0?' active':''}" id="hero-dot-${i}" onclick="heroGoTo(${i})"><div class="hero-dot-fill"></div></div>`
+  ).join('');
+  document.documentElement.style.setProperty('--carousel-ms', CAROUSEL_MS + 'ms');
 
-  setTimeout(() => {
-    const r = document.getElementById('hero-ring');
-    r.style.stroke         = overSub ? 'var(--red)' : 'var(--gold)';
-    r.style.strokeDashoffset = 295 * (1 - pct / 100);
-    r.style.transition     = 'stroke-dashoffset 1.6s var(--ease)';
-    document.getElementById('hero-sub-bar').style.width = pct + '%';
-    document.getElementById('hero-sub-bar').style.background = overSub
-      ? 'linear-gradient(to right,var(--gold),var(--red))'
-      : 'linear-gradient(to right,var(--gold),var(--gold-b))';
-  }, 450);
-
-  // Deal grid
+  // Render deal grid (all except featured slot)
+  const others = publicDeals.filter(d => !d.featured);
   document.getElementById('other-count').textContent = `${others.length} Active`;
-  document.getElementById('deal-grid').innerHTML = others.map((d, i) => {
+  document.getElementById('deal-grid').innerHTML = others.map(d => {
     const p  = Math.round(d.ioi_agg / d.target_alloc * 100);
     const cl = Math.round((new Date(d.closing) - new Date()) / 86400000);
     const hot = p >= 80;
@@ -981,6 +993,116 @@ function initLobby() {
     });
   }, { threshold: 0.1 });
   document.querySelectorAll('.deal-card').forEach(c => obs.observe(c));
+
+  // Kick off carousel
+  _carouselIdx = 0;
+  setHeroSlide(0, true);
+  startCarouselTimer();
+}
+
+function setHeroSlide(idx, instant) {
+  _carouselIdx = idx;
+  const { deal: d, mode } = _carouselSlides[idx];
+  const pct  = Math.round(d.ioi_agg / d.target_alloc * 100);
+  const days = Math.round((new Date(d.closing) - new Date()) / 86400000);
+
+  const content = document.querySelector('.hero-content');
+  if(!instant) {
+    content.classList.add('slide-out');
+    setTimeout(() => applyHeroSlide(d, mode, pct, days, content), 300);
+  } else {
+    applyHeroSlide(d, mode, pct, days, content);
+  }
+
+  // Update dots
+  document.querySelectorAll('.hero-dot').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+    // Restart CSS progress animation on active dot
+    if(i === idx) {
+      const fill = el.querySelector('.hero-dot-fill');
+      fill.style.animation = 'none';
+      fill.offsetWidth; // reflow
+      fill.style.animation = '';
+    }
+  });
+}
+
+function applyHeroSlide(d, mode, pct, days, content) {
+  const urgency = document.getElementById('hero-urgency');
+  const eyebrow = document.querySelector('.hero-eyebrow');
+  const eyebrowTxt = document.getElementById('hero-eyebrow-txt');
+
+  // Mode-specific labels
+  const modeConfig = {
+    featured:   { label: 'Featured Opportunity', urgency: pct >= 90, cls: '' },
+    coming_soon:{ label: 'Coming Soon — Accepting Interest', urgency: false, cls: 'coming-soon' },
+    almost_full:{ label: `${pct}% Subscribed — Filling Fast`, urgency: pct >= 80, cls: 'almost-full' },
+  };
+  const cfg = modeConfig[mode] || modeConfig.featured;
+
+  urgency.style.display = cfg.urgency ? 'inline-flex' : 'none';
+  eyebrow.className = 'hero-eyebrow' + (cfg.cls ? ' ' + cfg.cls : '');
+  eyebrowTxt.textContent = cfg.label;
+
+  document.getElementById('hero-name').textContent    = d.name;
+  document.getElementById('hero-tagline').textContent = d.tagline;
+  document.getElementById('hero-stats').innerHTML =
+    `<div class="hero-stat"><div class="hero-stat-val">${d.target_irr}%</div><div class="hero-stat-lbl">Target IRR</div></div>
+     <div class="hero-stat"><div class="hero-stat-val">${fmU(d.target_alloc)}</div><div class="hero-stat-lbl">Allocation</div></div>
+     <div class="hero-stat"><div class="hero-stat-val">${fmU(d.min_ticket)}</div><div class="hero-stat-lbl">Min Ticket</div></div>
+     <div class="hero-stat"><div class="hero-stat-val">${d.term}mo</div><div class="hero-stat-lbl">Term</div></div>`;
+
+  document.getElementById('hero-cta-1').textContent = mode === 'coming_soon' ? 'Register Interest →' : 'Explore Opportunity →';
+  document.getElementById('hero-cta-1').onclick = () => openDeal(d.id);
+  document.getElementById('hero-cta-2').textContent = 'Express Interest';
+  document.getElementById('hero-cta-2').onclick = () => openDeal(d.id, 'ioi');
+
+  document.getElementById('hero-ring-pct').textContent   = pct + '%';
+  document.getElementById('hero-sub-amt').textContent    = fmU(d.ioi_agg);
+  document.getElementById('hero-alloc-disp').textContent = fmU(d.target_alloc);
+  document.getElementById('hero-inv-count').textContent  = `${d.ioi_count || 0} investors`;
+  document.getElementById('hero-days').textContent       = days > 0 ? `${days} days left` : 'Closing soon';
+
+  document.getElementById('social-proof').innerHTML =
+    `<div class="sp-avatars">${(d.ioi_investors||[]).slice(0,5).map((n,i) => `<div class="sp-avatar" style="animation-delay:${i*80}ms">${n.slice(0,2).toUpperCase()}</div>`).join('')}</div>
+     <span><strong style="color:var(--text)">${d.ioi_count || 0} institutions</strong> have indicated interest</span>`;
+
+  // Ring + bar
+  const ringStroke = cfg.urgency ? 'var(--red)' : mode === 'coming_soon' ? 'var(--blue)' : 'var(--gold)';
+  const barBg = cfg.urgency
+    ? 'linear-gradient(to right,var(--gold),var(--red))'
+    : mode === 'coming_soon'
+      ? 'linear-gradient(to right,var(--blue),var(--blue))'
+      : 'linear-gradient(to right,var(--gold),var(--gold-b))';
+  setTimeout(() => {
+    const r = document.getElementById('hero-ring');
+    r.style.stroke = ringStroke;
+    r.style.strokeDashoffset = 295 * (1 - pct / 100);
+    r.style.transition = 'stroke-dashoffset 1.2s var(--ease), stroke .4s';
+    const bar = document.getElementById('hero-sub-bar');
+    bar.style.transition = 'width 1.2s var(--ease)';
+    bar.style.width = pct + '%';
+    bar.style.background = barBg;
+  }, 120);
+
+  content.classList.remove('slide-out');
+  content.classList.remove('slide-in');
+  content.offsetWidth;
+  content.classList.add('slide-in');
+}
+
+function heroGoTo(idx) {
+  if(idx === _carouselIdx) return;
+  clearInterval(_carouselTimer);
+  setHeroSlide(idx);
+  startCarouselTimer();
+}
+
+function startCarouselTimer() {
+  clearInterval(_carouselTimer);
+  _carouselTimer = setInterval(() => {
+    heroGoTo((_carouselIdx + 1) % _carouselSlides.length);
+  }, CAROUSEL_MS);
 }
 
 /* ── DEAL DETAIL ── */
