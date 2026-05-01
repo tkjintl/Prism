@@ -74,6 +74,25 @@ export async function createDeal(data, advisorId, adminId = null) {
   };
 
   await saveDeal(deal);
+
+  // Migrate any pending docs uploaded before dealId was known
+  if (advisorId) {
+    const slots = ['nda', 'mgmt', 'fin', 'term'];
+    await Promise.all(slots.map(async slot => {
+      const pending = await kvGet(`pdoc:${advisorId}:${slot}`);
+      if (pending) {
+        await kvSet(`deal_doc:${id}:${slot}`, pending);
+        const meta = await kvGet(`pdoc_meta:${advisorId}:${slot}`);
+        if (meta) {
+          deal.docs.push({ slot, name: meta.name, type: meta.type, size: meta.size });
+          await kvDel(`pdoc:${advisorId}:${slot}`);
+          await kvDel(`pdoc_meta:${advisorId}:${slot}`);
+        }
+      }
+    }));
+    if (deal.docs.length) await saveDeal(deal);
+  }
+
   return deal;
 }
 

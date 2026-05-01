@@ -116,7 +116,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 /* PIPELINE TABLE */
 .deal-pipeline{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:32px}
-.dp-row{display:grid;grid-template-columns:1.4fr 110px 130px 110px 80px auto;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s}
+.dp-row{display:grid;grid-template-columns:minmax(160px,1.8fr) 130px 150px 110px 68px 140px;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s}
 .dp-row:last-child{border-bottom:none}
 .dp-row:hover{background:var(--bg-3)}
 .dp-row.header{background:var(--bg-3);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);padding:10px 18px}
@@ -269,7 +269,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{background:var(--green);color:#fff}.toast.err{background:var(--red);color:#fff}
 .demo-badge{position:fixed;bottom:16px;right:16px;z-index:300;padding:6px 12px;background:var(--bg-3);border:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);border-radius:20px}
-@media(max-width:640px){.dp-row{grid-template-columns:1fr auto auto}.dp-bar-wrap,.dp-advisor{display:none}}
+@media(max-width:640px){.dp-row{grid-template-columns:1fr auto}.dp-bar-wrap,.dp-advisor{display:none}}
 
 /* ── MOBILE FIXES ── */
 @media(max-width:600px){
@@ -398,6 +398,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
                 <div class="ai-slot-meta">Revenue, EBITDA, cap structure</div>
               </div>
               <div class="ai-slot-status empty" id="ai-stat-fin">Click to load</div>
+            </div>
+          </div>
+          <div id="ai-slot-term" class="ai-doc-slot" onclick="aiLoadDoc('term')">
+            <div class="ai-slot-row">
+              <div class="ai-slot-icon">📋</div>
+              <div style="flex:1">
+                <div class="ai-slot-label">Term Sheet</div>
+                <div class="ai-slot-meta">Deal terms and structure overview</div>
+              </div>
+              <div class="ai-slot-status empty" id="ai-stat-term">Click to load</div>
             </div>
           </div>
           <button class="ai-process-btn" id="ai-process-btn" onclick="runAIProcess()" disabled>
@@ -710,6 +720,16 @@ async function declineDeal(dealId,btn){
   toast('Deal declined','');
 }
 
+async function loadDocsAndGenerate(dealId){
+  // Switch to AI Doc Tool tab
+  showView('aitool',document.querySelectorAll('.ntab')[3]);
+  // Select this deal in the dropdown
+  const sel=document.getElementById('ai-deal-select');
+  if(sel){sel.value=dealId;}
+  // Start AI generation immediately
+  await runAIGenerate(dealId);
+}
+
 function actIoi(dealId,ioiId,action){
   const deal=DEALS.find(d=>d.id===dealId);
   if(!deal)return;
@@ -790,7 +810,10 @@ function renderPipeline(){
       <div class="deal-submissions">${NEW_SUBMISSIONS.map(s=>`
         <div class="ds-card">
           <div class="ds-card-header">
-            <div><div class="ds-deal-name">${s.name}</div><div class="ds-deal-meta">${s.geography} · ${s.structure}</div></div>
+            <div>
+              <div class="ds-deal-name">${s.name}</div>
+              <div class="ds-deal-meta">${s.geography||'—'} · ${s.structure||'—'}</div>
+            </div>
             <span class="iqi-badge badge-pending">Under Review</span>
           </div>
           <div class="ds-card-body">
@@ -798,9 +821,21 @@ function renderPipeline(){
             <div><div class="ds-stat-lbl">Allocation</div><div class="ds-stat-val">${fmU(s.target_alloc)}</div></div>
             <div><div class="ds-stat-lbl">Min Ticket</div><div class="ds-stat-val">${fmU(s.min_ticket)}</div></div>
           </div>
+          <!-- Doc status row -->
+          <div style="padding:8px 18px;display:flex;align-items:center;gap:6px;border-top:1px solid var(--border);flex-wrap:wrap">
+            <span style="font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-right:4px">Docs</span>
+            ${['nda','mgmt','fin','term'].map(slot => {
+              const doc = (s.docs||[]).find(d=>d.slot===slot);
+              const labels = {nda:'NDA',mgmt:'Deck',fin:'Financials',term:'Term Sheet'};
+              return doc
+                ? `<span style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72;border-radius:2px">✓ ${labels[slot]}</span>`
+                : `<span style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid var(--border);color:var(--text-3);border-radius:2px">${labels[slot]}</span>`;
+            }).join('')}
+          </div>
           <div class="ds-card-footer">
             <div class="ds-advisor">From ${s.advisor} · ${s.advisor_firm} · Submitted ${s.submitted}</div>
             <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
+            <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}')">✦ Generate with AI</button>
             <button class="att-btn att-approve" onclick="approveDeal('${s.id}',this)">Approve &amp; Publish</button>
           </div>
         </div>`).join('')}
@@ -812,7 +847,7 @@ function renderPipeline(){
   document.getElementById('active-deals-count').textContent=`${DEALS.length} Deals`;
   document.getElementById('deal-pipeline-table').innerHTML=`
     <div class="dp-row header">
-      <div>Deal</div><div>Advisor</div><div>Indicated</div><div>Stage</div><div>Closing</div><div>Actions</div>
+      <div>Deal</div><div>Allocation</div><div>Indicated</div><div>Stage</div><div>Close</div><div>Actions</div>
     </div>
     ${DEALS.map((d,i)=>{
       const pct=Math.round(d.ioi_agg/d.target_alloc*100);
@@ -858,12 +893,14 @@ const _mc=document.getElementById('modal-confirm');if(_mc)_mc.onclick=function()
 const _sm=document.getElementById('stage-modal');if(_sm)_sm.addEventListener('click',function(e){if(e.target===this)closeModal();});
 
 /* ── AI TOOL ── */
-const AI_DOCS={nda:false,mgmt:false,fin:false};
+const AI_DOCS={nda:false,mgmt:false,fin:false,term:false};
 
 function renderAITool(){
   const sel=document.getElementById('ai-deal-select');
   sel.innerHTML='<option value="">Select deal…</option>'+
-    DEALS.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+    [...DEALS,...NEW_SUBMISSIONS].map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  sel.onchange=checkAIReady;
+  checkAIReady();
 }
 
 function aiLoadDoc(type){
@@ -875,34 +912,48 @@ function aiLoadDoc(type){
   stat.className='ai-slot-status loaded';
   stat.textContent='✓ Loaded';
   AI_DOCS[type]=true;
-  const btn=document.getElementById('ai-process-btn');
-  if(btn)btn.disabled=!(AI_DOCS.nda&&AI_DOCS.mgmt&&AI_DOCS.fin);
+  checkAIReady();
 }
 
-function runAIProcess(){
+function checkAIReady(){
   const sel=document.getElementById('ai-deal-select');
-  const dealId=sel?sel.value:'';
-  const deal=DEALS.find(d=>d.id===dealId);
+  const btn=document.getElementById('ai-process-btn');
+  const hasDeal=sel&&sel.value;
+  const hasDocs=AI_DOCS.nda&&AI_DOCS.mgmt&&AI_DOCS.fin; // term optional
+  if(btn)btn.disabled=!(hasDeal&&hasDocs);
+}
+
+async function runAIProcess(){
+  const sel=document.getElementById('ai-deal-select');
+  const dealId=sel?.value;
+  if(!dealId){toast('Select a deal first','err');return;}
+  await runAIGenerate(dealId);
+}
+
+async function runAIGenerate(dealId){
   const panel=document.getElementById('ai-output-panel');
   if(!panel)return;
 
-  const steps=[
-    'Reading NDA template…',
-    'Parsing management presentation…',
-    'Extracting financial data…',
-    'Identifying key metrics…',
-    'Structuring investor thesis…',
-    'Generating highlights…',
-    'Composing tagline…',
-  ];
+  // First, auto-load docs from this deal
+  const docsResult=await fetchSilent(`/api/v2?resource=admin&op=deal-docs&dealId=${dealId}`);
+  if(docsResult?.docs){
+    ['nda','mgmt','fin','term'].forEach(slot=>{
+      if(docsResult.docs[slot]){
+        AI_DOCS[slot]=true;
+        const slotEl=document.getElementById('ai-slot-'+slot);
+        const statEl=document.getElementById('ai-stat-'+slot);
+        if(slotEl)slotEl.classList.add('loaded');
+        if(statEl){statEl.className='ai-slot-status loaded';statEl.textContent='✓ '+docsResult.docs[slot].name;}
+      }
+    });
+  }
 
+  const deal=DEALS.find(d=>d.id===dealId)||NEW_SUBMISSIONS.find(s=>s.id===dealId);
+
+  // Show thinking state
+  const steps=['Reading NDA template…','Parsing management presentation…','Extracting financial data…','Reviewing term sheet…','Identifying key metrics…','Structuring investor thesis…','Composing tagline…'];
   panel.innerHTML=`<div class="ai-thinking">
-    <div class="ai-thinking-label">
-      ✦ Claude is processing
-      <span class="ai-thinking-dot"></span>
-      <span class="ai-thinking-dot"></span>
-      <span class="ai-thinking-dot"></span>
-    </div>
+    <div class="ai-thinking-label">✦ Claude is processing<span class="ai-thinking-dot"></span><span class="ai-thinking-dot"></span><span class="ai-thinking-dot"></span></div>
     <div class="ai-thinking-steps" id="ai-steps"></div>
   </div>`;
 
@@ -910,10 +961,7 @@ function runAIProcess(){
   let i=0;
   const iv=setInterval(()=>{
     if(i<steps.length&&stepsEl){
-      if(i>0){
-        const prev=stepsEl.children[i-1];
-        if(prev)prev.classList.add('done');
-      }
+      if(i>0){const prev=stepsEl.children[i-1];if(prev)prev.classList.add('done');}
       const el=document.createElement('div');
       el.className='ai-step';
       el.style.animationDelay=(i*80)+'ms';
@@ -922,25 +970,45 @@ function runAIProcess(){
       i++;
     }else{
       clearInterval(iv);
-      setTimeout(()=>showAIOutput(deal),600);
+      // Call real API
+      setTimeout(async()=>{
+        const r=await api('POST','/api/v2?resource=admin&op=ai-generate',{dealId});
+        if(r?.ok&&r.generated){
+          showAIOutput(deal,r.generated);
+        }else{
+          // Fall back to mock output if API fails (no key configured)
+          showAIOutput(deal,null);
+        }
+      },400);
     }
   },340);
 }
 
-function showAIOutput(deal){
+function showAIOutput(deal,generated){
   const panel=document.getElementById('ai-output-panel');
   if(!panel)return;
 
-  const outputs=deal?{
+  // Use generated content from API if available, else fall back to mock
+  const outputs=generated?{
+    tagline:generated.tagline,
+    thesis:generated.thesis,
+    highlights:generated.highlights||[],
+    stats:{
+      irr:generated.stats?.irr||(deal?deal.target_irr+'%':'—'),
+      term:generated.stats?.term||(deal?deal.term+'mo':'—'),
+      ticket:generated.stats?.min_ticket||(deal?fmU(deal.min_ticket):'—'),
+      geo:generated.stats?.structure||generated.geography||(deal?(deal.geography||'').split('·')[0].trim():'—')
+    }
+  }:deal?{
     tagline:`${deal.name} — ${deal.geography} capital at institutional scale`,
-    thesis:`${deal.name} offers qualified investors a compelling opportunity in ${deal.geography.toLowerCase()} ${deal.asset_class==='infra'?'infrastructure':'private markets'}, targeting ${deal.target_irr}% net IRR over a ${deal.term}-month investment horizon. The fund employs a ${deal.structure.toLowerCase()} structure with a minimum ticket of ${fmU(deal.min_ticket)}, making it accessible to institutional allocators and sophisticated family offices. The advisor team has an established track record in the sector with institutional-grade diligence processes.`,
+    thesis:`${deal.name} offers qualified investors a compelling opportunity in ${(deal.geography||'').toLowerCase()} ${deal.asset_class==='infra'?'infrastructure':'private markets'}, targeting ${deal.target_irr}% net IRR over a ${deal.term}-month investment horizon. The fund employs a ${(deal.structure||'').toLowerCase()} structure with a minimum ticket of ${fmU(deal.min_ticket)}, making it accessible to institutional allocators and sophisticated family offices. The advisor team has an established track record in the sector with institutional-grade diligence processes.`,
     highlights:[
-      `${deal.target_irr}% target net IRR with ${deal.structure.toLowerCase()} capital protection`,
+      `${deal.target_irr}% target net IRR with ${(deal.structure||'').toLowerCase()} capital protection`,
       `${deal.term}-month investment term with quarterly reporting to investors`,
-      `${fmU(deal.target_alloc)} total raise — ${Math.round(deal.ioi_agg/deal.target_alloc*100)}% already indicated`,
-      `Target close ${new Date(deal.closing).toLocaleDateString('en-US',{month:'long',year:'numeric'})} — limited remaining capacity`,
+      `${fmU(deal.target_alloc)} total raise — ${deal.ioi_agg?Math.round(deal.ioi_agg/deal.target_alloc*100)+'% already indicated':'accepting IOIs'}`,
+      `Target close ${deal.closing?new Date(deal.closing).toLocaleDateString('en-US',{month:'long',year:'numeric'}):'TBD'} — limited remaining capacity`,
     ],
-    stats:{irr:`${deal.target_irr}%`,term:`${deal.term}mo`,ticket:fmU(deal.min_ticket),geo:deal.geography.split('·')[0].trim()},
+    stats:{irr:`${deal.target_irr}%`,term:`${deal.term}mo`,ticket:fmU(deal.min_ticket),geo:(deal.geography||'').split('·')[0].trim()}
   }:{
     tagline:'Infrastructure capital at the convergence of Asia and North America',
     thesis:'Pacific Bridge Infrastructure offers a compelling senior secured opportunity in cross-Pacific transport and logistics infrastructure, targeting 11% net IRR over an 84-month term. The fund structure provides downside protection through first-lien security on hard assets.',
@@ -964,11 +1032,7 @@ function showAIOutput(deal){
     </div>
     <div class="ai-out-section" style="animation-delay:.25s">
       <div class="ai-out-label">Key Highlights</div>
-      <div class="ai-highlights">${outputs.highlights.map((h,i)=>`
-        <div class="ai-hl-item">
-          <div class="ai-hl-bullet">${i+1}</div>
-          <span>${h}</span>
-        </div>`).join('')}</div>
+      <div class="ai-highlights">${outputs.highlights.map((h,i)=>`<div class="ai-hl-item"><div class="ai-hl-bullet">${i+1}</div><span>${h}</span></div>`).join('')}</div>
     </div>
     <div class="ai-out-section" style="animation-delay:.35s">
       <div class="ai-out-label">Key Stats</div>
@@ -976,7 +1040,7 @@ function showAIOutput(deal){
         <div class="ai-stat-chip"><div class="ai-stat-lbl">Target IRR</div><div class="ai-stat-val">${outputs.stats.irr}</div></div>
         <div class="ai-stat-chip"><div class="ai-stat-lbl">Term</div><div class="ai-stat-val">${outputs.stats.term}</div></div>
         <div class="ai-stat-chip"><div class="ai-stat-lbl">Min Ticket</div><div class="ai-stat-val">${outputs.stats.ticket}</div></div>
-        <div class="ai-stat-chip"><div class="ai-stat-lbl">Geography</div><div class="ai-stat-val">${outputs.stats.geo}</div></div>
+        <div class="ai-stat-chip"><div class="ai-stat-lbl">Structure</div><div class="ai-stat-val">${outputs.stats.geo}</div></div>
       </div>
     </div>
     <div class="ai-out-section" style="animation-delay:.45s">

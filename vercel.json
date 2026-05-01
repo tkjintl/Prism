@@ -6,6 +6,7 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/api/v2",                       "destination": "/api/v2" },
+    { "source": "/api/upload",                   "destination": "/api/upload" },
     { "source": "/api/health",                   "destination": "/api/health" },
     { "source": "/api/me",                       "destination": "/api/me" },
     { "source": "/api/logout",                   "destination": "/api/logout" },

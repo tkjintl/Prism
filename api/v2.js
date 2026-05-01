@@ -402,6 +402,98 @@ export default async function handler(req, res) {
       return ok(res);
     }
 
+    if (op === 'deal-docs') {
+      const adminPayload = await verifyToken(getCookie(req, 'prism_admin'));
+      if (!adminPayload) return unauth(res);
+      const dealId = req.query.dealId;
+      if (!dealId) return bad(res, 'dealId required');
+      const slots = ['nda', 'mgmt', 'fin', 'term'];
+      const docs = {};
+      await Promise.all(slots.map(async slot => {
+        const doc = await kvGet(`deal_doc:${dealId}:${slot}`);
+        if (doc) docs[slot] = { name: doc.name, type: doc.type, size: doc.size, data: doc.data };
+      }));
+      return ok(res, { docs });
+    }
+
+    if (op === 'ai-generate') {
+      const adminPayload = await verifyToken(getCookie(req, 'prism_admin'));
+      if (!adminPayload) return unauth(res);
+      const { dealId } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      const slots = ['nda', 'mgmt', 'fin', 'term'];
+      const docContent = [];
+      for (const slot of slots) {
+        const doc = await kvGet(`deal_doc:${dealId}:${slot}`);
+        if (doc?.data) {
+          docContent.push({ slot, name: doc.name, type: doc.type || 'application/pdf', data: doc.data });
+        }
+      }
+      if (docContent.length === 0) return bad(res, 'No documents uploaded for this deal');
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) return bad(res, 'ANTHROPIC_API_KEY not configured', 500);
+      const docBlocks = docContent.map(d => ({
+        type: 'document',
+        source: { type: 'base64', media_type: d.type === 'application/pdf' ? 'application/pdf' : 'text/plain', data: d.data },
+        title: d.name,
+        citations: { enabled: false },
+      }));
+      const systemPrompt = `You are an investment analyst generating structured deal profile content for a private capital marketplace platform called Aurum Prism. Analyze the provided documents and generate concise, professional investor-facing content. Be factual, data-driven, and use the tone of a private bank — not a startup pitch.`;
+      const userPrompt = `Based on the uploaded deal documents, generate a complete deal profile for the Aurum Prism investor marketplace.
+
+Return ONLY valid JSON in this exact structure:
+{
+  "tagline": "One compelling sentence — deal name, geography, key differentiator",
+  "thesis": "2-3 paragraphs. Investment rationale, market opportunity, risk/return profile. Institutional tone.",
+  "highlights": ["bullet 1", "bullet 2", "bullet 3", "bullet 4"],
+  "stats": {
+    "irr": "e.g. 13.5%",
+    "term": "e.g. 24 months",
+    "min_ticket": "e.g. $500K",
+    "structure": "e.g. Senior Secured Credit"
+  },
+  "asset_class": "credit|equity|real_estate|infrastructure",
+  "geography": "e.g. Asia-Pacific"
+}`;
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-beta': 'pdfs-2024-09-25',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 1500,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: [...docBlocks, { type: 'text', text: userPrompt }] }],
+          }),
+        });
+        if (!response.ok) {
+          const err = await response.text();
+          console.error('Claude API error:', err);
+          return bad(res, 'AI generation failed', 500);
+        }
+        const result = await response.json();
+        const rawText = result.content?.[0]?.text || '';
+        let generated;
+        try {
+          const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+          generated = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+        } catch {
+          return bad(res, 'Failed to parse AI response', 500);
+        }
+        return ok(res, { generated, dealId });
+      } catch (err) {
+        console.error('AI generate error:', err);
+        return bad(res, 'AI generation failed', 500);
+      }
+    }
+
     if (op === 'revoke-inst') {
       const admin = await getAdmin();
       if (!admin) return unauth(res);

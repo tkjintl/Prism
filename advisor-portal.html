@@ -1051,37 +1051,38 @@ function renderWizard(){
     html=`<div class="doc-req-note">All four documents are required before your deal can go live. Upload your NDA first — investors must sign before accessing any materials.</div>
     <div class="field-section">
       <label class="field-label">NDA Template <span class="field-req">Required</span></label>
-      <div class="upload-zone" id="uz-nda" onclick="wizFakeUpload('uz-nda','NDA_Template.pdf')">
-        <div class="uz-icon">🔑</div><div class="uz-text">Drag your NDA here, or click to browse</div>
-        <div class="uz-sub">PDF · Investors sign before accessing any materials</div>
+      <input type="file" id="file-inp-nda" accept=".pdf,.doc,.docx" style="display:none" onchange="wizHandleFile('nda',this)">
+      <div class="upload-zone" id="uz-nda" onclick="wizTriggerUpload('nda')" style="cursor:pointer">
+        <div class="uz-icon">🔑</div>
+        <div class="uz-text">Click to upload NDA Template</div>
+        <div class="uz-sub">PDF · Max 1.5MB · Investors sign before accessing materials</div>
       </div>
     </div>
     <div class="field-section">
       <label class="field-label">Management Presentation <span class="field-req">Required</span></label>
-      <div class="upload-zone" id="uz-mgmt" onclick="wizFakeUpload('uz-mgmt','Management_Presentation.pdf')">
-        <div class="uz-icon">📄</div><div class="uz-text">Drag your deck here, or click to browse</div>
-        <div class="uz-sub">PDF · Primary investor-facing document</div>
+      <input type="file" id="file-inp-mgmt" accept=".pdf,.doc,.docx" style="display:none" onchange="wizHandleFile('mgmt',this)">
+      <div class="upload-zone" id="uz-mgmt" onclick="wizTriggerUpload('mgmt')" style="cursor:pointer">
+        <div class="uz-icon">📄</div>
+        <div class="uz-text">Click to upload Management Presentation</div>
+        <div class="uz-sub">PDF · Max 1.5MB · Primary investor-facing document</div>
       </div>
     </div>
     <div class="field-section">
       <label class="field-label">Term Sheet <span class="field-req">Required</span></label>
-      <div class="upload-zone" id="uz-term" onclick="wizFakeUpload('uz-term','Term_Sheet.pdf')">
-        <div class="uz-icon">📋</div><div class="uz-text">Drag your term sheet here, or click to browse</div>
-        <div class="uz-sub">PDF · Key deal terms and structure</div>
+      <input type="file" id="file-inp-term" accept=".pdf,.doc,.docx" style="display:none" onchange="wizHandleFile('term',this)">
+      <div class="upload-zone" id="uz-term" onclick="wizTriggerUpload('term')" style="cursor:pointer">
+        <div class="uz-icon">📋</div>
+        <div class="uz-text">Click to upload Term Sheet</div>
+        <div class="uz-sub">PDF · Max 1.5MB · Deal terms and structure overview</div>
       </div>
     </div>
     <div class="field-section">
       <label class="field-label">Basic Financials <span class="field-req">Required</span></label>
-      <div class="upload-zone" id="uz-fin" onclick="wizFakeUpload('uz-fin','Financial_Summary.xlsx')">
-        <div class="uz-icon">📊</div><div class="uz-text">Drag your financials here, or click to browse</div>
-        <div class="uz-sub">Excel or PDF · Revenue, EBITDA, capital structure</div>
-      </div>
-    </div>
-    <div class="field-section">
-      <label class="field-label">Financial Model <span class="field-opt">(Optional — add in due diligence)</span></label>
-      <div class="upload-zone" id="uz-model" onclick="wizFakeUpload('uz-model','Financial_Model.xlsx')">
-        <div class="uz-icon">📈</div><div class="uz-text">Drag your model here, or click to browse</div>
-        <div class="uz-sub">Excel · Required before investors enter due diligence</div>
+      <input type="file" id="file-inp-fin" accept=".pdf,.doc,.docx,.xls,.xlsx" style="display:none" onchange="wizHandleFile('fin',this)">
+      <div class="upload-zone" id="uz-fin" onclick="wizTriggerUpload('fin')" style="cursor:pointer">
+        <div class="uz-icon">📊</div>
+        <div class="uz-text">Click to upload Financial Summary</div>
+        <div class="uz-sub">PDF or Excel · Max 1.5MB · Revenue, EBITDA, capital structure</div>
       </div>
     </div>
     <div class="wiz-nav">
@@ -1119,7 +1120,7 @@ async function wizSubmit(){
   const vals={};inputs.forEach((el,i)=>vals[i]=el.value);
   const name=document.querySelector('#wizard-form input[type="text"]')?.value?.trim();
   if(!name){toast('Enter a deal name','err');return;}
-  const payload={name,target_alloc_usd:parseInt(document.querySelectorAll('#wizard-form input[type="number"]')[0]?.value)||10000000,target_irr:parseFloat(document.querySelectorAll('#wizard-form input[type="number"]')[1]?.value)||12,asset_class:'credit',geography:'',mk_notes:document.querySelector('#wizard-form textarea')?.value||''};
+  const payload={name,target_alloc_usd:parseInt(document.querySelectorAll('#wizard-form input[type="number"]')[0]?.value)||10000000,target_irr:parseFloat(document.querySelectorAll('#wizard-form input[type="number"]')[1]?.value)||12,asset_class:'credit',geography:'',mk_notes:document.querySelector('#wizard-form textarea')?.value||'',docs:Object.entries(WIZ_DOCS).map(([slot,d])=>({slot,name:d.name,type:d.type}))};
   const btn=document.querySelector('.wiz-submit');if(btn){btn.disabled=true;btn.textContent='Submitting…';}
   const r=await api('POST','/api/advisor/deals',payload);
   if(btn){btn.disabled=false;btn.textContent='Submit for Review →';}
@@ -1127,10 +1128,46 @@ async function wizSubmit(){
   wStep=5;renderWizard();
 }
 
-function wizFakeUpload(zoneId,filename){
-  const z=document.getElementById(zoneId);
-  if(!z)return;
-  z.outerHTML=`<div class="uz-uploaded" id="${zoneId}">✓ ${filename} ready</div>`;
+const WIZ_DOCS={}; // slot -> { name, type }
+
+function wizTriggerUpload(slot){
+  const inp=document.getElementById('file-inp-'+slot);
+  if(inp)inp.click();
+}
+
+async function wizHandleFile(slot,input){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>1572864){
+    toast('File too large — max 1.5MB. Compress the PDF and try again.','err');
+    input.value='';
+    return;
+  }
+  const zone=document.getElementById('uz-'+slot);
+  if(zone)zone.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:4px 0"><div style="width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1s infinite;flex-shrink:0"></div><span style="font-family:var(--mono);font-size:11px;color:var(--text-2)">Uploading ${file.name}…</span></div>`;
+
+  // Read as base64
+  const data=await new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>resolve(e.target.result.split(',')[1]);
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+
+  // Upload to server
+  const r=await api('POST','/api/upload',{slot,name:file.name,type:file.type||'application/pdf',data});
+
+  if(r?.ok){
+    WIZ_DOCS[slot]={name:file.name,type:file.type};
+    if(zone)zone.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--green)">✓ ${file.name}</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text-3);margin-left:auto">${(file.size/1024).toFixed(0)}KB</span>
+    </div>`;
+  }else{
+    if(zone)zone.innerHTML=`<div style="font-family:var(--mono);font-size:11px;color:var(--red);padding:4px 0">Upload failed — try again</div>`;
+    toast('Upload failed','err');
+  }
 }
 
 /* ── INIT ── */
