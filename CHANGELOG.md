@@ -4,6 +4,21 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor Portal: Fix hero right-panel visual overlap
+
+### Changes
+- `advisor-portal.html`: Replaced broken `.dhs-prism-scene` absolute-positioning layout with a clean flex-column `.dhs-vis-inner` wrapper.
+- New DOM order: action badge pill (above) → prism SVG → ring circle + detail card side-by-side in a row.
+- Removed `position:absolute` from `.dhs-ring-float` and `.dhs-action-badge`; both are now flow elements.
+- `.dhs-vis-inner` is `flex-direction:column; align-items:center; gap:16px; width:min(320px,85%)`.
+- `.dhs-ring-float` is `display:flex; align-items:center; gap:16px` — ring circle and detail card sit side by side.
+- `.dhs-ring-detail` gains `flex:1; text-align:left` so it fills available width next to the ring.
+- `.dhs-visual` centered with `justify-content:center; padding:0` (was left-aligned).
+- `.dhs-prism-scene` class and its CSS removed entirely.
+- All JS `getElementById` targets (`dhs-ring-fill`, `dhs-ring-pct`, `dhs-ring-amt`, `dhs-ring-target`, `dhs-ring-investors`, `dhs-action-badge`, `dhs-ab-text`) preserved and verified.
+
+---
+
 ## [2026-05-01] — Advisor Portal: Dashboard hero upgraded to investor-portal lobby style
 
 ### Changes
