@@ -4,6 +4,14 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor portal: IOI Interest Summary styled as IOI Package template
+
+### Changes
+- `advisor-portal.html` (`openPrismDoc('ioi')`): Replaced plain key-value table with the full IOI Package layout matching the admin template — AURUM | PRISM header, deal name in serif italic, PREPARED FOR advisor line, large gold capital figure, % of target + investor count, confidentiality strip, investor composition by type, recommended action, and deal economics footer.
+- `advisor-portal.html`: Fixed data source — was reading `d.iois` (empty on advisor portal) instead of aggregate fields `d.ioi_agg`, `d.ioi_count`, `d.investors_by_type` which are always populated. Investor names remain undisclosed per the confidentiality model.
+
+---
+
 ## [2026-05-01] — Rename "Private Equity" → "Equity" across all portals
 
 ### Changes
