@@ -990,8 +990,8 @@ renderKPIs();renderOverview();updateQueueBadge();
 
 async function load(){
   const me=await fetchSilent('/api/me');
-  if(!me||me._unauth)return; // not logged in — keep mock data visible
-  if(me.ok&&me.role!=='admin')return; // wrong role — keep mock data
+  if(!me||me._unauth){window.location.href='/login';return;}
+  if(me.ok&&me.role!=='admin'){window.location.href='/login';return;}
   if(me.ok&&me.role==='admin'){
     const [dealsR,ioisR]=await Promise.all([
       fetchSilent('/api/v2?resource=deals'),
