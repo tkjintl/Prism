@@ -534,7 +534,7 @@ a{color:inherit;text-decoration:none}
 
 <script>
 /* ── API + AUTH ── */
-async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(!r.ok)return null;return r.json();}catch{return null;}}
+async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
 function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--surface,#131210);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
 const LOGO_COLORS={infra:{c:'#7B8FA1',bg:'rgba(123,143,161,0.12)',bd:'rgba(123,143,161,0.3)'},credit:{c:'#5b85b8',bg:'rgba(91,133,184,0.12)',bd:'rgba(91,133,184,0.3)'},pe:{c:'#C5A572',bg:'rgba(197,165,114,0.12)',bd:'rgba(197,165,114,0.3)'},re:{c:'#5a9e72',bg:'rgba(90,158,114,0.12)',bd:'rgba(90,158,114,0.3)'}};
@@ -1035,6 +1035,7 @@ function renderPortfolio() {
 /* ── INIT ── */
 async function load(){
   const me=await fetchSilent('/api/me');
+  if(me?._unauth){window.location.href='/login';return;}
   if(me?.ok){
     const [dealsR,ioisR]=await Promise.all([
       api('GET','/api/deals/marketplace'),

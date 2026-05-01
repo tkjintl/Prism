@@ -226,7 +226,7 @@ async function loginAdvisor() {
     const d = await r.json();
     if (!d.ok) { showErr('adv-error', d.error || 'Invalid credentials'); setLoading('adv-btn',false); return; }
     if (d.requires_setup) { sessionStorage.setItem('prism_setup_token', d.setup_token); window.location.href = '/setup-password'; return; }
-    window.location.href = '/advisor';
+    window.location.href = '/advisor-portal';
   } catch { showErr('adv-error','Connection error — try again'); setLoading('adv-btn',false); }
 }
 
@@ -239,7 +239,7 @@ async function loginInvestor() {
     const r = await fetch('/api/v2?resource=inst&op=login', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({email,code}) });
     const d = await r.json();
     if (!d.ok) { showErr('inv-error', d.error || 'Invalid credentials'); setLoading('inv-btn',false); return; }
-    window.location.href = '/marketplace';
+    window.location.href = '/investor-portal';
   } catch { showErr('inv-error','Connection error — try again'); setLoading('inv-btn',false); }
 }
 
@@ -252,7 +252,7 @@ async function loginOperator() {
     const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({email,password}) });
     const d = await r.json();
     if (!d.ok) { showErr('op-error', d.error || 'Invalid credentials'); setLoading('op-btn',false); return; }
-    window.location.href = '/control';
+    window.location.href = '/admin-portal';
   } catch { showErr('op-error','Connection error — try again'); setLoading('op-btn',false); }
 }
 
