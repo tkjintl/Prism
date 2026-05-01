@@ -75,16 +75,17 @@ h1 em{color:var(--goldB);font-style:italic;display:block}
 
 /* Hero prism scene */
 .hero-right{position:relative;display:flex;align-items:center;justify-content:center}
-.hero-prism-scene{display:flex;align-items:center;justify-content:center;gap:28px;width:100%}
-.hp-side{display:flex;flex-direction:column;align-items:flex-end;gap:12px;min-width:132px;flex-shrink:0}
-.hp-side-right{align-items:flex-start}
+.hero-prism-scene{display:flex;align-items:center;justify-content:center;gap:0;width:100%}
+.hp-side{display:flex;flex-direction:row;align-items:center;flex-shrink:0}
+.hp-side-right{flex-direction:row-reverse}
+.hp-side-text{display:flex;flex-direction:column;gap:8px;flex-shrink:0;min-width:100px}
 .hp-side-label{font-family:var(--mono);font-size:13px;letter-spacing:.18em;color:var(--goldD);text-transform:uppercase;line-height:1.7;text-align:right}
-.hp-side-right .hp-side-label{text-align:left}
+.hp-side-right .hp-side-text .hp-side-label{text-align:left}
 .hp-side-sub{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.10em;line-height:1.9;text-align:right}
-.hp-side-right .hp-side-sub{text-align:left}
-.hp-flow-line{width:58px;height:1px;background:linear-gradient(90deg,transparent,rgba(197,165,114,.45));margin-top:4px}
-.hp-side-right .hp-flow-line{background:linear-gradient(90deg,rgba(197,165,114,.45),transparent)}
-.hp-prism-wrap{position:relative;flex-shrink:0;width:min(700px,74%);animation:prismBounceLP 5s ease-in-out infinite}
+.hp-side-right .hp-side-text .hp-side-sub{text-align:left}
+.hp-flow-line{flex:1;min-width:12px;height:1px;background:linear-gradient(90deg,transparent,rgba(197,165,114,.55))}
+.hp-side-right .hp-flow-line{background:linear-gradient(90deg,rgba(197,165,114,.55),transparent)}
+.hp-prism-wrap{position:relative;flex-shrink:0;width:min(805px,85%);animation:prismBounceLP 5s ease-in-out infinite}
 .hp-prism-svg{width:100%;height:auto}
 @keyframes beamPulse   {0%,100%{opacity:.14}50%{opacity:.07}}
 @keyframes raySpectrum {0%,100%{opacity:.85;transform:scaleX(1)}50%{opacity:.45;transform:scaleX(.97)}}
@@ -361,8 +362,10 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
 
         <!-- Left: deals flow in -->
         <div class="hp-side">
-          <div class="hp-side-label">Deals<br>flow in</div>
-          <div class="hp-side-sub">Private Credit<br>Pre-IPO · Equity<br>Real Estate · Infra</div>
+          <div class="hp-side-text">
+            <div class="hp-side-label">Deals<br>flow in</div>
+            <div class="hp-side-sub">Private Credit<br>Pre-IPO · Equity<br>Real Estate · Infra</div>
+          </div>
           <div class="hp-flow-line"></div>
         </div>
 
@@ -414,9 +417,11 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
 
         <!-- Right: capital flows on platform -->
         <div class="hp-side hp-side-right">
+          <div class="hp-side-text">
+            <div class="hp-side-label">Capital flows<br>on platform</div>
+            <div class="hp-side-sub">Matched · Vetted<br>Structured · Closed<br>Distributed</div>
+          </div>
           <div class="hp-flow-line"></div>
-          <div class="hp-side-label">Capital flows<br>on platform</div>
-          <div class="hp-side-sub">Matched · Vetted<br>Structured · Closed<br>Distributed</div>
         </div>
 
       </div>
