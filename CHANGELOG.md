@@ -4,6 +4,18 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor portal: Prism doc viewer modals + deal content data
+
+### Changes
+- `advisor-portal.html`: Added `tagline`, `thesis`, and `highlights` arrays to all 3 mock deals (PBI, CCP2, VAS) so Material doc viewer has real content to display.
+- `advisor-portal.html`: Removed "AI-Generated Deal Brief" card from Prism Platform Documents (it is the same thing as Investor Portal Listing).
+- `advisor-portal.html`: Wired "IOI Interest Summary" button to `openPrismDoc('ioi')` — shows approved IOI breakdown with investor type, region, date, and amount.
+- `advisor-portal.html`: Wired "Investor Portal Listing" button to `openPrismDoc('listing')` — shows full deal as published: name, asset class chips, tagline, thesis, highlights, and economics.
+- `advisor-portal.html`: Wired "Platform Deal Report" button to `openPrismDoc('report')` — shows capital summary, investor composition, and stage.
+- `advisor-portal.html`: Added `openPrismDoc(type)` and `closePrismDoc()` functions, modal overlay (`#prism-doc-viewer`), and `.pdv-*` CSS classes for the viewer.
+
+---
+
 ## [2026-05-01] — Admin portal: "Ready to Publish" queue column + notification bell
 
 ### Changes

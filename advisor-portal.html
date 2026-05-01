@@ -648,6 +648,14 @@ let DEALS = [
     geography:'Asia-Pacific · North America', structure:'Senior Secured Infra Debt',
     target_irr:11, target_alloc:60000000, term:84, min_ticket:500000,
     closing:'2026-07-31',
+    tagline:'Senior secured infrastructure debt across Asia-Pacific and North American logistics corridors.',
+    thesis:'Pacific Bridge Infrastructure finances and operates critical logistics infrastructure — toll roads, port connectors, and intermodal hubs — across high-growth Asia-Pacific corridors and select North American gateways. The fund targets stable, long-duration cash flows secured against hard assets with sovereign-backed offtake agreements. Current deployment targets two concession extensions in Malaysia and a port connector in Vancouver, offering downside protection through contractual revenue floors.',
+    highlights:[
+      {icon:'🏗️',title:'Hard asset security',body:'All loans secured against physical infrastructure with 25–40 year concession lives.'},
+      {icon:'🤝',title:'Sovereign-backed offtake',body:'Primary revenue contracts with government or quasi-government counterparties in 3 jurisdictions.'},
+      {icon:'📈',title:'11% target net IRR',body:'Senior secured position with contractual floor rates — low correlation to public market volatility.'},
+      {icon:'🌏',title:'Asia-Pacific growth tailwind',body:'Portfolio weighted to logistics corridors serving regional trade growth above 6% CAGR.'},
+    ],
     ioi_agg:58500000, ioi_count:12,
     pushed_ioi:{
       id:'pi1', investor_type:'Family Office', investor_region:'United States',
@@ -688,6 +696,14 @@ let DEALS = [
     geography:'North America', structure:'Senior Secured Credit',
     target_irr:13, target_alloc:28000000, term:36, min_ticket:250000,
     closing:'2026-09-30',
+    tagline:'Senior secured private credit across North American middle-market borrowers with proven cash flows.',
+    thesis:'Clearwater Credit Partners II provides senior secured lending to established North American middle-market companies with $20M–$150M EBITDA. The strategy targets first-lien positions in defensive sectors — healthcare services, essential retail, and business services — where cash flows are recurring and collateral coverage exceeds 1.8×. This vintage focuses on refinancing opportunities created by the pullback of regional banks, offering institutional terms at attractive spreads.',
+    highlights:[
+      {icon:'🔒',title:'First-lien only',body:'All positions are first-lien senior secured — no subordinated or mezzanine exposure.'},
+      {icon:'🏥',title:'Defensive sector focus',body:'Healthcare, essential services, and business services represent 80%+ of the portfolio.'},
+      {icon:'💵',title:'13% target net IRR',body:'Attractive spread vs. public credit driven by structural complexity premium and illiquidity.'},
+      {icon:'📊',title:'1.8× coverage floor',body:'Collateral coverage covenant maintained across all borrowers — active monitoring quarterly.'},
+    ],
     ioi_agg:19600000, ioi_count:6,
     pushed_ioi:null,
     investors_by_type:[
@@ -720,6 +736,14 @@ let DEALS = [
     geography:'Austin, Texas', structure:'Common Equity',
     target_irr:22, target_alloc:45000000, term:60, min_ticket:250000,
     closing:'2026-08-15',
+    tagline:'Series C equity in a high-growth B2B analytics platform with $28M ARR and enterprise expansion underway.',
+    thesis:'Vantage Analytics is the market-leading analytics platform for mid-enterprise operations teams, with $28M ARR growing 60% year-over-year and net dollar retention above 130%. The Series C finances international expansion into EMEA and a product platform build-out targeting Fortune 1000 procurement teams. The company has been EBITDA-positive for two quarters and is on a clear path to $100M ARR by 2027, with three strategic acquirers known to have evaluated the business.',
+    highlights:[
+      {icon:'📈',title:'60% ARR growth, $28M',body:'Consistent top-line growth with no customer concentration — top 10 clients represent 18% of ARR.'},
+      {icon:'🔁',title:'130%+ net dollar retention',body:'Expansion revenue from existing clients outpaces any churn — strong land-and-expand dynamics.'},
+      {icon:'🌍',title:'EMEA expansion runway',body:'Series C capital finances EU market entry with 3 signed LOIs from Tier 1 enterprise prospects.'},
+      {icon:'🎯',title:'22% target net IRR',body:'Priced at 6.2× ARR — discount to public SaaS comps at 8–12× with superior growth profile.'},
+    ],
     ioi_agg:27900000, ioi_count:4,
     pushed_ioi:{id:'pi3',investor_type:'Family Office',investor_region:'Singapore',amount:3000000,date:'May 1',note:'Pre-screened. Strong tech mandate, committed 3 prior SaaS rounds.',status:'accepted'},
     investors_by_type:[
@@ -1210,7 +1234,7 @@ function renderMaterials(){
         <div class="pdc-label">IOI Interest Summary</div>
         <div class="pdc-desc">Package of approved investor indications forwarded to this deal. Generated by Prism at time of package push.</div>
       </div>
-      <button class="pdc-btn" onclick="toast('Opening IOI Interest Summary…','ok')">View</button>
+      <button class="pdc-btn" onclick="openPrismDoc('ioi')">View</button>
     </div>
     <div class="prism-doc-card">
       <div class="pdc-icon">🌐</div>
@@ -1218,15 +1242,7 @@ function renderMaterials(){
         <div class="pdc-label">Investor Portal Listing</div>
         <div class="pdc-desc">The deal page shown to investors on the Prism platform — includes name, thesis, highlights, and economics as published.</div>
       </div>
-      <button class="pdc-btn" onclick="toast('Opening portal listing preview…','ok')">View</button>
-    </div>
-    <div class="prism-doc-card">
-      <div class="pdc-icon">🤖</div>
-      <div class="pdc-body">
-        <div class="pdc-label">AI-Generated Deal Brief</div>
-        <div class="pdc-desc">The structured deal brief generated by Prism AI at submission. Used as the basis for the investor-facing listing.</div>
-      </div>
-      <button class="pdc-btn" onclick="toast('Opening AI deal brief…','ok')">View</button>
+      <button class="pdc-btn" onclick="openPrismDoc('listing')">View</button>
     </div>
     <div class="prism-doc-card">
       <div class="pdc-icon">📊</div>
@@ -1234,7 +1250,7 @@ function renderMaterials(){
         <div class="pdc-label">Platform Deal Report</div>
         <div class="pdc-desc">Full Prism analytics snapshot: IOI pipeline, investor composition, stage history, and capital breakdown.</div>
       </div>
-      <button class="pdc-btn" onclick="toast('Generating report…','ok')">View</button>
+      <button class="pdc-btn" onclick="openPrismDoc('report')">View</button>
     </div>
   </div>
   <div class="section-title" style="margin-bottom:16px;margin-top:28px">Core Documents</div>
@@ -1448,6 +1464,75 @@ function saveBankingDetails(){
     },
   };
   toast('Banking details saved','ok');
+}
+
+/* ── PRISM DOC VIEWER ── */
+function openPrismDoc(type){
+  const d=DEALS[currentDealIdx];
+  let title='',html='';
+  if(type==='ioi'){
+    title='IOI Interest Summary';
+    const pushed=(d.iois||[]).filter(i=>i.status==='approved');
+    const total=pushed.reduce((s,i)=>s+(i.amount||0),0);
+    html=`<div class="pdv-meta">Generated by Prism · ${d.name}</div>
+    <div class="pdv-kv-row"><span class="pdv-k">Approved IOIs</span><span class="pdv-v">${pushed.length} investors</span></div>
+    <div class="pdv-kv-row"><span class="pdv-k">Total Indicated</span><span class="pdv-v gold">${fmU(total)}</span></div>
+    <div class="pdv-kv-row"><span class="pdv-k">% of Target</span><span class="pdv-v">${d.target_alloc>0?Math.round(total/d.target_alloc*100):0}%</span></div>
+    <div class="pdv-divider"></div>
+    <div class="pdv-section-lbl">Investor Breakdown</div>
+    ${pushed.length?pushed.map(i=>`<div class="pdv-investor-row">
+      <div class="pdv-inv-avatar">${(i.init||i.name||'?').slice(0,2).toUpperCase()}</div>
+      <div class="pdv-inv-info"><div class="pdv-inv-type">${i.type||i.investor_type||'Investor'}</div><div class="pdv-inv-meta">${i.geo||i.investor_region||''} · ${i.date||''}</div></div>
+      <div class="pdv-inv-amt">${fmU(i.amount)}</div>
+    </div>`).join(''):'<div style="color:var(--text-3);font-size:13px;padding:12px 0">No approved IOIs yet.</div>'}`;
+  } else if(type==='listing'){
+    title='Investor Portal Listing';
+    const hls=(d.highlights||[]);
+    html=`<div class="pdv-meta">As published on the investor portal</div>
+    <div class="pdv-deal-name">${d.name}</div>
+    <div class="pdv-chips">
+      <span class="pdv-chip">${(d.asset_class||'').toUpperCase()}</span>
+      <span class="pdv-chip">${d.geography||''}</span>
+      <span class="pdv-chip">${d.structure||''}</span>
+    </div>
+    <div class="pdv-tagline">${d.tagline||'No tagline set.'}</div>
+    <div class="pdv-divider"></div>
+    <div class="pdv-section-lbl">Investment Thesis</div>
+    <div class="pdv-thesis">${d.thesis||'No thesis set.'}</div>
+    ${hls.length?`<div class="pdv-divider"></div><div class="pdv-section-lbl">Key Highlights</div>
+    <div class="pdv-highlights">${hls.map(h=>`<div class="pdv-hl-row"><span class="pdv-hl-icon">${h.icon}</span><div><div class="pdv-hl-title">${h.title}</div><div class="pdv-hl-body">${h.body}</div></div></div>`).join('')}</div>`:''}
+    <div class="pdv-divider"></div>
+    <div class="pdv-section-lbl">Economics</div>
+    <div class="pdv-kv-row"><span class="pdv-k">Target IRR</span><span class="pdv-v gold">${d.target_irr}%</span></div>
+    <div class="pdv-kv-row"><span class="pdv-k">Target Allocation</span><span class="pdv-v">${fmU(d.target_alloc)}</span></div>
+    <div class="pdv-kv-row"><span class="pdv-k">Minimum Ticket</span><span class="pdv-v">${fmU(d.min_ticket)}</span></div>
+    <div class="pdv-kv-row"><span class="pdv-k">Term</span><span class="pdv-v">${d.term} months</span></div>
+    <div class="pdv-kv-row"><span class="pdv-k">Target Close</span><span class="pdv-v">${new Date(d.closing).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span></div>`;
+  } else if(type==='report'){
+    title='Platform Deal Report';
+    const pct=d.target_alloc>0?Math.round(d.ioi_agg/d.target_alloc*100):0;
+    const days=Math.round((new Date(d.closing)-new Date())/86400000);
+    html=`<div class="pdv-meta">Prism Analytics Snapshot · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
+    <div class="pdv-deal-name">${d.name}</div>
+    <div class="pdv-divider"></div>
+    <div class="pdv-section-lbl">Capital Summary</div>
+    <div class="pdv-kv-row"><span class="pdv-k">Total Indicated</span><span class="pdv-v gold">${fmU(d.ioi_agg)}</span></div>
+    <div class="pdv-kv-row"><span class="pdv-k">% of Target</span><span class="pdv-v">${pct}%</span></div>
+    <div class="pdv-kv-row"><span class="pdv-k">Active Investors</span><span class="pdv-v">${d.ioi_count}</span></div>
+    <div class="pdv-kv-row"><span class="pdv-k">Days to Close</span><span class="pdv-v">${days}</span></div>
+    <div class="pdv-divider"></div>
+    <div class="pdv-section-lbl">Investor Composition</div>
+    ${(d.investors_by_type||[]).map(t=>`<div class="pdv-kv-row"><span class="pdv-k">${t.type}</span><span class="pdv-v">${t.count}× · ${fmU(t.amount)}</span></div>`).join('')}
+    <div class="pdv-divider"></div>
+    <div class="pdv-section-lbl">Stage History</div>
+    <div class="pdv-kv-row"><span class="pdv-k">Current Stage</span><span class="pdv-v">${(d.stage||'').toUpperCase()}</span></div>`;
+  }
+  document.getElementById('pdv-title').textContent=title;
+  document.getElementById('pdv-body').innerHTML=html;
+  document.getElementById('prism-doc-viewer').style.display='flex';
+}
+function closePrismDoc(){
+  document.getElementById('prism-doc-viewer').style.display='none';
 }
 
 /* ── DATAROOM / Q&A ── */
@@ -2366,5 +2451,40 @@ async function load(){
 }
 load();
 </script>
+<!-- Prism Doc Viewer Modal -->
+<div id="prism-doc-viewer" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(10,9,8,.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text)" id="pdv-title">Document</div>
+      <button onclick="closePrismDoc()" style="background:none;border:none;color:var(--text-3);font-size:18px;cursor:pointer;line-height:1;padding:2px 4px">&#x2715;</button>
+    </div>
+    <div id="pdv-body" style="overflow-y:auto;padding:20px 20px 28px;display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+<style>
+.pdv-meta{font-size:10px;color:var(--text-3);font-family:var(--mono);letter-spacing:.08em;margin-bottom:4px}
+.pdv-deal-name{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--text);line-height:1.3}
+.pdv-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.pdv-chip{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border-m);border-radius:20px;color:var(--text-2)}
+.pdv-tagline{font-size:13px;color:var(--text-2);line-height:1.6;margin-top:8px}
+.pdv-thesis{font-size:13px;color:var(--text-2);line-height:1.8}
+.pdv-divider{height:1px;background:var(--border);margin:8px 0}
+.pdv-section-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px}
+.pdv-kv-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--border)}
+.pdv-k{font-size:12px;color:var(--text-2)}
+.pdv-v{font-family:var(--mono);font-size:12px;color:var(--text);font-weight:600}
+.pdv-v.gold{color:var(--gold)}
+.pdv-investor-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.pdv-inv-avatar{width:32px;height:32px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold-bd);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--gold);flex-shrink:0}
+.pdv-inv-info{flex:1}
+.pdv-inv-type{font-size:12px;color:var(--text);font-weight:500}
+.pdv-inv-meta{font-size:11px;color:var(--text-3);margin-top:1px}
+.pdv-inv-amt{font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:600;flex-shrink:0}
+.pdv-highlights{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.pdv-hl-row{display:flex;gap:10px;align-items:flex-start}
+.pdv-hl-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.pdv-hl-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.pdv-hl-body{font-size:12px;color:var(--text-2);line-height:1.55}
+</style>
+
 </body>
-</html>
