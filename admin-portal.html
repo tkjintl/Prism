@@ -320,6 +320,24 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ai-apply-btn{width:100%;padding:11px;background:var(--gold);font-size:13px;font-weight:600;border-radius:2px;color:#1A1410;transition:all .2s;border:none;cursor:pointer;font-family:inherit;margin-top:4px}
 .ai-apply-btn:hover{background:var(--gold-b);transform:translateY(-1px)}
 
+/* NOTIFICATION BELL */
+.notif-bell-wrap{position:relative;flex-shrink:0}
+.notif-bell-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:50%;color:var(--text-2);font-size:16px;transition:all .2s;position:relative;background:none;cursor:pointer}
+.notif-bell-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.notif-bell-btn.has-items{border-color:var(--amber-bd);color:var(--amber)}
+.notif-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:var(--amber);font-family:var(--mono);font-size:8px;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 4px;animation:pulse 2s infinite;border:1.5px solid var(--bg)}
+.notif-panel{position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:1px solid var(--border-m);border-radius:var(--r);box-shadow:0 12px 40px rgba(0,0,0,.2);z-index:500;animation:fadeUp .18s var(--ease);overflow:hidden}
+.notif-panel-hd{padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);background:var(--bg-2)}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.notif-item:last-child{border-bottom:none}
+.notif-item:hover{background:var(--bg-3)}
+.notif-item-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.notif-item-dot.green{background:var(--green)}
+.notif-item-dot.amber{background:var(--amber)}
+.notif-item-body{flex:1;font-size:12px;color:var(--text-2);line-height:1.5}
+.notif-item-body strong{color:var(--text);font-weight:500}
+.notif-empty{padding:20px 14px;text-align:center;font-size:12px;color:var(--text-3);font-style:italic}
+
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 20px;font-size:13px;border-radius:3px;z-index:999;opacity:0;transition:all .25s var(--ease);pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -608,8 +626,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ov-header-alert{font-family:var(--mono);font-size:11px;color:var(--amber);display:flex;align-items:center;gap:6px}
 .ov-header-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
 /* Action queue */
-.ov-queue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
-@media(max-width:900px){.ov-queue-grid{grid-template-columns:1fr}}
+.ov-queue-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+@media(max-width:1100px){.ov-queue-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.ov-queue-grid{grid-template-columns:1fr}}
 .ov-queue-col{display:flex;flex-direction:column;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;min-height:120px}
 .ov-col-hd{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg-2)}
 .ov-col-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
@@ -617,6 +636,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ov-dot-gold{background:var(--gold)}
 .ov-dot-violet{background:var(--violet)}
 .ov-dot-blue{background:var(--blue)}
+.ov-dot-green{background:var(--green)}
 .ov-col-title{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text);flex:1}
 .ov-col-badge{font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:20px;background:var(--bg-3);border:1px solid var(--border);color:var(--text-3)}
 .ov-col-badge.has-items{background:var(--gold-bg);border-color:var(--gold-bd);color:var(--gold)}
@@ -817,6 +837,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   <div class="nav-r">
     <div class="role-badge">Admin</div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☾</button>
+    <div class="notif-bell-wrap" id="notif-bell-wrap">
+      <button class="notif-bell-btn" id="notif-bell" onclick="toggleNotifPanel()" title="Notifications" aria-label="Notifications">
+        <span style="font-size:15px">&#x1F514;</span>
+        <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+      </button>
+      <div class="notif-panel" id="notif-panel" style="display:none">
+        <div class="notif-panel-hd">Pending Actions</div>
+        <div id="notif-panel-body"></div>
+      </div>
+    </div>
     <button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
@@ -1469,7 +1499,7 @@ let DEALS=[
 ];
 
 let NEW_SUBMISSIONS=[
-  {id:'ns1',name:'Meridian Financial Corp',asset_class:'credit',geography:'United States',structure:'Mezzanine',target_irr:15,target_alloc:22000000,term:30,min_ticket:200000,advisor:'David Park',advisor_firm:'Park Capital',submitted:'Apr 28'},
+  {id:'ns1',name:'Meridian Financial Corp',asset_class:'credit',geography:'United States',structure:'Mezzanine',target_irr:15,target_alloc:22000000,term:30,min_ticket:200000,advisor:'David Park',advisor_firm:'Park Capital',submitted:'Apr 28',advisor_review_status:'approved',thesis:'Mid-market mezzanine credit targeting the US SME gap. Proven origination team with $800M deployed.'},
   {
     id:'sub3',name:'Horizon Renewable Energy Fund',asset_class:'infra',stage:'review',
     advisor:'James Lim',advisor_firm:'Lim Capital SG',submitted:'May 1',
@@ -1652,8 +1682,8 @@ function renderOverview(){
 
   /* ── Action Queue columns ── */
 
-  // Column 1: New Deals (advisor submissions awaiting AI generation + review)
-  const submissionCards = NEW_SUBMISSIONS.map(s => {
+  // Column 1: New Deals (advisor submissions awaiting AI generation + review, exclude approved)
+  const submissionCards = NEW_SUBMISSIONS.filter(s => s.advisor_review_status !== 'approved').map(s => {
     const generated = !!(s.thesis || s.tagline || s.ai_content || s.generated);
     return `<div class="ov-action-card">
       <div class="ov-ac-tag amber">New Deal · ${s.submitted||'Recent'}</div>
@@ -1672,6 +1702,18 @@ function renderOverview(){
       </div>
     </div>`;
   });
+
+  // Column 1b: Ready to Publish (advisor-approved, awaiting admin publish)
+  const readyToPublishCards = NEW_SUBMISSIONS.filter(s => s.advisor_review_status === 'approved').map(s =>
+    `<div class="ov-action-card" style="border-left:2px solid var(--green)">
+      <div class="ov-ac-tag" style="color:var(--green)">Advisor Approved · Ready</div>
+      <div class="ov-ac-name">${s.name}</div>
+      <div class="ov-ac-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''}<br>${s.target_irr}% IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()}</div>
+      <div class="ov-ac-actions">
+        <button class="att-btn att-approve" onclick="publishDeal('${s.id}',this)">Publish Live →</button>
+      </div>
+    </div>`
+  );
 
   // Column 2: Inbound IOI from Investors (pending approvals)
   const ioiDecisionCards = DEALS.flatMap(d =>
@@ -1831,6 +1873,7 @@ function renderOverview(){
     ${headerBar}
     <div class="ov-queue-grid">
       ${queueCol('ov-dot-amber','New Deals',submissionCards)}
+      ${queueCol('ov-dot-green','Ready to Publish',readyToPublishCards)}
       ${queueCol('ov-dot-gold','Inbound IOI from Investors',ioiDecisionCards)}
       ${queueCol('ov-dot-violet','Open Due Diligence',pushCards)}
     </div>
@@ -1861,6 +1904,83 @@ function renderOverview(){
         <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
       </div>
     </div>`;
+  updateNotifBell();
+}
+
+/* ── NOTIFICATION BELL ── */
+function updateNotifBell(){
+  const readyCount=NEW_SUBMISSIONS.filter(s=>s.advisor_review_status==='approved').length;
+  // Count pending investors from MOCK_INVESTORS — defined inside renderOverview but we
+  // re-derive here from the known mock set so the bell stays accurate after re-renders.
+  const _mockInvestors=[
+    {name:'Whitmore Family Office',  access:'active'},
+    {name:'D. Ashford',              access:'pending'},
+    {name:'Sterling Family Office',  access:'active'},
+    {name:'E. Nakamura',             access:'pending'},
+    {name:'Marquette Capital SG',    access:'active'},
+    {name:'S. Okonkwo',              access:'invite_sent'},
+    {name:'Ashford Holdings',        access:'active'},
+    {name:'Blackthorn Partners',     access:'invite_sent'},
+  ];
+  const pendingInvCount=_mockInvestors.filter(i=>i.access==='pending').length;
+  const total=readyCount+pendingInvCount;
+  const badge=document.getElementById('notif-badge');
+  const bell=document.getElementById('notif-bell');
+  if(badge){
+    badge.textContent=total;
+    badge.style.display=total>0?'flex':'none';
+  }
+  if(bell){
+    bell.classList.toggle('has-items',total>0);
+  }
+}
+
+function toggleNotifPanel(){
+  const panel=document.getElementById('notif-panel');
+  const wrap=document.getElementById('notif-bell-wrap');
+  if(!panel)return;
+  const open=panel.style.display==='none'||panel.style.display==='';
+  panel.style.display=open?'block':'none';
+  if(open){
+    updateNotifBell();
+    // Build items
+    const readyDeals=NEW_SUBMISSIONS.filter(s=>s.advisor_review_status==='approved');
+    const _mockInvestors=[
+      {name:'D. Ashford',  access:'pending'},
+      {name:'E. Nakamura', access:'pending'},
+    ];
+    const pendingInvs=_mockInvestors.filter(i=>i.access==='pending');
+    const body=document.getElementById('notif-panel-body');
+    if(!body)return;
+    if(!readyDeals.length&&!pendingInvs.length){
+      body.innerHTML='<div class="notif-empty">All clear — no pending actions</div>';
+      return;
+    }
+    let html='';
+    readyDeals.forEach(s=>{
+      html+=`<div class="notif-item" onclick="toggleNotifPanel();showView('overview',document.querySelectorAll('.ntab')[0])">
+        <div class="notif-item-dot green"></div>
+        <div class="notif-item-body"><strong>${s.name}</strong><br>Advisor approved, ready to publish</div>
+      </div>`;
+    });
+    pendingInvs.forEach(i=>{
+      html+=`<div class="notif-item" onclick="toggleNotifPanel();toast('Navigate to Members / Investors view','')">
+        <div class="notif-item-dot amber"></div>
+        <div class="notif-item-body"><strong>${i.name}</strong><br>Pending approval</div>
+      </div>`;
+    });
+    body.innerHTML=html;
+    // Close panel when clicking outside
+    setTimeout(()=>{
+      function onOutside(e){
+        if(!wrap.contains(e.target)){
+          panel.style.display='none';
+          document.removeEventListener('click',onOutside);
+        }
+      }
+      document.addEventListener('click',onOutside);
+    },0);
+  }
 }
 
 /* ── PACKAGE PREVIEW ── */

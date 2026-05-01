@@ -4,6 +4,20 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: "Ready to Publish" queue column + notification bell
+
+### Changes
+- `admin-portal.html`: Added 4th queue column **"Ready to Publish"** (green dot) to the Overview action queue. Deals where `advisor_review_status === 'approved'` now appear here with a "Publish Live →" button, and are excluded from the "New Deals" column so they no longer appear in both.
+- `admin-portal.html`: Mock data — added `advisor_review_status:'approved'` to the first `NEW_SUBMISSIONS` entry (`ns1`, Meridian Financial Corp) so the column is non-empty on load.
+- `admin-portal.html`: Queue grid CSS updated from `repeat(3,1fr)` to `repeat(4,1fr)`. Added `.ov-dot-green` CSS class. Responsive breakpoints updated: 2-col at ≤1100px, 1-col at ≤640px.
+- `admin-portal.html`: Added notification bell button (`#notif-bell`) to admin top nav (right side, before Sign out). Shows an amber badge with total pending count = publish-ready deals + pending investor approvals.
+- `admin-portal.html`: Bell click opens `#notif-panel` dropdown listing each publish-ready deal (green dot) and each pending investor (amber dot). Clicking a deal item navigates to Overview; clicking a pending investor shows a toast. Dismiss on outside click. Shows "All clear" if nothing pending.
+- `admin-portal.html`: Added `updateNotifBell()` — computes badge count and toggles bell styling. Called at end of `renderOverview()`.
+- `admin-portal.html`: Added `toggleNotifPanel()` — renders notification list, opens/closes panel, wires outside-click dismiss.
+- `admin-portal.html`: Added CSS for `.notif-bell-wrap`, `.notif-bell-btn`, `.notif-badge`, `.notif-panel`, `.notif-panel-hd`, `.notif-item`, `.notif-item-dot`, `.notif-item-body`, `.notif-empty`.
+
+---
+
 ## [2026-05-01] — Advisor portal: Overview + Performance merge, Prism Platform Documents in Materials
 
 ### Changes
