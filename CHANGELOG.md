@@ -4,6 +4,18 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor Review: full-page overlay + investor-style deal preview with inline editing
+
+### Changes
+- `advisor-portal.html`: Replaced plain form `renderReviewEdit()` with a rich two-column investor-preview layout. Left column shows deal identity, editable name (serif display field), editable thesis, highlights (click-to-edit per row with icon/title/body), and read-only key-stats chips. Right sidebar shows all deal economics as click-to-edit mono fields with comma formatting. Confirm and Save Draft buttons in sidebar.
+- `advisor-portal.html`: Added full-page notification overlay (`#review-notify-overlay`) — fires on load via `checkReviewOverlay()` when any deal has an unread `deal_review_requested` notification or `advisor_review_status === 'pending'`. "Review Now" navigates directly to that deal's Review tab; "Later" dismisses.
+- `advisor-portal.html`: Added `dismissReviewOverlay()`, `checkReviewOverlay()` functions. `checkReviewOverlay()` called from both `loadNotifications()` (live API path) and `renderMockDeals()` (mock data path).
+- `advisor-portal.html`: Added `fmNum()` and `parseNum()` helpers for comma-formatted number display/parsing in edit fields.
+- `advisor-portal.html`: Added `_pendingReviewDealId` and `_revEdits` module-level state. Rewrote `confirmDealReview()` to read from `_revEdits` accumulator (populated by inline edit save handlers) rather than querying DOM inputs directly. `reviewField()` and `reviewTextarea()` helper functions removed (no longer needed).
+- `advisor-portal.html`: Added `.rev-edit-hint` / `.rev-field-wrap:hover` CSS for hover-reveal pencil hints, and `@media(max-width:700px)` responsive stack for the two-column review grid.
+
+---
+
 ## [2026-05-01] — Advisor review step: AI-gen → advisor edits → admin publishes
 
 ### Changes
