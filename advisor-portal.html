@@ -424,8 +424,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
   <div class="nav-r">
     <div class="nav-user">
-      <div class="nav-user-name">Sarah Chen</div>
-      <div class="nav-user-firm">Chen Capital Partners</div>
+      <div class="nav-user-name">—</div>
+      <div class="nav-user-firm"></div>
     </div>
     <div class="role-badge">Advisor</div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
@@ -470,7 +470,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
 
   <!-- Content Tabs -->
-  <div class="content-tabs">
+  <div class="content-tabs" id="deal-tabs">
     <button class="ctab on" onclick="showTab('overview',this)">Overview</button>
     <button class="ctab" onclick="showTab('materials',this)">Materials</button>
     <button class="ctab" onclick="showTab('performance',this)">Performance</button>
@@ -1400,27 +1400,62 @@ async function wizHandleFile(slot,input){
 }
 
 /* ── INIT ── */
+function renderEmpty(){
+  const sw=document.querySelector('.deal-switcher');
+  if(sw)sw.innerHTML=`<span class="ds-label">Your Deals</span><span style="font-family:var(--sans);font-size:12px;color:var(--text-3);margin-left:8px">No active deals</span>`;
+  const tabs=document.getElementById('deal-tabs');
+  if(tabs)tabs.style.display='none';
+  const sj=document.getElementById('stage-journey-wrap')||document.querySelector('.stage-journey-outer');
+  if(sj)sj.style.display='none';
+  // Clear the deal header area
+  const dh=document.getElementById('deal-header');
+  if(dh)dh.style.display='none';
+  const ov=document.getElementById('tab-overview');
+  if(ov)ov.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;gap:16px;color:var(--text-3);font-family:var(--sans)">
+    <div style="font-size:36px;opacity:.25">◆</div>
+    <div style="font-size:15px;color:var(--text-2)">No deals submitted yet</div>
+    <div style="font-size:12px;max-width:300px;text-align:center;line-height:1.7">Use <strong style="color:var(--gold)">Submit New Deal</strong> above to add your first deal for Aurum review.</div>
+  </div>`;
+  ['tab-materials','tab-performance'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
+}
+
+function renderLoading(){
+  const sw=document.querySelector('.deal-switcher');
+  if(sw)sw.innerHTML=`<span class="ds-label">Your Deals</span><span style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-left:8px;letter-spacing:.08em">Loading…</span>`;
+}
+
 async function load(){
-  // Render mock data immediately so page is never blank
-  renderSwitcher();renderHeader();renderStageJourney();renderOverview();renderMaterials();
+  renderLoading();
   const me=await fetchSilent('/api/me');
-  if(!me||me._unauth)return;
+  if(!me||me._unauth){ renderEmpty(); return; }
   if(me.ok&&(me.role==='advisor'||me.role==='admin')){
+    // Update nav identity
+    const nameEl=document.querySelector('.nav-user-name');
+    const firmEl=document.querySelector('.nav-user-firm');
+    if(nameEl)nameEl.textContent=me.name||me.email||'Advisor';
+    if(firmEl)firmEl.textContent=me.firm||'';
+
     const d=await fetchSilent('/api/v2?resource=advisor&op=me');
     if(d?.ok){
-      // Update nav with the real logged-in advisor's identity
+      // Refine nav with full advisor profile
       if(d.advisor){
-        const nameEl=document.querySelector('.nav-user-name');
-        const firmEl=document.querySelector('.nav-user-firm');
         if(nameEl)nameEl.textContent=d.advisor.name||me.email||'';
-        if(firmEl)firmEl.textContent=d.advisor.firm||me.firm||'';
+        if(firmEl)firmEl.textContent=d.advisor.firm_name||d.advisor.firm||me.firm||'';
       }
-      // Replace deals with only this advisor's deals from the API
       if(d.deals&&d.deals.length){
-        DEALS=d.deals.map(adaptDeal);currentDealIdx=0;
+        DEALS=d.deals.map(adaptDeal);
+        currentDealIdx=0;
+        document.getElementById('deal-tabs')&&(document.getElementById('deal-tabs').style.display='');
+        document.getElementById('stage-journey')&&(document.getElementById('stage-journey').style.display='');
         renderSwitcher();renderHeader();renderStageJourney();renderOverview();renderMaterials();
+      } else {
+        renderEmpty();
       }
+    } else {
+      renderEmpty();
     }
+  } else {
+    renderEmpty();
   }
 }
 load();
