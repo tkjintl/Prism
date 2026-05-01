@@ -290,6 +290,47 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
 .foot-sg{font-family:var(--mono);font-size:7px;color:var(--muted);text-align:right;line-height:1.85;flex-shrink:0}
 .foot-sg strong{color:var(--goldD)}
 
+/* ─── PORTAL SHOWCASE ─── */
+.portal-showcase-outer{padding:90px 0 110px;position:relative;overflow:hidden;background:linear-gradient(180deg,var(--bg) 0%,var(--bg3) 18%,var(--bg3) 82%,var(--bg) 100%)}
+.portal-showcase-outer::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(197,165,114,.016) 1px,transparent 1px),linear-gradient(90deg,rgba(197,165,114,.016) 1px,transparent 1px);background-size:64px 64px;pointer-events:none}
+.portal-showcase-outer::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1100px;height:800px;background:radial-gradient(ellipse at center,rgba(197,165,114,.038) 0%,transparent 58%);pointer-events:none;z-index:0}
+.showcase-hd{max-width:1240px;margin:0 auto;padding:0 48px 64px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:end;position:relative;z-index:1}
+.portal-pair{max-width:1340px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:1fr 1fr;gap:20px;position:relative;z-index:1}
+.pw{border:1px solid rgba(197,165,114,.2);background:#080806;position:relative;overflow:hidden;transition:box-shadow .3s,border-color .3s}
+.pw::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(197,165,114,.65) 30%,rgba(197,165,114,.65) 70%,transparent);z-index:10;pointer-events:none}
+.pw:hover{border-color:rgba(197,165,114,.38);box-shadow:0 0 80px rgba(197,165,114,.07),0 28px 80px rgba(0,0,0,.85)}
+.pw-label-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:rgba(197,165,114,.05);border-bottom:1px solid rgba(197,165,114,.14)}
+.pw-label-name{font-family:var(--mono);font-size:7px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold)}
+.pw-label-sub{font-family:var(--mono);font-size:6.5px;color:var(--muted)}
+.pw-live{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:6.5px;color:var(--green)}
+.pw-live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;display:inline-block}
+.pw-chrome{display:flex;align-items:center;height:26px;background:#0c0b09;border-bottom:1px solid rgba(255,255,255,.055);padding:0 10px;gap:7px}
+.pw-chrome-dots{display:flex;gap:4px}
+.pw-chrome-dots span{width:7px;height:7px;border-radius:50%}
+.pw-chrome-dots span:nth-child(1){background:#503428}
+.pw-chrome-dots span:nth-child(2){background:#4a4020}
+.pw-chrome-dots span:nth-child(3){background:#1e3c28}
+.pw-chrome-url{flex:1;height:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:2px;display:flex;align-items:center;padding:0 8px;font-family:var(--mono);font-size:7.5px;max-width:400px;margin:0 auto}
+.pw-chrome-base{color:var(--goldD)}
+.pw-chrome-path{color:var(--muted)}
+.pw-nav{display:flex;align-items:center;height:34px;background:#0a0908;border-bottom:1px solid rgba(255,255,255,.065);padding:0 10px;gap:0;flex-shrink:0}
+.pw-nav-seal{width:22px;height:22px;border:1px solid rgba(197,165,114,.22);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px;color:#C5A572;margin-right:8px;flex-shrink:0}
+.pw-nav-brand{font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.2em;color:#a89f94;text-transform:uppercase;padding-right:12px;border-right:1px solid rgba(255,255,255,.065)}
+.pw-nav-tab{font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.10em;text-transform:uppercase;padding:0 11px;height:34px;display:flex;align-items:center;color:#655f58;border-bottom:2px solid transparent;flex-shrink:0}
+.pw-nav-tab-on{color:#C5A572;border-bottom-color:#C5A572}
+.pw-badge-g{font-family:'JetBrains Mono',monospace;font-size:6.5px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72;flex-shrink:0;white-space:nowrap}
+.pw-badge-a{font-family:'JetBrains Mono',monospace;font-size:6.5px;padding:2px 7px;border:1px solid rgba(184,131,58,.28);background:rgba(184,131,58,.07);color:#b8833a;flex-shrink:0;white-space:nowrap}
+.pw-dim{font-family:'JetBrains Mono',monospace;font-size:7px;color:#655f58;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.pw-viewport{height:390px;overflow:hidden;position:relative}
+.pw-screen{position:absolute;inset:0;overflow-y:auto;transition:opacity .45s ease,transform .45s ease;opacity:0;transform:translateX(20px);pointer-events:none}
+.pw-screen.active{opacity:1;transform:translateX(0);pointer-events:auto}
+.pw-screen.out-left{opacity:0;transform:translateX(-20px)}
+.pw-dot-bar{display:flex;align-items:center;padding:9px 14px;background:#0a0908;border-top:1px solid rgba(255,255,255,.065);gap:6px}
+.pw-dot{width:5px;height:5px;border-radius:50%;background:rgba(197,165,114,.2);cursor:pointer;transition:background .2s,transform .2s;border:none}
+.pw-dot.on{background:var(--gold);transform:scale(1.35)}
+.pw-dot-lbl{font-family:var(--mono);font-size:6.5px;color:var(--muted);letter-spacing:.14em;margin-left:auto}
+@media(max-width:900px){.portal-pair{grid-template-columns:1fr;padding:0 16px}.showcase-hd{grid-template-columns:1fr;padding:0 20px 40px}.pw-viewport{height:320px}}
+
 /* TOAST */
 .toast-box{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(10px);font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;padding:10px 20px;background:var(--card2);border:1px solid var(--greenBd);color:var(--green);opacity:0;transition:all .28s;pointer-events:none;z-index:999;white-space:nowrap}
 .toast-box.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -318,7 +359,6 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   <div class="n-links">
     <a class="n-link" href="#platform">Platform</a>
     <a class="n-link" href="#access">Access Tiers</a>
-    <a class="n-link" href="#request">Request Access</a>
   </div>
   <button class="btn-nav ghost" onclick="window.location.href='/login'">Member Login</button>
   <button class="btn-nav" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Access →</button>
@@ -412,299 +452,387 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   </div>
 </section>
 
-<!-- STATS BAR -->
-<div class="stats">
-  <div class="stats-inner">
-    <div class="stat reveal">
-      <div class="stat-lbl">Capital Tracked</div>
-      <div class="stat-n" data-target="2.4" data-suffix="B+">2.4B+</div>
-      <div class="stat-sub">Across active deal positions</div>
-    </div>
-    <div class="stat reveal reveal-d1">
-      <div class="stat-lbl">Deals Closed</div>
-      <div class="stat-n" data-target="47" data-suffix="+">47+</div>
-      <div class="stat-sub">Across credit, equity & real estate</div>
-    </div>
-    <div class="stat reveal reveal-d2">
-      <div class="stat-lbl">Investor Members</div>
-      <div class="stat-n" data-target="310" data-suffix="+">310+</div>
-      <div class="stat-sub">Qualified institutional investors</div>
-    </div>
-    <div class="stat reveal reveal-d3">
-      <div class="stat-lbl">Geographies</div>
-      <div class="stat-n" data-target="12" data-suffix="">12</div>
-      <div class="stat-sub">US and Asia-Pacific markets</div>
-    </div>
-  </div>
-</div>
-
 <!-- PLATFORM PREVIEW -->
-<section class="section" id="platform">
-  <div class="sec-eye reveal"><div class="sec-eye-line"></div><span class="sec-eye-txt">The Platform</span></div>
-  <h2 class="reveal">Built for the full<br><em>deal lifecycle.</em></h2>
-  <p class="sec-sub reveal">From first indication to deployed capital — gated data rooms, digital subscription documents, wire confirmation, and live position tracking. One platform, end to end.</p>
+<section class="portal-showcase-outer" id="platform">
+  <div class="showcase-hd">
+    <div>
+      <div class="sec-eye reveal"><div class="sec-eye-line"></div><span class="sec-eye-txt">The Platform</span></div>
+      <h2 class="reveal">Institutional-grade<br><em>deal infrastructure.</em></h2>
+    </div>
+    <p class="sec-sub reveal" style="margin-bottom:0">Two dedicated portals engineered for private capital at scale — one for deal advisors, one for qualified investors. Every stage of the lifecycle in one place.</p>
+  </div>
 
-  <div class="platform-grid">
+  <div class="portal-pair">
 
-    <!-- MARKETPLACE SCREENSHOT -->
-    <div class="platform-frame reveal-left">
-      <div class="pf-caption">
-        <span class="pf-cap-tag">Investor Marketplace · /marketplace</span>
-        <span class="pf-live-dot"></span>
-        <span class="pf-cap-note">Browse Deals · Illustrative</span>
+    <!-- ═══ INVESTOR PORTAL ═══ -->
+    <div class="pw reveal-left">
+      <div class="pw-label-bar">
+        <span class="pw-label-name">Investor Portal</span>
+        <span class="pw-label-sub">Qualified Institutional Access</span>
+        <span class="pw-live"><span class="pw-live-dot"></span>Live</span>
       </div>
-      <div class="pf-viewport">
-        <div class="pf-scaled">
-          <!-- Full-size marketplace UI rendered at 1060px, scaled to fit -->
-
-          <!-- Nav -->
-          <div style="display:flex;align-items:center;height:42px;background:#0a0908;border-bottom:1px solid rgba(255,255,255,.065);padding:0 14px;gap:0;flex-shrink:0">
-            <div style="width:28px;height:28px;border:1px solid rgba(197,165,114,.22);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#C5A572;margin-right:10px">Au</div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.28em;color:#a89f94;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.065);padding-right:14px;margin-right:0">Deal Marketplace</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;padding:0 16px;height:42px;display:flex;align-items:center;border-bottom:2px solid #C5A572">Browse Deals</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#655f58;padding:0 16px;height:42px;display:flex;align-items:center;border-bottom:2px solid transparent">My Portfolio</span>
-            <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#5a9e72;padding:4px 10px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07)">Member</span>
-              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#a89f94">Lee WS · #F-014</span>
-              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#655f58">Sign out</span>
-            </div>
-          </div>
-          <!-- Filters -->
-          <div style="display:flex;align-items:center;gap:0;padding:8px 14px;background:#070706;border-bottom:1px solid rgba(255,255,255,.065);flex-wrap:wrap;gap:6px">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.14em;color:#655f58;text-transform:uppercase;margin-right:4px">CLASS</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(197,165,114,.45);color:#C5A572;background:rgba(197,165,114,.04)">All</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(90,152,236,.28);color:#5a98ec;background:rgba(90,152,236,.06)">Credit</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">Pre-IPO</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">Real Estate</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">Infra</span>
-            <div style="width:1px;height:16px;background:rgba(255,255,255,.065);margin:0 4px"></div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.14em;color:#655f58;text-transform:uppercase;margin-right:4px">GEO</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(197,165,114,.45);color:#C5A572;background:rgba(197,165,114,.04)">All</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">United States</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">East Asia</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 9px;border:1px solid rgba(255,255,255,.065);color:#655f58">SE Asia</span>
-          </div>
-
-          <!-- Deals header -->
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;background:#070706">
-            <div>
-              <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:#ece6da">Current Deals</span>
-              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#655f58;margin-left:10px">5 deals open</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:8px;color:#5a9e72">
-              <span style="width:6px;height:6px;border-radius:50%;background:#5a9e72;animation:pulse 2s infinite;display:inline-block"></span>
-              Live · IOI window open
-            </div>
-          </div>
-
-          <!-- 3-column deal grid -->
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 14px 14px;background:#070706">
-
-            <!-- Deal 1 -->
-            <div style="background:#111009;border:1px solid rgba(255,255,255,.065);overflow:hidden">
-              <div style="display:flex;gap:4px;flex-wrap:wrap;padding:10px 10px 0">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(90,152,236,.28);color:#5a98ec;background:rgba(90,152,236,.06);text-transform:uppercase;letter-spacing:.10em">Private Credit</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase;letter-spacing:.10em">East Asia</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(197,165,114,.28);color:#DEB97A;background:rgba(197,165,114,.04);text-transform:uppercase;letter-spacing:.10em">New</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(184,131,58,.28);color:#b8833a;background:rgba(184,131,58,.07);text-transform:uppercase;letter-spacing:.10em;animation:pulse 2s infinite">↑ 153%</span>
-              </div>
-              <div style="padding:8px 10px 6px">
-                <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:#ece6da;margin-bottom:2px">Senior Secured Credit</div>
-                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58">Private Credit · Prism-Vetted</div>
-              </div>
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
-                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Type</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#DEB97A">Fixed</div></div>
-                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">Short</div></div>
-                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Round</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#5a9e72">$1–3M</div></div>
-                <div style="padding:7px 8px"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">$50K</div></div>
-              </div>
-              <div style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.065)">
-                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:5px"><span>Indicated demand · —</span><span>—</span></div>
-                <div style="height:4px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:0%;height:100%;background:linear-gradient(90deg,#8a7c68,#DEB97A);border-radius:2px"></div></div>
-                <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#655f58;margin-top:4px">IOI progress shown here at close</div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0c0b09">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#b8833a">Closing date TBD</span>
-                <button style="font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a7c68;padding:5px 11px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">Express Interest →</button>
-              </div>
-            </div>
-
-            <!-- Deal 2 -->
-            <div style="background:#111009;border:1px solid rgba(255,255,255,.065);overflow:hidden">
-              <div style="display:flex;gap:4px;flex-wrap:wrap;padding:10px 10px 0">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(197,165,114,.22);color:#8a7c68;background:rgba(197,165,114,.04);text-transform:uppercase;letter-spacing:.10em">Pre-IPO</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase;letter-spacing:.10em">SE Asia</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(184,131,58,.28);color:#b8833a;background:rgba(184,131,58,.07);text-transform:uppercase;letter-spacing:.10em">↑ 160% OVS</span>
-              </div>
-              <div style="padding:8px 10px 6px">
-                <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:#ece6da;margin-bottom:2px">Pre-IPO Tech Secondary</div>
-                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58">Pre-IPO Equity · Prism SPV</div>
-              </div>
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
-                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Type</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#DEB97A">Equity</div></div>
-                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">Med</div></div>
-                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Round</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#5a9e72">$1–3M</div></div>
-                <div style="padding:7px 8px"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">$100K</div></div>
-              </div>
-              <div style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.065)">
-                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:5px"><span>Confirmed 10% · $200K / $2M</span><span>7 IOIs</span></div>
-                <div style="height:4px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:10%;height:100%;background:linear-gradient(90deg,#8a7c68,#DEB97A);border-radius:2px"></div></div>
-                <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#655f58;margin-top:4px">Strong indication momentum · pro-rata</div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0c0b09">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#b8833a">Closes in 46d</span>
-                <button style="font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a7c68;padding:5px 11px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">Express Interest →</button>
-              </div>
-            </div>
-
-            <!-- Deal 3 -->
-            <div style="background:#111009;border:1px solid rgba(90,158,114,.28);overflow:hidden">
-              <div style="display:flex;gap:4px;flex-wrap:wrap;padding:10px 10px 0">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(90,158,114,.28);color:#5a9e72;background:rgba(90,158,114,.07);text-transform:uppercase;letter-spacing:.10em">RE Debt</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase;letter-spacing:.10em">SE Asia</span>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border:1px solid rgba(184,131,58,.28);color:#b8833a;background:rgba(184,131,58,.07);text-transform:uppercase;letter-spacing:.10em;animation:pulse 2s infinite">● Closing Soon</span>
-              </div>
-              <div style="padding:8px 10px 6px">
-                <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:#ece6da;margin-bottom:2px">Grade A Commercial Bridge</div>
-                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58">Real Estate Debt · Prism-Approved</div>
-              </div>
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
-                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Type</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#DEB97A">Fixed</div></div>
-                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">Short</div></div>
-                <div style="padding:7px 8px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Round</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#5a9e72">$500K+</div></div>
-                <div style="padding:7px 8px"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;text-transform:uppercase;margin-bottom:2px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">$25K</div></div>
-              </div>
-              <div style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.065)">
-                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:5px"><span>Confirmed 65% · $550K / $850K</span><span>9 IOIs</span></div>
-                <div style="height:4px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:65%;height:100%;background:linear-gradient(90deg,rgba(90,158,114,.6),rgba(90,158,114,.9));border-radius:2px"></div></div>
-                <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#5a9e72;margin-top:4px">Hard close deadline · $300K remaining</div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0c0b09">
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#b8833a;font-weight:600">⚠ Closes in 24d</span>
-                <button style="font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a7c68;padding:5px 11px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">Express Interest →</button>
-              </div>
-            </div>
-
-          </div>
+      <div class="pw-chrome">
+        <div class="pw-chrome-dots"><span></span><span></span><span></span></div>
+        <div class="pw-chrome-url"><span class="pw-chrome-base">prism-plum.vercel.app</span><span class="pw-chrome-path">/investor-portal</span></div>
+      </div>
+      <div class="pw-nav">
+        <div class="pw-nav-seal">Au</div>
+        <span class="pw-nav-brand">Aurum&nbsp;Prism</span>
+        <span class="pw-nav-tab pw-nav-tab-on" id="inv-tab-0">Browse Deals</span>
+        <span class="pw-nav-tab" id="inv-tab-1">My Portfolio</span>
+        <span class="pw-nav-tab" id="inv-tab-2">Activity</span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <span class="pw-badge-g">Member</span>
+          <span class="pw-dim">Meridian Family Office</span>
         </div>
       </div>
-      <div class="pf-caption-bottom">
-        <span>Illustrative deal flow · <span style="color:var(--goldD)">prism.theaurumcc.com</span></span>
-        <span style="color:var(--green);display:flex;align-items:center;gap:5px"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite"></span>IOI windows open</span>
-      </div>
-    </div>
+      <div class="pw-viewport">
 
-    <!-- ADVISOR PORTAL SCREENSHOT -->
-    <div class="platform-frame reveal-right reveal-d1">
-      <div class="pf-caption">
-        <span class="pf-cap-tag">Advisor Deal Room</span>
-        <span class="pf-cap-note">Deal Submission · Economics · Illustrative</span>
-      </div>
-      <div class="pf-viewport">
-        <div class="pf-scaled">
-
-          <!-- Advisor Nav -->
-          <div style="display:flex;align-items:center;height:42px;background:#0a0908;border-bottom:1px solid rgba(255,255,255,.065);padding:0 14px;gap:0;flex-shrink:0">
-            <div style="width:28px;height:28px;border:1px solid rgba(197,165,114,.22);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#C5A572;margin-right:10px">Au</div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.28em;color:#a89f94;text-transform:uppercase;margin-right:16px">Deal Room</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;padding:0 14px;height:42px;display:flex;align-items:center;border-bottom:2px solid #C5A572">My Deals</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#655f58;padding:0 14px;height:42px;display:flex;align-items:center;border-bottom:2px solid transparent">Submit New</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#655f58;padding:0 14px;height:42px;display:flex;align-items:center;border-bottom:2px solid transparent">Marketplace</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#655f58;padding:0 14px;height:42px;display:flex;align-items:center;border-bottom:2px solid transparent">Economics</span>
-            <div style="margin-left:auto"><span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#8b6bbf;padding:4px 10px;border:1px solid rgba(139,107,191,.28);background:rgba(139,107,191,.06)">Apex Capital Partners</span></div>
-          </div>
-
-          <!-- Deal card: Pacific Credit V active -->
-          <div style="padding:12px 14px;background:#070706">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.22em;color:#8a7c68;text-transform:uppercase;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.065)">My Deals · 3 Active</div>
-
-            <!-- Deal row 1 — active -->
-            <div style="background:#111009;border:1px solid rgba(197,165,114,.22);margin-bottom:9px;overflow:hidden">
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#0a0908;border-bottom:1px solid rgba(255,255,255,.065)">
-                <div>
-                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#ece6da">Senior Secured Credit Facility</div>
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58;margin-top:2px">deal_pc5 · Private Credit · East Asia · $1.2M round</div>
-                </div>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:#5a9e72;padding:3px 9px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07)">Live · IOI Open</span>
-              </div>
-
-              <!-- Stage progress -->
-              <div style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.065)">
-                <div style="display:flex;align-items:center;gap:0;position:relative;margin-bottom:6px">
-                  <div style="width:10px;height:10px;border-radius:50%;background:#DEB97A;border:2px solid #DEB97A;flex-shrink:0;z-index:1"></div>
-                  <div style="flex:1;height:2px;background:linear-gradient(90deg,#DEB97A 100%,#2a2725 0%)"></div>
-                  <div style="width:10px;height:10px;border-radius:50%;background:#DEB97A;border:2px solid #DEB97A;flex-shrink:0;z-index:1"></div>
-                  <div style="flex:1;height:2px;background:linear-gradient(90deg,#DEB97A 100%,#2a2725 0%)"></div>
-                  <div style="width:10px;height:10px;border-radius:50%;background:#DEB97A;border:2px solid #DEB97A;box-shadow:0 0 10px rgba(222,185,122,.5);flex-shrink:0;z-index:1"></div>
-                  <div style="flex:1;height:2px;background:#2a2725"></div>
-                  <div style="width:10px;height:10px;border-radius:50%;background:#2a2725;border:2px solid #2a2725;flex-shrink:0;z-index:1"></div>
-                  <div style="flex:1;height:2px;background:#2a2725"></div>
-                  <div style="width:10px;height:10px;border-radius:50%;background:#2a2725;border:2px solid #2a2725;flex-shrink:0;z-index:1"></div>
-                  <div style="flex:1;height:2px;background:#2a2725"></div>
-                  <div style="width:10px;height:10px;border-radius:50%;background:#2a2725;border:2px solid #2a2725;flex-shrink:0;z-index:1"></div>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;color:#655f58">
-                  <span>Review</span><span>Live</span><span style="color:#DEB97A">IOI ●</span><span>DD</span><span>Terms</span><span>Close</span>
-                </div>
-              </div>
-
-              <!-- IOI stats -->
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;padding:10px 12px;gap:0;border-bottom:1px solid rgba(255,255,255,.065)">
-                <div style="border-right:1px solid rgba(255,255,255,.065);padding-right:12px">
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:3px">IOIs Received</div>
-                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#5a9e72">11</div>
-                </div>
-                <div style="padding:0 12px;border-right:1px solid rgba(255,255,255,.065)">
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:3px">Total Indicated</div>
-                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#DEB97A">$1.84M</div>
-                </div>
-                <div style="padding:0 12px;border-right:1px solid rgba(255,255,255,.065)">
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:3px">Confirmed</div>
-                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#ece6da">40%</div>
-                  <div style="height:2px;background:#2a2725;border-radius:1px;overflow:hidden;margin-top:3px"><div style="width:0%;height:100%;background:linear-gradient(90deg,#8a7c68,#DEB97A)"></div></div>
-                </div>
-                <div style="padding:0 0 0 12px">
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:3px">Closes</div>
-                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#b8833a">31d</div>
-                </div>
-              </div>
-              <div style="display:flex;gap:6px;padding:8px 12px">
-                <button style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;color:#8a7c68;padding:5px 11px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">View IOIs</button>
-                <button style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;color:#655f58;padding:5px 11px;border:1px solid rgba(255,255,255,.065);background:transparent;cursor:pointer">Documents</button>
-                <button style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.10em;text-transform:uppercase;color:#655f58;padding:5px 11px;border:1px solid rgba(255,255,255,.065);background:transparent;cursor:pointer">Economics</button>
-                <span style="margin-left:auto;display:flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:#5a9e72">● Live on Marketplace</span>
-              </div>
+        <!-- Screen 0: Deal Grid -->
+        <div class="pw-screen active" id="inv-s-0">
+          <div style="padding:10px 12px;background:#070706">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:#ece6da">Current Deals</span><span style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-left:8px">4 live</span></div>
+              <div style="display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#5a9e72"><span style="width:5px;height:5px;border-radius:50%;background:#5a9e72;animation:pulse 2s infinite;display:inline-block"></span>IOI window open</div>
             </div>
-
-            <!-- Economics mini-panel -->
-            <div style="background:#111009;border:1px solid rgba(255,255,255,.065);padding:10px 12px">
-              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.18em;color:#8a7c68;text-transform:uppercase;margin-bottom:9px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.065);display:flex;justify-content:space-between">
-                <span>Deal Economics · At Close</span>
-                <span style="color:#655f58">Based on $1.2M allocation</span>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <div style="background:#0a0908;border:1px solid rgba(255,255,255,.065);padding:8px">
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#8a7c68;text-transform:uppercase;margin-bottom:7px">Prism Platform</div>
-                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.065)"><span style="color:#655f58">Platform fee 1%</span><span style="color:#DEB97A">$12,000</span></div>
-                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.065)"><span style="color:#655f58">Carry 12% pool</span><span style="color:#b8833a">—</span></div>
-                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600"><span style="color:#DEB97A">Total Economics</span><span style="color:#DEB97A">—</span></div>
+            <div style="display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 8px;border:1px solid rgba(197,165,114,.45);color:#C5A572;background:rgba(197,165,114,.04)">All</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 8px;border:1px solid rgba(255,255,255,.065);color:#655f58">Credit</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 8px;border:1px solid rgba(255,255,255,.065);color:#655f58">Pre-IPO</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 8px;border:1px solid rgba(255,255,255,.065);color:#655f58">Real Estate</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 8px;border:1px solid rgba(255,255,255,.065);color:#655f58">Infra</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="background:#111009;border:1px solid rgba(255,255,255,.065);overflow:hidden">
+                <div style="display:flex;gap:3px;padding:8px 8px 0;flex-wrap:wrap">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:1px 5px;border:1px solid rgba(120,120,220,.28);color:#8888dd;background:rgba(100,100,200,.06);text-transform:uppercase">Infra</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:1px 5px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase">Asia-Pacific</span>
                 </div>
-                <div style="background:#0a0908;border:1px solid rgba(90,158,114,.15);padding:8px">
-                  <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#5a9e72;text-transform:uppercase;margin-bottom:7px">Your Economics</div>
-                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.065)"><span style="color:#655f58">Intro fee 1%</span><span style="color:#5a9e72">$12,000</span></div>
-                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.065)"><span style="color:#655f58">Carry share</span><span style="color:#655f58">—</span></div>
-                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600"><span style="color:#5a9e72">Your Total</span><span style="color:#5a9e72">$12,000</span></div>
+                <div style="padding:6px 8px 4px">
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da;margin-bottom:1px">Pacific Bridge Infrastructure</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58">Senior Secured · Chen Capital Partners</div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
+                  <div style="padding:4px 6px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">IRR</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#DEB97A">11%</div></div>
+                  <div style="padding:4px 6px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#ece6da">84mo</div></div>
+                  <div style="padding:4px 6px"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#ece6da">$500K</div></div>
+                </div>
+                <div style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.065)">
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;margin-bottom:3px"><span>Indicated</span><span style="color:#5a9e72">97.5%</span></div>
+                  <div style="height:3px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:97.5%;height:100%;background:linear-gradient(90deg,rgba(90,158,114,.6),rgba(90,158,114,.9));border-radius:2px"></div></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#0c0b09">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#b8833a">91 days</span>
+                  <button style="font-family:'JetBrains Mono',monospace;font-size:6.5px;text-transform:uppercase;color:#8a7c68;padding:3px 8px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">IOI →</button>
+                </div>
+              </div>
+              <div style="background:#111009;border:1px solid rgba(255,255,255,.065);overflow:hidden">
+                <div style="display:flex;gap:3px;padding:8px 8px 0;flex-wrap:wrap">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:1px 5px;border:1px solid rgba(90,152,236,.28);color:#5a98ec;background:rgba(90,152,236,.06);text-transform:uppercase">Credit</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:1px 5px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase">N. America</span>
+                </div>
+                <div style="padding:6px 8px 4px">
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da;margin-bottom:1px">Clearwater Credit Partners II</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58">Senior Secured Credit · 13% IRR</div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
+                  <div style="padding:4px 6px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">IRR</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#DEB97A">13%</div></div>
+                  <div style="padding:4px 6px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#ece6da">36mo</div></div>
+                  <div style="padding:4px 6px"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#ece6da">$250K</div></div>
+                </div>
+                <div style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.065)">
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;margin-bottom:3px"><span>Indicated</span><span style="color:#b8833a">70%</span></div>
+                  <div style="height:3px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:70%;height:100%;background:linear-gradient(90deg,#8a7c68,#DEB97A);border-radius:2px"></div></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#0c0b09">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#b8833a">152 days</span>
+                  <button style="font-family:'JetBrains Mono',monospace;font-size:6.5px;text-transform:uppercase;color:#8a7c68;padding:3px 8px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">IOI →</button>
+                </div>
+              </div>
+              <div style="background:#111009;border:1px solid rgba(197,165,114,.15);overflow:hidden">
+                <div style="display:flex;gap:3px;padding:8px 8px 0;flex-wrap:wrap">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:1px 5px;border:1px solid rgba(197,165,114,.22);color:#DEB97A;background:rgba(197,165,114,.04);text-transform:uppercase">Pre-IPO</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:1px 5px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase">United States</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:1px 5px;border:1px solid rgba(184,131,58,.28);color:#b8833a;background:rgba(184,131,58,.07);text-transform:uppercase;animation:pulse 2s infinite">● DD</span>
+                </div>
+                <div style="padding:6px 8px 4px">
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da;margin-bottom:1px">Vantage Analytics Series C</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58">Common Equity · Growth Stage</div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
+                  <div style="padding:4px 6px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">IRR</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#DEB97A">22%</div></div>
+                  <div style="padding:4px 6px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#ece6da">60mo</div></div>
+                  <div style="padding:4px 6px"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#ece6da">$500K</div></div>
+                </div>
+                <div style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.065)">
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;margin-bottom:3px"><span>Indicated</span><span style="color:#DEB97A">62%</span></div>
+                  <div style="height:3px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:62%;height:100%;background:linear-gradient(90deg,#8a7c68,#DEB97A);border-radius:2px"></div></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#0c0b09">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#b8833a">167 days</span>
+                  <button style="font-family:'JetBrains Mono',monospace;font-size:6.5px;text-transform:uppercase;color:#8a7c68;padding:3px 8px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">IOI →</button>
+                </div>
+              </div>
+              <div style="background:#111009;border:1px solid rgba(90,158,114,.18);overflow:hidden">
+                <div style="display:flex;gap:3px;padding:8px 8px 0;flex-wrap:wrap">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:1px 5px;border:1px solid rgba(90,158,114,.28);color:#5a9e72;background:rgba(90,158,114,.07);text-transform:uppercase">Real Estate</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:1px 5px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase">SE United States</span>
+                </div>
+                <div style="padding:6px 8px 4px">
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da;margin-bottom:1px">SunBelt Residential Fund IV</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58">Preferred Equity · 16% IRR</div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.065);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
+                  <div style="padding:4px 6px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">IRR</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#DEB97A">16%</div></div>
+                  <div style="padding:4px 6px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#ece6da">48mo</div></div>
+                  <div style="padding:4px 6px"><div style="font-family:'JetBrains Mono',monospace;font-size:5.5px;color:#655f58;text-transform:uppercase;margin-bottom:1px">Min</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#ece6da">$250K</div></div>
+                </div>
+                <div style="padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.065)">
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;margin-bottom:3px"><span>Indicated</span><span style="color:#DEB97A">37%</span></div>
+                  <div style="height:3px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:37%;height:100%;background:linear-gradient(90deg,#8a7c68,#DEB97A);border-radius:2px"></div></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#0c0b09">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#b8833a">213 days</span>
+                  <button style="font-family:'JetBrains Mono',monospace;font-size:6.5px;text-transform:uppercase;color:#8a7c68;padding:3px 8px;border:1px solid rgba(197,165,114,.22);background:rgba(197,165,114,.04);cursor:pointer">IOI →</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Screen 1: Deal Detail + IOI Form -->
+        <div class="pw-screen" id="inv-s-1">
+          <div style="padding:10px 12px;background:#070706">
+            <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 6px;border:1px solid rgba(120,120,220,.28);color:#8888dd;background:rgba(100,100,200,.06);text-transform:uppercase">Infrastructure</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 6px;border:1px solid rgba(255,255,255,.065);color:#655f58;text-transform:uppercase">Asia-Pacific</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 6px;border:1px solid rgba(90,158,114,.28);color:#5a9e72;background:rgba(90,158,114,.07);text-transform:uppercase">✓ NDA Signed</span>
+            </div>
+            <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#ece6da;margin-bottom:2px">Pacific Bridge Infrastructure</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:10px">Chen Capital Partners · Prism-Approved · Senior Secured</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid rgba(255,255,255,.065);background:#0a0908;margin-bottom:10px">
+              <div style="padding:8px 10px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">Target IRR</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#DEB97A">11%</div></div>
+              <div style="padding:8px 10px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">Term</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#ece6da">84mo</div></div>
+              <div style="padding:8px 10px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">Min Ticket</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#ece6da">$500K</div></div>
+              <div style="padding:8px 10px"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">Structure</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:#ece6da">Sr. Secured</div></div>
+            </div>
+            <div style="background:#111009;border:1px solid rgba(255,255,255,.065);padding:8px 10px;margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7px;color:#655f58;margin-bottom:5px"><span>Capital Indicated</span><span style="color:#5a9e72">$58.5M / $60M · 97.5%</span></div>
+              <div style="height:5px;background:#2a2725;border-radius:2px;overflow:hidden"><div style="width:97.5%;height:100%;background:linear-gradient(90deg,rgba(90,158,114,.6),rgba(90,158,114,1));border-radius:2px"></div></div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#5a9e72;margin-top:4px">● Near capacity · Limited allocation remaining</div>
+            </div>
+            <div style="background:#0e0d0b;border:1px solid rgba(197,165,114,.2);padding:10px 12px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:#C5A572;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(197,165,114,.12)">Express Interest</div>
+              <div style="margin-bottom:6px"><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#8a7c68;text-transform:uppercase;margin-bottom:3px">Indicated Amount (USD)</div><div style="background:#070706;border:1px solid rgba(197,165,114,.22);padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#ece6da">$1,000,000</div></div>
+              <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
+                <div style="display:flex;align-items:flex-start;gap:6px;font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;line-height:1.5"><div style="width:10px;height:10px;border:1px solid rgba(197,165,114,.4);background:rgba(197,165,114,.08);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center"><span style="color:#C5A572;font-size:8px">✓</span></div><span>I am a qualified institutional investor under applicable laws in my jurisdiction</span></div>
+                <div style="display:flex;align-items:flex-start;gap:6px;font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;line-height:1.5"><div style="width:10px;height:10px;border:1px solid rgba(197,165,114,.4);background:rgba(197,165,114,.08);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center"><span style="color:#C5A572;font-size:8px">✓</span></div><span>This IOI is non-binding and subject to operator approval and final documentation</span></div>
+                <div style="display:flex;align-items:flex-start;gap:6px;font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;line-height:1.5"><div style="width:10px;height:10px;border:1px solid rgba(197,165,114,.4);background:rgba(197,165,114,.08);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center"><span style="color:#C5A572;font-size:8px">✓</span></div><span>I agree to maintain confidentiality of all deal materials per the Platform NDA</span></div>
+              </div>
+              <button style="width:100%;padding:9px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#0a0908;background:#C5A572;border:none;cursor:pointer">Confirm Expression of Interest →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screen 2: My Portfolio -->
+        <div class="pw-screen" id="inv-s-2">
+          <div style="padding:10px 12px;background:#070706">
+            <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:#ece6da;margin-bottom:2px">My Portfolio</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58;margin-bottom:10px">Meridian Family Office · 3 active positions</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);border:1px solid rgba(255,255,255,.065);background:#0a0908;margin-bottom:12px">
+              <div style="padding:8px 10px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">IOIs Submitted</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#DEB97A">3</div></div>
+              <div style="padding:8px 10px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">Total Indicated</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#5a9e72">$4.2M</div></div>
+              <div style="padding:8px 10px"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">Data Rooms Open</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#ece6da">2</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="background:#111009;border:1px solid rgba(90,158,114,.2);padding:8px 10px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">Pacific Bridge Infrastructure</div>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:6.5px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72">Approved</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58"><span>Indicated $1.5M · Apr 29</span><span style="color:#5a9e72">Data room access granted →</span></div>
+              </div>
+              <div style="background:#111009;border:1px solid rgba(184,131,58,.15);padding:8px 10px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">Clearwater Credit Partners II</div>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:6.5px;padding:2px 7px;border:1px solid rgba(184,131,58,.28);background:rgba(184,131,58,.07);color:#b8833a">Under Review</span>
+                </div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58">Indicated $1.2M · Apr 30</div>
+              </div>
+              <div style="background:#111009;border:1px solid rgba(90,158,114,.2);padding:8px 10px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#ece6da">Vantage Analytics Series C</div>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:6.5px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72">Approved · DD Active</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58"><span>Indicated $1.5M · Apr 25</span><span style="color:#5a9e72">Due diligence documents →</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="pf-caption-bottom">
-        <span>Advisor Deal Room · Illustrative</span>
-        <span style="color:var(--purple)">Advisors push deals → marketplace + member pipeline</span>
+      <div class="pw-dot-bar">
+        <button class="pw-dot on" data-portal="inv" onclick="setScreen('inv',0)"></button>
+        <button class="pw-dot" data-portal="inv" onclick="setScreen('inv',1)"></button>
+        <button class="pw-dot" data-portal="inv" onclick="setScreen('inv',2)"></button>
+        <span class="pw-dot-lbl">Deal Discovery → IOI → Portfolio</span>
       </div>
     </div>
+
+    <!-- ═══ ADVISOR PORTAL ═══ -->
+    <div class="pw reveal-right reveal-d1">
+      <div class="pw-label-bar">
+        <span class="pw-label-name">Advisor Deal Room</span>
+        <span class="pw-label-sub">Deal Sourcing &amp; Pipeline Management</span>
+        <span class="pw-live"><span class="pw-live-dot"></span>Secured</span>
+      </div>
+      <div class="pw-chrome">
+        <div class="pw-chrome-dots"><span></span><span></span><span></span></div>
+        <div class="pw-chrome-url"><span class="pw-chrome-base">prism-plum.vercel.app</span><span class="pw-chrome-path">/advisor-portal</span></div>
+      </div>
+      <div class="pw-nav">
+        <div class="pw-nav-seal">Au</div>
+        <span class="pw-nav-brand">Aurum&nbsp;Prism</span>
+        <span class="pw-nav-tab pw-nav-tab-on" id="adv-tab-0">My Deals</span>
+        <span class="pw-nav-tab" id="adv-tab-1">Submit New</span>
+        <span class="pw-nav-tab" id="adv-tab-2">Economics</span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <span class="pw-badge-a">Advisor</span>
+          <span class="pw-dim">SG Capital Group</span>
+        </div>
+      </div>
+      <div class="pw-viewport">
+
+        <!-- Screen 0: My Deals KPIs + Pipeline -->
+        <div class="pw-screen active" id="adv-s-0">
+          <div style="background:#070706">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid rgba(255,255,255,.065);background:#0a0908">
+              <div style="padding:10px 12px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">Active Deals</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#DEB97A">4</div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58">3 live · 1 DD</div></div>
+              <div style="padding:10px 12px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">Capital Indicated</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#5a9e72">$36M</div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58">all deals</div></div>
+              <div style="padding:10px 12px;border-right:1px solid rgba(255,255,255,.065)"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">IOIs to Review</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#b8833a">3</div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#b8833a">action req.</div></div>
+              <div style="padding:10px 12px"><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;text-transform:uppercase;margin-bottom:3px">Est. At Close</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#DEB97A">$361K</div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58">your fees</div></div>
+            </div>
+            <div style="padding:10px 12px;display:flex;flex-direction:column;gap:7px">
+              <div style="background:#111009;border:1px solid rgba(197,165,114,.22);overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0a0908;border-bottom:1px solid rgba(255,255,255,.065)">
+                  <div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:#ece6da">Pacific Bridge Infrastructure</div><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;margin-top:1px">Infrastructure · Asia-Pacific · $60M target</div></div>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72;white-space:nowrap">Live · IOI Open</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);padding:7px 10px;gap:0;border-bottom:1px solid rgba(255,255,255,.065)">
+                  <div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;margin-bottom:2px">IOIs</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#5a9e72">11</div></div>
+                  <div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;margin-bottom:2px">Indicated</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#DEB97A">$58.5M</div></div>
+                  <div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;margin-bottom:2px">Confirmed</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#ece6da">97%</div></div>
+                  <div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;margin-bottom:2px">Closes</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#b8833a">91d</div></div>
+                </div>
+                <div style="padding:6px 10px">
+                  <div style="display:flex;align-items:center">
+                    <div style="width:8px;height:8px;border-radius:50%;background:#DEB97A;flex-shrink:0;z-index:1"></div><div style="flex:1;height:1.5px;background:#DEB97A"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:#DEB97A;flex-shrink:0;z-index:1"></div><div style="flex:1;height:1.5px;background:#DEB97A"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:#DEB97A;box-shadow:0 0 8px rgba(222,185,122,.6);flex-shrink:0;z-index:1"></div><div style="flex:1;height:1.5px;background:#2a2725"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:#2a2725;flex-shrink:0;z-index:1"></div><div style="flex:1;height:1.5px;background:#2a2725"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:#2a2725;flex-shrink:0;z-index:1"></div><div style="flex:1;height:1.5px;background:#2a2725"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:#2a2725;flex-shrink:0;z-index:1"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;margin-top:3px"><span>Review</span><span>Live</span><span style="color:#DEB97A">IOI ●</span><span>DD</span><span>Terms</span><span>Close</span></div>
+                </div>
+              </div>
+              <div style="background:#111009;border:1px solid rgba(255,255,255,.065);padding:8px 10px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+                  <div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:#ece6da">Vantage Analytics Series C</div><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58;margin-top:1px">Pre-IPO Equity · United States · $45M target</div></div>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;padding:2px 7px;border:1px solid rgba(90,152,236,.28);background:rgba(90,152,236,.06);color:#5a98ec;white-space:nowrap">Due Diligence</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0">
+                  <div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;margin-bottom:2px">IOIs</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#5a9e72">2</div></div>
+                  <div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;margin-bottom:2px">Indicated</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#DEB97A">$13M</div></div>
+                  <div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;margin-bottom:2px">Confirmed</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#ece6da">62%</div></div>
+                  <div><div style="font-family:'JetBrains Mono',monospace;font-size:6px;color:#655f58;margin-bottom:2px">Closes</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:#b8833a">167d</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screen 1: IOI Review Action Required -->
+        <div class="pw-screen" id="adv-s-1">
+          <div style="padding:10px 12px;background:#070706">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:.18em;color:#8a7c68;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.065)">Pacific Bridge Infrastructure · IOI Review Stage</div>
+            <div style="background:#0e0d0b;border:1px solid rgba(184,131,58,.38);margin-bottom:8px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:rgba(184,131,58,.08);border-bottom:1px solid rgba(184,131,58,.2)">
+                <span style="width:6px;height:6px;border-radius:50%;background:#b8833a;animation:pulse 2s infinite;display:inline-block;flex-shrink:0"></span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:#b8833a">IOI Review · Action Required</span>
+              </div>
+              <div style="padding:10px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+                  <div><div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#ece6da;margin-bottom:2px">Harrison Family Office</div><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58">Family Office · United States · Approved by Prism</div></div>
+                  <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#5a9e72">$5.0M</div>
+                </div>
+                <div style="display:flex;gap:6px;padding-top:7px;border-top:1px solid rgba(255,255,255,.065)">
+                  <button style="flex:1;padding:7px;font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.10em;text-transform:uppercase;color:#060605;background:#5a9e72;border:none;cursor:pointer">Accept IOI →</button>
+                  <button style="flex:1;padding:7px;font-family:'JetBrains Mono',monospace;font-size:7.5px;text-transform:uppercase;color:#655f58;background:transparent;border:1px solid rgba(255,255,255,.065);cursor:pointer">Decline</button>
+                </div>
+              </div>
+            </div>
+            <div style="background:#111009;border:1px solid rgba(90,158,114,.18);padding:8px 10px;margin-bottom:7px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#ece6da;margin-bottom:1px">Meridian Capital LP</div><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58">Institutional · Singapore</div></div>
+                <div style="text-align:right"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#DEB97A">$8.0M</div><span style="font-family:'JetBrains Mono',monospace;font-size:6.5px;padding:2px 6px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72">Accepted</span></div>
+              </div>
+            </div>
+            <div style="background:#111009;border:1px solid rgba(90,158,114,.18);padding:8px 10px;margin-bottom:7px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#ece6da;margin-bottom:1px">Atlas Endowment</div><div style="font-family:'JetBrains Mono',monospace;font-size:6.5px;color:#655f58">Institutional · United States</div></div>
+                <div style="text-align:right"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#DEB97A">$12.0M</div><span style="font-family:'JetBrains Mono',monospace;font-size:6.5px;padding:2px 6px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72">Accepted</span></div>
+              </div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#655f58;text-align:center;padding:8px;border:1px solid rgba(255,255,255,.065);background:#0a0908">Accepting advances deal to Due Diligence · All parties notified by email</div>
+          </div>
+        </div>
+
+        <!-- Screen 2: Deal Economics -->
+        <div class="pw-screen" id="adv-s-2">
+          <div style="padding:10px 12px;background:#070706">
+            <div style="margin-bottom:10px"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:#ece6da;margin-bottom:2px">Deal Economics</div><div style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58">Pacific Bridge Infrastructure · $60M target · 97.5% indicated</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+              <div style="background:#0a0908;border:1px solid rgba(197,165,114,.15);padding:10px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:#8a7c68;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.065)">Prism Platform</div>
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:#655f58">Platform fee 1%</span><span style="color:#DEB97A">$585K</span></div>
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:#655f58">Carry pool 12%</span><span style="color:#655f58">TBD at exit</span></div>
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;padding:4px 0"><span style="color:#DEB97A">Total</span><span style="color:#DEB97A">$585K+</span></div>
+              </div>
+              <div style="background:#0a0908;border:1px solid rgba(90,158,114,.22);padding:10px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:#5a9e72;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.065)">Your Economics</div>
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:#655f58">Intro fee 1%</span><span style="color:#5a9e72">$585K</span></div>
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:#655f58">Carry share</span><span style="color:#655f58">Negotiated</span></div>
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;padding:4px 0"><span style="color:#5a9e72">Your Total</span><span style="color:#5a9e72;font-size:13px">$585K+</span></div>
+              </div>
+            </div>
+            <div style="background:#0e0d0b;border:1px solid rgba(255,255,255,.065);padding:10px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:#8a7c68;margin-bottom:8px">Fee Collection Timeline</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:8px"><div style="width:6px;height:6px;border-radius:50%;background:#DEB97A;flex-shrink:0"></div><div style="flex:1;font-family:'JetBrains Mono',monospace;font-size:7px;color:#655f58">Platform fee collected at close</div><span style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#DEB97A">$585K</span></div>
+                <div style="display:flex;align-items:center;gap:8px"><div style="width:6px;height:6px;border-radius:50%;background:#2a2725;border:1px solid #655f58;flex-shrink:0"></div><div style="flex:1;font-family:'JetBrains Mono',monospace;font-size:7px;color:#655f58">Carry participation at fund exit</div><span style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#655f58">TBD</span></div>
+              </div>
+            </div>
+            <div style="margin-top:10px;background:#0a0908;border:1px solid rgba(197,165,114,.12);padding:10px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:#8a7c68;margin-bottom:8px">All Active Deals · Economics Summary</div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7.5px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:#655f58">Pacific Bridge Infrastructure</span><span style="color:#5a9e72">$585K est.</span></div>
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7.5px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:#655f58">Clearwater Credit Partners II</span><span style="color:#DEB97A">$196K est.</span></div>
+                <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:7.5px;padding:4px 0"><span style="color:#655f58">Vantage Analytics Series C</span><span style="color:#DEB97A">$279K est.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="pw-dot-bar">
+        <button class="pw-dot on" data-portal="adv" onclick="setScreen('adv',0)"></button>
+        <button class="pw-dot" data-portal="adv" onclick="setScreen('adv',1)"></button>
+        <button class="pw-dot" data-portal="adv" onclick="setScreen('adv',2)"></button>
+        <span class="pw-dot-lbl">Pipeline → IOI Review → Economics</span>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -930,6 +1058,27 @@ function toast(msg,type){
   t.style.background=isErr?'rgba(176,94,86,.07)':'rgba(90,158,114,.07)';
   clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast-box',3800);
 }
+
+// Portal screen carousel
+const _ps={inv:0,adv:0};
+const _pt={};
+function setScreen(p,idx){
+  const old=_ps[p];
+  if(old===idx)return;
+  const oEl=document.getElementById(p+'-s-'+old);
+  const nEl=document.getElementById(p+'-s-'+idx);
+  if(!oEl||!nEl)return;
+  oEl.classList.remove('active');
+  oEl.classList.add('out-left');
+  nEl.classList.remove('out-left');
+  nEl.classList.add('active');
+  document.querySelectorAll('[data-portal="'+p+'"]').forEach((d,i)=>d.classList.toggle('on',i===idx));
+  _ps[p]=idx;
+  clearInterval(_pt[p]);
+  _pt[p]=setInterval(()=>{setScreen(p,(_ps[p]+1)%3);},5000);
+  setTimeout(()=>{if(oEl)oEl.classList.remove('out-left');},500);
+}
+['inv','adv'].forEach(p=>{_pt[p]=setInterval(()=>{setScreen(p,(_ps[p]+1)%3);},p==='inv'?5000:6500);});
 
 // Form submit
 function submitForm(){
