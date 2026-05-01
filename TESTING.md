@@ -38,8 +38,8 @@ All portals redirect to `/login` if session is missing or expired.
 - **Note:** First login may trigger `/setup-password` — set a password then log in again
 
 ### Investor
-- **Email:** `james@meridianfund.com`
-- **Access Code:** `INST-K7MQ2WXN`
+- **Email:** `jwc@theaurumcc.com`
+- **Access Code:** `1234`
 - **Firm:** Meridian Family Office
 - **Lands on:** `/investor-portal`
 

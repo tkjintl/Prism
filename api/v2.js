@@ -585,7 +585,7 @@ async function seedAdvisors() {
 async function seedInvestors() {
   const investors = [
     { id:'inv-tkj', email:'tkj@theaurumcc.com', firm_name:'TACC Pte Ltd', contact_name:'Thomas K J', institution_type:'Family Office', aum_range:'Over $1B', ticket_range:'Over $5M', status:'approved', code:'TKJDEV1' },
-    { id:'inv-001', email:'james@meridianfund.com', firm_name:'Meridian Family Office', contact_name:'James Walker', institution_type:'Family Office', aum_range:'$50M–$250M', ticket_range:'$1M–$5M', status:'approved', code:'INST-K7MQ2WXN' },
+    { id:'inv-001', email:'jwc@theaurumcc.com', firm_name:'Meridian Family Office', contact_name:'James Walker', institution_type:'Family Office', aum_range:'$50M–$250M', ticket_range:'$1M–$5M', status:'approved', code:'1234' },
     { id:'inv-002', email:'priya@atlascap.com', firm_name:'Atlas Capital Management', contact_name:'Priya Sharma', institution_type:'Institutional Fund', aum_range:'$250M–$1B', ticket_range:'Over $5M', status:'pending', code:null },
     { id:'inv-003', email:'m.chen@northfield.edu', firm_name:'Northfield Endowment', contact_name:'Michael Chen', institution_type:'Endowment', aum_range:'Over $1B', ticket_range:'$1M–$5M', status:'pending', code:null },
     { id:'inv-004', email:'skim@pacificavc.com', firm_name:'Pacifica Ventures', contact_name:'Sarah Kim', institution_type:'PE / VC Fund', aum_range:'$50M–$250M', ticket_range:'$250K–$1M', status:'approved', code:'INST-Q3PX7KMN' },
@@ -593,7 +593,7 @@ async function seedInvestors() {
   ];
   for (const i of investors) {
     const exists = await kvGet(`inst:${i.id}`);
-    if (!exists || i.id === 'inv-tkj') {
+    if (!exists || i.id === 'inv-tkj' || i.id === 'inv-001') {
       i.created_at = i.created_at || new Date().toISOString();
       await kvSet(`inst:${i.id}`, i);
       await kvSet(`inst_email:${i.email}`, i.id);
