@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — TACC Singapore deals, System tab with seed, delete control.html
+
+### Changes
+- `deal-storage.js`: seed deals replaced — adv-tkj (tkj@theaurumcc.com) now gets Figure AI Series C (ioi), Shield AI Series F (dd — dataroom testable), Anthropic Series E (review); SG Capital Group gets Pacific Credit V + Metro Core Logistics + Bridgeford
+- `admin-portal.html`: added System nav tab with "Load Test Data" button (calls `/api/v2?resource=deals&op=seed`); `runSeed()` function wired in
+- `control.html`: deleted — functionality moved into admin portal System tab
+- `vercel.json`: removed `control` from no-cache headers
+
+---
+
 ## [2026-05-01] — TKJ account: admin + advisor dual role, DD deal assigned, force reseed
 
 ### Changes

@@ -50,7 +50,7 @@
       ]
     },
     {
-      "source": "/(advisor-portal|investor-portal|control|admin-portal|login|forgot-password|reset-password|setup-password)",
+      "source": "/(advisor-portal|investor-portal|admin-portal|login|forgot-password|reset-password|setup-password)",
       "headers": [
         { "key": "Cache-Control",  "value": "no-store, no-cache" },
         { "key": "X-Robots-Tag",   "value": "noindex, nofollow" }

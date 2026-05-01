@@ -812,6 +812,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab" onclick="showView('pipeline',this)">Deal Pipeline</button>
     <button class="ntab" onclick="showView('queue',this)">IOI Queue<span class="ntab-badge" id="queue-badge-dot" style="display:none"></span></button>
     <button class="ntab" onclick="showView('aitool',this)">Deal Studio</button>
+    <button class="ntab" onclick="showView('system',this)">System</button>
   </div>
   <div class="nav-r">
     <div class="role-badge">Admin</div>
@@ -850,6 +851,20 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div id="deal-submissions-wrap"></div>
     <div class="section-hd"><div class="section-hd-title">Active Deals</div><span class="section-hd-count" id="active-deals-count"></span></div>
     <div class="deal-pipeline" id="deal-pipeline-table"></div>
+  </div>
+</div>
+
+<!-- ══ VIEW: SYSTEM ══ -->
+<div id="view-system" class="view">
+  <div class="view-inner" style="max-width:640px">
+    <div class="view-heading">System</div>
+    <div class="view-sub">Platform configuration and test data tools.</div>
+    <div style="margin-top:32px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Load Test Data</div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:16px;line-height:1.6">Reseeds all advisors, investors, and deals (TACC Singapore + SG Capital Group) into the database. Safe to run multiple times — existing records are force-updated to match current seed definitions. Use this to reset test data or after a fresh deploy.</div>
+      <button id="seed-btn" onclick="runSeed()" style="background:var(--gold);color:#000;border:none;border-radius:var(--r);padding:8px 20px;font-size:11px;font-family:var(--mono);letter-spacing:.1em;cursor:pointer;font-weight:600">LOAD TEST DATA</button>
+      <div id="seed-status" style="margin-top:12px;font-size:12px;color:var(--text-3)"></div>
+    </div>
   </div>
 </div>
 
@@ -1529,6 +1544,19 @@ function toggleTheme(){
 async function logout(){
   await fetch('/api/logout',{method:'POST',credentials:'include'});
   window.location.href='/login';
+}
+
+async function runSeed(){
+  const btn=document.getElementById('seed-btn');
+  const status=document.getElementById('seed-status');
+  btn.disabled=true; btn.textContent='Loading…'; status.textContent='';
+  try{
+    const r=await fetch('/api/v2?resource=deals&op=seed',{method:'POST',credentials:'include'});
+    const d=await r.json();
+    if(d.ok){ status.style.color='var(--green)'; status.textContent='Done — '+d.dealIds?.length+' deals seeded. Refresh the page to see updated data.'; }
+    else { status.style.color='var(--red)'; status.textContent='Error: '+(d.error||'Unknown'); }
+  }catch(e){ status.style.color='var(--red)'; status.textContent='Network error: '+e.message; }
+  btn.disabled=false; btn.textContent='LOAD TEST DATA';
 }
 
 function showView(name,btn){
