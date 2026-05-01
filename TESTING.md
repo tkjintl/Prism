@@ -1,79 +1,106 @@
 # Aurum Prism · Testing Playbook
 
-## Quick Start
+## Portals (live URLs)
 
-### 1. Demo Mode (no deploy needed)
-Add `?demo` to the login URL: `https://prism.theaurumcc.com/login?demo`
-Click credential buttons to pre-fill. No seed data required.
+| Portal | URL | Who |
+|---|---|---|
+| Advisor | `https://prism.theaurumcc.com/advisor-portal` | Deal advisors |
+| Admin / Operator | `https://prism.theaurumcc.com/admin-portal` | Platform operator |
+| Investor | `https://prism.theaurumcc.com/investor-portal` | Institutional investors |
+| Login | `https://prism.theaurumcc.com/login` | All users — entry point |
 
-### 2. Load Test Data
-1. Log in as operator (see credentials below)
-2. Go to Control Panel
-3. Click **"Load Test Data"** — seeds 5 deals, 3 advisors, 5 investors
+All portals redirect to `/login` if session is missing or expired.
+
+---
+
+## First-Time Setup (do this before anything else)
+
+1. Log in as **Operator** at `/login` → expand the Operator bar at the bottom
+2. You land on `/admin-portal`
+3. Open the old control panel at `/control` — click **"Load Test Data"**
+4. This seeds: 4 advisor accounts, 5 investor accounts, 5 live deals into Redis
+5. Now all test credentials below will work
 
 ---
 
 ## Test Credentials
 
 ### Operator
-- **URL:** `/login` → expand Operator bar
-- **Email:** set via `ADMIN_USERS` env var
-- **Default test:** `ops@theaurumcc.com` / your password
+- **Login:** `/login` → click the Operator bar at the bottom to expand
+- **Email:** set via `ADMIN_USERS` Vercel env var (format: `email:password,email2:password2`)
+- **Lands on:** `/admin-portal`
 
 ### Advisor
 - **Email:** `sarah@capitalgroup.sg`
 - **Password:** `Advisor123!`
 - **Firm:** SG Capital Group
+- **Lands on:** `/advisor-portal` (shows Sarah's deals only)
+- **Note:** First login may trigger `/setup-password` — set a password then log in again
 
-### Investor (Access Code)
+### Investor
 - **Email:** `james@meridianfund.com`
-- **Code:** `INST-K7MQ2WXN`
+- **Access Code:** `INST-K7MQ2WXN`
+- **Firm:** Meridian Family Office
+- **Lands on:** `/investor-portal`
+
+### Additional test accounts (seeded by Load Test Data)
+| Role | Email | Credential |
+|---|---|---|
+| Advisor | `tkj@theaurumcc.com` | `1234` |
+| Advisor | `jtan@meridiancap.com` | `Advisor123!` |
+| Investor | `skim@pacificavc.com` | `INST-Q3PX7KMN` |
+| Investor | `dliu@egf.com` | `INST-B8WZK4LR` |
 
 ---
 
 ## Test Flows
 
-### Flow 1: Advisor Login → Submit Deal
-1. Go to `/login`, enter advisor credentials
-2. First login triggers setup-password page
-3. After password set, land on advisor portal
-4. Click "+ Submit Deal"
-5. Fill wizard (3 steps)
-6. Deal appears in pipeline as "review"
-7. Check operator control panel — deal shows in Under Review
+### Flow 1: Advisor → Submit a Deal
+1. Log in as advisor at `/login`
+2. Land on `/advisor-portal` — dashboard shows your active deals
+3. Click **"Submit New Deal"** tab
+4. Fill 4-step wizard: Identity → Terms → Documents → Review
+5. Click **"Submit for Review"** — deal POSTs to `/api/advisor/deals`
+6. Check `/admin-portal` → Pipeline tab — deal appears under **Pending Submissions**
 
-### Flow 2: Operator → Publish Deal
-1. Log in as operator at `/control`
-2. Find deal in Deals tab, stage = review
-3. Change stage dropdown to "live"
-4. Click "○ DRAFT" to toggle to "● LIVE"
-5. Deal now visible on marketplace
-6. Advisor receives email notification (if RESEND_API_KEY set)
+### Flow 2: Operator → Approve & Publish Deal
+1. Log in as operator at `/login`
+2. Land on `/admin-portal` → go to **Deal Pipeline** tab
+3. Find the pending deal under **Pending Submissions**
+4. Click **"Approve & Publish"** — deal goes live on investor portal
+5. Advisor receives email notification (requires `RESEND_API_KEY` set)
+6. Deal now appears in `/investor-portal` discovery grid
 
-### Flow 3: Investor → Submit IOI
+### Flow 3: Investor → Browse & Submit IOI
 1. Log in as investor at `/login`
-2. Browse marketplace
-3. Click a deal card
-4. Go to IOI tab
-5. Enter amount (min: $50,000)
-6. Check all 3 acknowledgments
-7. Submit
-8. IOI appears in operator control panel IOI Queue tab
-9. Portfolio tab shows submitted IOI
+2. Land on `/investor-portal` — browse deal cards
+3. Click a deal card → deal overlay opens
+4. Sign NDA → IOI form appears
+5. Enter amount (min ticket varies by deal), check 3 acknowledgments
+6. Click **"Confirm Expression of Interest"** — POSTs to `/api/marketplace/ioi`
+7. Check `/admin-portal` → IOI Queue tab — IOI appears as pending
 
-### Flow 4: Operator → Grant Data Room
-1. In control panel, go to IOI Queue tab
-2. Find pending IOI
-3. Click "Grant Access"
-4. Investor receives email with data room notification
-5. Investor's Documents tab unlocks
+### Flow 4: Operator → Approve IOI & Push to Advisor
+1. In `/admin-portal` → **IOI Queue** tab
+2. Find the pending IOI → click **"Approve"**
+3. Investor receives approval email
+4. Click **"Push →"** on an approved IOI → confirm modal
+5. Advisor receives email with IOI details
+6. Advisor sees IOI Review card in `/advisor-portal` deal overview
 
-### Flow 5: Password Reset (Advisor)
+### Flow 5: Advisor → Accept IOI (advances to Due Diligence)
+1. Log in as the relevant advisor
+2. In `/advisor-portal` — deal with forwarded IOI shows **"IOI Review · Action Required"** stage
+3. Click **"Accept IOI"** on the IOI Review card
+4. Deal stage advances to **Due Diligence**
+5. Admin and investor both receive email notifications
+
+### Flow 6: Password Reset (Advisor)
 1. Go to `/forgot-password`
 2. Enter advisor email
-3. Check email for 6-digit code
-4. Enter code + new password
-5. Redirected to login
+3. Receive 6-digit code by email
+4. Enter code + new password at `/reset-password`
+5. Log in normally
 
 ---
 
@@ -81,29 +108,33 @@ Click credential buttons to pre-fill. No seed data required.
 ```
 GET https://prism.theaurumcc.com/api/health
 ```
-Returns `{ ok: true, kv: "connected" }` if KV is connected.
+Returns `{ ok: true, kv: "connected" }` — if `kv` is not `"connected"` check Upstash env vars.
 
 ---
 
-## TACC Feed Endpoint
-```
-GET https://prism.theaurumcc.com/api/v2?resource=deals&op=tacc-feed
-Header: x-tacc-signature: YOUR_PRISM_TACC_BRIDGE_SECRET
-```
-Returns published deals in TACC-compatible JSON envelope.
+## Required Vercel Environment Variables
+
+| Variable | Description |
+|---|---|
+| `PRISM_SECRET` | JWT signing key — run `openssl rand -base64 32` |
+| `ADMIN_USERS` | Operator credentials — format: `email:password` |
+| `RESEND_API_KEY` | Email delivery — get from resend.com |
+| `KV_REST_API_URL` | Upstash Redis URL |
+| `KV_REST_API_TOKEN` | Upstash Redis token |
+| `SITE_URL` | `https://prism.theaurumcc.com` |
+| `NOTIFY_EMAILS` | Comma-separated emails for admin alerts |
 
 ---
 
 ## Pre-Launch Checklist
-- [ ] `PRISM_SECRET` set (run `openssl rand -base64 32`)
-- [ ] `ADMIN_USERS` set with secure password
-- [ ] `RESEND_API_KEY` set, `prism@theaurumcc.com` domain verified
-- [ ] `KV_REST_API_URL` + `KV_REST_API_TOKEN` set (Upstash)
-- [ ] `SITE_URL` set to `https://prism.theaurumcc.com`
-- [ ] `NOTIFY_EMAILS` set
-- [ ] Test email delivery end-to-end (register investor, approve, verify code email)
-- [ ] Test password reset flow
-- [ ] Load test data, verify all 5 deals show on marketplace
-- [ ] Test IOI submission + data room grant flow
-- [ ] Verify `/api/health` returns `kv: connected`
-- [ ] Remove or disable seed endpoint before real launch
+- [ ] All env vars set in Vercel (table above)
+- [ ] `RESEND_API_KEY` set, `prism@theaurumcc.com` sender domain verified
+- [ ] `/api/health` returns `kv: connected`
+- [ ] Load Test Data seeded — deals visible on `/investor-portal`
+- [ ] Advisor login works, lands on `/advisor-portal`
+- [ ] Investor login works, lands on `/investor-portal`
+- [ ] Operator login works, lands on `/admin-portal`
+- [ ] IOI submission end-to-end: investor submits → appears in admin queue
+- [ ] Email delivery verified (IOI approval triggers investor email)
+- [ ] Mobile tested on iOS Safari and Android Chrome
+- [ ] Vercel Deployment Protection **disabled** (Settings → Deployment Protection)
