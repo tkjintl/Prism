@@ -1436,6 +1436,19 @@ let DEALS=[
     thesis:'Third vintage of the Clearwater senior secured credit strategy. Diversified first-lien portfolio across North American middle market.',
     highlights:[{icon:'🔒',s:'Senior Secured',b:'First lien security across all 16 portfolio positions.'},{icon:'💰',s:'Monthly Income',b:'14% target IRR via monthly cash distributions.'}]
   },
+  {
+    id:'d9',name:'Figure AI — Series C',asset_class:'pe',stage:'live',
+    geography:'United States',structure:'Preferred Equity',target_irr:35,
+    target_alloc:50000000,term:60,min_ticket:500000,closing:'2026-10-31',
+    advisor:'TACC Singapore',advisor_firm:'TACC Singapore',
+    ioi_agg:12000000,
+    iois:[
+      {id:'i23',name:'Riviera Capital SG',init:'RC',type:'Institutional',geo:'SG',amount:8000000,date:'May 1',status:'pending',isNew:true,pushed:false},
+      {id:'i24',name:'E. Nakamura',init:'EN',type:'HNW',geo:'JP',amount:4000000,date:'May 1',status:'pending',isNew:true,pushed:false},
+    ],
+    thesis:'Figure AI is building the world\'s most advanced humanoid robot, combining proprietary AI with full-stack hardware manufacturing. Series C led by strategic investors at a $2.6B valuation with letters of intent from Fortune 500 manufacturers.',
+    highlights:[{icon:'🤖',s:'Humanoid Robotics',b:'Full-stack humanoid platform — proprietary AI, hardware, and manufacturing.'},{icon:'🏭',s:'Enterprise Demand',b:'LOIs from tier-1 automotive and logistics customers ahead of commercial launch.'},{icon:'📈',s:'35% Target IRR',b:'Preferred equity with 1.25x liquidation preference and pro-rata rights.'}]
+  },
 ];
 
 let NEW_SUBMISSIONS=[
@@ -1453,6 +1466,27 @@ let NEW_SUBMISSIONS=[
     target_irr:26,target_alloc:18000000,min_ticket:250000,
     asset_class_display:'Private Equity',
     thesis:'B2B workflow automation SaaS targeting European mid-market. $8M ARR, 140% NRR.',
+  },
+  {
+    id:'tacc1',name:'Shield AI — Series F',asset_class:'pe',stage:'review',
+    advisor:'TACC Singapore',advisor_firm:'TACC Singapore',submitted:'May 1',
+    target_irr:32,target_alloc:75000000,min_ticket:1000000,
+    asset_class_display:'Private Equity',
+    thesis:'Shield AI is the leading autonomous AI pilot for defence platforms. Series F at $5.3B valuation with $1B+ in US DoD contracted revenue. Preferred equity with structured downside protection.',
+  },
+  {
+    id:'tacc2',name:'SpaceX — Starship Commercial Round',asset_class:'pe',stage:'review',
+    advisor:'TACC Singapore',advisor_firm:'TACC Singapore',submitted:'May 1',
+    target_irr:28,target_alloc:100000000,min_ticket:2000000,
+    asset_class_display:'Private Equity',
+    thesis:'Secondary/co-invest opportunity in SpaceX at current valuation. Participation in Starship commercial launch revenue and Starlink subscriber growth. Structured as preferred equity alongside existing institutional investors.',
+  },
+  {
+    id:'tacc3',name:'Anthropic — Series E Co-Invest',asset_class:'pe',stage:'review',
+    advisor:'TACC Singapore',advisor_firm:'TACC Singapore',submitted:'May 1',
+    target_irr:40,target_alloc:40000000,min_ticket:500000,
+    asset_class_display:'Private Equity',
+    thesis:'Co-investment alongside Anthropic\'s Series E at $18B valuation. Anthropic is the leading safety-focused AI lab with Claude as the market-leading enterprise AI. Revenue growing 10x YoY with major contracts from Google, Amazon, and Fortune 500 enterprises.',
   },
 ];
 
@@ -1562,6 +1596,7 @@ function renderOverview(){
     {name:'James Lim',       firm:'Lim Capital SG',          joined:'May 1 2026',  status:'pending'},
     {name:'Marcus Chen',     firm:'Marcus Chen Advisory',    joined:'Apr 26 2026', status:'active'},
     {name:'R. Tanaka',       firm:'Tanaka Family Office',    joined:'May 1 2026',  status:'pending'},
+    {name:'TACC Singapore',  firm:'TACC Singapore',          joined:'May 1 2026',  status:'active'},
   ];
   const MOCK_INVESTORS=[
     {name:'Harrison Family Office',  type:'Family Office',   added:'Apr 29 2026',access:'active'},
