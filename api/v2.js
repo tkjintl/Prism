@@ -1449,6 +1449,7 @@ Return ONLY valid JSON in this exact structure:
           advisorFirm,
           approvedCount: approvedIois.length,
           approvedTotal,
+          targetAlloc,
           pctOfTarget,
           typeBreakdown: Object.values(typeMap),
           geoBreakdown: Object.values(geoMap),

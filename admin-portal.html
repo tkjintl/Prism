@@ -2122,7 +2122,7 @@ async function pushPackage(dealId){
 }
 
 function showPushPreviewModal(p){
-  const pctTarget=p.targetAlloc>0?Math.round(p.approvedTotal/p.targetAlloc*100):0;
+  const pctTarget=p.targetAlloc>0?Math.round(p.approvedTotal/p.targetAlloc*100):(p.pctOfTarget||0);
   const deal=DEALS.find(d=>d.id===p.dealId);
   const stageLbl=deal?(STAGE_LABELS[deal.stage]||deal.stage):'Live';
   const todayStr=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
