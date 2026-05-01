@@ -4,6 +4,13 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: Rename "Open Due Diligence" → "Open Data Room" in See Investors popup
+
+### Changes
+- `admin-portal.html` (`showInvestorsStep2`): CTA button now reads "Open Data Room →" instead of "Open Due Diligence →". Scoped to the See Investors step-2 popup only — the queue column title and IOI detail panel are unchanged.
+
+---
+
 ## [2026-05-01] — Admin portal: Approve/Decline pending IOIs directly in See Investors popup
 
 ### Changes
