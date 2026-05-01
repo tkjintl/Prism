@@ -1273,7 +1273,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
             <option value="">Select…</option>
             <option value="infra">Infrastructure</option>
             <option value="credit">Private Credit</option>
-            <option value="pe">Private Equity</option>
+            <option value="pe">Equity</option>
             <option value="re">Real Estate</option>
           </select>
         </div>
@@ -1512,28 +1512,28 @@ let NEW_SUBMISSIONS=[
     id:'sub4',name:'Cascade Software Series B',asset_class:'pe',stage:'review',
     advisor:'Priya Mehta',advisor_firm:'Mehta Investment Group',submitted:'May 1',
     target_irr:26,target_alloc:18000000,min_ticket:250000,
-    asset_class_display:'Private Equity',
+    asset_class_display:'Equity',
     thesis:'B2B workflow automation SaaS targeting European mid-market. $8M ARR, 140% NRR.',
   },
   {
     id:'tacc1',name:'Shield AI — Series F',asset_class:'pe',stage:'review',
     advisor:'TACC Singapore',advisor_firm:'TACC Singapore',submitted:'May 1',
     target_irr:32,target_alloc:75000000,min_ticket:1000000,
-    asset_class_display:'Private Equity',
+    asset_class_display:'Equity',
     thesis:'Shield AI is the leading autonomous AI pilot for defence platforms. Series F at $5.3B valuation with $1B+ in US DoD contracted revenue. Preferred equity with structured downside protection.',
   },
   {
     id:'tacc2',name:'SpaceX — Starship Commercial Round',asset_class:'pe',stage:'review',
     advisor:'TACC Singapore',advisor_firm:'TACC Singapore',submitted:'May 1',
     target_irr:28,target_alloc:100000000,min_ticket:2000000,
-    asset_class_display:'Private Equity',
+    asset_class_display:'Equity',
     thesis:'Secondary/co-invest opportunity in SpaceX at current valuation. Participation in Starship commercial launch revenue and Starlink subscriber growth. Structured as preferred equity alongside existing institutional investors.',
   },
   {
     id:'tacc3',name:'Anthropic — Series E Co-Invest',asset_class:'pe',stage:'review',
     advisor:'TACC Singapore',advisor_firm:'TACC Singapore',submitted:'May 1',
     target_irr:40,target_alloc:40000000,min_ticket:500000,
-    asset_class_display:'Private Equity',
+    asset_class_display:'Equity',
     thesis:'Co-investment alongside Anthropic\'s Series E at $18B valuation. Anthropic is the leading safety-focused AI lab with Claude as the market-leading enterprise AI. Revenue growing 10x YoY with major contracts from Google, Amazon, and Fortune 500 enterprises.',
   },
 ];
@@ -3457,7 +3457,7 @@ function openIoiDetail(dealId,ioiId){
     <div class="idp-tl-lbl ${s.state}">${s.lbl}</div>
   </div>`).join('');
 
-  const CLASS_LABEL={credit:'Private Credit',pe:'Private Equity',re:'Real Estate',infra:'Infrastructure'};
+  const CLASS_LABEL={credit:'Private Credit',pe:'Equity',re:'Real Estate',infra:'Infrastructure'};
   document.getElementById('idp-body').innerHTML=`
     <div class="idp-amount">${fmU(ioi.amount)}</div>
     <div class="idp-amount-lbl">Indication of Interest</div>
@@ -3776,7 +3776,7 @@ function renderLRPreview(){
   const LOGO_C={infra:'#7B8FA1',credit:'#5b85b8',pe:'#C5A572',re:'#5a9e72'};
   const LOGO_BG={infra:'rgba(123,143,161,0.12)',credit:'rgba(91,133,184,0.12)',pe:'rgba(197,165,114,0.12)',re:'rgba(90,158,114,0.12)'};
   const LOGO_BD={infra:'rgba(123,143,161,0.3)',credit:'rgba(91,133,184,0.3)',pe:'rgba(197,165,114,0.3)',re:'rgba(90,158,114,0.3)'};
-  const CLASS_LABEL={credit:'Private Credit',pe:'Private Equity',re:'Real Estate',infra:'Infrastructure'};
+  const CLASS_LABEL={credit:'Private Credit',pe:'Equity',re:'Real Estate',infra:'Infrastructure'};
   const closing=deal.closing_date||deal.closing||'';
   const days=closing?Math.round((new Date(closing)-new Date())/86400000):0;
 

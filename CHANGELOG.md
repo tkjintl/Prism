@@ -4,6 +4,15 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Rename "Private Equity" → "Equity" across all portals
+
+### Changes
+- `admin-portal.html`: 7 occurrences replaced (dropdowns, deal cards, asset class labels)
+- `advisor-portal.html`: 3 occurrences replaced (deal mock data, asset class display)
+- `investor-portal.html`: 1 occurrence replaced
+
+---
+
 ## [2026-05-01] — Admin portal: pre-publish preview modal + investors popup 2-step IOI package flow
 
 ### Changes

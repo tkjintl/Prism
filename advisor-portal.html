@@ -1857,7 +1857,7 @@ function renderWizard(){
   if(wStep===1){
     const ac=wizData.asset_class||'';
     const st=wizData.structure||'';
-    const acOpts=['Infrastructure','Private Equity','Private Credit','Real Estate'].map(o=>`<option${ac===o?' selected':''}>${o}</option>`).join('');
+    const acOpts=['Infrastructure','Equity','Private Credit','Real Estate'].map(o=>`<option${ac===o?' selected':''}>${o}</option>`).join('');
     const stOpts=['Senior Secured','Common Equity','Preferred Equity','Mezzanine'].map(o=>`<option${st===o?' selected':''}>${o}</option>`).join('');
     html=`<div class="field-section"><label class="field-label">Deal Name</label>
       <input class="field-input" id="wiz-name" type="text" placeholder="e.g. Pacific Bridge Infrastructure IV" value="${wizData.name||''}"></div>
@@ -1965,7 +1965,7 @@ async function wizSubmit(){
   const name=wizData.name||'';
   if(!name){toast('Enter a deal name','err');wStep=1;renderWizard();return;}
 
-  const assetClassMap={'Infrastructure':'infra','Private Equity':'pe','Private Credit':'credit','Real Estate':'re'};
+  const assetClassMap={'Infrastructure':'infra','Equity':'pe','Private Credit':'credit','Real Estate':'re'};
 
   const payload={
     name,
@@ -2081,7 +2081,7 @@ function renderReviewEdit(){
 
   const lc={credit:'#A89A6A',pe:'#6A8BA8',re:'#6AA87A',infra:'#8A6AA8'}[d.asset_class]||'#A89A6A';
   const ticker=(d.name||'???').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase();
-  const CLASS_LABEL={credit:'Private Credit',pe:'Private Equity',re:'Real Estate',infra:'Infrastructure'};
+  const CLASS_LABEL={credit:'Private Credit',pe:'Equity',re:'Real Estate',infra:'Infrastructure'};
 
   document.getElementById('review-edit-content').innerHTML=`
     <div style="max-width:900px">
