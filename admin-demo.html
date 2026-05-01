@@ -270,6 +270,38 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .toast.ok{background:var(--green);color:#fff}.toast.err{background:var(--red);color:#fff}
 .demo-badge{position:fixed;bottom:16px;right:16px;z-index:300;padding:6px 12px;background:var(--bg-3);border:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);border-radius:20px}
 @media(max-width:640px){.dp-row{grid-template-columns:1fr auto auto}.dp-bar-wrap,.dp-advisor{display:none}}
+
+/* ── MOBILE FIXES ── */
+@media(max-width:600px){
+  /* Prevent iOS input zoom */
+  input,select,textarea{font-size:16px!important}
+  /* KPI strip — 2 cols at all mobile sizes */
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  /* Nav tabs scroll */
+  .nav-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  .ntab{flex-shrink:0;white-space:nowrap;padding:0 12px}
+  /* IOI queue cards */
+  .iqi-row{flex-wrap:wrap;gap:8px}
+  .iqi-actions{flex-shrink:0}
+  /* Modal responsive padding */
+  .modal-box{padding:clamp(16px,4vw,28px);width:94vw}
+  /* Deal submission cards */
+  .ds-card-footer{flex-wrap:wrap;gap:8px}
+  .att-btn{min-height:40px;padding:9px 14px}
+}
+@media(max-width:480px){
+  /* Pipeline table — minimal cols */
+  .dp-row{grid-template-columns:1fr auto}
+  .dp-closing,.dp-actions-col{font-size:11px}
+  /* AI tool layout already stacks at 700px, but ensure padding */
+  .ai-slot{padding:12px}
+  /* Section headers */
+  .section-hd{flex-wrap:wrap;gap:6px}
+  /* Overview attention cards */
+  .att-card{padding:14px 16px}
+  /* KPI card touch targets */
+  .kpi-card{padding:14px 16px}
+}
 </style>
 </head>
 <body>

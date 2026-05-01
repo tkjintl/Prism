@@ -348,9 +348,54 @@ a{color:inherit;text-decoration:none}
 @media(max-width:640px){
   .hero-stats{gap:14px}
   .dd-grid{grid-template-columns:1fr}
-  .action-sticky{position:static}
+  .action-sticky{position:static;top:auto}
   .stat-grid{grid-template-columns:1fr 1fr}
   .docs-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ── MOBILE FIXES ── */
+@media(max-width:600px){
+  /* Prevent iOS input zoom */
+  input,select,textarea{font-size:16px!important}
+  /* IOI range slider — larger touch target */
+  .ioi-slider{height:44px;cursor:pointer}
+  /* NDA toggle — larger touch zone */
+  .toggle-row{min-height:44px;align-items:center}
+  /* Hero actions — stack buttons */
+  .hero-actions{flex-direction:column;gap:10px}
+  .btn-primary,.btn-ghost{width:100%;text-align:center;padding:14px 20px}
+  /* Hero stats compact */
+  .hero-stats{gap:0;flex-wrap:wrap}
+  .hero-stat{padding:0 14px 0 0;margin-right:14px}
+  /* Return chart — taller on mobile for readability */
+  .return-chart{height:140px}
+  /* Nav tabs scroll */
+  .nav-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  .ntab{flex-shrink:0;padding:0 14px;white-space:nowrap}
+  /* Deal overlay — full width */
+  .view-deal{width:100vw!important;right:0!important}
+  /* Portfolio stat cards */
+  .ph-stats{gap:16px}
+  .ph-stat-val{font-size:20px}
+}
+@media(max-width:480px){
+  /* Docs grid — 1 column on small phones */
+  .docs-grid{grid-template-columns:1fr}
+  /* Stats grid — 1 column */
+  .stat-grid{grid-template-columns:1fr}
+  /* Allocation ring — hide ring, show legend only */
+  .alloc-ring-wrap{display:none}
+  .alloc-section{grid-template-columns:1fr}
+  /* IOI form padding */
+  .ioi-form{padding:14px}
+  /* Deal grid — always 1 col on very small */
+  .deal-grid{grid-template-columns:1fr!important}
+  /* Thesis max-width */
+  .dd-thesis{max-width:100%;font-size:14px}
+  /* Highlight cards */
+  .hl-grid{grid-template-columns:1fr}
+  /* Hero stat val smaller */
+  .hero-stat-val{font-size:18px}
 }
 </style>
 </head>
