@@ -1688,6 +1688,7 @@ function renderOverview(){
       <div class="ov-ac-actions">
         <button class="att-btn att-push" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview Package →</button>
         <button class="att-btn att-approve" onclick="openPushModal('${d.id}','${ioi.id}')">Push to Advisor</button>
+        <button class="att-btn att-decline" onclick="killDeal('${d.id}',this)" style="background:rgba(220,38,38,.12);color:#ef4444;border-color:rgba(220,38,38,.25)">Kill Deal</button>
       </div>
     </div>`)
   );
@@ -2233,6 +2234,15 @@ async function declineDeal(dealId,btn){
   renderPipeline();renderOverview();
   toast('Deal declined','');
   // Persist kill to KV via API
+  api('POST','/api/v2?resource=deals',{action:'update',id:dealId,stage:'killed'}).catch(()=>{});
+}
+
+async function killDeal(dealId, btn){
+  if(!confirm('Kill this deal? This cannot be undone.')) return;
+  if(btn) btn.disabled=true;
+  DEALS=DEALS.filter(d=>d.id!==dealId);
+  renderPipeline();renderOverview();
+  toast('Deal killed','');
   api('POST','/api/v2?resource=deals',{action:'update',id:dealId,stage:'killed'}).catch(()=>{});
 }
 
