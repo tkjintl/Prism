@@ -1678,30 +1678,38 @@ function renderOverview(){
     </div>`)
   );
 
-  // Column 3: Deploy Capital (approved, not yet pushed) — sorted highest % funded first
-  const pushCards = DEALS.flatMap(d =>
-    d.iois.filter(i => i.status === 'approved' && !i.pushed).map(ioi => {
-      const pct = d.target_alloc > 0 ? Math.round(d.ioi_agg / d.target_alloc * 100) : 0;
-      const pctColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : 'var(--amber)';
-      return { pct, html: `<div class="ov-action-card" style="position:relative;padding-right:72px">
-          <div class="ov-ac-tag violet">Deploy Capital</div>
-          <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${d.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
-          <div class="ov-ac-meta">
-            ${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}<br>
-            ${ioi.name} · ${ioi.type} · <strong>${fmU(ioi.amount)}</strong> approved
-          </div>
-          <div class="ov-ac-actions">
-            <button class="att-btn att-push" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview Package →</button>
-            <button class="att-btn att-approve" onclick="openPushModal('${d.id}','${ioi.id}')">Push to Advisor</button>
-            <button class="att-btn att-decline" onclick="killDeal('${d.id}',this)" style="background:rgba(220,38,38,.12);color:#ef4444;border-color:rgba(220,38,38,.25)">Kill Deal</button>
-          </div>
-          <div style="position:absolute;top:0;right:0;bottom:0;width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--border);gap:2px">
-            <div style="font-size:20px;font-weight:700;font-family:var(--mono);color:${pctColor};line-height:1;letter-spacing:-.02em">${pct}%</div>
-            <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">Funded</div>
-          </div>
-        </div>` };
-    })
-  ).sort((a,b) => b.pct - a.pct).map(x => x.html);
+  // Column 3: Deploy Capital — one card per deal, sorted highest % funded first
+  const _dcGroups = [];
+  DEALS.forEach(d => {
+    const readyIois = d.iois.filter(i => i.status === 'approved' && !i.pushed);
+    if (!readyIois.length) return;
+    const pct = d.target_alloc > 0 ? Math.round(d.ioi_agg / d.target_alloc * 100) : 0;
+    const pctColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : 'var(--amber)';
+    _dcGroups.push({ pct, pctColor, d, readyIois });
+  });
+  _dcGroups.sort((a, b) => b.pct - a.pct);
+  const pushCards = _dcGroups.map(({ pct, pctColor, d, readyIois }) => {
+    const investorRows = readyIois.map(ioi =>
+      `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px solid var(--border)">
+        <div style="flex:1;min-width:0;font-size:11px;color:var(--text-2);font-family:var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ioi.name} · <strong>${fmU(ioi.amount)}</strong></div>
+        <button class="att-btn att-push" style="padding:2px 7px;font-size:10px;flex-shrink:0" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview →</button>
+      </div>`
+    ).join('');
+    return `<div class="ov-action-card" style="position:relative;padding-right:72px">
+      <div class="ov-ac-tag violet">Deploy Capital</div>
+      <div class="ov-ac-name">${d.name}</div>
+      <div class="ov-ac-meta">${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}</div>
+      ${investorRows}
+      <div class="ov-ac-actions" style="margin-top:8px">
+        <button class="att-btn att-review" onclick="seeInvestors('${d.id}')">See Investors →</button>
+        <button class="att-btn att-decline" onclick="killDeal('${d.id}',this)" style="background:rgba(220,38,38,.12);color:#ef4444;border-color:rgba(220,38,38,.25)">Kill Deal</button>
+      </div>
+      <div style="position:absolute;top:0;right:0;bottom:0;width:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--border);gap:2px">
+        <div style="font-size:20px;font-weight:700;font-family:var(--mono);color:${pctColor};line-height:1;letter-spacing:-.02em">${pct}%</div>
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">Funded</div>
+      </div>
+    </div>`;
+  });
 
   const queueCol = (dotCls, title, cards) => {
     const badge = cards.length;
@@ -3331,6 +3339,16 @@ function closeIoiDetail(){
   panel.classList.remove('idp-open');
   setTimeout(()=>{panel.style.display='none';},320);
   _ioiDetailDeal=null;_ioiDetailIoi=null;
+}
+function seeInvestors(dealId){
+  showView('queue',document.querySelectorAll('.ntab')[2]);
+  setTimeout(()=>{
+    const grp=document.getElementById('iqg-'+dealId);
+    if(!grp)return;
+    grp.scrollIntoView({behavior:'smooth',block:'start'});
+    const body=document.getElementById('iqg-body-'+dealId);
+    if(body&&body.style.display==='none')toggleIoiGroup(dealId);
+  },420);
 }
 
 function approveFromDetail(){
