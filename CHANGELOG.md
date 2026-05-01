@@ -4,6 +4,13 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix seed op: IOIs now force-refreshed on Load Test Data
+
+### Changes
+- `v2.js`: `seedIois` was not imported or called in `op=seed` handler — now imported and called with `force=true` so "Load Test Data" fully refreshes IOI records alongside deals
+
+---
+
 ## [2026-05-01] — Expanded seed: 16 deals, 8 advisors, 14 investors, full IOI set
 
 ### Changes
