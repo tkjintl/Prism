@@ -118,6 +118,18 @@ export default async function handler(req, res) {
         // Create new deal
         const advisorId = adv ? adv.advisor_id : null;
         const deal = await createDeal(data, advisorId, admin ? admin.email : null);
+        // Move any pre-uploaded docs from temp keys to deal_doc:{dealId}:{slot}
+        if (advisorId) {
+          const slots = ['nda', 'mgmt', 'fin', 'term'];
+          for (const slot of slots) {
+            const tmp = await kvGet(`pdoc:${advisorId}:${slot}`);
+            if (tmp?.data) {
+              await kvSet(`deal_doc:${deal.id}:${slot}`, tmp);
+              await kvDel(`pdoc:${advisorId}:${slot}`);
+              await kvDel(`pdoc_meta:${advisorId}:${slot}`);
+            }
+          }
+        }
         // Get advisor object for email
         const advObj = adv ? await kvGet(`advisor:${adv.advisor_id}`) : null;
         if (advObj) await sendDealReceived(deal, advObj);
