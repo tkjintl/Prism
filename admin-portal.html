@@ -1360,7 +1360,7 @@ let DEALS=[
     geography:'Asia-Pacific · N. America',structure:'Senior Secured',target_irr:11,
     target_alloc:60000000,term:84,min_ticket:500000,closing:'2026-07-31',
     advisor:'Sarah Chen',advisor_firm:'Chen Capital Partners',
-    ioi_agg:58500000,
+    ioi_agg:28500000,
     iois:[
       {id:'i1',name:'Whitmore Family Office',init:'HF',type:'Family Office',geo:'US',amount:5000000,date:'Apr 29',status:'approved',isNew:true,pushed:false},
       {id:'i2',name:'Meridian Capital LP',init:'MC',type:'Institutional',geo:'SG',amount:8000000,date:'Apr 26',status:'approved',isNew:false,pushed:false},
@@ -1387,7 +1387,7 @@ let DEALS=[
     geography:'United States',structure:'Common Equity',target_irr:22,
     target_alloc:45000000,term:60,min_ticket:500000,closing:'2026-10-15',
     advisor:'Priya Mehta',advisor_firm:'Mehta Investment Group',
-    ioi_agg:27900000,
+    ioi_agg:13000000,
     iois:[
       {id:'i10',name:'Sierra Ventures LP',init:'SV',type:'Institutional',geo:'US',amount:8000000,date:'Apr 25',status:'approved',isNew:false,pushed:true},
       {id:'i11',name:'Alto Family Office',init:'AF',type:'Family Office',geo:'US',amount:5000000,date:'Apr 22',status:'approved',isNew:false,pushed:false},
@@ -1591,7 +1591,7 @@ function renderKPIs(){
   const approvedUnpushed=DEALS.flatMap(d=>d.iois.filter(i=>i.status==='approved'&&!i.pushed)).length;
   const actionsRequired=totalPending+NEW_SUBMISSIONS.length+approvedUnpushed;
   const tiles=[
-    {lbl:'Capital Indicated',val:fmU(totalIndicated),rawNum:totalIndicated,sub:`${DEALS.length} active deals`,cls:'kpi-gold'},
+    {lbl:'Approved Capital',val:fmU(totalIndicated),rawNum:totalIndicated,sub:`${DEALS.length} active deals`,cls:'kpi-gold'},
     {lbl:'Investor Indications',val:totalPending>0?`${totalPending} pending`:'All clear',rawNum:totalPending,sub:'awaiting approval',cls:totalPending>0?'kpi-alert':'kpi-green'},
     {lbl:'New Submissions',val:NEW_SUBMISSIONS.length||'—',rawNum:NEW_SUBMISSIONS.length,sub:'from advisors',cls:NEW_SUBMISSIONS.length>0?'kpi-alert':''},
     {lbl:'Ready to Push',val:approvedUnpushed||'—',rawNum:approvedUnpushed,sub:'approved IOIs',cls:approvedUnpushed>0?'kpi-gold':''},
@@ -1683,7 +1683,8 @@ function renderOverview(){
   DEALS.forEach(d => {
     const readyIois = d.iois.filter(i => i.status === 'approved' && !i.pushed);
     if (!readyIois.length) return;
-    const pct = d.target_alloc > 0 ? Math.round(d.ioi_agg / d.target_alloc * 100) : 0;
+    const _approvedAmt = d.iois.filter(i=>i.status==='approved').reduce((s,i)=>s+i.amount,0);
+    const pct = d.target_alloc > 0 ? Math.round(_approvedAmt / d.target_alloc * 100) : 0;
     const pctColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : 'var(--amber)';
     _dcGroups.push({ pct, pctColor, d, readyIois });
   });
@@ -1773,7 +1774,8 @@ function renderOverview(){
   const intelRows=DEALS.filter(d=>d.iois.length>0).map(d=>{
     const pending=d.iois.filter(i=>i.status==='pending').length;
     const declined=d.iois.filter(i=>i.status==='declined').length;
-    const pct=d.target_alloc>0?Math.min(Math.round(d.ioi_agg/d.target_alloc*100),100):0;
+    const _iovApproved=d.iois.filter(i=>i.status==='approved').reduce((s,i)=>s+i.amount,0);
+    const pct=d.target_alloc>0?Math.min(Math.round(_iovApproved/d.target_alloc*100),100):0;
     // Build a 6-bar sparkline from IOI amounts (normalized to the max in this deal)
     const ioiAmounts=d.iois.filter(i=>i.status!=='declined').map(i=>i.amount);
     const maxAmt=Math.max(...ioiAmounts,1);
@@ -1928,10 +1930,11 @@ async function renderQueue(){
     // Build groups from local mock data so the UI is always populated
     groups=DEALS.map(d=>{
       const approved=d.iois.filter(i=>i.status==='approved');
-      const pct=d.target_alloc>0?Math.round(d.ioi_agg/d.target_alloc*100):0;
+      const _approvedAmt=approved.reduce((s,i)=>s+i.amount,0);
+      const pct=d.target_alloc>0?Math.round(_approvedAmt/d.target_alloc*100):0;
       return{
         dealId:d.id,dealName:d.name,advisor:d.advisor,advisorId:'',
-        targetAlloc:d.target_alloc,indicatedTotal:d.ioi_agg,pct,
+        targetAlloc:d.target_alloc,indicatedTotal:d.ioi_agg,approvedAmt:_approvedAmt,pct,
         status:d.stage,closingDate:d.closing?new Date(d.closing).toLocaleDateString('en-US',{month:'short',year:'numeric'}):'TBD',
         raise_status:d.raise_status||'open',
         iois:d.iois,
@@ -1949,7 +1952,8 @@ async function renderQueue(){
 }
 
 function buildDealGroup(g,gi=0){
-  const pct=Math.min(g.pct||0,100);
+  const _gApprovedAmt=(g.approvedAmt!=null)?g.approvedAmt:(g.iois||[]).filter(i=>i.status==='approved').reduce((s,i)=>s+i.amount,0);
+  const pct=g.targetAlloc>0?Math.min(Math.round(_gApprovedAmt/g.targetAlloc*100),100):Math.min(g.pct||0,100);
   const raiseMap={open:'irs-open',delayed:'irs-delayed',closed:'irs-closed'};
   const raiseLabel={open:'Open',delayed:'Delayed',closed:'Closed'};
   const rs=g.raise_status||'open';
@@ -1999,7 +2003,7 @@ function buildDealGroup(g,gi=0){
       </div>
       <div class="ioi-deal-hd-right">
         <div class="ioi-sub-wrap">
-          <div class="ioi-sub-label">${fmU(g.indicatedTotal)} of ${fmU(g.targetAlloc)} · ${pct}%</div>
+          <div class="ioi-sub-label">${fmU(_gApprovedAmt)} approved of ${fmU(g.targetAlloc)} · ${pct}%</div>
           <div class="ioi-sub-bar-track"><div class="ioi-sub-bar-fill" style="width:${pct}%"></div></div>
         </div>
         <span class="ioi-raise-status ${raiseMap[rs]||'irs-open'}">${raiseLabel[rs]||'Open'}</span>
