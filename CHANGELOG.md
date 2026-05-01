@@ -4,6 +4,29 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Review & Launch panel (Deal Studio → Investor Portal)
+
+### `admin-portal.html`
+- Added full-screen slide-in `#launch-review-panel` (z-index 300, same pattern as `#deal-detail-panel`). Inserted before `<div class="toast">`.
+- Added 50+ CSS rules under `/* LAUNCH REVIEW PANEL */`: `.lr-header` (sticky), `.lr-cols` (60/40 split), `.lr-section`, `.lr-tagline-field`, `.lr-thesis-field`, `.lr-highlight-row`, `.lr-hl-input`, `.lr-add-highlight`, `.lr-stats-grid`, `.lr-stat-chip`, `.lr-preview-card`, `.lr-preview-bar` (per asset class), `.lr-mode-card` / `.lr-mode-card.selected`, `.lr-date-row`, `.lr-cb-list`, `.lr-ticket-wrap`, `.lr-checklist-item`, `.lr-check-ok`, `.lr-check-warn`, `.lr-publish-btn`.
+- Added module-level vars `_launchDeal`, `_launchContent`, `_launchMode` at top of script.
+- Added JS functions: `openLaunchReview(deal, content)`, `closeLaunchReview()`, `selectLaunchMode(mode)`, `handleAllSegments(cb)`, `buildHighlightRow(text, num)`, `addHighlight()`, `removeHighlight(btn)`, `updateLaunchPreview()`, `buildLaunchChecklist(deal, content)`, `confirmPublish()`.
+- `showAIOutput()`: stores `_launchDeal`/`_launchContent` before setting `panel.innerHTML`, so the Review & Launch button closure references the correct deal regardless of subsequent calls.
+- Replaced "Apply to Investor Portal →" button with "Review & Launch →" calling `openLaunchReview(_launchDeal, _launchContent)`.
+- `confirmPublish()`: reads all editable fields, validates (tagline required, thesis required, min 3 highlights), POSTs to `POST /api/v2?resource=admin&op=publish-deal`, on success updates local DEALS array (stage='live', featured flag), re-renders overview/pipeline/KPIs, shows toast. On API failure falls back to local-only update and shows informational toast.
+
+---
+
+## [2026-05-01] — publish-deal endpoint + ai-generate draft persistence
+
+### `api/v2.js`
+- Added `publish-deal` POST op under `resource=admin` (admin auth required). Accepts `dealId`, `tagline`, `thesis`, `highlights`, `stats`, `launch_mode` (`featured`/`listed`/`preview`), `open_date`, `close_date`, `target_segments`, `featured`, `min_ticket`. Sets `stage: 'live'` and `member_visible: true`, merges content fields, de-features all other live deals when `launch_mode === 'featured'`, appends audit log entry, and returns `{ ok, deal: { id, name, stage, launch_mode, featured } }`.
+- Updated `ai-generate` op: after a successful Claude response, persists `deal.ai_draft = { tagline, thesis, highlights, stats, generated_at }` to the deal record via `saveDeal` so the Review & Launch panel can reload it without re-running AI.
+- Updated `tacc-feed` deal projection to include `tagline`, `thesis`, `stats`, `launch_mode`, `featured`, `target_segments`, `open_date` — all new published fields flow to TACC bridge consumers.
+- `deals` and `marketplace` GET handlers already return full deal objects via spread; no additional changes needed — new fields flow through automatically.
+
+---
+
 ## [2026-05-01] — Push preview modal redesign (deal brief layout)
 
 ### `admin-portal.html`

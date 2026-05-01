@@ -301,6 +301,94 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{background:var(--green);color:#fff}.toast.err{background:var(--red);color:#fff}
 .demo-badge{position:fixed;bottom:16px;right:16px;z-index:300;padding:6px 12px;background:var(--bg-3);border:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);border-radius:20px}
+
+/* ── LAUNCH REVIEW PANEL ── */
+#launch-review-panel{position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);display:none}
+#launch-review-panel.lrp-open{transform:translateX(0)}
+.lr-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 28px;height:var(--nav-h);background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+[data-theme="dark"] .lr-header{background:rgba(10,9,8,0.92)}
+.lr-header-left{display:flex;align-items:center;gap:14px;min-width:0}
+.lr-back{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:7px;flex-shrink:0;transition:color .15s}
+.lr-back:hover{color:var(--text)}
+.lr-deal-name{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}
+.lr-stage-chip{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:20px;border:1px solid var(--gold-bd);background:var(--gold-bg);color:var(--gold);flex-shrink:0}
+.lr-publish-btn{padding:10px 22px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.lr-publish-btn:hover{background:var(--gold-b);transform:translateY(-1px)}
+.lr-publish-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.lr-body{max-width:1280px;margin:0 auto;padding:36px 28px 80px}
+.lr-cols{display:grid;grid-template-columns:1fr 380px;gap:32px;align-items:start}
+@media(max-width:960px){.lr-cols{grid-template-columns:1fr}}
+.lr-section{margin-bottom:28px}
+.lr-section-title{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.lr-field{width:100%;padding:10px 13px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:14px;transition:border-color .15s;box-sizing:border-box}
+.lr-field:focus{border-color:var(--gold);outline:none}
+.lr-tagline-field{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--gold);background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;padding:10px 14px;width:100%;box-sizing:border-box;transition:border-color .15s}
+.lr-tagline-field:focus{border-color:var(--gold);outline:none}
+.lr-thesis-field{width:100%;min-height:130px;padding:12px 14px;background:var(--bg-3);border-radius:4px;border:1px solid var(--border-m);border-left:2px solid var(--gold-bd);font-size:13px;color:var(--text-2);line-height:1.7;resize:vertical;font-family:var(--sans);box-sizing:border-box;transition:border-color .15s}
+.lr-thesis-field:focus{border-color:var(--gold);outline:none}
+.lr-highlights{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.lr-highlight-row{display:flex;align-items:flex-start;gap:10px}
+.lr-hl-num{width:22px;height:22px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold-bd);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--gold);flex-shrink:0;margin-top:9px}
+.lr-hl-input{flex:1;padding:8px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-size:13px;color:var(--text);font-family:var(--sans);transition:border-color .15s}
+.lr-hl-input:focus{border-color:var(--gold);outline:none}
+.lr-hl-del{width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:16px;cursor:pointer;border:none;background:none;margin-top:7px;flex-shrink:0;transition:color .15s;border-radius:2px}
+.lr-hl-del:hover{color:var(--red)}
+.lr-add-highlight{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--gold);background:none;border:none;cursor:pointer;padding:0;transition:opacity .15s}
+.lr-add-highlight:hover{opacity:.7}
+.lr-stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.lr-stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
+.lr-stat-chip-lbl{font-size:10px;color:var(--text-3);margin-bottom:5px;font-family:var(--mono);letter-spacing:.06em}
+.lr-stat-chip-input{width:100%;background:none;border:none;border-bottom:1px solid var(--border-m);font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text);padding:2px 0;transition:border-color .15s}
+.lr-stat-chip-input:focus{border-bottom-color:var(--gold);outline:none}
+/* Preview card */
+.lr-preview-label{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.lr-preview-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;gap:0}
+.lr-preview-bar{width:4px;flex-shrink:0}
+.lr-preview-bar.infra{background:var(--slate)}.lr-preview-bar.credit{background:var(--blue)}.lr-preview-bar.pe{background:var(--gold)}.lr-preview-bar.re{background:var(--green)}
+.lr-preview-inner{flex:1;padding:14px 16px}
+.lr-preview-name{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--text);margin-bottom:2px}
+.lr-preview-tagline{font-size:12px;color:var(--text-3);margin-bottom:10px;line-height:1.4}
+.lr-preview-stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+.lr-preview-stat{display:flex;flex-direction:column;gap:1px}
+.lr-preview-stat-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--text-3);text-transform:uppercase}
+.lr-preview-stat-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)}
+.lr-preview-sub-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.lr-preview-sub-fill{height:100%;background:var(--gold);border-radius:2px}
+.lr-preview-sub-lbl{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:4px}
+/* Mode cards */
+.lr-mode-cards{display:flex;flex-direction:column;gap:8px}
+.lr-mode-card{padding:13px 15px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:border-color .15s,background .15s}
+.lr-mode-card:hover{border-color:var(--gold-bd)}
+.lr-mode-card.selected{border-color:var(--gold);background:var(--gold-bg)}
+.lr-mode-card-title{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:7px}
+.lr-mode-card.selected .lr-mode-card-title{color:var(--gold)}
+.lr-mode-dot{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--border-m);flex-shrink:0;transition:all .15s}
+.lr-mode-card.selected .lr-mode-dot{background:var(--gold);border-color:var(--gold)}
+.lr-mode-card-body{font-size:12px;color:var(--text-2);line-height:1.5}
+/* Timeline inputs */
+.lr-date-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lr-date-group{display:flex;flex-direction:column;gap:5px}
+.lr-date-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)}
+.lr-date-input{padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);width:100%;box-sizing:border-box;transition:border-color .15s}
+.lr-date-input:focus{border-color:var(--gold);outline:none}
+/* Targeting checkboxes */
+.lr-cb-list{display:flex;flex-direction:column;gap:8px}
+.lr-cb-item{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13px;color:var(--text-2)}
+.lr-cb-item input[type=checkbox]{accent-color:var(--gold);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.lr-cb-note{font-size:11px;color:var(--text-3);margin-top:6px;line-height:1.5}
+/* Min ticket input */
+.lr-ticket-wrap{display:flex;align-items:center;gap:0}
+.lr-ticket-prefix{padding:9px 12px;background:var(--border);border:1px solid var(--border-m);border-right:none;border-radius:3px 0 0 3px;font-family:var(--mono);font-size:13px;color:var(--text-2)}
+.lr-ticket-input{flex:1;padding:9px 12px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:0 3px 3px 0;font-family:var(--mono);font-size:13px;color:var(--text);transition:border-color .15s}
+.lr-ticket-input:focus{border-color:var(--gold);outline:none}
+/* Checklist */
+.lr-checklist{display:flex;flex-direction:column;gap:7px}
+.lr-checklist-item{display:flex;align-items:center;gap:9px;font-size:12px}
+.lr-check-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.lr-check-ok{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green)}
+.lr-check-warn{background:var(--amber-bg);border:1px solid var(--amber-bd);color:var(--amber)}
+.lr-check-lbl{color:var(--text-2)}
+.lr-check-lbl.missing{color:var(--text-3)}
 @media(max-width:640px){.dp-row{grid-template-columns:1fr auto}.dp-bar-wrap,.dp-advisor{display:none}}
 
 /* ── DEAL DETAIL PANEL ── */
@@ -705,10 +793,150 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
 </div>
 
+<!-- ══ LAUNCH REVIEW PANEL ══ -->
+<div id="launch-review-panel">
+  <div class="lr-header">
+    <div class="lr-header-left">
+      <button class="lr-back" onclick="closeLaunchReview()">← Back</button>
+      <span style="width:1px;height:18px;background:var(--border);flex-shrink:0"></span>
+      <div class="lr-deal-name" id="lr-deal-name">—</div>
+      <div class="lr-stage-chip" id="lr-stage-chip">Review</div>
+    </div>
+    <button class="lr-publish-btn" id="lr-publish-btn" onclick="confirmPublish()">Publish to Investor Portal →</button>
+  </div>
+  <div class="lr-body">
+    <div class="lr-cols">
+      <!-- LEFT: content review -->
+      <div>
+        <!-- Tagline -->
+        <div class="lr-section">
+          <div class="lr-section-title">Tagline</div>
+          <input class="lr-tagline-field" id="lr-tagline" type="text" placeholder="Memorable single-line summary…" oninput="updateLaunchPreview()">
+        </div>
+        <!-- Thesis -->
+        <div class="lr-section">
+          <div class="lr-section-title">Investment Thesis</div>
+          <textarea class="lr-thesis-field" id="lr-thesis" placeholder="Investor-facing thesis paragraph…"></textarea>
+        </div>
+        <!-- Highlights -->
+        <div class="lr-section">
+          <div class="lr-section-title">Key Highlights</div>
+          <div class="lr-highlights" id="lr-highlights"></div>
+          <button class="lr-add-highlight" onclick="addHighlight()">+ Add highlight</button>
+        </div>
+        <!-- Stats -->
+        <div class="lr-section">
+          <div class="lr-section-title">Key Stats</div>
+          <div class="lr-stats-grid">
+            <div class="lr-stat-chip">
+              <div class="lr-stat-chip-lbl">Target IRR</div>
+              <input class="lr-stat-chip-input" id="lr-stat-irr" type="text" placeholder="e.g. 14%">
+            </div>
+            <div class="lr-stat-chip">
+              <div class="lr-stat-chip-lbl">Term</div>
+              <input class="lr-stat-chip-input" id="lr-stat-term" type="text" placeholder="e.g. 36mo">
+            </div>
+            <div class="lr-stat-chip">
+              <div class="lr-stat-chip-lbl">Min Ticket</div>
+              <input class="lr-stat-chip-input" id="lr-stat-ticket" type="text" placeholder="e.g. $500K">
+            </div>
+            <div class="lr-stat-chip">
+              <div class="lr-stat-chip-lbl">Structure / Geo</div>
+              <input class="lr-stat-chip-input" id="lr-stat-geo" type="text" placeholder="e.g. Senior Secured">
+            </div>
+          </div>
+        </div>
+        <!-- Preview -->
+        <div class="lr-section">
+          <div class="lr-preview-label">Investor Portal Preview</div>
+          <div class="lr-preview-card" id="lr-preview-card">
+            <div class="lr-preview-bar" id="lr-preview-bar"></div>
+            <div class="lr-preview-inner">
+              <div class="lr-preview-name" id="lr-preview-name">—</div>
+              <div class="lr-preview-tagline" id="lr-preview-tagline">—</div>
+              <div class="lr-preview-stats">
+                <div class="lr-preview-stat"><span class="lr-preview-stat-lbl">IRR</span><span class="lr-preview-stat-val" id="lr-prev-irr">—</span></div>
+                <div class="lr-preview-stat"><span class="lr-preview-stat-lbl">Term</span><span class="lr-preview-stat-val" id="lr-prev-term">—</span></div>
+                <div class="lr-preview-stat"><span class="lr-preview-stat-lbl">Min</span><span class="lr-preview-stat-val" id="lr-prev-ticket">—</span></div>
+              </div>
+              <div class="lr-preview-sub-bar"><div class="lr-preview-sub-fill" id="lr-prev-sub-fill" style="width:0%"></div></div>
+              <div class="lr-preview-sub-lbl" id="lr-prev-sub-lbl">IOI subscription</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RIGHT: launch config -->
+      <div>
+        <!-- Launch Mode -->
+        <div class="lr-section">
+          <div class="lr-section-title">Launch Mode</div>
+          <div class="lr-mode-cards">
+            <div class="lr-mode-card selected" id="lr-mode-featured" onclick="selectLaunchMode('featured')">
+              <div class="lr-mode-card-title"><span class="lr-mode-dot"></span>Featured</div>
+              <div class="lr-mode-card-body">Set as the hero deal on the investor portal. Replaces current featured deal.</div>
+            </div>
+            <div class="lr-mode-card" id="lr-mode-listed" onclick="selectLaunchMode('listed')">
+              <div class="lr-mode-card-title"><span class="lr-mode-dot"></span>Listed</div>
+              <div class="lr-mode-card-body">Appear in the marketplace list. Not featured.</div>
+            </div>
+            <div class="lr-mode-card" id="lr-mode-preview" onclick="selectLaunchMode('preview')">
+              <div class="lr-mode-card-title"><span class="lr-mode-dot"></span>Preview</div>
+              <div class="lr-mode-card-body">Visible only to invited investors. Does not appear in public marketplace.</div>
+            </div>
+          </div>
+        </div>
+        <!-- Timeline -->
+        <div class="lr-section">
+          <div class="lr-section-title">Timeline</div>
+          <div class="lr-date-row">
+            <div class="lr-date-group">
+              <label class="lr-date-label" for="lr-open-date">Open Date</label>
+              <input class="lr-date-input" type="date" id="lr-open-date">
+            </div>
+            <div class="lr-date-group">
+              <label class="lr-date-label" for="lr-close-date">Close Date</label>
+              <input class="lr-date-input" type="date" id="lr-close-date">
+            </div>
+          </div>
+        </div>
+        <!-- Targeting -->
+        <div class="lr-section">
+          <div class="lr-section-title">Investor Targeting</div>
+          <div class="lr-cb-list">
+            <label class="lr-cb-item"><input type="checkbox" id="lr-seg-all" checked onchange="handleAllSegments(this)"> All Investors</label>
+            <label class="lr-cb-item"><input type="checkbox" id="lr-seg-inst" disabled> Institutional</label>
+            <label class="lr-cb-item"><input type="checkbox" id="lr-seg-fo" disabled> Family Office</label>
+            <label class="lr-cb-item"><input type="checkbox" id="lr-seg-uhnw" disabled> UHNW</label>
+            <label class="lr-cb-item"><input type="checkbox" id="lr-seg-ef" disabled> Endowment &amp; Foundation</label>
+          </div>
+          <div class="lr-cb-note">If "All" is selected, deal is visible to all approved investors.</div>
+        </div>
+        <!-- Min Ticket -->
+        <div class="lr-section">
+          <div class="lr-section-title">Minimum Ticket</div>
+          <div class="lr-ticket-wrap">
+            <span class="lr-ticket-prefix">$</span>
+            <input class="lr-ticket-input" type="number" id="lr-min-ticket" min="0" step="50000" placeholder="500000">
+          </div>
+        </div>
+        <!-- Checklist -->
+        <div class="lr-section">
+          <div class="lr-section-title">Readiness Checklist</div>
+          <div class="lr-checklist" id="lr-checklist"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="demo-badge">Admin Demo</div>
 
 <script>
+/* ── LAUNCH REVIEW state ── */
+let _launchDeal=null,_launchContent=null;
+let _launchMode='featured';
+
 /* ─── API + AUTH ─── */
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
@@ -1557,6 +1785,10 @@ function showAIOutput(deal,generated){
     stats:{irr:'11%',term:'84mo',ticket:'$500K',geo:'Asia-Pacific'},
   };
 
+  // Store for Review & Launch button (closure-safe)
+  _launchDeal=deal;
+  _launchContent=outputs;
+
   panel.innerHTML=`<div class="ai-output">
     <div class="ai-out-section" style="animation-delay:.05s">
       <div class="ai-out-label">Generated Tagline</div>
@@ -1580,7 +1812,7 @@ function showAIOutput(deal,generated){
       </div>
     </div>
     <div class="ai-out-section" style="animation-delay:.45s">
-      <button class="ai-apply-btn" onclick="toast('Content applied to deal on investor portal','ok')">Apply to Investor Portal →</button>
+      <button class="ai-apply-btn" onclick="openLaunchReview(_launchDeal,_launchContent)">Review &amp; Launch →</button>
     </div>
   </div>`;
 }
@@ -1980,6 +2212,256 @@ async function savePrismEconomics(dealId){
   } else {
     toast('Save failed — changes held locally','');
     openDealDetail(dealId);
+  }
+}
+
+/* ── LAUNCH REVIEW PANEL ── */
+
+function openLaunchReview(deal,content){
+  if(!deal||!content){toast('No AI output to review','err');return;}
+  _launchDeal=deal;
+  _launchContent=content;
+  _launchMode='featured';
+
+  const panel=document.getElementById('launch-review-panel');
+  panel.style.display='block';
+  requestAnimationFrame(()=>panel.classList.add('lrp-open'));
+  panel.scrollTop=0;
+
+  // Header
+  document.getElementById('lr-deal-name').textContent=deal.name||'Untitled Deal';
+  document.getElementById('lr-stage-chip').textContent=(STAGE_LABELS[deal.stage]||deal.stage||'Review').toUpperCase();
+
+  // Populate content fields
+  const tagEl=document.getElementById('lr-tagline');
+  if(tagEl)tagEl.value=content.tagline||'';
+
+  const thesisEl=document.getElementById('lr-thesis');
+  if(thesisEl)thesisEl.value=content.thesis||'';
+
+  // Highlights
+  const hlWrap=document.getElementById('lr-highlights');
+  if(hlWrap){
+    hlWrap.innerHTML='';
+    const hl=Array.isArray(content.highlights)?content.highlights:[];
+    hl.forEach((h,i)=>hlWrap.appendChild(buildHighlightRow(h,i+1)));
+  }
+
+  // Stats
+  const stats=content.stats||{};
+  ['irr','term','ticket','geo'].forEach(k=>{
+    const el=document.getElementById('lr-stat-'+k);
+    if(el)el.value=stats[k]||'';
+  });
+
+  // Mode
+  selectLaunchMode('featured');
+
+  // Dates
+  const today=new Date().toISOString().slice(0,10);
+  const closeEl=document.getElementById('lr-close-date');
+  const openEl=document.getElementById('lr-open-date');
+  if(openEl)openEl.value=today;
+  if(closeEl)closeEl.value=deal.closing||'';
+
+  // Min ticket
+  const tickEl=document.getElementById('lr-min-ticket');
+  if(tickEl)tickEl.value=deal.min_ticket||500000;
+
+  // Preview
+  updateLaunchPreview();
+
+  // Checklist
+  buildLaunchChecklist(deal,content);
+}
+
+function closeLaunchReview(){
+  const panel=document.getElementById('launch-review-panel');
+  panel.classList.remove('lrp-open');
+  setTimeout(()=>{panel.style.display='none';},320);
+}
+
+function selectLaunchMode(mode){
+  _launchMode=mode;
+  ['featured','listed','preview'].forEach(m=>{
+    const el=document.getElementById('lr-mode-'+m);
+    if(el)el.classList.toggle('selected',m===mode);
+  });
+}
+
+function handleAllSegments(cb){
+  const segments=['inst','fo','uhnw','ef'];
+  segments.forEach(s=>{
+    const el=document.getElementById('lr-seg-'+s);
+    if(el){el.disabled=cb.checked;if(cb.checked)el.checked=false;}
+  });
+}
+
+function buildHighlightRow(text,num){
+  const row=document.createElement('div');
+  row.className='lr-highlight-row';
+  row.innerHTML=`<div class="lr-hl-num">${num}</div>
+    <input class="lr-hl-input" type="text" value="${(text||'').replace(/"/g,'&quot;')}" placeholder="Key highlight…">
+    <button class="lr-hl-del" onclick="removeHighlight(this)" title="Remove">×</button>`;
+  return row;
+}
+
+function addHighlight(){
+  const wrap=document.getElementById('lr-highlights');
+  if(!wrap)return;
+  const num=wrap.children.length+1;
+  wrap.appendChild(buildHighlightRow('',num));
+  // Focus new input
+  const inputs=wrap.querySelectorAll('.lr-hl-input');
+  if(inputs.length)inputs[inputs.length-1].focus();
+  buildLaunchChecklist(_launchDeal,_launchContent);
+}
+
+function removeHighlight(btn){
+  const row=btn.closest('.lr-highlight-row');
+  if(row)row.remove();
+  // Re-number
+  const wrap=document.getElementById('lr-highlights');
+  if(wrap){
+    Array.from(wrap.querySelectorAll('.lr-hl-num')).forEach((el,i)=>el.textContent=i+1);
+  }
+  buildLaunchChecklist(_launchDeal,_launchContent);
+}
+
+function updateLaunchPreview(){
+  const deal=_launchDeal;
+  if(!deal)return;
+  const tagline=document.getElementById('lr-tagline')?.value||'';
+  const irr=document.getElementById('lr-stat-irr')?.value||'—';
+  const term=document.getElementById('lr-stat-term')?.value||'—';
+  const ticket=document.getElementById('lr-stat-ticket')?.value||'—';
+
+  const nameEl=document.getElementById('lr-preview-name');
+  const tagEl=document.getElementById('lr-preview-tagline');
+  const irrEl=document.getElementById('lr-prev-irr');
+  const termEl=document.getElementById('lr-prev-term');
+  const tickEl=document.getElementById('lr-prev-ticket');
+  const barEl=document.getElementById('lr-preview-bar');
+  const subFill=document.getElementById('lr-prev-sub-fill');
+  const subLbl=document.getElementById('lr-prev-sub-lbl');
+
+  if(nameEl)nameEl.textContent=deal.name||'—';
+  if(tagEl)tagEl.textContent=tagline||'No tagline set';
+  if(irrEl)irrEl.textContent=irr;
+  if(termEl)termEl.textContent=term;
+  if(tickEl)tickEl.textContent=ticket?'$'+ticket:ticket;
+
+  // Asset class colour bar
+  if(barEl){
+    barEl.className='lr-preview-bar '+(deal.asset_class||'');
+  }
+
+  // Subscription bar
+  const pct=deal.target_alloc>0?Math.min(Math.round((deal.ioi_agg||0)/deal.target_alloc*100),100):0;
+  if(subFill)subFill.style.width=pct+'%';
+  if(subLbl)subLbl.textContent=pct+'% subscribed · '+fmU(deal.ioi_agg||0)+' indicated';
+}
+
+function buildLaunchChecklist(deal,content){
+  const wrap=document.getElementById('lr-checklist');
+  if(!wrap)return;
+
+  const hlCount=(document.getElementById('lr-highlights')?.querySelectorAll('.lr-hl-input').length)||
+    (Array.isArray(content?.highlights)?content.highlights.length:0);
+  const tagline=document.getElementById('lr-tagline')?.value||(content?.tagline||'');
+  const thesis=document.getElementById('lr-thesis')?.value||(content?.thesis||'');
+
+  const items=[
+    {label:'Tagline',ok:tagline.trim().length>0},
+    {label:'Investment thesis',ok:thesis.trim().length>0},
+    {label:'Highlights (min 3)',ok:hlCount>=3},
+    {label:'Key stats',ok:!!(content?.stats?.irr||document.getElementById('lr-stat-irr')?.value)},
+    {label:'NDA document uploaded',ok:!!(deal?.docs?.find?.(d=>d.slot==='nda'))||AI_DOCS?.nda},
+    {label:'Management presentation uploaded',ok:!!(deal?.docs?.find?.(d=>d.slot==='mgmt'))||AI_DOCS?.mgmt},
+  ];
+
+  wrap.innerHTML=items.map(item=>`
+    <div class="lr-checklist-item">
+      <div class="lr-check-icon ${item.ok?'lr-check-ok':'lr-check-warn'}">${item.ok?'✓':'·'}</div>
+      <span class="lr-check-lbl${item.ok?'':' missing'}">${item.label}</span>
+    </div>`).join('');
+}
+
+async function confirmPublish(){
+  // Read all fields
+  const tagline=(document.getElementById('lr-tagline')?.value||'').trim();
+  const thesis=(document.getElementById('lr-thesis')?.value||'').trim();
+  const highlights=Array.from(document.getElementById('lr-highlights')?.querySelectorAll('.lr-hl-input')||[])
+    .map(i=>i.value.trim()).filter(Boolean);
+
+  // Validate
+  if(!tagline){toast('Tagline is required','err');return;}
+  if(!thesis){toast('Investment thesis is required','err');return;}
+  if(highlights.length<3){toast('At least 3 highlights required','err');return;}
+
+  const stats={
+    irr:document.getElementById('lr-stat-irr')?.value||'',
+    term:document.getElementById('lr-stat-term')?.value||'',
+    min_ticket:document.getElementById('lr-stat-ticket')?.value||'',
+    structure:document.getElementById('lr-stat-geo')?.value||'',
+  };
+
+  const open_date=document.getElementById('lr-open-date')?.value||'';
+  const close_date=document.getElementById('lr-close-date')?.value||'';
+  const min_ticket=parseFloat(document.getElementById('lr-min-ticket')?.value)||0;
+
+  const allSeg=document.getElementById('lr-seg-all')?.checked;
+  let target_segments=[];
+  if(allSeg){
+    target_segments=['all'];
+  }else{
+    ['inst','fo','uhnw','ef'].forEach(s=>{
+      if(document.getElementById('lr-seg-'+s)?.checked)target_segments.push(s);
+    });
+  }
+
+  const payload={
+    dealId:_launchDeal?.id,
+    tagline,thesis,highlights,stats,
+    launch_mode:_launchMode,
+    open_date,close_date,
+    target_segments,
+    min_ticket,
+  };
+
+  // Disable button during request
+  const btn=document.getElementById('lr-publish-btn');
+  if(btn){btn.disabled=true;btn.textContent='Publishing…';}
+
+  const res=await api('POST','/api/v2?resource=admin&op=publish-deal',payload);
+
+  if(btn){btn.disabled=false;btn.textContent='Publish to Investor Portal →';}
+
+  if(res?.ok){
+    // Update local deal state
+    const d=DEALS.find(x=>x.id===_launchDeal?.id);
+    if(d){
+      d.stage='live';
+      d.tagline=tagline;
+      d.thesis=thesis;
+      d.launch_mode=_launchMode;
+      if(_launchMode==='featured')DEALS.forEach(x=>{if(x.id!==d.id)x.featured=false;d.featured=true;});
+    }
+    closeLaunchReview();
+    renderKPIs();renderOverview();renderPipeline();
+    toast('Deal published to investor portal','ok');
+  }else if(res===null){
+    // api() already showed session error or connection toast
+  }else{
+    // API responded but not ok — surface the message
+    const msg=res?.error||res?.message||'Publish failed';
+    toast(msg,'err');
+    // Still close and apply locally so the admin isn't stuck
+    const d=DEALS.find(x=>x.id===_launchDeal?.id);
+    if(d){d.stage='live';d.tagline=tagline;d.thesis=thesis;d.launch_mode=_launchMode;}
+    closeLaunchReview();
+    renderKPIs();renderOverview();renderPipeline();
+    toast('Published locally (API unavailable)','');
   }
 }
 

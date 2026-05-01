@@ -246,7 +246,12 @@ export default async function handler(req, res) {
         geography: d.geography, target_irr: d.target_irr,
         term_months: d.term_months, target_alloc_usd: d.target_alloc_usd,
         ioi_count: d.ioi_count, ioi_agg_usd: d.ioi_agg_usd,
-        stage: d.stage, mk_notes: d.mk_notes, highlights: d.highlights || [],
+        stage: d.stage, mk_notes: d.mk_notes,
+        tagline: d.tagline || '', thesis: d.thesis || '',
+        highlights: d.highlights || [], stats: d.stats || {},
+        launch_mode: d.launch_mode || 'listed', featured: d.featured || false,
+        target_segments: d.target_segments || [],
+        open_date: d.open_date || null,
         min_ticket_usd: d.min_ticket_usd, closing_date: d.closing_date,
         prism_url: `https://prism.theaurumcc.com/marketplace`,
       }));
@@ -487,11 +492,85 @@ Return ONLY valid JSON in this exact structure:
         } catch {
           return bad(res, 'Failed to parse AI response', 500);
         }
+        // Persist AI draft onto the deal record so Review & Launch panel can reload it
+        deal.ai_draft = {
+          tagline:      generated.tagline      || '',
+          thesis:       generated.thesis       || '',
+          highlights:   generated.highlights   || [],
+          stats:        generated.stats        || {},
+          generated_at: new Date().toISOString(),
+        };
+        deal.updated_at = new Date().toISOString();
+        await saveDeal(deal);
+
         return ok(res, { generated, dealId });
       } catch (err) {
         console.error('AI generate error:', err);
         return bad(res, 'AI generation failed', 500);
       }
+    }
+
+    if (op === 'publish-deal') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const {
+        dealId, tagline, thesis, highlights, stats,
+        launch_mode, open_date, close_date, target_segments,
+        featured: featuredFlag, min_ticket,
+      } = req.body || {};
+
+      if (!dealId) return bad(res, 'dealId required');
+
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const now = new Date().toISOString();
+
+      // Merge content fields
+      if (tagline  !== undefined) deal.tagline    = tagline;
+      if (thesis   !== undefined) deal.thesis     = thesis;
+      if (highlights !== undefined) deal.highlights = highlights;
+      if (stats    !== undefined) deal.stats      = stats;
+
+      // Publish settings
+      deal.stage          = 'live';
+      deal.member_visible = true;
+      deal.launch_mode    = launch_mode || 'listed';
+      deal.featured       = launch_mode === 'featured' || featuredFlag === true;
+      if (target_segments !== undefined) deal.target_segments = target_segments;
+      if (open_date)   deal.open_date      = open_date;
+      if (close_date)  { deal.closing_date = close_date; deal.closing = close_date; }
+      if (min_ticket !== undefined) deal.min_ticket_usd = parseFloat(min_ticket) || deal.min_ticket_usd;
+
+      // If this deal is featured, clear featured flag on all other live deals
+      if (deal.featured) {
+        const allKeys = await kvKeys('deal:*');
+        await Promise.all(allKeys.map(async key => {
+          const other = await kvGet(key);
+          if (other && other.id !== dealId && other.featured) {
+            other.featured = false;
+            await kvSet(key, other);
+          }
+        }));
+      }
+
+      // Audit log
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({
+        at: now,
+        actor: admin.email,
+        action: 'Published to investor portal',
+        meta: { launch_mode: deal.launch_mode, featured: deal.featured },
+      });
+
+      deal.updated_at = now;
+      await saveDeal(deal);
+
+      return ok(res, {
+        ok: true,
+        deal: { id: deal.id, name: deal.name, stage: deal.stage, launch_mode: deal.launch_mode, featured: deal.featured },
+      });
     }
 
     if (op === 'revoke-inst') {
