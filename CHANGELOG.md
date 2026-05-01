@@ -4,6 +4,15 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: Add Deal wizard panel + IOI detail slide-in + table fix
+
+### `admin-portal.html`
+- **Add Deal panel:** full-screen slide-in (`#admin-deal-panel`) accessible from a gold "+ Add Deal" button in the Deal Pipeline header. Collects company info, asset class, deal economics (IRR, hurdle, term, allocation, ticket, closing date). On submit, POSTs to `/api/advisor/deals`, pushes deal into `NEW_SUBMISSIONS`, and navigates to Deal Studio.
+- **IOI Detail panel:** full-screen slide-in (`#ioi-detail-panel`) opened by clicking any investor name in the IOI queue. Shows amount, 8-field meta grid, 4-step status timeline, investor note, deal context cards. Sticky action strip renders Approve/Decline (pending), Push to Advisor Package (approved), or status message. `approveFromDetail` / `declineFromDetail` delegate to existing `actIoiQueue`.
+- **IOI table alignment fix:** converted `.ioi-table` / `.ioi-row` to CSS `display:table` / `display:table-cell` so columns align correctly. Added avatar initial bubble (`.ioi-row-init`) and Date column. Header updated to match (Type · Geography, Date, removed right-align on Actions).
+
+---
+
 ## [2026-05-01] — Admin Overview: luxury command-centre dashboard redesign
 
 ### `admin-portal.html`

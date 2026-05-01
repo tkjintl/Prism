@@ -671,6 +671,77 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .kpi-card.kpi-alert::before{background:var(--amber)}
 .kpi-card.kpi-gold::before{background:var(--gold)}
 .kpi-card.kpi-green::before{background:var(--green)}
+/* ── ADMIN DEAL WIZARD ── */
+#admin-deal-panel{position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1)}
+#admin-deal-panel.adp-open{transform:translateX(0)}
+.adp-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,5vw,48px);height:var(--nav-h);background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+.adp-title{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--text)}
+.adp-body{max-width:760px;margin:0 auto;padding:40px clamp(20px,5vw,48px) 80px}
+.adp-section{margin-bottom:28px}
+.adp-section-title{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.adp-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.adp-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:640px){.adp-grid-2,.adp-grid-3{grid-template-columns:1fr}}
+.adp-field{display:flex;flex-direction:column;gap:5px}
+.adp-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)}
+.adp-input{width:100%;padding:10px 13px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:13px;transition:border-color .15s;box-sizing:border-box}
+.adp-input:focus{border-color:var(--gold);outline:none}
+.adp-textarea{width:100%;padding:11px 13px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.6;resize:vertical;box-sizing:border-box;transition:border-color .15s}
+.adp-textarea:focus{border-color:var(--gold);outline:none}
+.adp-select{width:100%;padding:10px 13px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:13px;transition:border-color .15s;box-sizing:border-box;cursor:pointer}
+.adp-select:focus{border-color:var(--gold);outline:none}
+.adp-prefix-wrap{display:flex;align-items:stretch}
+.adp-prefix{padding:10px 12px;background:var(--border);border:1px solid var(--border-m);border-right:none;border-radius:3px 0 0 3px;font-family:var(--mono);font-size:13px;color:var(--text-2);white-space:nowrap}
+.adp-prefix-wrap .adp-input{border-radius:0 3px 3px 0}
+.adp-submit-row{display:flex;gap:10px;align-items:center;padding-top:16px;border-top:1px solid var(--border)}
+.adp-submit-btn{padding:12px 28px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;transition:all .15s}
+.adp-submit-btn:hover{background:var(--gold-b);transform:translateY(-1px)}
+.adp-cancel-btn{padding:12px 20px;background:none;border:1px solid var(--border-m);border-radius:2px;color:var(--text-2);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.adp-cancel-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.adp-hint{font-size:11px;color:var(--text-3);font-family:var(--sans);line-height:1.5}
+/* ── IOI DETAIL PANEL ── */
+#ioi-detail-panel{position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1)}
+#ioi-detail-panel.idp-open{transform:translateX(0)}
+.idp-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,5vw,48px);height:var(--nav-h);background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+.idp-body{max-width:660px;margin:0 auto;padding:40px clamp(20px,5vw,48px) 80px}
+.idp-amount{font-family:var(--mono);font-size:44px;font-weight:500;color:var(--text);line-height:1;margin-bottom:6px}
+.idp-amount-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:28px}
+.idp-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+.idp-meta-cell{padding:12px 16px;background:var(--surface)}
+.idp-meta-lbl{font-size:10px;color:var(--text-3);font-family:var(--sans);margin-bottom:3px}
+.idp-meta-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)}
+.idp-timeline{margin-bottom:28px}
+.idp-tl-title{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px}
+.idp-tl{display:flex;align-items:flex-start;gap:0}
+.idp-tl-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.idp-tl-step::before{content:'';position:absolute;top:9px;left:-50%;right:50%;height:1px;background:var(--border)}
+.idp-tl-step:first-child::before{display:none}
+.idp-tl-node{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;z-index:1;flex-shrink:0}
+.idp-tl-node.done{background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green)}
+.idp-tl-node.active{background:var(--gold-bg);border:1px solid var(--gold-bd);color:var(--gold)}
+.idp-tl-node.idle{background:var(--bg-3);border:1px solid var(--border);color:var(--text-3)}
+.idp-tl-node.declined{background:var(--red-bg,rgba(176,94,86,.1));border:1px solid var(--red-bd,rgba(176,94,86,.3));color:var(--red)}
+.idp-tl-lbl{font-size:10px;text-align:center;font-family:var(--sans);line-height:1.3}
+.idp-tl-lbl.done{color:var(--green)}
+.idp-tl-lbl.active{color:var(--gold);font-weight:600}
+.idp-tl-lbl.idle{color:var(--text-3)}
+.idp-tl-lbl.declined{color:var(--red)}
+.idp-notes{padding:14px 16px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:var(--r);border-left:2px solid var(--gold-bd);font-size:13px;color:var(--text-2);line-height:1.7;font-family:var(--sans);margin-bottom:24px}
+.idp-action-strip{display:flex;gap:10px;padding:16px clamp(20px,5vw,48px);position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border)}
+/* Fix IOI queue table alignment */
+.ioi-table{display:table;width:100%;border-collapse:collapse}
+.ioi-row{display:table-row}
+.ioi-row>div{display:table-cell;padding:9px 12px;vertical-align:middle;border-bottom:1px solid var(--border)}
+.ioi-row.hdr>div{padding:8px 12px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);border-bottom:2px solid var(--border);background:var(--bg-2);font-weight:400}
+.ioi-row:last-child>div{border-bottom:none}
+.ioi-row:not(.hdr):hover>div{background:var(--bg-3)}
+.ioi-row-name{font-size:13px;font-weight:600;color:var(--text);font-family:var(--sans);cursor:pointer;transition:color .15s}
+.ioi-row-name:hover{color:var(--gold)}
+.ioi-row-init{width:26px;height:26px;border-radius:50%;background:var(--bg-3);border:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--text-3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:8px}
+.ioi-row-typegeo{font-size:11px;color:var(--text-3);font-family:var(--sans)}
+.ioi-row-amount{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text);white-space:nowrap}
+.ioi-row-actions{text-align:right;white-space:nowrap}
+.ioi-row-date{font-family:var(--mono);font-size:10px;color:var(--text-3);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -718,8 +789,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <!-- ══ VIEW: DEAL PIPELINE ══ -->
 <div id="view-pipeline" class="view">
   <div class="view-inner">
-    <div class="view-heading">Deal Pipeline</div>
-    <div class="view-sub">All active deals across all advisors. Stage advances are controlled by admin.</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:4px">
+      <div>
+        <div class="view-heading" style="margin-bottom:4px">Deal Pipeline</div>
+        <div class="view-sub">All active deals across all advisors. Stage advances are controlled by admin.</div>
+      </div>
+      <button onclick="openAdminDealPanel()" style="flex-shrink:0;padding:10px 20px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s;margin-top:4px" onmouseover="this.style.background='var(--gold-b)'" onmouseout="this.style.background='var(--gold)'">+ Add Deal</button>
+    </div>
     <div id="deal-submissions-wrap"></div>
     <div class="section-hd"><div class="section-hd-title">Active Deals</div><span class="section-hd-count" id="active-deals-count"></span></div>
     <div class="deal-pipeline" id="deal-pipeline-table"></div>
@@ -1078,6 +1154,111 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
 </div>
 
+<!-- ══ ADMIN DEAL WIZARD PANEL ══ -->
+<div id="admin-deal-panel">
+  <div class="adp-header">
+    <button class="lr-back" onclick="closeAdminDealPanel()">← Back to Pipeline</button>
+    <div class="adp-title">Add New Deal</div>
+    <div style="width:120px"></div>
+  </div>
+  <div class="adp-body">
+    <div class="adp-section">
+      <div class="adp-section-title">Company</div>
+      <div class="adp-grid-2">
+        <div class="adp-field">
+          <label class="adp-label">Company / Deal Name <span style="color:var(--red)">*</span></label>
+          <input class="adp-input" id="adp-name" type="text" placeholder="e.g. Meridian Bridge Finance II">
+        </div>
+        <div class="adp-field">
+          <label class="adp-label">Asset Class <span style="color:var(--red)">*</span></label>
+          <select class="adp-select" id="adp-asset-class">
+            <option value="">Select…</option>
+            <option value="infra">Infrastructure</option>
+            <option value="credit">Private Credit</option>
+            <option value="pe">Private Equity</option>
+            <option value="re">Real Estate</option>
+          </select>
+        </div>
+        <div class="adp-field">
+          <label class="adp-label">Deal Structure</label>
+          <input class="adp-input" id="adp-structure" type="text" placeholder="e.g. Senior Secured Bridge">
+        </div>
+        <div class="adp-field">
+          <label class="adp-label">Geography</label>
+          <input class="adp-input" id="adp-geography" type="text" placeholder="e.g. Southeast US">
+        </div>
+      </div>
+      <div class="adp-field" style="margin-top:12px">
+        <label class="adp-label">Company Overview</label>
+        <textarea class="adp-textarea" id="adp-overview" rows="2" placeholder="2–3 sentence company description for investor materials…"></textarea>
+      </div>
+      <div class="adp-field" style="margin-top:12px">
+        <label class="adp-label">Investment Thesis</label>
+        <textarea class="adp-textarea" id="adp-thesis" rows="3" placeholder="Investor-facing thesis paragraph — why this deal, what makes it compelling…"></textarea>
+      </div>
+    </div>
+    <div class="adp-section">
+      <div class="adp-section-title">Deal Economics</div>
+      <div class="adp-grid-3">
+        <div class="adp-field">
+          <label class="adp-label">Target IRR (%)</label>
+          <input class="adp-input" id="adp-irr" type="number" step="0.5" placeholder="e.g. 14">
+        </div>
+        <div class="adp-field">
+          <label class="adp-label">Hurdle Rate (%)</label>
+          <input class="adp-input" id="adp-hurdle" type="number" step="0.5" placeholder="e.g. 8">
+        </div>
+        <div class="adp-field">
+          <label class="adp-label">Term (months)</label>
+          <input class="adp-input" id="adp-term" type="number" placeholder="e.g. 36">
+        </div>
+      </div>
+      <div class="adp-grid-2" style="margin-top:12px">
+        <div class="adp-field">
+          <label class="adp-label">Target Allocation (USD)</label>
+          <div class="adp-prefix-wrap">
+            <span class="adp-prefix">$</span>
+            <input class="adp-input" id="adp-alloc" type="text" inputmode="numeric" placeholder="30,000,000" oninput="fmtAmtInput(this)">
+          </div>
+        </div>
+        <div class="adp-field">
+          <label class="adp-label">Minimum Ticket (USD)</label>
+          <div class="adp-prefix-wrap">
+            <span class="adp-prefix">$</span>
+            <input class="adp-input" id="adp-ticket" type="text" inputmode="numeric" placeholder="500,000" oninput="fmtAmtInput(this)">
+          </div>
+        </div>
+      </div>
+      <div class="adp-grid-2" style="margin-top:12px">
+        <div class="adp-field">
+          <label class="adp-label">Closing Date</label>
+          <input class="adp-input" id="adp-closing" type="date">
+        </div>
+        <div class="adp-field">
+          <label class="adp-label">Source / Origin</label>
+          <input class="adp-input" id="adp-source" type="text" placeholder="e.g. Aurum Prism Proprietary" value="Aurum Prism Proprietary">
+        </div>
+      </div>
+    </div>
+    <div class="adp-submit-row">
+      <button class="adp-submit-btn" onclick="submitAdminDeal()">Save &amp; Open in Deal Studio →</button>
+      <button class="adp-cancel-btn" onclick="closeAdminDealPanel()">Cancel</button>
+      <span class="adp-hint">Deal will be added to Pending Review. Use Deal Studio to generate AI content and publish to the marketplace.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ IOI DETAIL PANEL ══ -->
+<div id="ioi-detail-panel">
+  <div class="idp-header">
+    <button class="lr-back" onclick="closeIoiDetail()">← Back to IOI Queue</button>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)">IOI DETAIL</div>
+    <div style="width:120px"></div>
+  </div>
+  <div class="idp-body" id="idp-body"></div>
+  <div class="idp-action-strip" id="idp-actions"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="demo-badge">Admin Demo</div>
 
@@ -1421,15 +1602,11 @@ function buildDealGroup(g,gi=0){
     }
     const init=(ioi.init||(ioi.name||'?').slice(0,2).toUpperCase());
     return`<div class="ioi-row" id="iqi-${ioi.id}" style="animation-delay:${(gi*3+i)*35}ms">
-      <div>
-        <div class="ioi-row-name">${ioi.name||'—'}</div>
-        <div class="ioi-row-type">${init}</div>
-      </div>
+      <div><span class="ioi-row-init">${init}</span><span class="ioi-row-name" onclick="openIoiDetail('${g.dealId}','${ioi.id}')" title="View IOI detail">${ioi.name||'—'}</span></div>
       <div class="ioi-row-typegeo">${ioi.type||'—'} · ${ioi.geo||'—'}</div>
       <div class="ioi-row-amount">${fmU(ioi.amount)}</div>
-      <div>
-        <span class="iqi-badge badge-${ioi.status}">${ioi.status}</span>
-      </div>
+      <div class="ioi-row-date">${ioi.date||'—'}</div>
+      <div><span class="iqi-badge badge-${ioi.status}">${ioi.status}</span></div>
       <div class="ioi-row-actions iqi-actions">${actions}</div>
     </div>`;
   }).filter(Boolean).join('')
@@ -1451,7 +1628,7 @@ function buildDealGroup(g,gi=0){
     </div>
     <div class="ioi-table">
       <div class="ioi-row hdr">
-        <div>Investor</div><div>Type · Geo</div><div>Amount</div><div>Status</div><div style="text-align:right">Actions</div>
+        <div>Investor</div><div>Type · Geography</div><div>Amount</div><div>Date</div><div>Status</div><div>Actions</div>
       </div>
       ${ioiRows}
     </div>
@@ -2571,6 +2748,156 @@ function closeLaunchReview(){
   panel.classList.remove('lrp-open');
   setTimeout(()=>{panel.style.display='none';},320);
 }
+function openAdminDealPanel(){
+  const panel=document.getElementById('admin-deal-panel');
+  panel.style.display='block';
+  requestAnimationFrame(()=>panel.classList.add('adp-open'));
+  panel.scrollTop=0;
+}
+function closeAdminDealPanel(){
+  const panel=document.getElementById('admin-deal-panel');
+  panel.classList.remove('adp-open');
+  setTimeout(()=>{panel.style.display='none';},320);
+}
+function submitAdminDeal(){
+  const name=(document.getElementById('adp-name')?.value||'').trim();
+  const assetClass=document.getElementById('adp-asset-class')?.value||'';
+  if(!name){toast('Company/deal name is required','err');return;}
+  if(!assetClass){toast('Asset class is required','err');return;}
+  const id='admin-'+Date.now().toString(36);
+  const deal={
+    id,name,asset_class:assetClass,
+    structure:document.getElementById('adp-structure')?.value||'',
+    geography:document.getElementById('adp-geography')?.value||'',
+    company_overview:document.getElementById('adp-overview')?.value||'',
+    thesis:document.getElementById('adp-thesis')?.value||'',
+    target_irr:parseFloat(document.getElementById('adp-irr')?.value)||0,
+    hurdle_rate:parseFloat(document.getElementById('adp-hurdle')?.value)||0,
+    term:parseInt(document.getElementById('adp-term')?.value)||36,
+    target_alloc:readAmt(document.getElementById('adp-alloc'))||0,
+    min_ticket:readAmt(document.getElementById('adp-ticket'))||0,
+    closing:document.getElementById('adp-closing')?.value||'',
+    advisor:'Aurum Prism',advisor_firm:document.getElementById('adp-source')?.value||'Aurum Prism Proprietary',
+    submitted:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+    stage:'review',iois:[],ioi_agg:0,
+    docs:[],
+    _admin_created:true,
+  };
+  // Also POST to API
+  api('POST','/api/advisor/deals',{
+    name:deal.name,asset_class:deal.asset_class,structure:deal.structure,geography:deal.geography,
+    company_overview:deal.company_overview,mk_notes:deal.thesis,
+    target_alloc_usd:deal.target_alloc,target_irr:deal.target_irr,term_months:deal.term,
+    hurdle_rate:deal.hurdle_rate,min_ticket_usd:deal.min_ticket,closing_date:deal.closing,
+  }).catch(()=>{});
+  NEW_SUBMISSIONS.unshift(deal);
+  closeAdminDealPanel();
+  renderKPIs();
+  renderOverview();
+  // Navigate to Deal Studio and load this deal
+  setTimeout(()=>{
+    loadDocsAndGenerate(id);
+    showView('aitool',document.querySelectorAll('.ntab')[3]);
+  },350);
+  toast(`${name} added — opening Deal Studio`,'ok');
+}
+let _ioiDetailDeal=null,_ioiDetailIoi=null;
+
+function openIoiDetail(dealId,ioiId){
+  const d=DEALS.find(x=>x.id===dealId);
+  const ioi=d?.iois?.find(i=>i.id===ioiId);
+  if(!d||!ioi)return;
+  _ioiDetailDeal=d;_ioiDetailIoi=ioi;
+
+  // Status timeline
+  const isPending=ioi.status==='pending';
+  const isApproved=ioi.status==='approved';
+  const isDeclined=ioi.status==='declined';
+  const isPushed=ioi.pushed||ioi.status==='pushed';
+
+  const steps=[
+    {lbl:'Submitted',state:'done'},
+    {lbl:'Admin Review',state:isPending?'active':isDeclined?'declined':'done'},
+    {lbl:isDeclined?'Declined':isApproved||isPushed?'Approved':'Decision',state:isDeclined?'declined':isApproved||isPushed?'done':'idle'},
+    {lbl:'In Advisor Package',state:isPushed?'done':'idle'},
+  ];
+  const tlHtml=steps.map((s,i)=>`<div class="idp-tl-step">
+    <div class="idp-tl-node ${s.state}">${s.state==='done'?'✓':s.state==='active'?'●':s.state==='declined'?'✕':'○'}</div>
+    <div class="idp-tl-lbl ${s.state}">${s.lbl}</div>
+  </div>`).join('');
+
+  const CLASS_LABEL={credit:'Private Credit',pe:'Private Equity',re:'Real Estate',infra:'Infrastructure'};
+  document.getElementById('idp-body').innerHTML=`
+    <div class="idp-amount">${fmU(ioi.amount)}</div>
+    <div class="idp-amount-lbl">Indication of Interest</div>
+    <div class="idp-meta-grid">
+      <div class="idp-meta-cell"><div class="idp-meta-lbl">Investor</div><div class="idp-meta-val">${ioi.name}</div></div>
+      <div class="idp-meta-cell"><div class="idp-meta-lbl">Type</div><div class="idp-meta-val">${ioi.type||'—'}</div></div>
+      <div class="idp-meta-cell"><div class="idp-meta-lbl">Geography</div><div class="idp-meta-val">${ioi.geo||'—'}</div></div>
+      <div class="idp-meta-cell"><div class="idp-meta-lbl">Date Submitted</div><div class="idp-meta-val">${ioi.date||'—'}</div></div>
+      <div class="idp-meta-cell"><div class="idp-meta-lbl">Deal</div><div class="idp-meta-val">${d.name}</div></div>
+      <div class="idp-meta-cell"><div class="idp-meta-lbl">Asset Class</div><div class="idp-meta-val">${CLASS_LABEL[d.asset_class]||d.asset_class||'—'}</div></div>
+      <div class="idp-meta-cell"><div class="idp-meta-lbl">Deal Structure</div><div class="idp-meta-val">${d.structure||'—'}</div></div>
+      <div class="idp-meta-cell"><div class="idp-meta-lbl">Target IRR</div><div class="idp-meta-val">${d.target_irr||'—'}%</div></div>
+    </div>
+    <div class="idp-timeline">
+      <div class="idp-tl-title">IOI Status Timeline</div>
+      <div class="idp-tl">${tlHtml}</div>
+    </div>
+    ${ioi.note?`<div style="margin-bottom:8px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">Investor Note</div><div class="idp-notes">${ioi.note}</div>`:''}
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">Deal Context</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">
+      <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)"><div style="font-size:10px;color:var(--text-3);font-family:var(--sans);margin-bottom:4px">Total Indicated</div><div style="font-family:var(--mono);font-size:15px;font-weight:500;color:var(--gold)">${fmU(d.ioi_agg)}</div></div>
+      <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)"><div style="font-size:10px;color:var(--text-3);font-family:var(--sans);margin-bottom:4px">Target Allocation</div><div style="font-family:var(--mono);font-size:15px;font-weight:500">${fmU(d.target_alloc)}</div></div>
+      <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)"><div style="font-size:10px;color:var(--text-3);font-family:var(--sans);margin-bottom:4px">Other IOIs</div><div style="font-family:var(--mono);font-size:15px;font-weight:500">${d.iois.filter(i=>i.id!==ioiId&&i.status!=='declined').length} active</div></div>
+      <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)"><div style="font-size:10px;color:var(--text-3);font-family:var(--sans);margin-bottom:4px">Advisor</div><div style="font-family:var(--mono);font-size:13px;font-weight:500">${d.advisor||'—'}</div></div>
+    </div>`;
+
+  // Action strip
+  const actStrip=document.getElementById('idp-actions');
+  if(ioi.status==='pending'){
+    actStrip.innerHTML=`
+      <button style="padding:12px 28px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;transition:all .15s" onclick="approveFromDetail()">Approve IOI</button>
+      <button style="padding:12px 20px;background:none;border:1px solid var(--red-bd,rgba(176,94,86,.4));border-radius:2px;color:var(--red);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer" onclick="declineFromDetail()">Decline</button>
+      <span style="font-size:11px;color:var(--text-3);font-family:var(--sans)">Approving adds this IOI to the deal's pool. Push to Advisor is a separate action.</span>`;
+  } else if(ioi.status==='approved'&&!ioi.pushed){
+    actStrip.innerHTML=`
+      <button style="padding:12px 28px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer" onclick="closeIoiDetail();openPushModal('${dealId}','${ioiId}')">Push to Advisor Package →</button>
+      <span style="font-size:11px;color:var(--text-3);font-family:var(--sans)">IOI is approved. Push it to the advisor package to notify them.</span>`;
+  } else {
+    actStrip.innerHTML=`<span style="font-size:12px;color:var(--text-3);font-family:var(--sans)">${ioi.pushed?'This IOI is in the advisor package.':ioi.status==='declined'?'This IOI was declined.':'No actions available.'}</span>`;
+  }
+
+  const panel=document.getElementById('ioi-detail-panel');
+  panel.style.display='block';
+  requestAnimationFrame(()=>panel.classList.add('idp-open'));
+  panel.scrollTop=0;
+}
+
+function closeIoiDetail(){
+  const panel=document.getElementById('ioi-detail-panel');
+  panel.classList.remove('idp-open');
+  setTimeout(()=>{panel.style.display='none';},320);
+  _ioiDetailDeal=null;_ioiDetailIoi=null;
+}
+
+function approveFromDetail(){
+  if(!_ioiDetailDeal||!_ioiDetailIoi)return;
+  actIoiQueue(_ioiDetailDeal.id,_ioiDetailIoi.id,'approved');
+  closeIoiDetail();
+  if(document.getElementById('view-queue').classList.contains('active'))renderQueue();
+  renderOverview();renderKPIs();
+  toast(`IOI approved — ${_ioiDetailIoi.name}`,'ok');
+}
+
+function declineFromDetail(){
+  if(!_ioiDetailDeal||!_ioiDetailIoi)return;
+  actIoiQueue(_ioiDetailDeal.id,_ioiDetailIoi.id,'declined');
+  closeIoiDetail();
+  if(document.getElementById('view-queue').classList.contains('active'))renderQueue();
+  renderOverview();renderKPIs();
+  toast(`IOI declined — ${_ioiDetailIoi.name}`);
+}
 
 function selectLaunchMode(mode){
   _launchMode=mode;
@@ -3055,6 +3382,8 @@ async function load(){
   }
 }
 load();
+const _adp=document.getElementById('admin-deal-panel');
+const _idp=document.getElementById('ioi-detail-panel');
 </script>
 </body>
 </html>
