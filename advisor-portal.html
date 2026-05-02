@@ -75,7 +75,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .view.active{display:block}
 
 /* DEAL SWITCHER */
-.deal-switcher{background:var(--surface);border-bottom:1px solid var(--border);padding:10px clamp(20px,5vw,72px);display:flex;align-items:center;gap:8px;overflow-x:auto}
+.deal-switcher{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px clamp(20px,5vw,72px);display:flex;align-items:center;gap:8px;overflow-x:auto}
 .ds-label{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);flex-shrink:0;margin-right:4px}
 .ds-pill{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--border-m);border-radius:20px;background:var(--bg-3);font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
 .ds-pill.active{background:var(--gold-bg);border-color:var(--gold-bd);color:var(--text)}
@@ -116,7 +116,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 /* STAGE JOURNEY */
 .stage-journey{padding:0 clamp(20px,5vw,72px);border-bottom:1px solid var(--border);background:var(--bg-3);overflow-x:auto}
-.sj-inner{display:flex;align-items:center;min-width:640px;padding:14px 0}
+.sj-inner{display:flex;align-items:center;width:100%;padding:14px 0}
 .sj-stage{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:default;flex-shrink:0}
 .sj-connector{flex:1;height:2px;background:var(--border);min-width:14px;margin:0 -1px;position:relative;top:-8px}
 .sj-connector.done{background:var(--gold-bd)}
@@ -433,10 +433,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 /* ── MOBILE FIXES ── */
 @media(max-width:600px){
-  /* Stage journey — remove hard min-width, wrap stages */
-  .sj-inner{min-width:auto;flex-wrap:wrap;gap:6px;justify-content:flex-start}
-  .sj-stage{min-width:72px;flex:0 0 auto}
-  .sj-line{width:16px;flex-shrink:1}
+  /* Stage journey — full-width, horizontal scroll, connectors flex to fill */
+  .sj-inner{width:100%;flex-wrap:nowrap;gap:0}
+  .sj-stage{flex:0 0 auto}
+  .sj-connector{flex:1;min-width:8px}
   /* Content tabs scroll */
   .content-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
   .ctab{padding:10px 14px;font-size:12px;flex-shrink:0;white-space:nowrap}
