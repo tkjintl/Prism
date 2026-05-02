@@ -411,3 +411,109 @@ export async function sendQaReminder(advisor, dealName, questionCount) {
     <a href="${SITE}/advisor-portal" class="btn">Answer Questions →</a>`
   ), 'qa-reminder');
 }
+
+// ── NAV update notification to approved IOI holders (Phase 4) ──
+// data: { dealName, navPerUnit, totalNavUsd, asOfDate }
+export async function sendNavUpdate(investor, data) {
+  const navFormatted = data.navPerUnit != null ? `$${Number(data.navPerUnit).toLocaleString()}` : '—';
+  const totalFormatted = data.totalNavUsd != null ? `$${Number(data.totalNavUsd).toLocaleString()}` : '—';
+  const dateStr = data.asOfDate ? new Date(data.asOfDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—';
+  await send(investor.email, `NAV Update — ${data.dealName}`, base('NAV Update',
+    `<h3>NAV Update — ${data.dealName}</h3>
+    <p>A new net asset value has been posted for <strong style="color:#ede8df">${data.dealName}</strong>.</p>
+    <div style="background:#09090a;border:1px solid rgba(197,165,114,.2);padding:16px 20px;margin:16px 0">
+      <div style="font-family:monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(197,165,114,.5);margin-bottom:10px">As of ${dateStr}</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:12px;color:#a89f94">NAV per unit</span>
+        <span style="font-family:monospace;font-size:14px;color:#C5A572">${navFormatted}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:12px;color:#a89f94">Total fund NAV</span>
+        <span style="font-family:monospace;font-size:14px;color:#ede8df">${totalFormatted}</span>
+      </div>
+    </div>
+    <p>Log in to your investor portal to view full details and your position statement.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Position →</a>`
+  ), 'nav-update');
+}
+
+// ── Quarterly statement available notification (Phase 4) ───────
+// data: { dealName, period }
+export async function sendStatementAvailable(investor, data) {
+  await send(investor.email, `Quarterly statement available — ${data.dealName} ${data.period}`, base('Statement Available',
+    `<h3>Your quarterly statement is available.</h3>
+    <p>Your <strong style="color:#ede8df">${data.period}</strong> statement for <strong style="color:#ede8df">${data.dealName}</strong> has been generated and is available in your investor portal.</p>
+    <p>The statement reflects your position NAV and any distributions processed during the period.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Statement →</a>`
+  ), 'statement-available');
+}
+
+// ── Distribution notice with individual amount (Phase 4) ────────
+// data: { dealName, distributionType, investorAmount, distributionDate }
+export async function sendDistributionNoticeWithAmount(investor, data) {
+  const typeLabels = { income: 'Income Distribution', capital: 'Capital Distribution', return_of_capital: 'Return of Capital' };
+  const typeLabel = typeLabels[data.distributionType] || 'Distribution';
+  const amtFormatted = data.investorAmount != null ? `$${Number(data.investorAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
+  const dateStr = data.distributionDate ? new Date(data.distributionDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—';
+  await send(investor.email, `Distribution Notice — ${data.dealName}`, base('Distribution Notice',
+    `<h3>Distribution Notice — ${data.dealName}</h3>
+    <p>A <strong style="color:#ede8df">${typeLabel}</strong> has been processed for your position in <strong style="color:#ede8df">${data.dealName}</strong>.</p>
+    <div style="background:#09090a;border:1px solid rgba(197,165,114,.2);padding:16px 20px;margin:16px 0">
+      <div style="font-family:monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(197,165,114,.5);margin-bottom:10px">${dateStr}</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:12px;color:#a89f94">Type</span>
+        <span style="font-size:12px;color:#ede8df">${typeLabel}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:12px;color:#a89f94">Your amount</span>
+        <span style="font-family:monospace;font-size:16px;color:#C5A572">${amtFormatted}</span>
+      </div>
+    </div>
+    <p>Please log in to view full distribution details and confirm receipt with your relationship manager.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Details →</a>`
+  ), 'distribution-with-amount');
+}
+
+// ── Investor welcome sequence Day 2 (Phase 4) ──────────────────
+export async function sendWelcomeDay2(investor) {
+  await send(investor.email, `Getting started on Aurum Prism`, base('Welcome to Prism',
+    `<h3>Welcome to Aurum Prism, ${investor.contact_name}.</h3>
+    <p>Your account is active. Here is a quick guide to getting started:</p>
+    <div style="background:#09090a;border:1px solid rgba(197,165,114,.15);padding:16px 20px;margin:16px 0">
+      <div style="margin-bottom:12px">
+        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">1. Explore the Marketplace</div>
+        <div style="font-size:12px;color:#a89f94;line-height:1.6">Browse current private credit and equity opportunities selected for Aurum Prism members.</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">2. Submit an Indication of Interest</div>
+        <div style="font-size:12px;color:#a89f94;line-height:1.6">When you find a deal that matches your mandate, submit an IOI to request full data room access. Platform operators review all IOIs within 48 hours.</div>
+      </div>
+      <div>
+        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">3. Q&amp;A with Deal Advisors</div>
+        <div style="font-size:12px;color:#a89f94;line-height:1.6">Once your IOI is approved, you can submit questions directly to the deal advisor through the secure Q&amp;A thread.</div>
+      </div>
+    </div>
+    <a href="${SITE}/investor-portal" class="btn">Open Investor Portal →</a>
+    <p style="margin-top:16px;font-size:11px;color:#635e58">Questions? Reach your relationship manager at <a href="mailto:prism@theaurumcc.com" style="color:#C5A572">prism@theaurumcc.com</a></p>`
+  ), 'welcome-day2');
+}
+
+// ── Investor welcome sequence Day 7 (Phase 4) ──────────────────
+// data: { openDeals: [{ name, asset_class, target_irr }] }
+export async function sendWelcomeDay7(investor, data) {
+  const dealList = (data.openDeals || []).slice(0, 3).map(d =>
+    `<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+      <span style="font-size:12px;color:#ede8df">${d.name}</span>
+      <span style="font-family:monospace;font-size:10px;color:#C5A572;margin-left:10px">${d.asset_class || ''}</span>
+      ${d.target_irr ? `<span style="font-size:11px;color:#a89f94;margin-left:6px">· ${d.target_irr}% target IRR</span>` : ''}
+    </div>`
+  ).join('');
+  await send(investor.email, `Your Aurum Prism account — a quick check-in`, base('Prism Check-In',
+    `<h3>A quick check-in, ${investor.contact_name}.</h3>
+    <p>You have been a member of Aurum Prism for one week. Here is what is currently open on the marketplace:</p>
+    ${dealList ? `<div style="background:#09090a;border:1px solid rgba(197,165,114,.15);padding:12px 16px;margin:16px 0">${dealList}</div>` : '<p style="color:#a89f94">No active deals at this time — new opportunities are added regularly.</p>'}
+    <p>If you have any questions about the platform, deal flow, or your membership, please contact your relationship manager.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Open Deals →</a>
+    <p style="margin-top:16px;font-size:11px;color:#635e58">Reply to this email or contact <a href="mailto:prism@theaurumcc.com" style="color:#C5A572">prism@theaurumcc.com</a> with any questions.</p>`
+  ), 'welcome-day7');
+}

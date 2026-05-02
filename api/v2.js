@@ -9,6 +9,8 @@ import {
   sendIoiConfirmation, sendIoiRejection, sendDataRoomPackageResponse,
   sendQaQuestionToAdvisor, sendQaAnswerToInvestor,
   sendCapitalCallNotice, sendDistributionNotice, sendQaReminder,
+  sendNavUpdate, sendStatementAvailable, sendDistributionNoticeWithAmount,
+  sendWelcomeDay2, sendWelcomeDay7,
 } from './_lib/email.js';
 import { captureException, captureMessage } from './_lib/sentry.js';
 import { uploadDocument, getDocumentUrl } from './_lib/blob-storage.js';
@@ -605,6 +607,144 @@ async function _handler(req, res, resource, op) {
       await saveDeal(deal);
       return ok(res, { ok: true, deal });
     }
+
+    // ── post-nav-update ───────────────────────────────────────────
+    // POST resource=advisor&op=post-nav-update
+    // Body: { dealId, navPerUnit, totalNavUsd, asOfDate, notes }
+    if (op === 'post-nav-update') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { dealId, navPerUnit, totalNavUsd, asOfDate, notes } = req.body || {};
+      if (!dealId || navPerUnit == null || totalNavUsd == null || !asOfDate) {
+        return bad(res, 'dealId, navPerUnit, totalNavUsd, and asOfDate required');
+      }
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+
+      const navEntry = {
+        navPerUnit: parseFloat(navPerUnit),
+        totalNavUsd: parseFloat(totalNavUsd),
+        asOfDate,
+        notes: notes || '',
+        postedAt: new Date().toISOString(),
+        postedBy: adv.advisor_id,
+      };
+
+      deal.navHistory = deal.navHistory || [];
+      deal.navHistory.push(navEntry);
+      deal.currentNav = navEntry.navPerUnit;
+      deal.totalNavUsd = navEntry.totalNavUsd;
+      deal.navAsOf = asOfDate;
+
+      const auditEntry = {
+        at: new Date().toISOString(),
+        actor: adv.advisor_id,
+        action: 'nav_updated',
+        meta: { navPerUnit: navEntry.navPerUnit, totalNavUsd: navEntry.totalNavUsd, asOfDate },
+      };
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push(auditEntry);
+      deal.updated_at = new Date().toISOString();
+      await saveDeal(deal);
+      await appendAuditEntry(dealId, auditEntry);
+
+      // Email all approved IOI holders
+      const navIoiKeys = await kvKeys('ioi:IOI-*');
+      const navAllIois = (await Promise.all(navIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const navApprovedIois = navAllIois.filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'));
+      const navEmailData = { dealName: deal.name, navPerUnit: navEntry.navPerUnit, totalNavUsd: navEntry.totalNavUsd, asOfDate };
+      for (const ioi of navApprovedIois) {
+        const inv = await kvGet(`inst:${ioi.investor_id}`);
+        if (inv) await sendNavUpdate(inv, navEmailData).catch(console.error);
+      }
+
+      return ok(res, { ok: true, navEntry, notified: navApprovedIois.length });
+    }
+
+    // ── post-distribution ─────────────────────────────────────────
+    // POST resource=advisor&op=post-distribution
+    // Body: { dealId, totalDistributionUsd, distributionType, distributionDate, notes }
+    if (op === 'post-distribution') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { dealId, totalDistributionUsd, distributionType, distributionDate, notes } = req.body || {};
+      if (!dealId || totalDistributionUsd == null || !distributionType || !distributionDate) {
+        return bad(res, 'dealId, totalDistributionUsd, distributionType, and distributionDate required');
+      }
+      const validTypes = ['income', 'capital', 'return_of_capital'];
+      if (!validTypes.includes(distributionType)) return bad(res, 'distributionType must be income, capital, or return_of_capital');
+
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+
+      const totalCommitment = deal.totalCommitment || deal.ioi_agg_usd || 0;
+      const distributionId = 'dist-' + Date.now().toString(36);
+      const now = new Date().toISOString();
+
+      // Fetch approved IOIs to calculate per-investor shares
+      const distIoiKeys = await kvKeys('ioi:IOI-*');
+      const distAllIois = (await Promise.all(distIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const distApprovedIois = distAllIois.filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'));
+
+      const perInvestorAmounts = distApprovedIois.map(ioi => {
+        const share = totalCommitment > 0 ? ((ioi.amount || 0) / totalCommitment) * parseFloat(totalDistributionUsd) : 0;
+        return { investorId: ioi.investor_id, ioiId: ioi.id, committedAmount: ioi.amount || 0, distributionAmount: Math.round(share * 100) / 100 };
+      });
+
+      const distRecord = {
+        distributionId,
+        dealId,
+        totalDistributionUsd: parseFloat(totalDistributionUsd),
+        distributionType,
+        distributionDate,
+        notes: notes || '',
+        postedAt: now,
+        postedBy: adv.advisor_id,
+        totalCommitment,
+        perInvestorAmounts,
+      };
+
+      await kvSet(`distribution:${dealId}:${distributionId}`, distRecord);
+
+      deal.distributionHistory = deal.distributionHistory || [];
+      deal.distributionHistory.push({
+        distributionId,
+        totalDistributionUsd: distRecord.totalDistributionUsd,
+        distributionType,
+        distributionDate,
+        postedAt: now,
+        recipientCount: perInvestorAmounts.length,
+      });
+
+      const distAuditEntry = {
+        at: now,
+        actor: adv.advisor_id,
+        action: 'distribution_posted',
+        meta: { distributionId, totalDistributionUsd: distRecord.totalDistributionUsd, distributionType, distributionDate },
+      };
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push(distAuditEntry);
+      deal.updated_at = now;
+      await saveDeal(deal);
+      await appendAuditEntry(dealId, distAuditEntry);
+
+      // Email each investor their individual amount
+      for (const entry of perInvestorAmounts) {
+        const inv = await kvGet(`inst:${entry.investorId}`);
+        if (inv) {
+          await sendDistributionNoticeWithAmount(inv, {
+            dealName: deal.name,
+            distributionType,
+            investorAmount: entry.distributionAmount,
+            distributionDate,
+          }).catch(console.error);
+        }
+      }
+
+      return ok(res, { ok: true, distributionId, notified: perInvestorAmounts.length });
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -1012,6 +1152,136 @@ async function _handler(req, res, resource, op) {
       const qa = (await kvGet(`qa:${dealId}`)) || [];
       return ok(res, { ok: true, qa });
     }
+
+    // ── investor statements (GET) ─────────────────────────────────
+    // resource=inst&op=statements — returns all statements for the calling investor
+    if (op === 'statements') {
+      const instAuth = await getInst();
+      if (!instAuth) return unauth(res);
+      const stmtPattern = `statement:*:${instAuth.inst_id}:*`;
+      const stmtKeys = await kvKeys(stmtPattern);
+      const statements = (await Promise.all(stmtKeys.map(k => kvGet(k)))).filter(Boolean);
+      statements.sort((a, b) => (b.generatedAt || '').localeCompare(a.generatedAt || ''));
+      return ok(res, { statements });
+    }
+
+    // ── investor distributions (GET) ──────────────────────────────
+    // resource=inst&op=distributions — returns all distributions for this investor's approved IOI deals
+    if (op === 'distributions') {
+      const instAuth = await getInst();
+      if (!instAuth) return unauth(res);
+
+      // Find all deals where this investor has an approved IOI
+      const invIoiKeys = await kvKeys('ioi:IOI-*');
+      const invAllIois = (await Promise.all(invIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const invDealIds = [...new Set(
+        invAllIois
+          .filter(i => i.investor_id === instAuth.inst_id && i.status === 'approved')
+          .map(i => i.deal_id)
+      )];
+
+      const allDistributions = [];
+      for (const dId of invDealIds) {
+        const distKeys = await kvKeys(`distribution:${dId}:*`);
+        const dists = (await Promise.all(distKeys.map(k => kvGet(k)))).filter(Boolean);
+        for (const dist of dists) {
+          const myEntry = (dist.perInvestorAmounts || []).find(e => e.investorId === instAuth.inst_id);
+          if (myEntry) {
+            allDistributions.push({
+              distributionId: dist.distributionId,
+              dealId: dist.dealId,
+              distributionType: dist.distributionType,
+              distributionDate: dist.distributionDate,
+              totalDistributionUsd: dist.totalDistributionUsd,
+              myAmount: myEntry.distributionAmount,
+              myCommitment: myEntry.committedAmount,
+              postedAt: dist.postedAt,
+            });
+          }
+        }
+      }
+      allDistributions.sort((a, b) => (b.distributionDate || '').localeCompare(a.distributionDate || ''));
+      return ok(res, { distributions: allDistributions });
+    }
+
+    // ── investor performance metrics (GET) ────────────────────────
+    // resource=inst&op=performance — DPI, RVPI, TVPI per deal + totals
+    if (op === 'performance') {
+      const instAuth = await getInst();
+      if (!instAuth) return unauth(res);
+
+      const perfIoiKeys = await kvKeys('ioi:IOI-*');
+      const perfAllIois = (await Promise.all(perfIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const approvedIois = perfAllIois.filter(i => i.investor_id === instAuth.inst_id && i.status === 'approved');
+
+      let totalCommitted = 0;
+      let totalCurrentValue = 0;
+      const positions = [];
+
+      for (const ioi of approvedIois) {
+        const deal = await getDeal(ioi.deal_id);
+        if (!deal) continue;
+
+        const committed = ioi.amount || 0;
+        totalCommitted += committed;
+
+        // Collect all distributions for this investor/deal
+        const perfDistKeys = await kvKeys(`distribution:${ioi.deal_id}:*`);
+        const perfDists = (await Promise.all(perfDistKeys.map(k => kvGet(k)))).filter(Boolean);
+        let totalDistributed = 0;
+        const distributionList = [];
+        for (const dist of perfDists) {
+          const myEntry = (dist.perInvestorAmounts || []).find(e => e.investorId === instAuth.inst_id);
+          if (myEntry) {
+            totalDistributed += myEntry.distributionAmount || 0;
+            distributionList.push({
+              distributionId: dist.distributionId,
+              type: dist.distributionType,
+              date: dist.distributionDate,
+              amount: myEntry.distributionAmount,
+            });
+          }
+        }
+
+        // Current NAV value for this investor's position
+        const totalNavUsd = deal.totalNavUsd || 0;
+        const totalCommitmentForDeal = deal.totalCommitment || deal.ioi_agg_usd || 0;
+        const currentValue = totalCommitmentForDeal > 0 && committed > 0
+          ? (committed / totalCommitmentForDeal) * totalNavUsd
+          : 0;
+        totalCurrentValue += currentValue;
+
+        const dpi = committed > 0 ? totalDistributed / committed : 0;
+        const rvpi = committed > 0 ? currentValue / committed : 0;
+        const tvpi = dpi + rvpi;
+
+        positions.push({
+          dealId: ioi.deal_id,
+          dealName: deal.name,
+          committed,
+          currentValue: Math.round(currentValue * 100) / 100,
+          totalDistributed: Math.round(totalDistributed * 100) / 100,
+          dpi: Math.round(dpi * 10000) / 10000,
+          rvpi: Math.round(rvpi * 10000) / 10000,
+          tvpi: Math.round(tvpi * 10000) / 10000,
+          moic: Math.round(tvpi * 10000) / 10000,
+          irr: null, // requires full cash flow series — not yet implemented
+          distributions: distributionList,
+          navAsOf: deal.navAsOf || null,
+        });
+      }
+
+      const totalTvpi = totalCommitted > 0
+        ? Math.round((totalCurrentValue / totalCommitted) * 10000) / 10000
+        : 0;
+
+      return ok(res, {
+        positions,
+        totalCommitted,
+        totalCurrentValue: Math.round(totalCurrentValue * 100) / 100,
+        totalTvpi,
+      });
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -1070,6 +1340,15 @@ async function _handler(req, res, resource, op) {
         // KYC failure is non-fatal — investor approval still proceeds
         console.error('[KYC] initiateKycCheck failed (non-fatal):', kycErr.message);
       }
+
+      // Set up welcome sequence tracking key for Day 2 / Day 7 emails
+      // welcome_seq:{investorId} — JSON with approvedAt, day2Sent, day7Sent
+      // No TTL — the welcome-cron reads and updates this key
+      await kvSet(`welcome_seq:${inst_id}`, JSON.stringify({
+        approvedAt: inst.approved_at,
+        day2Sent: false,
+        day7Sent: false,
+      }));
 
       return ok(res, { message: 'Approved. Access code sent by email.' });
     }
@@ -2113,6 +2392,393 @@ Return ONLY valid JSON in this exact structure:
       }
 
       return ok(res, { ok: true, remindersSent, dealsChecked: Object.keys(dealMap).length });
+    }
+
+    // ── match-investors ───────────────────────────────────────────
+    // GET resource=admin&op=match-investors&dealId=X
+    // Returns ranked investor matches for a deal
+    if (op === 'match-investors') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const matchIoiKeys = await kvKeys('ioi:IOI-*');
+      const matchAllIois = (await Promise.all(matchIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const dealIois = matchAllIois.filter(i => i.deal_id === dealId);
+      const existingIoiByInvestor = {};
+      for (const ioi of dealIois) {
+        existingIoiByInvestor[ioi.investor_id] = ioi.status;
+      }
+
+      const instKeys = await kvKeys('inst:inv-*');
+      const allInvestors = (await Promise.all(instKeys.map(k => kvGet(k)))).filter(Boolean);
+
+      const matches = allInvestors.map(investor => {
+        const reasons = [];
+        let score = 0;
+
+        // Factor 1: asset_class match
+        const prefClasses = Array.isArray(investor.preferred_asset_classes) ? investor.preferred_asset_classes : [];
+        if (deal.asset_class && prefClasses.length > 0) {
+          if (prefClasses.some(c => c.toLowerCase() === (deal.asset_class || '').toLowerCase())) {
+            score++;
+            reasons.push('asset_class_match');
+          }
+        }
+
+        // Factor 2: geography match
+        const prefGeos = Array.isArray(investor.preferred_geographies) ? investor.preferred_geographies : [];
+        if (deal.geography && prefGeos.length > 0) {
+          if (prefGeos.some(g => g.toLowerCase() === (deal.geography || '').toLowerCase())) {
+            score++;
+            reasons.push('geography_match');
+          }
+        }
+
+        // Factor 3: investment capacity >= minimum_investment
+        const capacity = parseFloat(investor.investment_capacity) || 0;
+        const minInv = parseFloat(deal.min_ticket_usd || deal.minimum_investment) || 0;
+        if (capacity > 0 && minInv > 0 && capacity >= minInv) {
+          score++;
+          reasons.push('capacity_sufficient');
+        }
+
+        // Factor 4: no prior rejected IOI
+        const priorStatus = existingIoiByInvestor[investor.id];
+        if (priorStatus !== 'rejected') {
+          score++;
+          reasons.push('no_prior_rejection');
+        }
+
+        // Factor 5: no existing IOI (investor hasn't already submitted)
+        const alreadyHasIoi = priorStatus === 'approved' || priorStatus === 'pending';
+        if (!alreadyHasIoi) {
+          score++;
+          reasons.push('no_existing_ioi');
+        }
+
+        return {
+          investorId: investor.id,
+          name: investor.contact_name || investor.firm_name,
+          firm: investor.firm_name,
+          email: investor.email,
+          status: investor.status,
+          score,
+          matchReasons: reasons,
+          alreadyHasIoi,
+        };
+      });
+
+      matches.sort((a, b) => b.score - a.score);
+      return ok(res, { dealId, matches });
+    }
+
+    // ── compliance-cron ───────────────────────────────────────────
+    // POST/GET resource=admin&op=compliance-cron
+    // Also accepts Authorization: Bearer {CRON_SECRET}
+    if (op === 'compliance-cron') {
+      const cronSecret = process.env.CRON_SECRET;
+      const cronHeader = req.headers['authorization'];
+      const isCronCall = cronSecret && cronHeader === `Bearer ${cronSecret}`;
+      const compAdmin = await getAdmin();
+      if (!compAdmin && !isCronCall) return unauth(res);
+
+      const compInstKeys = await kvKeys('inst:inv-*');
+      const compInvestors = (await Promise.all(compInstKeys.map(k => kvGet(k)))).filter(Boolean);
+
+      // Fetch all IOIs once to check which investors have active IOIs
+      const compIoiKeys = await kvKeys('ioi:IOI-*');
+      const compAllIois = (await Promise.all(compIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const investorWithActiveIoi = new Set(
+        compAllIois
+          .filter(i => i.status === 'approved' || i.status === 'pending')
+          .map(i => i.investor_id)
+      );
+
+      const now = Date.now();
+      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+      const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+      const flaggedResults = [];
+      let flaggedCount = 0;
+
+      for (const investor of compInvestors) {
+        const flags = [];
+
+        // KYC check: pending/failed AND initiated > 30 days ago
+        if ((investor.kycStatus === 'pending' || investor.kycStatus === 'failed') && investor.kycInitiatedAt) {
+          const initiatedMs = new Date(investor.kycInitiatedAt).getTime();
+          if (!isNaN(initiatedMs) && (now - initiatedMs) > THIRTY_DAYS_MS) {
+            flags.push('compliance_review_needed');
+          }
+        }
+
+        // NDA check: has active IOIs but no NDA signed
+        if (investorWithActiveIoi.has(investor.id) && !investor.ndaSigned) {
+          flags.push('nda_missing');
+        }
+
+        // Access code expiry check
+        if (investor.accessCodeExpiry) {
+          const expiryMs = new Date(investor.accessCodeExpiry).getTime();
+          if (!isNaN(expiryMs) && expiryMs > now && (expiryMs - now) < SEVEN_DAYS_MS) {
+            flags.push('access_expiring');
+          }
+        }
+
+        if (flags.length > 0) {
+          const flagRecord = {
+            investorId: investor.id,
+            name: investor.contact_name || investor.firm_name,
+            email: investor.email,
+            flags,
+            checkedAt: new Date().toISOString(),
+          };
+          // TTL: 32 days
+          await kvSet(`compliance_flag:${investor.id}`, flagRecord, { ex: 32 * 24 * 60 * 60 });
+          flaggedResults.push(flagRecord);
+          flaggedCount++;
+        }
+      }
+
+      return ok(res, {
+        checked: compInvestors.length,
+        flagged: flaggedCount,
+        flags: flaggedResults,
+      });
+    }
+
+    // ── compliance-flags ──────────────────────────────────────────
+    // GET resource=admin&op=compliance-flags — all current compliance flag records
+    if (op === 'compliance-flags') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const flagKeys = await kvKeys('compliance_flag:*');
+      const flags = (await Promise.all(flagKeys.map(k => kvGet(k)))).filter(Boolean);
+      flags.sort((a, b) => (b.checkedAt || '').localeCompare(a.checkedAt || ''));
+      return ok(res, { flags, count: flags.length });
+    }
+
+    // ── generate-statements ───────────────────────────────────────
+    // POST resource=admin&op=generate-statements&dealId=X
+    // Generates quarterly statements for all approved IOI holders on a deal
+    if (op === 'generate-statements') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const dealId = req.query.dealId || (req.body || {}).dealId;
+      if (!dealId) return bad(res, 'dealId required');
+
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+
+      const stmtIoiKeys = await kvKeys('ioi:IOI-*');
+      const stmtAllIois = (await Promise.all(stmtIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const stmtApproved = stmtAllIois.filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'));
+
+      const now = new Date();
+      const quarter = Math.ceil((now.getMonth() + 1) / 3);
+      const period = `Q${quarter} ${now.getFullYear()}`;
+      const generatedAt = now.toISOString();
+
+      const generated = [];
+      for (const ioi of stmtApproved) {
+        const totalCommitmentForDeal = deal.totalCommitment || deal.ioi_agg_usd || 0;
+        const totalNavUsd = deal.totalNavUsd || 0;
+        const currentValue = totalCommitmentForDeal > 0 && (ioi.amount || 0) > 0
+          ? ((ioi.amount || 0) / totalCommitmentForDeal) * totalNavUsd
+          : 0;
+
+        // Collect distributions for this investor/deal
+        const stmtDistKeys = await kvKeys(`distribution:${dealId}:*`);
+        const stmtDists = (await Promise.all(stmtDistKeys.map(k => kvGet(k)))).filter(Boolean);
+        const investorDists = [];
+        for (const dist of stmtDists) {
+          const myEntry = (dist.perInvestorAmounts || []).find(e => e.investorId === ioi.investor_id);
+          if (myEntry) {
+            investorDists.push({
+              distributionId: dist.distributionId,
+              type: dist.distributionType,
+              date: dist.distributionDate,
+              amount: myEntry.distributionAmount,
+            });
+          }
+        }
+
+        const statement = {
+          investorId: ioi.investor_id,
+          dealId,
+          period,
+          generatedAt,
+          nav: deal.currentNav || null,
+          navAsOf: deal.navAsOf || null,
+          investorCommitment: ioi.amount || 0,
+          currentValue: Math.round(currentValue * 100) / 100,
+          distributions: investorDists,
+          status: 'generated',
+        };
+
+        const stmtKey = `statement:${dealId}:${ioi.investor_id}:${period.replace(/ /g, '_')}`;
+        await kvSet(stmtKey, statement);
+
+        // Email investor
+        const stmtInv = await kvGet(`inst:${ioi.investor_id}`);
+        if (stmtInv) {
+          await sendStatementAvailable(stmtInv, { dealName: deal.name, period }).catch(console.error);
+        }
+        generated.push({ investorId: ioi.investor_id, stmtKey, period });
+      }
+
+      return ok(res, { ok: true, dealId, period, generated: generated.length, statements: generated });
+    }
+
+    // ── statements (admin) ────────────────────────────────────────
+    // GET resource=admin&op=statements&dealId=X — all statements for a deal
+    if (op === 'statements') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+      const adminStmtKeys = await kvKeys(`statement:${dealId}:*`);
+      const adminStatements = (await Promise.all(adminStmtKeys.map(k => kvGet(k)))).filter(Boolean);
+      adminStatements.sort((a, b) => (b.generatedAt || '').localeCompare(a.generatedAt || ''));
+      return ok(res, { statements: adminStatements, count: adminStatements.length });
+    }
+
+    // ── generate-statements-cron ──────────────────────────────────
+    // POST resource=admin&op=generate-statements-cron
+    // Quarterly cron: scans all active deals and generates statements
+    if (op === 'generate-statements-cron') {
+      const cronSecret = process.env.CRON_SECRET;
+      const cronHeader = req.headers['authorization'];
+      const isCronCall = cronSecret && cronHeader === `Bearer ${cronSecret}`;
+      const cronAdmin = await getAdmin();
+      if (!cronAdmin && !isCronCall) return unauth(res);
+
+      const activeStages = ['live', 'dd', 'terms', 'close'];
+      const cronDeals = await listDeals();
+      const targetDeals = cronDeals.filter(d => activeStages.includes(d.stage));
+
+      const now = new Date();
+      const quarter = Math.ceil((now.getMonth() + 1) / 3);
+      const period = `Q${quarter} ${now.getFullYear()}`;
+      const cronGeneratedAt = now.toISOString();
+
+      let totalGenerated = 0;
+      const dealResults = [];
+
+      for (const deal of targetDeals) {
+        const cronStmtIoiKeys = await kvKeys('ioi:IOI-*');
+        const cronStmtAllIois = (await Promise.all(cronStmtIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+        const cronApproved = cronStmtAllIois.filter(i => i.deal_id === deal.id && i.status === 'approved' && i.investor_id.startsWith('inv-'));
+
+        let dealStatementCount = 0;
+        for (const ioi of cronApproved) {
+          const stmtKey = `statement:${deal.id}:${ioi.investor_id}:${period.replace(/ /g, '_')}`;
+          const existing = await kvGet(stmtKey);
+          if (existing) continue; // already generated for this period
+
+          const totalCommitmentForDeal = deal.totalCommitment || deal.ioi_agg_usd || 0;
+          const totalNavUsd = deal.totalNavUsd || 0;
+          const currentValue = totalCommitmentForDeal > 0 && (ioi.amount || 0) > 0
+            ? ((ioi.amount || 0) / totalCommitmentForDeal) * totalNavUsd
+            : 0;
+
+          const cronStmtDistKeys = await kvKeys(`distribution:${deal.id}:*`);
+          const cronStmtDists = (await Promise.all(cronStmtDistKeys.map(k => kvGet(k)))).filter(Boolean);
+          const investorDists = [];
+          for (const dist of cronStmtDists) {
+            const myEntry = (dist.perInvestorAmounts || []).find(e => e.investorId === ioi.investor_id);
+            if (myEntry) {
+              investorDists.push({ distributionId: dist.distributionId, type: dist.distributionType, date: dist.distributionDate, amount: myEntry.distributionAmount });
+            }
+          }
+
+          const statement = {
+            investorId: ioi.investor_id,
+            dealId: deal.id,
+            period,
+            generatedAt: cronGeneratedAt,
+            nav: deal.currentNav || null,
+            navAsOf: deal.navAsOf || null,
+            investorCommitment: ioi.amount || 0,
+            currentValue: Math.round(currentValue * 100) / 100,
+            distributions: investorDists,
+            status: 'generated',
+          };
+          await kvSet(stmtKey, statement);
+
+          const cronInv = await kvGet(`inst:${ioi.investor_id}`);
+          if (cronInv) await sendStatementAvailable(cronInv, { dealName: deal.name, period }).catch(console.error);
+          dealStatementCount++;
+          totalGenerated++;
+        }
+        if (dealStatementCount > 0) dealResults.push({ dealId: deal.id, dealName: deal.name, generated: dealStatementCount });
+      }
+
+      return ok(res, { ok: true, period, dealsProcessed: targetDeals.length, totalGenerated, deals: dealResults });
+    }
+
+    // ── welcome-cron ──────────────────────────────────────────────
+    // GET/POST resource=admin&op=welcome-cron — daily 8am UTC
+    // Sends Day 2 and Day 7 welcome sequence emails to newly approved investors
+    if (op === 'welcome-cron') {
+      const cronSecret = process.env.CRON_SECRET;
+      const cronHeader = req.headers['authorization'];
+      const isCronCall = cronSecret && cronHeader === `Bearer ${cronSecret}`;
+      const wcAdmin = await getAdmin();
+      if (!wcAdmin && !isCronCall) return unauth(res);
+
+      const wcKeys = await kvKeys('welcome_seq:*');
+      const nowMs = Date.now();
+      const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+      const SEVEN_DAYS_MS2 = 7 * 24 * 60 * 60 * 1000;
+
+      let day2Sent = 0;
+      let day7Sent = 0;
+
+      for (const key of wcKeys) {
+        let seq;
+        const raw = await kvGet(key);
+        if (!raw) continue;
+        try { seq = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { continue; }
+        if (!seq.approvedAt) continue;
+
+        const approvedMs = new Date(seq.approvedAt).getTime();
+        if (isNaN(approvedMs)) continue;
+
+        let dirty = false;
+        const investorId = key.replace('welcome_seq:', '');
+        const inv = await kvGet(`inst:${investorId}`);
+        if (!inv) continue;
+
+        // Day 7 check first (so we don't double-fire if both thresholds pass on same run)
+        if (!seq.day7Sent && (nowMs - approvedMs) >= SEVEN_DAYS_MS2) {
+          // Fetch open deals for context
+          const openDeals = (await listDeals({ live: true }))
+            .filter(d => d.stage === 'live' && d.member_visible)
+            .slice(0, 3)
+            .map(d => ({ name: d.name, asset_class: d.asset_class, target_irr: d.target_irr }));
+          await sendWelcomeDay7(inv, { openDeals }).catch(console.error);
+          seq.day7Sent = true;
+          dirty = true;
+          day7Sent++;
+        } else if (!seq.day2Sent && (nowMs - approvedMs) >= TWO_DAYS_MS) {
+          await sendWelcomeDay2(inv).catch(console.error);
+          seq.day2Sent = true;
+          dirty = true;
+          day2Sent++;
+        }
+
+        if (dirty) {
+          await kvSet(key, JSON.stringify(seq));
+        }
+      }
+
+      return ok(res, { ok: true, day2Sent, day7Sent, checked: wcKeys.length });
     }
 
   }

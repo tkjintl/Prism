@@ -4,6 +4,30 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Phase 3 + Phase 4 backend: investor matching, compliance monitoring, NAV updates, quarterly statements, distribution workflow, performance metrics, welcome sequence
+
+### Phase 3 — Intelligence + Compliance
+
+- **Investor matching engine** (`api/v2.js`): New `resource=admin&op=match-investors&dealId=X` (GET, admin only). Fetches all investor records and scores each against a deal on five equal-weight factors: `asset_class` match against `preferred_asset_classes`, `geography` match against `preferred_geographies`, `investment_capacity >= min_ticket_usd`, no prior rejected IOI, and no existing IOI. Score is 0–5. Returns `{ dealId, matches: [{ investorId, name, email, score, matchReasons, alreadyHasIoi }] }` sorted descending. Missing investor preference fields score 0 for that factor — no crash.
+
+- **Compliance monitoring cron** (`api/v2.js`, `vercel.json`): New `resource=admin&op=compliance-cron` endpoint (admin auth or `Authorization: Bearer {CRON_SECRET}`). Scans all `inst:inv-*` records; flags `compliance_review_needed` if KYC is pending/failed and `kycInitiatedAt` is >30 days ago; flags `nda_missing` if investor has active IOIs but `ndaSigned` is falsy; flags `access_expiring` if `accessCodeExpiry` is within 7 days. Writes each flag to `compliance_flag:{investorId}` with 32-day TTL. Returns `{ checked, flagged, flags }`. New read endpoint `resource=admin&op=compliance-flags` (GET) returns all current flag records. Cron scheduled monthly: `0 2 1 * *`.
+
+### Phase 4 — Lifecycle + Reporting
+
+- **NAV update mechanism** (`api/v2.js`, `api/_lib/email.js`): New `resource=advisor&op=post-nav-update` (POST, advisor must own deal). Body: `{ dealId, navPerUnit, totalNavUsd, asOfDate, notes }`. Appends to `deal.navHistory`, updates `deal.currentNav`, `deal.totalNavUsd`, `deal.navAsOf`. Appends to deal audit log (via `appendAuditEntry`). Emails all approved IOI holders with NAV details via new `sendNavUpdate` email template.
+
+- **Quarterly statement generation** (`api/v2.js`, `api/_lib/email.js`): New `resource=admin&op=generate-statements&dealId=X` (POST, admin only). For each investor with approved IOI: builds statement record with period `Q[N] YEAR`, current NAV value (proportional to commitment / totalCommitment), all distributions, stores as `statement:{dealId}:{investorId}:{period}` in Redis, emails investor via new `sendStatementAvailable` template. New `resource=inst&op=statements` (GET, investor) returns all statements for the calling investor. New `resource=admin&op=statements&dealId=X` (GET, admin) returns all statements for a deal. New `resource=admin&op=generate-statements-cron` runs the same logic across all `live`, `dd`, `terms`, `close` stage deals (skips already-generated periods). Quarterly cron: `0 6 1 1,4,7,10 *`.
+
+- **Distribution workflow** (`api/v2.js`, `api/_lib/email.js`): New `resource=advisor&op=post-distribution` (POST, advisor must own deal). Body: `{ dealId, totalDistributionUsd, distributionType, distributionDate, notes }`. Types: `income`, `capital`, `return_of_capital`. Calculates per-investor shares as `(ioi.amount / deal.totalCommitment) * totalDistributionUsd`. Stores `distribution:{dealId}:{distributionId}` with per-investor breakdown. Appends to `deal.distributionHistory` and audit log. Emails each investor their individual amount via new `sendDistributionNoticeWithAmount` template. New `resource=inst&op=distributions` (GET, investor) returns all distributions across all the investor's approved IOI deals with their individual amounts.
+
+- **Performance metrics per investor** (`api/v2.js`): New `resource=inst&op=performance` (GET, investor only). For each approved IOI: calculates `DPI` (totalDistributed / committed), `RVPI` (currentValue / committed), `TVPI` (DPI + RVPI), `moic` (same as TVPI). `IRR` stubbed as `null`. Returns `{ positions: [{ dealId, dealName, committed, currentValue, dpi, rvpi, tvpi, moic, irr, distributions }], totalCommitted, totalCurrentValue, totalTvpi }`.
+
+- **Investor welcome sequence** (`api/v2.js`, `api/_lib/email.js`): When `op=approve` sets an investor approved, writes `welcome_seq:{investorId}` JSON `{ approvedAt, day2Sent: false, day7Sent: false }` to Redis (no TTL). New `resource=admin&op=welcome-cron` (GET/POST, admin auth or CRON_SECRET) scans all `welcome_seq:*` keys; if `approvedAt` is >=2 days ago and `day2Sent` is false → sends Day 2 onboarding email; if >=7 days ago and `day7Sent` is false → sends Day 7 check-in email with current open deals. Day 7 is checked before Day 2 so both cannot fire on the same run. Updates sequence key after sending. New `sendWelcomeDay2` and `sendWelcomeDay7` email templates added to `api/_lib/email.js`. Daily cron: `0 8 * * *`.
+
+- **Four new cron entries** (`vercel.json`): `compliance-cron` (monthly), `generate-statements-cron` (quarterly), `welcome-cron` (daily). All honour `Authorization: Bearer {CRON_SECRET}` as an alternative to admin cookie auth.
+
+---
+
 ## [2026-05-02] — AI Gateway migration + deal scoring on submission
 
 ### AI Gateway (`api/_lib/ai.js` — new file)

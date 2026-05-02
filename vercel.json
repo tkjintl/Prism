@@ -5,7 +5,10 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "crons": [
-    { "path": "/api/v2?resource=admin&op=qa-cron", "schedule": "0 9 * * *" }
+    { "path": "/api/v2?resource=admin&op=qa-cron",                   "schedule": "0 9 * * *" },
+    { "path": "/api/v2?resource=admin&op=compliance-cron",           "schedule": "0 2 1 * *" },
+    { "path": "/api/v2?resource=admin&op=generate-statements-cron",  "schedule": "0 6 1 1,4,7,10 *" },
+    { "path": "/api/v2?resource=admin&op=welcome-cron",              "schedule": "0 8 * * *" }
   ],
   "rewrites": [
     { "source": "/api/v2",                       "destination": "/api/v2" },
