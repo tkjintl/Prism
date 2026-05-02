@@ -2961,6 +2961,7 @@ Return ONLY valid JSON in this exact structure:
       });
 
       const stuckSet = new Set(['live', 'ioi', 'dd']);
+      const STUCK_ACTIVE_WINDOW_MS = 10 * 60 * 1000; // only consider deals with activity in the last 10 min
       const stuckDeals = [];
       const auditCheckResults = await Promise.all(allDeals.map(async d => {
         if (!stuckSet.has(d.stage)) return null;
@@ -2977,8 +2978,12 @@ Return ONLY valid JSON in this exact structure:
       }));
       for (const r of auditCheckResults) {
         if (!r) continue;
-        if (r.lastTs && (now - r.lastTs) > STUCK_WINDOW_MS) {
-          stuckDeals.push({ id: r.deal.id, stage: r.deal.stage, last_audit_age_ms: now - r.lastTs });
+        if (!r.lastTs) continue;
+        const age = now - r.lastTs;
+        // Stuck = recent bot activity (< 10 min ago) but deal has been sitting > 60s without forward movement.
+        // Skip historical/seeded deals whose last audit is older than the active window — those are idle, not stuck.
+        if (age > STUCK_WINDOW_MS && age < STUCK_ACTIVE_WINDOW_MS) {
+          stuckDeals.push({ id: r.deal.id, stage: r.deal.stage, last_audit_age_ms: age });
         }
       }
       if (stuckDeals.length) issues.push({
