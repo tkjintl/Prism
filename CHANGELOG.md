@@ -4,6 +4,71 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: mobile spacing audit (iPhone 15, 390px)
+
+### Changes
+- `admin-portal.html`: Appended a new `<style>` block (20 targeted rule groups) after the hardened nav override block and before `</head>`. No nav HTML or auth JS touched.
+- `.view-inner` at ≤480px: `padding:20px 16px 80px` — breathing room and nothing hides under sticky elements.
+- `.view-inner > *` at ≤600px: `margin-bottom:clamp(24px,4vh,48px)` between all major sections.
+- `.kpi-val` at ≤600px: `clamp(20px,5vw,32px)`; `.kpi-lbl` `white-space:normal` so labels wrap.
+- `.ov-stage-lanes` at ≤600px: 1-column collapse (was only 2-col at 900px, still too wide at 390px); connector line hidden.
+- `.dp-name`: `overflow:hidden; text-overflow:ellipsis; white-space:nowrap` — deal names no longer bust card width.
+- `.dp-btn` at ≤480px: full-width, `min-height:44px` for 44px touch targets.
+- `.q-approve`, `.q-decline` at ≤480px: `min-height:44px; width:100%`.
+- `.ioi-deal-footer` at ≤480px: `flex-direction:column; align-items:stretch` — all action buttons full-width.
+- `.section-hd-title`, `.ov-section-title` at ≤600px: `clamp(15px,4vw,22px)`.
+- `.section-hd > button/a` at ≤600px: `min-height:36px; padding:6px 12px; font-size:12px`.
+- Mono letter-spacing at ≤480px: tightened to `.06em` — prevents label overflow on narrow screens.
+- `.notif-panel` at ≤440px: `width:calc(100vw - 32px); right:-8px` — stays within 390px viewport.
+- `.ntab-badge`: `pointer-events:none; transform:translateX(2px)` — count dot no longer widens the tab.
+- `.ioi-deal-hd-right` at ≤480px: `flex-direction:row; flex-wrap:wrap`.
+- `th` at ≤600px: `white-space:normal` — table headers wrap instead of forcing horizontal scroll.
+- `.ov-bottom-grid` at ≤768px: `grid-template-columns:1fr` (tightened from 900px breakpoint).
+- `.modal-box` at ≤480px: `padding:16px; width:calc(100vw - 24px); max-height:85vh`.
+- Pipeline heading row at ≤480px: stacks vertically, `+ Add Deal` stretches full-width.
+- `.view-heading` at ≤480px: `clamp(20px,6vw,32px)`.
+
+---
+
+## [2026-05-01] — Advisor Portal: mobile spacing audit and full-screen hero fix (iPhone 15)
+
+### Changes
+- `advisor-portal.html`: Appended a new targeted `<style>` block (14 rule groups) before `</body>`, applying iPhone 15 (390×844px) spacing fixes without touching the nav override block or desktop layout.
+- `#dash-hero-static`: `min-height:100svh` (with `100vh` fallback) at ≤768px — hero fills the full first pane instead of collapsing to `min-height:auto`.
+- `.dhs-left`: padding changed to `clamp(28px,6vh,56px) 20px` at ≤768px — generous vertical breathing on portrait mobile.
+- `.dhs-headline`: hero font raised to `clamp(24px,7vw,42px)` at ≤768px, up from the previous `clamp(22px,6vw,38px)`.
+- `.tab-panel.active`: `padding-bottom:80px` at ≤480px — bottom content never hidden under sticky footer or iOS home indicator.
+- `.dash-section`: `margin-bottom:clamp(24px,4vh,48px)` at ≤768px — consistent vertical rhythm between dashboard sections.
+- `.dash-section-title`, `.section-title`: responsive font-size clamps at ≤480px.
+- `.ov-card`, `.ring-card`, `.ps-card`, `.prism-doc-card`: minimum `14px 16px` padding enforced at ≤480px.
+- `.notif-panel`: `max-width:calc(100vw - 16px)` at ≤480px — dropdown can't bleed off-screen at 390px.
+- `.dhs-eyebrow` and mono labels: `letter-spacing` reduced to `.14em`–`.1em` at ≤480px to prevent overflow.
+- `.mini-ring-wrap`: reduced to `56×56px` at ≤480px; deal header ring never overflows.
+- `.perf-ring-wrap`: capped at `100px` at ≤360px — extra safety on smallest viewports.
+- `.ipc-accept`, `.ipc-decline`: `min-height:44px` enforced — meets touch-target standard.
+- `.vdr-layout`, `.closing-slot`, `.submit-wrap`: padding/bottom-clearance tightened for mobile.
+
+---
+
+## [2026-05-01] — Investor Portal: mobile spacing audit and full-screen hero fix
+
+### Changes
+- `investor-portal.html`: Appended a new third `<style>` block (12 targeted rule groups) before `</head>`, applying iPhone 15 (390px) spacing fixes without touching the nav fix block or desktop layout.
+- `.lobby-hero`: `min-height:100svh` (with `100vh` fallback) at ≤768px; changed from `display:grid` to `display:flex; flex-direction:column` so the hero fills the full viewport on first load.
+- `.hero-content`: `flex:1; justify-content:center; padding-bottom:clamp(40px,8vh,80px)` — content fills remaining height and bottom stat row is never cut off.
+- `.lobby-greeting`: enforced `position:static` at ≤768px with `clamp(18px,4vh,32px)` top padding — no longer an absolute overlay fighting with content.
+- `.hero-dots` + `.hero-sub-bar-wrap`: `margin-top:auto; flex-shrink:0` so dots pin to bottom of the flex column naturally.
+- `.section`, `.portfolio-hero`, `.portfolio-body`: replaced flat pixel padding with `clamp(32px,6vh,64px)` / `clamp(24px,5vh,40px)` at ≤768px and ≤480px for true breathing room.
+- `.section-title`: `font-size:clamp(18px,5vw,28px)` at ≤768px — never truncates or wraps awkwardly.
+- `.hero-stat` at ≤480px: all `border-left/border-right` cleared so no phantom dividers appear in the 2×2 grid; `row-gap:16px` added.
+- `.ph-stats`: converted to `display:grid; grid-template-columns:1fr 1fr` at ≤480px for clean two-column stat layout.
+- `.pos-card-top/.btm`, `.deal-card` cells, `.ioi-confirm`: minimum `14px 16px` / `24px 16px` padding enforced at ≤480px.
+- `.action-sticky`: `position:static !important` reinforced at ≤768px — sidebar never sticks on mobile.
+- `.demo-badge`: `pointer-events:none; opacity:.55` at ≤480px with `env(safe-area-inset-bottom)` offset so it doesn't cover bottom CTAs.
+- `#view-deal`: `height:100svh` at ≤768px with `.dd-inner` `padding-bottom` accounting for `env(safe-area-inset-bottom)`.
+
+---
+
 ## [2026-05-01] — Admin portal: comprehensive mobile layout overhaul
 
 ### Changes

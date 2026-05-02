@@ -1054,6 +1054,127 @@ a{color:inherit;text-decoration:none}
   .nav-wm-tacc{display:none!important}
 }
 </style>
+<style>
+/* ── MOBILE SPACING AUDIT — 2026-05-01 ── */
+
+/* 1. LOBBY HERO: true full-screen first pane */
+@media(max-width:768px){
+  .lobby-hero{
+    min-height:100svh;
+    min-height:100vh; /* fallback for Safari <15.4 */
+    display:flex !important;
+    flex-direction:column;
+  }
+  /* Hero content fills remaining height, centers vertically */
+  .hero-content{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding-bottom:clamp(40px,8vh,80px) !important;
+  }
+  /* Remove any max-height that could squeeze content */
+  .lobby-hero,.hero-content{max-height:none !important}
+}
+
+/* 2. GREETING: static, not absolute, consistent spacing */
+@media(max-width:768px){
+  .lobby-greeting{
+    position:static !important;
+    padding:clamp(18px,4vh,32px) 20px 0;
+    flex-shrink:0;
+  }
+}
+
+/* 3. HERO DOTS: pin to bottom of flex column */
+@media(max-width:768px){
+  .hero-dots{
+    margin-top:auto;
+    flex-shrink:0;
+    padding:0 20px clamp(16px,3vh,28px);
+  }
+  .hero-sub-bar-wrap{flex-shrink:0}
+}
+
+/* 4. SECTION SPACING: breathing room on every section */
+@media(max-width:768px){
+  .section{
+    padding:clamp(32px,6vh,64px) clamp(16px,4vw,24px);
+  }
+  .portfolio-hero{
+    padding:clamp(24px,5vh,48px) clamp(16px,4vw,24px) 0;
+  }
+  .portfolio-body{
+    padding:clamp(24px,5vh,48px) clamp(16px,4vw,24px);
+  }
+}
+@media(max-width:480px){
+  .section{
+    padding:clamp(24px,5vh,40px) 16px;
+  }
+  .portfolio-hero{padding:clamp(18px,4vh,32px) 16px 0}
+  .portfolio-body{padding:clamp(18px,4vh,32px) 16px}
+}
+
+/* 5. SECTION TITLE: responsive clamp, never truncates */
+@media(max-width:768px){
+  .section-title{font-size:clamp(18px,5vw,28px)}
+}
+
+/* 6. EQ-SCENARIOS: force 1-col at 480px (already done), lock 3-col to max 768px */
+@media(max-width:768px) and (min-width:481px){
+  .eq-scenarios{grid-template-columns:1fr 1fr 1fr}
+}
+
+/* 7. HERO STAT DIVIDERS: hide border at ≤480px to avoid phantom lines */
+@media(max-width:480px){
+  .hero-stat{border-right:none !important;border-left:none !important;padding-left:0 !important}
+  .hero-stat:nth-child(2n){border-left:none !important;padding-left:0 !important}
+  /* Re-add as bottom separator on row 1 */
+  .hero-stats{row-gap:16px}
+}
+
+/* 8. PH-STATS: wrap cleanly on very small phones */
+@media(max-width:480px){
+  .ph-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
+}
+
+/* 9. CARDS/PANELS: minimum padding at ≤480px */
+@media(max-width:480px){
+  .pos-card-top{padding:14px 16px}
+  .pos-card-btm{padding:10px 16px}
+  .deal-card .dc-header{padding:14px 16px 10px}
+  .deal-card .dc-body{padding:0 16px 12px}
+  .deal-card .dc-footer{padding:10px 16px}
+  .ioi-confirm{padding:24px 16px}
+}
+
+/* 10. ACTION STICKY SIDEBAR: never sticky on mobile */
+@media(max-width:768px){
+  .action-sticky{position:static !important;top:auto !important}
+}
+
+/* 11. DEMO BADGE: ensure it doesn't cover bottom CTAs */
+@media(max-width:480px){
+  .demo-badge{
+    bottom:env(safe-area-inset-bottom, 8px);
+    right:8px;
+    opacity:.55;
+    pointer-events:none;
+  }
+}
+
+/* 12. VIEW-DEAL OVERLAY: full screen, safe area aware */
+@media(max-width:768px){
+  #view-deal{
+    height:100svh;
+    height:100vh;
+  }
+  .dd-inner{
+    padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 80px);
+  }
+}
+</style>
 </head>
 <body>
 

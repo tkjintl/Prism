@@ -962,6 +962,137 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .nav-wm-tacc{display:none!important}
 }
 </style>
+<style>
+/* ── MOBILE SPACING AUDIT — 2026-05-01 ── */
+
+/* 1. View inner — breathing room + bottom clear */
+@media(max-width:480px){
+  .view-inner{padding:20px 16px 80px!important}
+}
+
+/* 2. Major section spacing */
+@media(max-width:600px){
+  .view-inner > *{margin-bottom:clamp(24px,4vh,48px)}
+  .view-inner > *:last-child{margin-bottom:0}
+}
+
+/* 3. KPI strip — value clamp, label wrap */
+@media(max-width:600px){
+  .kpi-val,.kpi-value{font-size:clamp(20px,5vw,32px)!important}
+  .kpi-lbl,.kpi-label{white-space:normal!important;word-break:break-word}
+  .kpi-card{padding:12px!important}
+  .kpi-sub{white-space:normal}
+}
+
+/* 4. Overview stage lanes — 1 col on small mobile */
+@media(max-width:600px){
+  .ov-stage-lanes{grid-template-columns:1fr!important;gap:8px}
+  .ov-stage-lanes::after{display:none}
+  .ov-lane{margin:0!important;min-width:unset!important}
+}
+
+/* 5. Pipeline card — deal name ellipsis, action buttons full-width */
+@media(max-width:600px){
+  .dp-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+  .dp-stage-wrap,.dp-amount-wrap{flex-wrap:nowrap}
+}
+@media(max-width:480px){
+  .dp-actions{width:100%;display:flex;flex-direction:column;gap:6px}
+  .dp-btn{width:100%;min-height:44px;text-align:center;justify-content:center;display:flex;align-items:center}
+}
+
+/* 6. IOI queue approve/decline buttons */
+@media(max-width:480px){
+  .q-approve,.q-decline{min-height:44px;padding:10px 14px;width:100%;text-align:center}
+  .ioi-deal-footer{flex-direction:column;align-items:stretch}
+  .ioi-footer-left{flex-wrap:wrap}
+  .ioi-pkg-btn{width:100%;min-height:44px}
+  .ioi-action-btn{min-height:40px}
+}
+
+/* 7. Section headers — title clamp, action button sizing */
+@media(max-width:600px){
+  .section-hd{flex-wrap:wrap;gap:8px}
+  .section-hd-title,.ov-section-title{font-size:clamp(15px,4vw,22px)!important}
+  .section-hd > button,.section-hd > a{min-height:36px;padding:6px 12px!important;font-size:12px!important}
+  .ov-section-hd{flex-wrap:wrap;gap:6px}
+}
+
+/* 8. Typography — tighten mono letter-spacing on mobile */
+@media(max-width:480px){
+  .kpi-lbl,.kpi-label,.section-label,.adp-label,.ddp-section-title,.lr-section-title{letter-spacing:.06em!important}
+  .nav-wm-aurum,.nav-wm-prism{letter-spacing:.14em!important}
+}
+
+/* 9. Notification panel — cap width on 390px */
+@media(max-width:440px){
+  .notif-panel{width:calc(100vw - 32px);right:-8px;left:auto}
+}
+
+/* 10. ntab badge — don't expand tab width */
+.ntab-badge{pointer-events:none;transform:translateX(2px)}
+
+/* 11. IOI deal group header — right panel full width */
+@media(max-width:480px){
+  .ioi-deal-hd-right{width:100%;align-items:flex-start;flex-direction:row;flex-wrap:wrap;gap:8px}
+  .ioi-sub-wrap{width:100%!important}
+  .ioi-raise-status{flex-shrink:0}
+}
+
+/* 12. Overview action queue cards — button min-height */
+@media(max-width:600px){
+  .ov-ac-actions .att-btn,.ov-ac-actions button{min-height:40px;padding:8px 12px}
+}
+
+/* 13. Pipeline view heading row — stack on mobile */
+@media(max-width:480px){
+  #view-pipeline .view-inner > div:first-child{flex-direction:column;align-items:stretch!important}
+  #view-pipeline .view-inner > div:first-child button{width:100%;margin-top:8px!important}
+}
+
+/* 14. Table th — allow wrap on mobile */
+@media(max-width:600px){
+  th{white-space:normal!important;word-break:break-word}
+  .ioi-row.hdr>div{white-space:normal;word-break:break-word}
+}
+
+/* 15. Overview bottom grid — ensure 1 col at 768px (already at 900px, tighten) */
+@media(max-width:768px){
+  .ov-bottom-grid{grid-template-columns:1fr!important}
+}
+
+/* 16. Modal — ensure title + close button don't overflow */
+@media(max-width:480px){
+  .modal-box{padding:16px!important;width:calc(100vw - 24px)!important;max-height:85vh}
+  .modal-title{font-size:18px!important;padding-right:8px}
+  .pp-modal-box{width:calc(100vw - 16px)!important}
+}
+
+/* 17. DS card body — always 2 cols, no overflow */
+@media(max-width:480px){
+  .ds-card-body{grid-template-columns:1fr 1fr!important;gap:10px}
+  .ds-stat-val{font-size:12px!important}
+}
+
+/* 18. Eq scenarios — keep 2-col, prevent overflow */
+@media(max-width:480px){
+  .eq-scenarios{grid-template-columns:1fr 1fr!important}
+  .eq-sc-irr{font-size:14px!important}
+  .eq-sc-moic{font-size:11px!important}
+}
+
+/* 19. IOI table inside deal group — horizontal scroll on narrow */
+@media(max-width:600px){
+  .ioi-deal-group{overflow-x:hidden}
+  .ioi-table{display:block!important}
+}
+
+/* 20. View heading + sub — no overflow */
+@media(max-width:480px){
+  .view-heading{font-size:clamp(20px,6vw,32px)!important}
+  .view-sub{font-size:12px}
+}
+</style>
 </head>
 <body>
 

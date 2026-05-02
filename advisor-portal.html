@@ -3341,4 +3341,87 @@ load();
   .sj-inner{min-width:0!important}
 }
 </style>
+
+<style>
+/* ── MOBILE SPACING AUDIT FIXES 2026-05-01 ── */
+
+/* 1. Dashboard hero — full-screen first pane on mobile */
+@media(max-width:768px){
+  #dash-hero-static{min-height:100vh;min-height:100svh}
+  .dhs-left{padding:clamp(28px,6vh,56px) 20px clamp(28px,6vh,56px)}
+  .dhs-headline{font-size:clamp(24px,7vw,42px)!important}
+}
+
+/* 2. View section spacing — bottom padding clears sticky tab area */
+@media(max-width:480px){
+  .tab-panel.active{padding:16px 16px 80px!important}
+}
+
+/* 3. Dash section spacing between sections */
+@media(max-width:768px){
+  .dash-section{margin-bottom:clamp(24px,4vh,48px)}
+}
+
+/* 4. Section header typography */
+@media(max-width:480px){
+  .dash-section-title{font-size:clamp(16px,4.5vw,24px)}
+  .section-title{font-size:clamp(13px,3.5vw,18px)}
+}
+
+/* 5. Card / panel padding — minimum comfortable touch density */
+@media(max-width:480px){
+  .ov-card{padding:14px 16px}
+  .ring-card{padding:20px 16px}
+  .ps-card{padding:14px 16px}
+  .prism-doc-card{padding:14px 16px}
+  .wizard-form .field-section{padding:0}
+  .form-section,.wizard-step{padding:16px}
+}
+
+/* 6. Overview grid — stay 2-col at 480px, verified (already mobile-first 2-col); no change needed. */
+
+/* 7. Notify panel — ensure right offset doesn't clip at 390px when parent is near edge */
+@media(max-width:480px){
+  .notif-panel{right:0;max-width:calc(100vw - 16px)}
+}
+
+/* 8. Large letter-spacing reduction on narrow screens */
+@media(max-width:480px){
+  .dhs-eyebrow{letter-spacing:.14em}
+  .dash-section-mono,.ds-label,.ds-pill-stage{letter-spacing:.1em}
+}
+
+/* 9. Deal header ring — prevent overflow at 390px */
+@media(max-width:480px){
+  .mini-ring-wrap{width:56px;height:56px}
+  .mini-ring-pct{font-size:12px}
+  .dh-quick-stats{font-size:10px}
+}
+
+/* 10. Perf ring — additional safety at 360px */
+@media(max-width:360px){
+  .perf-ring-wrap{width:100px!important;height:100px!important}
+  .perf-ring-wrap svg{width:100px!important;height:100px!important}
+}
+
+/* 11. IPC button tap targets confirmed 44px min */
+@media(max-width:480px){
+  .ipc-accept,.ipc-decline{min-height:44px;display:flex;align-items:center;justify-content:center}
+}
+
+/* 12. VDR layout already 1-col at ≤900px — ensure padding at ≤480px */
+@media(max-width:480px){
+  .vdr-layout{padding:12px}
+}
+
+/* 13. Closing grid padding tightened at 480px */
+@media(max-width:480px){
+  .closing-slot{padding:14px}
+}
+
+/* 14. Submit wrap — bottom clearance */
+@media(max-width:480px){
+  .submit-wrap{padding-bottom:80px}
+}
+</style>
 </body>
