@@ -2456,81 +2456,64 @@ function renderOverview(){
     <div class="ov-signup-status ${i.access}">${investorAccessLabel(i.access)}</div>
   </div>`).join('');
 
+  const isDesktop = window.innerWidth > 768;
+
+  const sec = (id, label, content) => isDesktop
+    ? `<div style="padding:16px 0">${content}</div>`
+    : `<div class="ov-collapsible">
+        <div class="ov-collapsible-hd" onclick="toggleOvSection('${id}')">
+          <span>${label}</span>
+          <span class="ov-collapsible-arrow" id="${id}-arrow">&#9660;</span>
+        </div>
+        <div class="ov-collapsible-body closed" id="${id}">
+          <div style="padding:16px 0">${content}</div>
+        </div>
+      </div>`;
+
   document.getElementById('overview-main').innerHTML=`
     ${headerBar}
-    <div class="ov-collapsible">
-      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s1')">
-        <span>Action Queue</span>
-        <span class="ov-collapsible-arrow" id="ov-s1-arrow">&#9660;</span>
+    ${sec('ov-s1','Action Queue',`
+      <div class="ov-queue-grid">
+        ${queueCol('ov-dot-amber','New Deals',submissionCards)}
+        ${queueCol('ov-dot-green','Ready to Publish',readyToPublishCards)}
+        ${queueCol('ov-dot-gold','Inbound IOI from Investors',ioiDecisionCards)}
+        ${queueCol('ov-dot-violet','Open Due Diligence',pushCards)}
       </div>
-      <div class="ov-collapsible-body ${window.innerWidth>768?'open':'closed'}" id="ov-s1">
-        <div style="padding:16px 0">
-          <div class="ov-queue-grid">
-            ${queueCol('ov-dot-amber','New Deals',submissionCards)}
-            ${queueCol('ov-dot-green','Ready to Publish',readyToPublishCards)}
-            ${queueCol('ov-dot-gold','Inbound IOI from Investors',ioiDecisionCards)}
-            ${queueCol('ov-dot-violet','Open Due Diligence',pushCards)}
-          </div>
+    `)}
+    ${sec('ov-s2','Deal Pipeline',`
+      <div class="ov-stage-section" style="margin-bottom:0">
+        <div class="ov-section-hd">
+          <div class="ov-section-title">Deal Pipeline</div>
+          <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2])">View Full Pipeline &#8594;</button>
+        </div>
+        <div class="ov-stage-lanes">${stageLanes.join('')}</div>
+      </div>
+    `)}
+    ${sec('ov-s3','Team Access',`
+      <div class="ov-signup-grid" style="margin-top:0">
+        <div class="ov-panel">
+          <div class="ov-panel-hd"><span>Advisor Access</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length} advisors</span></div>
+          <div class="ov-panel-body" style="max-height:220px">${advisorRows}</div>
+        </div>
+        <div class="ov-panel">
+          <div class="ov-panel-hd"><span>Investor Access</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length} investors</span></div>
+          <div class="ov-panel-body" style="max-height:220px">${investorRows}</div>
         </div>
       </div>
-    </div>
-    <div class="ov-collapsible">
-      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s2')">
-        <span>Deal Pipeline</span>
-        <span class="ov-collapsible-arrow" id="ov-s2-arrow">&#9660;</span>
-      </div>
-      <div class="ov-collapsible-body ${window.innerWidth>768?'open':'closed'}" id="ov-s2">
-        <div style="padding:16px 0">
-          <div class="ov-stage-section" style="margin-bottom:0">
-            <div class="ov-section-hd">
-              <div class="ov-section-title">Deal Pipeline</div>
-              <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2])">View Full Pipeline &#8594;</button>
-            </div>
-            <div class="ov-stage-lanes">${stageLanes.join('')}</div>
-          </div>
+    `)}
+    ${sec('ov-s4','Activity',`
+      <div class="ov-bottom-grid">
+        <div class="ov-panel">
+          <div class="ov-panel-hd"><span>Platform Activity</span><span class="ov-panel-hd-sub">${activity.length} recent events</span></div>
+          <div class="ov-panel-body">${activityHtml}</div>
+        </div>
+        <div class="ov-panel">
+          <div class="ov-panel-hd"><span>IOI Intelligence</span><span class="ov-panel-hd-sub">by deal</span></div>
+          <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
         </div>
       </div>
-    </div>
-    <div class="ov-collapsible">
-      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s3')">
-        <span>Team Access</span>
-        <span class="ov-collapsible-arrow" id="ov-s3-arrow">&#9660;</span>
-      </div>
-      <div class="ov-collapsible-body ${window.innerWidth>768?'open':'closed'}" id="ov-s3">
-        <div style="padding:16px 0">
-          <div class="ov-signup-grid" style="margin-top:0">
-            <div class="ov-panel">
-              <div class="ov-panel-hd"><span>Advisor Access</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length} advisors</span></div>
-              <div class="ov-panel-body" style="max-height:220px">${advisorRows}</div>
-            </div>
-            <div class="ov-panel">
-              <div class="ov-panel-hd"><span>Investor Access</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length} investors</span></div>
-              <div class="ov-panel-body" style="max-height:220px">${investorRows}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="ov-collapsible">
-      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s4')">
-        <span>Activity</span>
-        <span class="ov-collapsible-arrow" id="ov-s4-arrow">&#9660;</span>
-      </div>
-      <div class="ov-collapsible-body ${window.innerWidth>768?'open':'closed'}" id="ov-s4">
-        <div style="padding:16px 0">
-          <div class="ov-bottom-grid">
-            <div class="ov-panel">
-              <div class="ov-panel-hd"><span>Platform Activity</span><span class="ov-panel-hd-sub">${activity.length} recent events</span></div>
-              <div class="ov-panel-body">${activityHtml}</div>
-            </div>
-            <div class="ov-panel">
-              <div class="ov-panel-hd"><span>IOI Intelligence</span><span class="ov-panel-hd-sub">by deal</span></div>
-              <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>`;
+    `)}
+  `;
   updateNotifBell();
 }
 
