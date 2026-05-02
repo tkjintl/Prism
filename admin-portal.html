@@ -1337,6 +1337,28 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     color:rgba(237,232,223,.7)!important;
   }
 }
+/* Light theme overrides for luxury mobile nav */
+@media(max-width:768px){
+  [data-theme="light"] .nav{
+    background:linear-gradient(180deg,#F5F3EF 0%,#EFECE6 100%)!important;
+    border-bottom:1px solid rgba(168,129,58,.18)!important;
+    box-shadow:0 1px 0 rgba(168,129,58,.08),0 4px 20px rgba(0,0,0,.06)!important;
+  }
+  [data-theme="light"] .nav-wm-tacc{color:rgba(90,84,73,.5)!important}
+  [data-theme="light"] .role-badge{
+    background:rgba(168,129,58,.08)!important;
+    border-color:rgba(168,129,58,.25)!important;
+  }
+  [data-theme="light"] .nav-tabs{
+    border-top-color:rgba(168,129,58,.12)!important;
+    background:rgba(237,234,229,.7)!important;
+  }
+  [data-theme="light"] .ntab{color:rgba(24,22,15,.4)!important}
+  [data-theme="light"] .ntab:active:not(.on){
+    background:rgba(168,129,58,.04)!important;
+    color:rgba(24,22,15,.6)!important;
+  }
+}
 
 /* ── NOTIFICATION PANEL: proper floating popup ── */
 /* Backdrop injected by JS */

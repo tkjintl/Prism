@@ -4,6 +4,13 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix admin portal mobile nav light mode
+
+### Changes
+- `admin-portal.html`: Added `[data-theme="light"]` overrides for the luxury mobile nav block (`@media(max-width:768px)`) — nav and tab row were hardcoded `rgba(10,9,8,1)` dark with `!important`, overriding CSS vars even in light mode. Light overrides restore cream gradient nav, correct tab row tint, and dark-on-light text colors
+
+---
+
 ## [2026-05-01] — Fix hero section light mode on investor + advisor portals
 
 ### Changes
