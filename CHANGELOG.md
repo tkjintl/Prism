@@ -4,6 +4,28 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Admin overflow fix + View Uploaded / Generate AI Profile buttons
+
+**Three changes to `admin-portal.html`:**
+
+**1. Desktop overflow fix (pre-existing v2.0 bug, surfaced by operator).**
+- `.ov-queue-grid` (NEW DEALS / READY TO PUBLISH / INBOUND IOI / OPERATIONS row) was hard-coded to `repeat(4, 1fr)` with the breakpoint to 2 cols only firing at ≤1100px. Effective rendered width was ~1806px regardless of viewport — caused 200-500px horizontal overflow on every laptop viewport between 1366-1880px. Replaced with `repeat(auto-fit, minmax(340px, 1fr))` so it auto-wraps to fit.
+- Same fix on `.ov-stage-lanes` (Deal Pipeline 5-stage row): replaced `repeat(5, 1fr)` + 900px breakpoint with `repeat(auto-fit, minmax(200px, 1fr))`.
+- **Important:** this overflow existed in v2.0 — not introduced by mobile-pass work. Mobile-pass rules are gated to `(max-width: 768px)` and were verified mathematically to not affect desktop CSS.
+
+**2. "View Uploaded" button on NEW DEALS card and Deal Studio card.**
+- New blue-bordered button next to the existing AI / Send-to-Advisor buttons.
+- Opens a modal (`#vu-modal`) showing the original advisor submission: 4 document slots (NDA, Management Deck, Financials, Term Sheet) with view-doc buttons for each, plus structured fields (deal name, advisor, asset class, geography, target IRR, allocation, min ticket, submission date).
+- Empty doc slots show as greyed "Not uploaded".
+
+**3. "Generate AI Profile" button (rebranded existing `loadDocsAndGenerate`).**
+- Gold-bordered button on NEW DEALS card. Same on Deal Studio card (rebranded from "Generate with AI →" to "Generate AI Profile →" for consistency).
+- Also reachable from inside the View Uploaded modal as a footer CTA.
+
+**Why:** operator wanted two surfaces to (a) see what the advisor actually uploaded vs. AI-generated content, and (b) trigger AI profile generation without bouncing through the AI tool view.
+
+---
+
 ## [2026-05-02] — Admin View-As: operator can impersonate any advisor or investor
 
 Operator-only QA tool. Floating "↪ View As" button (bottom-right of admin portal) opens a modal with two tabs (Advisors / Investors). Clicking any row sets a fresh session cookie for that user and opens their portal in a new tab. The operator's admin cookie stays intact in the original tab.

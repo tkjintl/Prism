@@ -690,8 +690,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ov-header-alert{font-family:var(--mono);font-size:11px;color:var(--amber);display:flex;align-items:center;gap:6px}
 .ov-header-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
 /* Action queue */
-.ov-queue-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
-@media(max-width:1100px){.ov-queue-grid{grid-template-columns:repeat(2,1fr)}}
+.ov-queue-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-bottom:28px}
 @media(max-width:640px){.ov-queue-grid{grid-template-columns:1fr}}
 .ov-queue-col{display:flex;flex-direction:column;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;min-height:120px}
 .ov-col-hd{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg-2)}
@@ -725,8 +724,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ov-section-title{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--text)}
 .ov-section-link{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);background:none;border:none;cursor:pointer;padding:0;transition:opacity .15s}
 .ov-section-link:hover{opacity:.7}
-.ov-stage-lanes{display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative}
-@media(max-width:900px){.ov-stage-lanes{grid-template-columns:repeat(2,1fr)}}
+.ov-stage-lanes{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;position:relative}
+@media(max-width:600px){.ov-stage-lanes{grid-template-columns:repeat(2,1fr)}}
 /* Faint connector line between lanes */
 .ov-stage-lanes::after{content:'';position:absolute;top:22px;left:0;right:0;height:1px;background:linear-gradient(to right,transparent 0%,var(--border) 5%,var(--border) 95%,transparent 100%);pointer-events:none;z-index:0}
 .ov-lane{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;min-height:80px;position:relative;z-index:1;margin:0 5px}
@@ -2490,9 +2489,11 @@ function renderOverview(){
       <div class="ov-ac-name">${s.name}</div>
       <div class="ov-ac-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''}<br>${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
       ${aiRef}
-      <div class="ov-ac-actions">
+      <div class="ov-ac-actions" style="flex-wrap:wrap">
+        <button class="att-btn" onclick="viewUploaded('${s.id}')" style="background:rgba(91,133,184,.07);border:1px solid rgba(91,133,184,.28);color:#5b85b8" title="View original files the advisor uploaded">📁 View Uploaded</button>
+        <button class="att-btn" onclick="loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])" style="background:rgba(197,165,114,.07);border:1px solid rgba(197,165,114,.28);color:var(--gold)" title="Generate AI deal profile from uploaded docs">✦ Generate AI Profile</button>
         ${!generated ?
-          `<button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])">✦ Generate with AI →</button>` :
+          `<span style="font-family:var(--mono);font-size:8px;color:var(--text-3);letter-spacing:.08em;padding:6px 0">no AI yet</span>` :
           s.advisor_review_status === 'pending' ?
             `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.08em;padding:4px 0">&#x23F3; Awaiting Advisor Review</span>` :
             `<button class="att-btn att-review" onclick="sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
@@ -3619,8 +3620,9 @@ function renderPipeline(){
             </div>
             <div class="ds-card-footer">
               <div class="ds-advisor">From ${s.advisor} · ${s.advisor_firm} · Submitted ${s.submitted}</div>
+              <button class="att-btn" onclick="viewUploaded('${s.id}')" style="background:rgba(91,133,184,.07);border:1px solid rgba(91,133,184,.28);color:#5b85b8">📁 View Uploaded</button>
               <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
-              <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}')">✦ Generate with AI →</button>
+              <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}')">✦ Generate AI Profile →</button>
             </div>
           </div>
         </div>`).join('')}
@@ -5598,6 +5600,103 @@ async function confirmPushFromPopup(dealId, btn) {
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════ VIEW UPLOADED MODAL ═══════════════════ -->
+<div id="vu-modal" style="display:none;position:fixed;inset:0;z-index:680;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center" onclick="if(event.target===this)vuClose()">
+  <div style="background:#0a0908;border:1px solid #2a2620;border-radius:6px;width:min(640px,94vw);max-height:88vh;overflow:hidden;display:flex;flex-direction:column">
+    <div style="padding:18px 22px;border-bottom:1px solid #2a2620;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;color:#857d72;text-transform:uppercase">Operator · Original Submission</div>
+        <div id="vu-deal-name" style="font-family:Georgia,serif;font-style:italic;font-size:20px;color:#e8dfd0;margin-top:3px"></div>
+      </div>
+      <button onclick="vuClose()" style="background:none;border:none;color:#857d72;font-size:22px;cursor:pointer;padding:4px 10px">×</button>
+    </div>
+    <div id="vu-body" style="flex:1;overflow-y:auto;padding:18px 22px"></div>
+    <div style="padding:12px 22px;border-top:1px solid #2a2620;display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="vuClose()" style="padding:9px 18px;background:none;border:1px solid #2a2620;color:#857d72;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">Close</button>
+      <button id="vu-gen-btn" onclick="vuGenerate()" style="padding:9px 18px;background:var(--gold,#C5A572);color:#1A1410;border:none;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-weight:700">✦ Generate AI Profile</button>
+    </div>
+  </div>
+</div>
+<script>
+let _vuDealId = null;
+function viewUploaded(dealId) {
+  _vuDealId = dealId;
+  const s = (typeof NEW_SUBMISSIONS !== 'undefined' ? NEW_SUBMISSIONS.find(x => x.id === dealId) : null) ||
+            (typeof DEALS !== 'undefined' ? DEALS.find(x => x.id === dealId) : null);
+  if (!s) { alert('Deal not found in current view.'); return; }
+  document.getElementById('vu-deal-name').textContent = s.name || dealId;
+
+  const docs = s.docs || [];
+  const slots = [
+    { slot: 'nda', label: 'NDA', desc: 'Non-disclosure agreement signed by advisor' },
+    { slot: 'mgmt', label: 'Management Deck', desc: 'Pitch deck / company presentation' },
+    { slot: 'fin', label: 'Financials', desc: 'Cap table, P&L, projections' },
+    { slot: 'term', label: 'Term Sheet', desc: 'Proposed economics + structure' },
+  ];
+
+  const fields = [
+    { k: 'Deal Name', v: s.name || '—' },
+    { k: 'Advisor', v: (s.advisor || '—') + (s.advisor_firm ? ' · ' + s.advisor_firm : '') },
+    { k: 'Asset Class', v: (s.asset_class || '—').toString().toUpperCase() },
+    { k: 'Geography', v: s.geography || '—' },
+    { k: 'Target IRR', v: s.target_irr != null ? (+s.target_irr).toFixed(1) + '%' : '—' },
+    { k: 'Allocation', v: s.target_alloc ? '$' + Number(s.target_alloc).toLocaleString() : '—' },
+    { k: 'Min Ticket', v: s.min_ticket ? '$' + Number(s.min_ticket).toLocaleString() : '—' },
+    { k: 'Submitted', v: s.submitted_at || s.submitted || '—' },
+  ];
+
+  let html = '';
+  html += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#857d72;margin-bottom:10px">Uploaded Documents (4 slots)</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">';
+  for (const sl of slots) {
+    const doc = docs.find(d => d.slot === sl.slot);
+    if (doc) {
+      html += '<div style="border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.05);padding:11px 13px;border-radius:3px">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px">'
+        + '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;letter-spacing:.1em;color:#5a9e72;text-transform:uppercase;font-weight:700">'+sl.label+'</div>'
+        + '<button onclick="viewDoc(\''+_vuDealId+'\',\''+sl.slot+'\')" style="font-family:\'JetBrains Mono\',monospace;font-size:8px;padding:3px 8px;border:1px solid rgba(90,158,114,.4);background:transparent;color:#5a9e72;border-radius:2px;cursor:pointer">↗ View</button>'
+        + '</div>'
+        + '<div style="font-size:11px;color:#a8a098;margin-top:4px">'+(doc.filename || sl.desc)+'</div>'
+        + '</div>';
+    } else {
+      html += '<div style="border:1px solid #2a2620;background:rgba(255,255,255,.02);padding:11px 13px;border-radius:3px;opacity:.6">'
+        + '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;letter-spacing:.1em;color:#635e58;text-transform:uppercase">'+sl.label+'</div>'
+        + '<div style="font-size:10px;color:#635e58;margin-top:4px;font-style:italic">Not uploaded</div>'
+        + '</div>';
+    }
+  }
+  html += '</div>';
+
+  html += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#857d72;margin-bottom:10px">Structured Fields</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 18px">';
+  for (const f of fields) {
+    html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1714">'
+      + '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:.08em;color:#857d72;text-transform:uppercase">'+f.k+'</span>'
+      + '<span style="font-size:11px;color:#e8dfd0;text-align:right">'+f.v+'</span>'
+      + '</div>';
+  }
+  html += '</div>';
+
+  document.getElementById('vu-body').innerHTML = html;
+  document.getElementById('vu-modal').style.display = 'flex';
+}
+function vuClose() { document.getElementById('vu-modal').style.display = 'none'; _vuDealId = null; }
+function vuGenerate() {
+  if (!_vuDealId) return;
+  const id = _vuDealId;
+  vuClose();
+  if (typeof loadDocsAndGenerate === 'function') {
+    loadDocsAndGenerate(id);
+    if (typeof showView === 'function') {
+      const aiTab = document.querySelectorAll('.ntab')[3];
+      if (aiTab) showView('aitool', aiTab);
+    }
+  } else {
+    alert('AI generation function not loaded.');
+  }
+}
+</script>
 
 <!-- ═══════════════════ VIEW-AS PANEL (operator QA) ═══════════════════ -->
 <button id="vap-fab" onclick="vapOpen()" title="View as advisor or investor"
