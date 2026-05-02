@@ -2159,6 +2159,7 @@ function showView(name, btn) {
   if(v) v.classList.add('active');
   if(btn) btn.classList.add('on');
   if(name === 'portfolio') renderPortfolio();
+  if(name === 'notices') loadNotices();
 }
 
 /* ── LOBBY ── */
@@ -3485,12 +3486,6 @@ async function acknowledgeNotice(noticeId) {
     toast('Could not acknowledge. Please try again.', 'err');
     if(btn) { btn.disabled = false; btn.textContent = 'Acknowledge Notice'; }
   }
-}
-
-const _inv_origShowView = showView;
-function showView(name, btn) {
-  _inv_origShowView(name, btn);
-  if(name === 'notices') loadNotices();
 }
 
 load();

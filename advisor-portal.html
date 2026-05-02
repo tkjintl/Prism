@@ -1417,6 +1417,7 @@ function showView(name,btn){
   if(btn)btn.classList.add('on');
   if(name==='overview')renderDashboard();
   if(name==='submit'){if(wStep>4)wStep=1;renderWizard();}
+  if(name==='earnings')loadEarnings();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -3654,12 +3655,6 @@ async function loadEarnings() {
   renderEarnings(data);
 }
 
-// Hook earnings load into showView
-const _origShowView = showView;
-function showView(name, btn) {
-  _origShowView(name, btn);
-  if(name === 'earnings') loadEarnings();
-}
 
 load();
 </script>
