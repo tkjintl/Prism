@@ -916,12 +916,15 @@ async function _handler(req, res, resource, op) {
     if (op === 'register') {
       const data = req.body || {};
       if (!data.email || !data.firm_name || !data.contact_name) return bad(res, 'Email, firm name, and contact name required');
+      const category = (data.category || '').toLowerCase().trim();
+      if (category !== 'institutional' && category !== 'hnw') return bad(res, 'Applicant category required (institutional or hnw)');
       const email = data.email.toLowerCase().trim();
       const existing = await kvGet(`inst_email:${email}`);
       if (existing) return bad(res, 'This email is already registered');
       const id = 'inv-' + Date.now().toString(36);
       const inst = {
         id, email, firm_name: data.firm_name.trim(), contact_name: data.contact_name.trim(),
+        category,
         institution_type: data.institution_type || '', aum_range: data.aum_range || '',
         ticket_range: data.ticket_range || '', invest_focus: data.invest_focus || '',
         status: 'pending', code: null,

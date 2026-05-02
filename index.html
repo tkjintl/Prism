@@ -1016,19 +1016,32 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
 <section class="section" id="access">
   <div class="sec-eye reveal"><div class="sec-eye-line"></div><span class="sec-eye-txt">Access Tiers</span></div>
   <h2 class="reveal">Two ways<br><em>to access.</em></h2>
-  <p class="sec-sub reveal">Existing investors log in directly. Qualified institutional investors apply below and are credentialed before marketplace access is granted.</p>
-  <div class="tiers-grid" style="grid-template-columns:1fr;max-width:600px;margin-left:auto;margin-right:auto">
+  <p class="sec-sub reveal">Aurum Prism is invitation-only. Apply as an institution or as private capital — Prism credentials are issued after operator review.</p>
+  <div class="tiers-grid">
     <div class="tier tier-cta-card reveal-scale">
-      <span class="tier-badge inst">Institutional Investors &amp; Private Clients</span>
-      <div class="tier-title">Apply for credentialed access</div>
-      <div class="tier-desc">Family offices, fund of funds, PE secondaries, endowments, and corporate treasuries apply for institutional access. Approved investors receive credentials to the Prism marketplace with institutional-grade deal flow.</div>
+      <span class="tier-badge inst">Institutional Investors</span>
+      <div class="tier-title">Apply for institutional access</div>
+      <div class="tier-desc">Family offices, fund of funds, PE secondaries, endowments, sovereign wealth, and corporate treasuries. Mandate-driven capital deployed into curated private market opportunities — credit, pre-IPO equity, real estate, infrastructure across the US and Asia.</div>
       <div class="tier-items">
         <div class="tier-item"><div class="tier-item-dot"></div><span>Minimum deployment: $250,000 USD per position</span></div>
         <div class="tier-item"><div class="tier-item-dot"></div><span>Qualified institutional investor or equivalent in your jurisdiction</span></div>
         <div class="tier-item"><div class="tier-item-dot"></div><span>Prism operator review within 5 business days</span></div>
         <div class="tier-item"><div class="tier-item-dot"></div><span>Platform NDA signed on credentialing · All USD</span></div>
       </div>
-      <button class="tier-cta inst" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Institutional Access →</button>
+      <button class="tier-cta inst" onclick="setApplyCategory('institutional');document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Institutional Access →</button>
+      <div class="tier-watermark">§</div>
+    </div>
+    <div class="tier tier-cta-card reveal-scale reveal-d1">
+      <span class="tier-badge inst">HNW &amp; Private Capital</span>
+      <div class="tier-title">Apply for private access</div>
+      <div class="tier-desc">High-net-worth individuals and single-family principals deploying personal or family capital. Curated private market access — same deal flow our institutional members see, sized to private capacity. Membership is invitation-only and capped; admission is at operator discretion.</div>
+      <div class="tier-items">
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Minimum deployment: $100,000 USD per position</span></div>
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Accredited investor under applicable securities laws</span></div>
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Prism operator review within 5 business days</span></div>
+        <div class="tier-item"><div class="tier-item-dot"></div><span>Platform NDA signed on credentialing · All USD</span></div>
+      </div>
+      <button class="tier-cta inst" onclick="setApplyCategory('hnw');document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Private Access →</button>
       <div class="tier-watermark">§</div>
     </div>
   </div>
@@ -1051,11 +1064,18 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
     </div>
     <div class="form-box reveal">
       <div class="form-title">Request Early Access</div>
+      <div class="form-group">
+        <label class="form-lbl">Applying as *</label>
+        <div id="f-cat-group" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <label class="cat-opt" data-cat="institutional" style="flex:1;min-width:140px;padding:10px 14px;border:1px solid var(--goldBd);border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--sub);text-align:center;transition:all .15s"><input type="radio" name="f-cat" value="institutional" style="display:none">Institution</label>
+          <label class="cat-opt" data-cat="hnw" style="flex:1;min-width:140px;padding:10px 14px;border:1px solid var(--goldBd);border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--sub);text-align:center;transition:all .15s"><input type="radio" name="f-cat" value="hnw" style="display:none">Private (HNW)</label>
+        </div>
+      </div>
       <div class="form-row">
         <div class="form-group"><label class="form-lbl">Your Name *</label><input type="text" id="f-name" placeholder="Full name"></div>
         <div class="form-group"><label class="form-lbl">Role / Title *</label><input type="text" id="f-role" placeholder="CIO, Portfolio Manager…"></div>
       </div>
-      <div class="form-group"><label class="form-lbl">Institution / Firm *</label><input type="text" id="f-firm" placeholder="Family office, fund, or entity name"></div>
+      <div class="form-group"><label class="form-lbl" id="f-firm-lbl">Institution / Firm *</label><input type="text" id="f-firm" placeholder="Family office, fund, or entity name"></div>
       <div class="form-group"><label class="form-lbl">Email Address *</label><input type="email" id="f-email" placeholder="you@institution.com"></div>
       <div class="form-row">
         <div class="form-group"><label class="form-lbl">Institution Type *</label>
@@ -1215,7 +1235,39 @@ function setScreen(p,idx){
 ['inv','adv'].forEach(p=>{_pt[p]=setInterval(()=>{setScreen(p,(_ps[p]+1)%3);},p==='inv'?5000:6500);});
 
 // Form submit — wired to /api/v2?resource=inst&op=register
+// Category selection — sets pill state and adapts form labels
+function setApplyCategory(cat){
+  if(cat!=='institutional'&&cat!=='hnw')return;
+  const inp=document.querySelector(`input[name="f-cat"][value="${cat}"]`);
+  if(inp)inp.checked=true;
+  document.querySelectorAll('.cat-opt').forEach(el=>{
+    const on=el.dataset.cat===cat;
+    el.style.background=on?'rgba(197,165,114,.12)':'transparent';
+    el.style.borderColor=on?'var(--gold)':'var(--goldBd)';
+    el.style.color=on?'var(--gold)':'var(--sub)';
+  });
+  const firmLbl=document.getElementById('f-firm-lbl');
+  const firm=document.getElementById('f-firm');
+  const typeSel=document.getElementById('f-type');
+  if(cat==='hnw'){
+    if(firmLbl)firmLbl.textContent='Family Office / Entity Name (optional for individuals)';
+    if(firm)firm.placeholder='Single-family office, trust, or your name';
+    if(typeSel){
+      typeSel.innerHTML='<option value="">Select…</option><option>Single-Family Office</option><option>Multi-Family Office</option><option>Trust / Private Investment Vehicle</option><option>Individual / Private</option><option>Other Private</option>';
+    }
+  }else{
+    if(firmLbl)firmLbl.textContent='Institution / Firm *';
+    if(firm)firm.placeholder='Family office, fund, or entity name';
+    if(typeSel){
+      typeSel.innerHTML='<option value="">Select…</option><option>Family Office</option><option>Fund of Funds</option><option>PE Secondaries</option><option>Endowment / Foundation</option><option>Corporate Treasury</option><option>Asset Manager</option><option>Other Institutional</option>';
+    }
+  }
+}
+document.querySelectorAll('.cat-opt').forEach(el=>el.addEventListener('click',()=>setApplyCategory(el.dataset.cat)));
+
 async function submitForm(){
+  const cat=document.querySelector('input[name="f-cat"]:checked')?.value;
+  if(!cat){toast('Please select Institution or Private (HNW).','err');document.getElementById('f-cat-group')?.scrollIntoView({behavior:'smooth',block:'center'});return;}
   const name=document.getElementById('f-name').value.trim();
   const role=document.getElementById('f-role')?.value.trim()||'';
   const firm=document.getElementById('f-firm').value.trim();
@@ -1223,18 +1275,22 @@ async function submitForm(){
   const type=document.getElementById('f-type').value;
   const aum=document.getElementById('f-aum')?.value||'';
   const focus=document.getElementById('f-focus')?.value||'';
-  if(!name||!firm||!email||!type){toast('Please complete all required fields.','err');return;}
+  // Firm is required for institutional; for HNW it can fall back to the contact name
+  const firmRequired=cat==='institutional';
+  if(!name||(firmRequired&&!firm)||!email||!type){toast('Please complete all required fields.','err');return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('Please enter a valid email address.','err');return;}
   const btn=document.getElementById('f-submit');
   if(btn){btn.disabled=true;btn.textContent='Submitting…';}
   try{
-    const r=await fetch('/api/v2?resource=inst&op=register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contact_name:name,firm_name:firm,email,institution_type:type,aum_range:aum,invest_focus:focus,role})});
+    const r=await fetch('/api/v2?resource=inst&op=register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contact_name:name,firm_name:firm||name,email,institution_type:type,aum_range:aum,invest_focus:focus,role,category:cat})});
     const d=await r.json();
     if(!r.ok&&r.status!==200){toast(d.error||'Submission failed — please try again.','err');if(btn){btn.disabled=false;btn.textContent='Submit Application →';}return;}
   }catch{toast('Connection error — please try again.','err');if(btn){btn.disabled=false;btn.textContent='Submit Application →';}return;}
   toast('Application submitted · We\'ll be in touch within 5 business days','ok');
   ['f-name','f-role','f-firm','f-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['f-type','f-aum','f-focus'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.querySelectorAll('input[name="f-cat"]').forEach(i=>i.checked=false);
+  document.querySelectorAll('.cat-opt').forEach(el=>{el.style.background='transparent';el.style.borderColor='var(--goldBd)';el.style.color='var(--sub)';});
   if(btn){btn.disabled=false;btn.textContent='Submit Application →';}
 }
 </script>

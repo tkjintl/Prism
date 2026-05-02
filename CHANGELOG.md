@@ -4,6 +4,21 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Access Tiers: restore two-card layout, add HNW + Private category gating
+
+### `index.html`
+- Access Tiers section restored to two-card layout. `tiers-grid` style override that locked it to a single column removed (CSS default `1fr 1fr` now applies). Section header `Two ways · to access.` is no longer inconsistent with the body.
+- **Card 1 — Institutional Investors** rewritten: dropped the legacy "& Private Clients" sub-line and refreshed body copy (family offices, fund of funds, PE secondaries, endowments, sovereign wealth, corporate treasuries — credit / pre-IPO equity / real estate / infrastructure across US and Asia). Bullet list unchanged.
+- **Card 2 — HNW & Private Capital (new)**: HNW individuals and single-family principals; same deal flow, sized to private capacity; explicit "invitation-only and capped" exclusivity language. Bullets: $100K minimum (placeholder, confirm with operator), accredited investor, 5-business-day review, NDA on credentialing.
+- Sub-line under the section heading rewritten — dropped "existing investors log in directly" line (login lives in the nav). Now reads as the access framing for new applicants only.
+- **Apply form** got a required category selector at the top: pill-style `Institution` / `Private (HNW)` toggle. Card CTAs pre-select the matching pill via new `setApplyCategory(cat)` helper before scrolling. Form labels and the institution-type dropdown options swap based on category (institutional → fund / endowment / treasury types; HNW → SFO / MFO / trust / individual). For HNW applicants, firm name is optional and falls back to the contact name on submission.
+- `submitForm()` blocks submission if no category is selected (toast + scroll back to the selector).
+
+### `api/v2.js`
+- `resource=inst&op=register` now requires `category` (`institutional` or `hnw`). Rejects with 400 if missing or invalid. Stored on the investor record as `inst.category`. Existing records without the field are left untouched and read as legacy (treat as `institutional` at display time if needed).
+
+---
+
 ## [2026-05-02] — Aurum Prism rebrand cleanup: agents, CLAUDE.md, landing page perf
 
 ### `index.html`
