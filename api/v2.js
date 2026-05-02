@@ -411,19 +411,22 @@ async function _handler(req, res, resource, op) {
       const existing = await kvGet(`advisor_email:${email}`);
       if (existing) return bad(res, 'Email already registered');
       const id = 'adv-' + Date.now().toString(36);
-      const tempPw = generateTempPassword();
+      // Admin can pass an explicit password (skips temp-password + email flow)
+      const adminPw = (data.password || '').toString();
+      const usingAdminPw = adminPw.length > 0;
+      const pwToHash = usingAdminPw ? adminPw : generateTempPassword();
       const adv = {
         id, email, firm_name: data.firm_name.trim(), name: data.name.trim(),
         intro_fee_pct: parseFloat(data.intro_fee_pct) || 1,
         carry_pct: parseFloat(data.carry_pct) || 0,
         status: 'active',
-        requires_setup: true,
-        password_hash: await bcrypt.hash(tempPw, 12),
+        requires_setup: !usingAdminPw,
+        password_hash: await bcrypt.hash(pwToHash, 12),
         created_at: new Date().toISOString(),
       };
       await kvSet(`advisor:${id}`, adv);
       await kvSet(`advisor_email:${email}`, id);
-      await sendAdvisorWelcome(adv, tempPw);
+      if (!usingAdminPw) await sendAdvisorWelcome(adv, pwToHash);
       return ok(res, { advisor: sanitizeAdvisor(adv) });
     }
 
