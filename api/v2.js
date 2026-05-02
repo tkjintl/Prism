@@ -1096,6 +1096,11 @@ async function _handler(req, res, resource, op) {
       // Investor self-signup. Same gating philosophy as advisor register and
       // deal submission: every field on the form is required. Admin approval
       // re-validates so an incomplete record can never be activated.
+      // Review HIGH #3: rate-limit added — public unauthenticated endpoint
+      // that writes to KV and fires email; without the limit a script could
+      // flood pending records and queue. Same limit as advisor/register.
+      const ip = getClientIp(req);
+      if (!(await shouldBypassRateLimit(req)) && await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const data = req.body || {};
       // ticket_range is optional in the public form (form's 'Deployment Capacity'
       // field maps to aum_range). Bots fill both. Keep aum_range required as the
@@ -2043,6 +2048,12 @@ Return ONLY valid JSON in this exact structure:
         { dealId, launch_mode: deal.launch_mode, featured: deal.featured, actor: admin.email }
       ).catch(() => {});
 
+      // Review MEDIUM #5: bust marketplace caches so investors see the deal
+      // appear immediately, not after the 5s TTL.
+      try {
+        await kvDel('cache:marketplace:public');
+        await kvDel('cache:marketplace:admin');
+      } catch {}
       return ok(res, {
         ok: true,
         deal: { id: deal.id, name: deal.name, stage: deal.stage, launch_mode: deal.launch_mode, featured: deal.featured },
@@ -3551,11 +3562,20 @@ Return ONLY valid JSON in this exact structure:
   if (resource === 'marketplace') {
 
     if (op === 'ioi') {
-      const auth = await getAnyAuth();
+      // Inst-only — review HIGH #1: previously accepted advisor/admin auth and
+      // used auth.advisor_id || auth.email as investorId, polluting the IOI
+      // index with non-inv-* IDs and firing investor-shaped emails against
+      // null records. Now strictly investor.
+      const auth = await getInst();
       if (!auth) return unauth(res);
       const { deal_id, amount, notes } = req.body || {};
-      if (!deal_id || !amount) return bad(res, 'Deal ID and amount required');
+      if (!deal_id || amount == null || amount === '') return bad(res, 'Deal ID and amount required');
       const amt = parseFloat(amount);
+      // Review HIGH #2: parseFloat('foo') = NaN, NaN was sneaking through the
+      // truthy `if (!amount)` check and the `amt < minT` check (NaN < anything
+      // is false). Result: IOIs stored with amount=NaN and counter corrupted
+      // via Math.round(NaN). Reject non-finite or non-positive amounts up front.
+      if (!Number.isFinite(amt) || amt <= 0) return bad(res, 'Amount must be a positive number');
       const deal = await getDeal(deal_id);
       if (!deal) return bad(res, 'Deal not found', 404);
       if (!deal.member_visible) return bad(res, 'Deal not available');
@@ -3563,7 +3583,7 @@ Return ONLY valid JSON in this exact structure:
       const minT = Math.max(10000, deal.min_ticket_usd || 0);
       if (amt < minT) return bad(res, `Minimum ticket is $${minT.toLocaleString()}`);
       // Atomic dedup — SET NX prevents race condition between concurrent requests
-      const investorId = auth.inst_id || auth.advisor_id || auth.email;
+      const investorId = auth.inst_id;
       const dedupKey = `ioi_exists:${deal_id}:${investorId}`;
       // Check existing value first to give a meaningful error for already-approved IOIs
       const existingDedup = await kvGet(dedupKey);
@@ -3717,7 +3737,12 @@ function generateTempPassword() {
 }
 
 function sanitizeAdvisor(adv) {
-  const { password_hash, ...safe } = adv; return safe;
+  // Review HIGH #4: previously only stripped password_hash. Seed records carry
+  // temp_pw (plain-text shared dev password) and is_admin (privilege flag) on
+  // the advisor object; both leaked in API responses. Strip every sensitive
+  // field. Also strip setup_token if it ever appears.
+  const { password_hash, temp_pw, is_admin, setup_token, ...safe } = adv;
+  return safe;
 }
 
 function sanitizeInst(inst) {
