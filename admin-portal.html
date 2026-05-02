@@ -1290,9 +1290,125 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .dp-stage-chip,.ioi-raise-status,.iqi-badge{white-space:nowrap;max-width:100%}
 }
 </style>
+<style>
+/* ── LUXURY MOBILE NAV ── */
+@media(max-width:768px){
+  /* Nav container: two rows, premium feel */
+  .nav{
+    background:linear-gradient(180deg,rgba(10,9,8,1) 0%,rgba(14,13,11,1) 100%)!important;
+    border-bottom:1px solid rgba(197,165,114,.18)!important;
+    box-shadow:0 1px 0 rgba(197,165,114,.06),0 4px 20px rgba(0,0,0,.4)!important;
+  }
+  /* Top row: wordmark left, controls right */
+  .nav-wordmark{
+    flex:1!important;
+    padding:12px 0!important;
+  }
+  .nav-wm-name{
+    font-size:13px!important;
+    letter-spacing:.14em!important;
+  }
+  .nav-wm-aurum{
+    color:var(--gold)!important;
+    font-weight:600!important;
+  }
+  .nav-wm-tacc{
+    font-size:7px!important;
+    letter-spacing:.18em!important;
+    color:rgba(197,165,114,.4)!important;
+  }
+  /* Role badge — more prominent */
+  .role-badge{
+    background:rgba(197,165,114,.1)!important;
+    border:1px solid rgba(197,165,114,.3)!important;
+    color:var(--gold)!important;
+    font-size:7px!important;
+    letter-spacing:.16em!important;
+    padding:4px 8px!important;
+    border-radius:2px!important;
+  }
+  /* Bell button — gold glow when has items */
+  .notif-bell-btn.has-items{
+    background:rgba(197,165,114,.08)!important;
+    box-shadow:0 0 12px rgba(197,165,114,.2)!important;
+  }
+  /* Nav tabs row — gold separator + active state */
+  .nav-tabs{
+    border-top:1px solid rgba(197,165,114,.12)!important;
+    background:rgba(10,9,8,.6)!important;
+    padding:0!important;
+  }
+  .ntab{
+    font-size:10px!important;
+    letter-spacing:.1em!important;
+    padding:12px 14px!important;
+    min-height:42px!important;
+    color:rgba(237,232,223,.4)!important;
+    position:relative!important;
+    transition:color .2s,background .2s!important;
+  }
+  .ntab.on{
+    color:var(--gold)!important;
+    background:rgba(197,165,114,.06)!important;
+    border-bottom:2px solid var(--gold)!important;
+  }
+  .ntab.on::after{
+    content:'';
+    position:absolute;
+    bottom:0;left:0;right:0;
+    height:1px;
+    background:linear-gradient(90deg,transparent,rgba(197,165,114,.4),transparent);
+  }
+  .ntab:active:not(.on){
+    background:rgba(197,165,114,.04)!important;
+    color:rgba(237,232,223,.7)!important;
+  }
+}
+
+/* ── NOTIFICATION PANEL: proper floating popup ── */
+/* Backdrop injected by JS */
+#notif-backdrop{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(2px);
+  z-index:799;
+  animation:fadeIn .18s var(--ease);
+}
+#notif-backdrop.open{display:block}
+
+.notif-panel{
+  /* Override any previous mobile positioning */
+}
+@media(max-width:768px){
+  .notif-panel{
+    position:fixed!important;
+    top:var(--nav-h)!important;
+    left:0!important;right:0!important;
+    width:100%!important;
+    max-height:70vh!important;
+    overflow-y:auto!important;
+    border-radius:0 0 12px 12px!important;
+    border:none!important;
+    border-bottom:1px solid rgba(197,165,114,.2)!important;
+    box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 0 1px rgba(197,165,114,.1)!important;
+    z-index:800!important;
+    animation:slideDown .22s cubic-bezier(0.22,1,0.36,1)!important;
+  }
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── KPI strip — clean mobile display ── */
+@media(max-width:600px){
+  .kpi-val{font-size:clamp(18px,4.5vw,28px)!important}
+  .kpi-lbl{font-size:9px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi-card{padding:12px 10px!important}
+}
+</style>
 </head>
 <body>
 
+<div id="notif-backdrop" onclick="closeNotifPanel()"></div>
 <nav class="nav">
   <div class="nav-wordmark">
     <div class="nav-wm-tacc">A TACC Platform</div>
@@ -2151,9 +2267,6 @@ function renderOverview(){
   const dateStr=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const headerBar=`<div class="ov-header-bar">
     <div class="ov-header-date">${dateStr}</div>
-    ${totalActions>0
-      ? `<div class="ov-header-alert"><div class="ov-header-dot"></div>${totalActions} action${totalActions!==1?'s':''} require your attention</div>`
-      : `<div class="ov-header-alert" style="color:var(--green)">All clear — no pending actions</div>`}
   </div>`;
 
   /* ── Action Queue columns ── */
@@ -2462,12 +2575,19 @@ function updateNotifBell(){
   }
 }
 
+function closeNotifPanel(){
+  const panel=document.getElementById('notif-panel');
+  const bd=document.getElementById('notif-backdrop');
+  if(panel)panel.style.display='none';
+  if(bd)bd.classList.remove('open');
+}
 function toggleNotifPanel(){
   const panel=document.getElementById('notif-panel');
-  const wrap=document.getElementById('notif-bell-wrap');
+  const bd=document.getElementById('notif-backdrop');
   if(!panel)return;
   const open=panel.style.display==='none'||panel.style.display==='';
   panel.style.display=open?'block':'none';
+  if(bd)bd.classList.toggle('open',open);
   if(open){
     updateNotifBell();
     // Build items
@@ -2485,13 +2605,13 @@ function toggleNotifPanel(){
     }
     let html='';
     readyDeals.forEach(s=>{
-      html+=`<div class="notif-item" onclick="toggleNotifPanel();showView('overview',document.querySelectorAll('.ntab')[0])">
+      html+=`<div class="notif-item" onclick="closeNotifPanel();showView('overview',document.querySelectorAll('.ntab')[0])">
         <div class="notif-item-dot green"></div>
         <div class="notif-item-body"><strong>${s.name}</strong><br>Advisor approved, ready to publish</div>
       </div>`;
     });
     pendingInvs.forEach(i=>{
-      html+=`<div class="notif-item" onclick="toggleNotifPanel();toast('Navigate to Members / Investors view','')">
+      html+=`<div class="notif-item" onclick="closeNotifPanel();toast('Navigate to Members / Investors view','')">
         <div class="notif-item-dot amber"></div>
         <div class="notif-item-body"><strong>${i.name}</strong><br>Pending approval</div>
       </div>`;

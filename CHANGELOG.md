@@ -4,6 +4,18 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — 6-issue mobile audit fixes across index + admin portals
+
+### Changes
+- `index.html`: Removed "Existing Investors" tier card entirely. Renamed remaining badge to "Institutional Investors & Private Clients". Single card centered with max-width:600px.
+- `admin-portal.html`: Removed repetitive "X actions require your attention" inline text from Overview header (bell badge already shows count).
+- `admin-portal.html`: Notification panel rebuilt as proper floating popup — `position:fixed` at nav bottom, semi-transparent backdrop (`#notif-backdrop`) inserted via JS, `z-index:800`, slide-down animation. Tapping backdrop closes panel.
+- `admin-portal.html`: Mobile nav redesigned — gold gradient bar, active tabs with gold fill + glow, `AURUM` wordmark in gold, role badge with gold border, cleaner tab spacing and color contrast.
+- `admin-portal.html`: KPI strip tightened on mobile — smaller font clamp, tighter padding, label text ellipsis.
+- Full mobile audit run — confirmed `tl-inner` timeline, `ci-wire-table`, and `lr-deal-name` already have mobile overrides.
+
+---
+
 ## [2026-05-01] — Advisor hero top-align + index.html portal showcase spacing
 
 ### Changes
