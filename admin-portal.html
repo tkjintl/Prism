@@ -56,7 +56,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:200;display:flex;align-items:center;padding:0 20px;gap:16px;background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
 [data-theme="dark"] .nav{background:rgba(10,9,8,0.92)}
 .nav-wordmark{display:flex;flex-direction:column;justify-content:center;gap:3px;flex-shrink:0}
-.nav-wm-tacc{font-family:var(--mono);font-size:6px;letter-spacing:.26em;color:var(--text-3);text-transform:uppercase}
+.nav-wm-tacc{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--text-3);text-transform:uppercase}
 .nav-wm-name{display:flex;align-items:center;line-height:1}
 .nav-wm-aurum{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
 .nav-wm-rule{display:block;width:1px;height:12px;background:var(--gold-bd);margin:0 10px;flex-shrink:0}
@@ -1412,7 +1412,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab" onclick="showView('system',this)">System</button>
   </div>
   <div class="nav-r">
-    <div class="role-badge">Admin</div>
+    <div class="role-badge">Operator</div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☾</button>
     <div class="notif-bell-wrap" id="notif-bell-wrap">
       <button class="notif-bell-btn" id="notif-bell" onclick="toggleNotifPanel()" title="Notifications" aria-label="Notifications">
@@ -1420,7 +1420,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
     </div>
-    <button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
+    <button onclick="logout()" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:6px 10px;transition:color .15s;min-height:36px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
 

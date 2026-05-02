@@ -18,6 +18,7 @@ body{background:#060605;color:#ede8df;font-family:'JetBrains Mono',monospace;-we
   --red:#b05e56;--redBd:rgba(176,94,86,.26);--redW:rgba(176,94,86,.07);
   --blue:#5a98ec;--blueBd:rgba(90,152,236,.28);--blueW:rgba(90,152,236,.07);
   --wire:rgba(255,255,255,.06);--dim:#282523;
+  --muted:#635e58;--text:#ede8df;
   --serif:'Cormorant Garamond',serif;--cond:'Barlow Condensed',sans-serif;--mono:'JetBrains Mono',monospace;
 }
 input{width:100%;padding:10px 12px;font-family:var(--mono);font-size:12px;background:#09090a;color:#ede8df;border:1px solid var(--wire);outline:none;transition:border-color .15s}
@@ -28,9 +29,9 @@ button{cursor:pointer;font-family:inherit;border:none;background:none}
 @keyframes glow{0%,100%{box-shadow:0 0 8px rgba(197,165,114,.3)}50%{box-shadow:0 0 18px rgba(197,165,114,.55)}}
 
 /* DEMO BAR */
-#demo-bar{display:none;background:rgba(184,131,58,.12);border-bottom:1px solid var(--amberBd);padding:8px 20px;font-family:var(--mono);font-size:7px;color:var(--amber);letter-spacing:.14em;text-transform:uppercase;flex-shrink:0;align-items:center;gap:10px}
+#demo-bar{display:none;background:rgba(184,131,58,.12);border-bottom:1px solid var(--amberBd);padding:8px 20px;font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.10em;text-transform:uppercase;flex-shrink:0;align-items:center;gap:10px}
 #demo-bar.on{display:flex}
-.demo-cred-btn{font-family:var(--mono);font-size:6.5px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--amberBd);color:var(--amber);cursor:pointer;transition:all .14s}
+.demo-cred-btn{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--amberBd);color:var(--amber);cursor:pointer;transition:all .14s}
 .demo-cred-btn:hover{background:var(--amberW)}
 
 /* TOP STRIP */
@@ -53,7 +54,7 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 
 /* TABS */
 .l-tabs{display:flex;border-bottom:1px solid var(--wire);margin-bottom:0}
-.l-tab{flex:1;padding:12px 0;font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#635e58;cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all .14s;background:transparent}
+.l-tab{flex:1;padding:12px 0;font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:#635e58;cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all .14s;background:transparent;min-height:44px;display:flex;align-items:center;justify-content:center}
 .l-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
 .l-tab:hover:not(.on){color:#a89f94}
 
@@ -61,11 +62,11 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 .l-panels{background:#0e0d0c;border:1px solid var(--wire);border-top:0}
 .l-panel{display:none;padding:28px 32px;animation:fadeUp .2s ease}
 .l-panel.on{display:block}
-.l-panel-eye{font-family:var(--mono);font-size:6.5px;letter-spacing:.32em;color:var(--goldD);text-transform:uppercase;margin-bottom:5px}
+.l-panel-eye{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--goldD);text-transform:uppercase;margin-bottom:5px}
 .l-panel-title{font-family:var(--serif);font-style:italic;font-size:26px;color:#ede8df;margin-bottom:4px}
-.l-panel-sub{font-family:var(--mono);font-size:7.5px;color:#635e58;line-height:1.7;margin-bottom:18px}
+.l-panel-sub{font-family:var(--mono);font-size:11px;color:#635e58;line-height:1.7;margin-bottom:18px}
 .l-divider{height:1px;background:var(--wire);margin-bottom:18px}
-.l-lbl{font-family:var(--mono);font-size:6.5px;letter-spacing:.22em;color:var(--goldD);text-transform:uppercase;display:block;margin-bottom:5px;margin-top:12px}
+.l-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--goldD);text-transform:uppercase;display:block;margin-bottom:5px;margin-top:12px}
 .l-lbl:first-of-type{margin-top:0}
 .l-btn{width:100%;margin-top:16px;padding:12px;font-family:var(--cond);font-size:14px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#060605;background:var(--gold);border:none;cursor:pointer;transition:all .14s;position:relative}
 .l-btn:hover{background:var(--goldB);box-shadow:0 0 16px rgba(197,165,114,.35)}
@@ -75,11 +76,11 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 .l-btn.ghost:hover{background:var(--blueW);box-shadow:none}
 .l-btn.amber-ghost{background:transparent;color:var(--amber);border:1px solid var(--amberBd);margin-top:10px}
 .l-btn.amber-ghost:hover{background:var(--amberW);box-shadow:none}
-.l-forgot{font-family:var(--mono);font-size:7px;color:#635e58;margin-top:8px;text-align:right;cursor:pointer;text-decoration:none;display:block;transition:color .14s}
+.l-forgot{font-family:var(--mono);font-size:11px;color:#635e58;margin-top:8px;text-align:right;cursor:pointer;text-decoration:none;display:block;transition:color .14s}
 .l-forgot:hover{color:var(--gold)}
-.l-error{font-family:var(--mono);font-size:8px;color:var(--red);background:var(--redW);border:1px solid var(--redBd);padding:8px 12px;margin-top:12px;display:none}
+.l-error{font-family:var(--mono);font-size:11px;color:var(--red);background:var(--redW);border:1px solid var(--redBd);padding:8px 12px;margin-top:12px;display:none}
 .l-error.on{display:block}
-.l-note{font-family:var(--mono);font-size:7px;color:#635e58;line-height:1.75;margin-top:12px;text-align:center}
+.l-note{font-family:var(--mono);font-size:11px;color:#635e58;line-height:1.75;margin-top:12px;text-align:center}
 .l-link{color:var(--goldD);cursor:pointer;text-decoration:none}
 .l-link:hover{color:var(--gold)}
 
@@ -93,17 +94,17 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 .operator-bar:hover{background:rgba(184,131,58,.09)}
 .ob-icon{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--amber)}
 .ob-text{flex:1}
-.ob-label{font-family:var(--mono);font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);margin-bottom:2px}
-.ob-desc{font-family:var(--mono);font-size:7.5px;color:#635e58}
-.ob-arrow{font-family:var(--mono);font-size:9px;color:var(--amber)}
+.ob-label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:2px}
+.ob-desc{font-family:var(--mono);font-size:11px;color:#635e58}
+.ob-arrow{font-family:var(--mono);font-size:11px;color:var(--amber)}
 
 /* Forgot password panel */
 #forgot-panel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(3px);z-index:100;align-items:center;justify-content:center}
 #forgot-panel.on{display:flex}
 .fp-box{background:#0e0d0c;border:1px solid var(--goldBd);padding:28px 32px;width:360px;animation:fadeUp .2s ease}
 .fp-title{font-family:var(--cond);font-size:18px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
-.fp-sub{font-family:var(--mono);font-size:7.5px;color:#635e58;line-height:1.7;margin-bottom:16px}
-.fp-close{position:absolute;top:12px;right:12px;font-family:var(--mono);font-size:7.5px;color:#635e58;cursor:pointer;padding:4px 8px;border:1px solid var(--wire)}
+.fp-sub{font-family:var(--mono);font-size:11px;color:#635e58;line-height:1.7;margin-bottom:16px}
+.fp-close{position:absolute;top:12px;right:12px;font-family:var(--mono);font-size:11px;color:#635e58;cursor:pointer;padding:5px 10px;border:1px solid var(--wire);min-height:32px;display:flex;align-items:center}
 
 /* ── MOBILE: 6-CATEGORY FIX ── */
 
@@ -143,13 +144,13 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 
 /* Cat C: reduce ALL wide letter-spacing labels/eyebrows */
 @media(max-width:480px){
-  .l-panel-eye{letter-spacing:.1em!important}
-  .l-lbl{letter-spacing:.1em!important}
-  .ob-label{letter-spacing:.1em!important}
-  .ts-wm-aurum,.ts-wm-prism{letter-spacing:.14em!important}
-  .ts-wm-tacc{letter-spacing:.12em!important}
-  .fp-title{letter-spacing:.06em!important}
-  .l-tab{letter-spacing:.06em!important}
+  .l-panel-eye{letter-spacing:.08em!important}
+  .l-lbl{letter-spacing:.08em!important}
+  .ob-label{letter-spacing:.08em!important}
+  .ts-wm-aurum,.ts-wm-prism{letter-spacing:.12em!important}
+  .ts-wm-tacc{letter-spacing:.1em!important}
+  .fp-title{letter-spacing:.05em!important}
+  .l-tab{letter-spacing:.05em!important}
 }
 
 /* Cat D: left-align note text to kill orphaned words */
@@ -180,10 +181,10 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 </div>
 
 <!-- SESSION BANNER: shown when investor cookie exists so user can choose portal -->
-<div id="session-banner" style="display:none;background:rgba(90,152,236,.08);border-bottom:1px solid rgba(90,152,236,.2);padding:8px 20px;align-items:center;justify-content:center;gap:12px;font-family:'JetBrains Mono',monospace;font-size:7.5px;flex-wrap:wrap">
+<div id="session-banner" style="display:none;background:rgba(90,152,236,.08);border-bottom:1px solid rgba(90,152,236,.2);padding:10px 20px;align-items:center;justify-content:center;gap:12px;font-family:'JetBrains Mono',monospace;font-size:11px;flex-wrap:wrap">
   <span id="session-banner-text" style="color:#8ab4e8"></span>
-  <a href="/investor-portal" style="color:#5a98ec;text-decoration:none;padding:4px 10px;border:1px solid rgba(90,152,236,.35);white-space:nowrap">Continue to Investor Portal →</a>
-  <button onclick="clearSession()" style="background:transparent;border:1px solid rgba(255,255,255,.1);color:#635e58;font-family:'JetBrains Mono',monospace;font-size:7.5px;padding:4px 10px;cursor:pointer;white-space:nowrap">Sign out &amp; switch portal</button>
+  <a href="/investor-portal" style="color:#5a98ec;text-decoration:none;padding:6px 12px;border:1px solid rgba(90,152,236,.35);white-space:nowrap;min-height:36px;display:inline-flex;align-items:center">Continue to Investor Portal →</a>
+  <button onclick="clearSession()" style="background:transparent;border:1px solid rgba(255,255,255,.1);color:#635e58;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 12px;cursor:pointer;white-space:nowrap;min-height:36px">Sign out &amp; switch portal</button>
 </div>
 
 <div class="top-strip">
@@ -276,7 +277,7 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
     <input id="forgot-email" type="email" placeholder="advisor@firm.com">
     <div class="l-error" id="forgot-error"></div>
     <button class="l-btn" style="margin-top:14px" onclick="sendReset()">Send Reset Code →</button>
-    <div id="forgot-success" style="display:none;font-family:var(--mono);font-size:8px;color:var(--green);background:var(--greenW);border:1px solid var(--greenBd);padding:9px 12px;margin-top:12px">Reset code sent — check your email.</div>
+    <div id="forgot-success" style="display:none;font-family:var(--mono);font-size:11px;color:var(--green);background:var(--greenW);border:1px solid var(--greenBd);padding:9px 12px;margin-top:12px">Reset code sent — check your email.</div>
   </div>
 </div>
 

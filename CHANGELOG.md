@@ -4,6 +4,17 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Production visual audit: typography floor, copy, mobile polish, brand consistency
+
+### Changes
+- `login.html`: Added missing `--muted` and `--text` CSS variables to `:root` (were undefined, causing invisible "A TACC Platform" subtext). Raised all sub-11px font sizes to minimum 9–11px: panel eyebrows (6.5→9px), labels (6.5→9px), sub-descriptions (7.5→11px), note/error/forgot text (7–8→11px). Demo bar text raised from 7/6.5px to 10px. Operator bar desc raised to 11px. Session banner text/buttons raised to 11px with proper 36px min-height touch targets. `<l-tab>` gets `min-height:44px` for mobile tap target compliance. Forgot-success message raised from 8px to 11px.
+- `index.html`: All sub-11px label/eyebrow/footer copy raised to 9–11px: form labels, section eyebrows, stat labels, tier items, access criteria, footer links, legal copy, nav links, nav tag, hero eyebrow, hero note, feature titles, CTA labels. Staging URL `prism-plum.vercel.app` replaced with production domain `prism.theaurumcc.com` in both portal showcase chrome bars.
+- `advisor-portal.html`: Nav "A TACC Platform" subtext raised from 6px to 8px. Nav placeholder `—` removed from user name (was visible pre-auth). Sign out button raised from 9px to 11px with proper min-height.
+- `investor-portal.html`: Nav `ntab` font-size unified with advisor/admin (13→12px, weight 400→500). "A TACC Platform" subtext raised from 6px to 8px. Hardcoded mock user "James Hartwell / JH" removed from nav HTML (was visible before JS auth replaced it). Sign out button raised from 9px to 11px.
+- `admin-portal.html`: "A TACC Platform" subtext raised from 6px to 8px. Role badge label corrected from "Admin" to "Operator" (consistent with product terminology). Sign out button raised from 9px to 11px.
+
+---
+
 ## [2026-05-01] — Animated welcome hero: prism illustration + entrance animations
 
 ### Changes

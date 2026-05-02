@@ -73,14 +73,14 @@ a{color:inherit;text-decoration:none}
 /* ── NAV ── */
 .nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:200;display:flex;align-items:center;padding:0 24px;gap:16px;background:rgba(10,9,8,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(20px)}
 .nav-wordmark{display:flex;flex-direction:column;justify-content:center;gap:3px;flex-shrink:0}
-.nav-wm-tacc{font-family:var(--mono);font-size:6px;letter-spacing:.26em;color:var(--text-3);text-transform:uppercase}
+.nav-wm-tacc{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--text-3);text-transform:uppercase}
 .nav-wm-name{display:flex;align-items:center;line-height:1}
 .nav-wm-aurum{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
 .nav-wm-rule{display:block;width:1px;height:12px;background:var(--gold-bd);margin:0 10px;flex-shrink:0}
 .nav-wm-prism{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
 .nav-div{width:1px;height:20px;background:var(--border);flex-shrink:0}
 .nav-tabs{display:flex}
-.ntab{padding:8px 14px;font-size:13px;font-weight:400;color:var(--text-3);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;font-family:var(--sans)}
+.ntab{padding:8px 14px;font-size:12px;font-weight:500;color:var(--text-3);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;font-family:var(--sans)}
 .ntab.on{color:var(--gold);border-bottom-color:var(--gold)}
 .ntab:hover:not(.on){color:var(--text-2)}
 .nav-r{margin-left:auto;display:flex;align-items:center;gap:10px}
@@ -1575,12 +1575,12 @@ a{color:inherit;text-decoration:none}
   </div>
   <div class="nav-r">
     <div class="nav-user-info">
-      <div class="nav-user-name" id="nav-user-name">James Hartwell</div>
-      <div class="nav-user-type" id="nav-user-type">Family Office · HK</div>
+      <div class="nav-user-name" id="nav-user-name"></div>
+      <div class="nav-user-type" id="nav-user-type"></div>
     </div>
-    <div class="nav-avatar" id="nav-avatar">JH</div>
+    <div class="nav-avatar" id="nav-avatar"></div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
-    <button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
+    <button onclick="logout()" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:6px 10px;transition:color .15s;min-height:36px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
 
