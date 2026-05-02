@@ -3472,17 +3472,22 @@ Return ONLY valid JSON in this exact structure:
         if (!stuckSet.has(d.stage)) return null;
         const entries = await kvZrange(`audit:${d.id}`, 0, -1, { rev: true });
         let lastTs = 0;
-        for (const raw of entries.slice(0, 1)) {
+        let nonSeedCount = 0;
+        for (const raw of entries) {
           try {
             const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            const actor = String(parsed.actor || '');
+            if (actor.startsWith('system:bot-seed')) continue;
+            nonSeedCount++;
             const t = new Date(parsed.at).getTime();
             if (t > lastTs) lastTs = t;
           } catch {}
         }
-        return { deal: d, lastTs, entryCount: entries.length };
+        return { deal: d, lastTs, entryCount: entries.length, nonSeedCount };
       }));
       for (const r of auditCheckResults) {
         if (!r) continue;
+        if (!r.nonSeedCount) continue;
         if (!r.lastTs) continue;
         const age = now - r.lastTs;
         if (age > STUCK_AGE_MS) {

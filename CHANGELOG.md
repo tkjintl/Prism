@@ -4,6 +4,12 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Stuck-deals false positive on seeded deals
+
+`api/v2.js`. Sandbox audit's `stuck_deals` rule was flagging seed-only deals (DL-BOT0001/2/4/7) as abandoned because the only audit entries were from `system:bot-seed` with backdated timestamps > 30 days. Fix: ignore seed-actor entries when computing `lastTs`; require at least one non-seed audit entry before a deal can be flagged stuck. Now bot runs return zero findings on a fresh seed.
+
+---
+
 ## [2026-05-02] — Platform audit + 4 dead endpoints wired (Stage 2)
 
 `api/v2.js`, `api/_lib/bot-seed.js`, `admin-portal.html`, `CLAUDE.md`. Audit surfaced 4 frontend fetch URLs with no API handlers — every real user hitting them got 404s. Wired all four:
