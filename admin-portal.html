@@ -1152,7 +1152,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ov-collapsible-body.open { max-height: 2000px; }
 @media(min-width:769px){
   .ov-collapsible-hd { display: none; }
-  .ov-collapsible-body { max-height: none !important; overflow: visible; }
+  .ov-collapsible-body,
+  .ov-collapsible-body.closed { max-height: none !important; overflow: visible; display: block !important; }
 }
 </style>
 <style>
