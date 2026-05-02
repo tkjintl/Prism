@@ -4,6 +4,37 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Mobile landing page polish (`index.html`)
+
+Tone target: private bank register, not SaaS funnel. All changes scoped to `@media (max-width:768px)` / `≤640px`. Desktop untouched.
+
+**Top nav (mobile):**
+- Removed the gold "Request Access →" pill on ≤640px (was the awful banner CTA).
+- Re-surfaced "Member Login" (previously `display:none` at ≤640px) — bumped to 11px / .14em / 44px tap target, gold border, gold text.
+- `padding-top:env(safe-area-inset-top)` on `<nav>` for notched iPhones.
+- Row-2 nav links bumped from 8px / 40px → 9px / 44px height.
+
+**Hero rhythm:**
+- Compressed top space above the PRISM wordmark (88px → 64px top).
+- Compressed bottom space below it more aggressively (48px → 28px bottom; eyebrow / label / h1 / sub / ctas margins all tightened).
+- Killed the dead full-viewport second pane on mobile: `.hero-right` no longer claims `100svh`; prism scaled down to ~240px.
+
+**CTA reduction (mobile body only):**
+- Hidden: hero `Request Institutional Access →` button.
+- Hidden: hero `Member Login →` button (already in top nav — no need to repeat).
+- Hidden: hero-note tagline ("Returning investors log in directly · Institutions apply below").
+- Kept: the two tier-card CTAs (institutional / private — these ARE the apply mechanism), and the final form `Submit Application →`.
+
+**Quick wins:**
+- Toast font 8px → 12px, padding 10/20 → 12/22.
+- `.form-row` (1fr 1fr) → single column on mobile.
+- `.foot-bottom` flex row → stacked column on mobile.
+- `a.tier-cta` gets the 44px min-height tap-target treatment.
+
+Files: `index.html` (added mobile-only block at end of `<style>`, no desktop rules touched).
+
+---
+
 ## ★ [2026-05-02] — **PRISM PLATFORM v3 — Official Release** ★
 
 Tagged `v3.0` (commit `22d1ddd`). Snapshot saved as `Prism Platform v3.zip`. Cumulative state on top of v2.0 baseline:

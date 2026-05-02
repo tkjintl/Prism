@@ -445,6 +445,75 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   /* Belt: prevent any rogue horizontal scroll */
   html, body { overflow-x: hidden; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE LANDING POLISH — 2026-05-02
+   Scope: ≤768px only. Desktop untouched.
+   - Top nav: drop the gold "Request Access" CTA, surface Member Login
+   - Hero: tighten vertical rhythm above/below the wordmark
+   - Collapse the full-viewport second prism pane (kills the dead letterbox)
+   - Reduce body CTAs (keep tier-card CTAs + final form Submit only)
+   - Form rows stack, footer rows stack, toast legible, safe-area padding
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width:768px){
+  /* Notched iPhone safe-area padding for fixed nav */
+  nav{padding-top:env(safe-area-inset-top)}
+  /* Hero vertical rhythm: less above the wordmark, more compression below */
+  .hero-left{padding:64px 24px 28px!important;min-height:auto!important}
+  .hero-eyebrow{margin-bottom:18px}
+  .hero-eyebrow-rule{margin-top:10px}
+  .hero-label{margin-bottom:18px}
+  h1{margin-bottom:18px}
+  .hero-sub{margin-bottom:24px}
+  .hero-ctas{margin-bottom:20px;gap:10px}
+  /* Collapse the dead full-viewport second pane — let prism breathe but not own a screen */
+  .hero-right{min-height:auto!important;padding:24px 24px 56px!important}
+  .hp-prism-wrap{width:min(240px,68%)!important}
+  /* Toast legibility */
+  .toast-box{font-size:12px;padding:12px 22px}
+  /* Stack form rows */
+  .form-row{grid-template-columns:1fr!important;gap:9px}
+  /* Stack footer bottom row */
+  .foot-bottom{flex-direction:column;gap:14px}
+  .foot-sg{text-align:left}
+  /* Member-tier <a> tap target safety (if/when used) */
+  a.tier-cta{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+}
+
+/* Top-nav rework (≤640px): suppress the salesy gold CTA, surface Member Login */
+@media (max-width:640px){
+  /* Hide the gold "Request Access" pill on mobile — operator brief: remove */
+  nav .btn-nav:not(.ghost){display:none!important}
+  /* Re-show Member Login (was display:none earlier in this file) */
+  .btn-nav.ghost{display:inline-flex!important;align-items:center;justify-content:center}
+  /* Make Member Login readable + tappable */
+  nav .btn-nav.ghost{
+    font-size:11px!important;
+    letter-spacing:.14em!important;
+    padding:10px 16px!important;
+    min-height:44px;
+    color:var(--gold)!important;
+    border-color:var(--goldBdS)!important;
+    background:var(--goldW);
+    margin-left:0!important;
+    align-self:center;
+  }
+  /* Slightly larger row-2 nav links for tap */
+  .n-link{font-size:9px!important;height:44px!important}
+}
+
+/* Mobile body CTA reduction (≤768px) — operator brief:
+   "Mobile has too many salesy CTAs that make it cheap as fuck."
+   Keep: tier-card CTAs (apply mechanism) + final form Submit.
+   Hide: hero "Request Institutional Access" button + hero "Member Login →"
+   (Member Login already lives in the top nav — no need to duplicate),
+   and the hero-note tagline. */
+@media (max-width:768px){
+  .hero-ctas .btn-primary,
+  .hero-ctas .btn-member{display:none!important}
+  .hero-ctas{margin-bottom:0!important;gap:0}
+  .hero-note{display:none!important}
+}
 </style>
 </head>
 <body>
