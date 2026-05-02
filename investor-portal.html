@@ -121,8 +121,8 @@ a{color:inherit;text-decoration:none}
 .hero-content{padding:clamp(44px,9vh,88px) clamp(24px,5vw,72px);display:flex;flex-direction:column;justify-content:center;z-index:2;position:relative;animation:fadeUp .7s .05s var(--ease) both}
 .lobby-greeting{
   position:absolute;top:clamp(18px,3vh,36px);left:clamp(24px,5vw,72px);
-  font-family:var(--serif);font-style:italic;font-size:clamp(14px,1.3vw,18px);
-  color:var(--text-2);z-index:10;letter-spacing:-.01em;pointer-events:none;
+  font-family:var(--serif);font-style:italic;font-size:clamp(36px,4vw,64px);
+  color:var(--text);z-index:10;letter-spacing:-.02em;pointer-events:none;line-height:1.05;
 }
 /* Greeting word animation spans */
 .greet-word{display:inline-block;opacity:0;animation:wordSlideUp .55s var(--ease) both}
@@ -1615,10 +1615,11 @@ a{color:inherit;text-decoration:none}
     margin-top:2px!important;
   }
 
-  /* Deal content: third item, sits just below fold — peeks + scrolls into view */
+  /* Deal content: sits below fold — scrolls into view */
   .hero-content{
     order:2!important;
     width:100%!important;
+    flex:0 0 auto!important;
     flex-shrink:0!important;
     padding:20px 20px 0!important;
     justify-content:flex-start!important;
