@@ -10,6 +10,61 @@ Each entry includes file path + line numbers + exact diff prescription, so all o
 
 # Open / Pending Fixes (apply in this order)
 
+## B-11 · Audit false positive from `getAllIois` cache ❌ OPEN — bot-only
+
+**File:** `api/v2.js` `sandbox-summary` handler (around line 3058 where `allIois = await getAllIois();`)
+**Severity:** Bot-only (no impact on production data; only audit reports lie)
+**Symptom:** Audit reports `ioi_counter_mismatch` with `declared = N+1, actual = N` even when the underlying data is consistent. Auto-heal "fixes" it but re-check still flags it, because the re-check compares fresh declared (T1, post-heal) against stale cached actual (T0).
+
+**Root cause:** P-4 fix added a 5-second Redis cache to `getAllIois()` (line 152–166). The audit reads from that cache for "actual" counts. Recent IOIs (created in the last 5 seconds) won't be in the cached snapshot but ARE reflected in the corresponding deal record's atomic counter. False positive.
+
+**Fix prescription (when batching):**
+
+In `api/v2.js`, at the start of the `sandbox-summary` handler block (around line 3010 after the admin check), add:
+```js
+// Bypass the IOI cache for audit ground truth — audit must see fresh data.
+try { await kvDel('cache:iois:all'); } catch {}
+```
+
+OR — better — modify `getAllIois` to accept a `{ skipCache: true }` option:
+
+In `api/v2.js` lines 152–166, change:
+```js
+async function getAllIois() {
+  try {
+    const cached = await kvGet('cache:iois:all');
+    if (Array.isArray(cached)) return cached;
+  } catch {}
+  const ioiIds = await kvZrange('ioi_index', 0, -1);
+  const list = (await Promise.all(ioiIds.map(id => kvGet(`ioi:${id}`)))).filter(Boolean);
+  try { await kvSet('cache:iois:all', list, { ex: 5 }); } catch {}
+  return list;
+}
+```
+to:
+```js
+async function getAllIois(opts = {}) {
+  if (!opts.skipCache) {
+    try {
+      const cached = await kvGet('cache:iois:all');
+      if (Array.isArray(cached)) return cached;
+    } catch {}
+  }
+  const ioiIds = await kvZrange('ioi_index', 0, -1);
+  const list = (await Promise.all(ioiIds.map(id => kvGet(`ioi:${id}`)))).filter(Boolean);
+  try { await kvSet('cache:iois:all', list, { ex: 5 }); } catch {}
+  return list;
+}
+```
+
+Then in `sandbox-summary` change `await getAllIois()` to `await getAllIois({ skipCache: true })`.
+
+**Operational impact while open:** when running Audit on the live bot test, occasional `ioi_counter_mismatch` reports of the form `declared = N, actual = N-1` are likely false positives from this cache. To distinguish from the real P-6 race, look at the magnitude — false positives will always be exactly off by the count of IOIs created in the last 5 seconds before the audit ran. Real P-6 races persist regardless of timing.
+
+**Production impact:** none. The cache is correct for actual user-facing endpoints; the audit endpoint just needs ground truth.
+
+---
+
 ## P-6 · `recalcIoiCounters` race condition ❌ OPEN — HIGH PRIORITY
 
 **Files:** `api/_lib/deal-storage.js`, `api/v2.js`
@@ -296,9 +351,10 @@ New free Upstash database `crisp-kite-113455` created. Vercel env vars updated. 
 
 1. **P-6** atomic IOI counters — `api/_lib/deal-storage.js` lines 14–27 (replace recalcIoiCounters), `getDeal` line 33 (merge counter keys), `api/v2.js` 5 call sites (lines 649, 2364, 3196, 3217, 3240), `api/_lib/bot-seed.js` (set counter keys in seed).
 2. **B-10** revert audit auto-heal — `api/v2.js` lines 3095–3132 → restore simpler block per spec above.
-3. **OQ-2** investigate kvKeys consistency — quick stress test, then audit ~12 call sites if real.
-4. **OQ-3** add stage advancement endpoint or extend AdminBot — to exercise `terms / close / realized` paths.
-5. **OQ-4 / OQ-5 / OQ-6** — manual QA passes with `BOT_MODE` off for emails / AI / crons.
+3. **B-11** audit reads must bypass IOI cache — small fix, simple toggle.
+4. **OQ-2** investigate kvKeys consistency — quick stress test, then audit ~12 call sites if real.
+5. **OQ-3** add stage advancement endpoint or extend AdminBot — to exercise `terms / close / realized` paths.
+6. **OQ-4 / OQ-5 / OQ-6** — manual QA passes with `BOT_MODE` off for emails / AI / crons.
 
 ---
 
