@@ -3100,7 +3100,8 @@ function renderDashboard() {
   var ab = document.getElementById('dhs-action-badge');
   var abt = document.getElementById('dhs-ab-text');
   if(actions.length > 0) {
-    if(ab) ab.style.display = 'flex';
+    // Only show badge on desktop — mobile hero hides it (shows in scrolled dashboard instead)
+    if(ab) ab.style.display = window.innerWidth > 768 ? 'flex' : 'none';
     if(abt) abt.textContent = actions.length + ' action' + (actions.length!==1?'s':'') + ' needed';
   } else {
     if(ab) ab.style.display = 'none';
@@ -3874,13 +3875,11 @@ load();
     height:auto!important;
   }
   .dhs-ring-float{display:none!important}
-  /* Action badge: JS sets display:flex via inline style, override with absolute pos centred */
-  #dhs-action-badge{
-    position:absolute!important;
-    top:8px!important;
-    left:50%!important;
-    transform:translateX(-50%)!important;
-    white-space:nowrap!important;
+  /* Hide action badge in hero — it shows in the scrolled dashboard below */
+  #dhs-action-badge,
+  .dhs-action-badge{
+    display:none!important;
+    visibility:hidden!important;
   }
 
   /* Left text block: centered, only eyebrow + headline + firm visible */
