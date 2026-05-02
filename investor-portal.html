@@ -2143,6 +2143,17 @@ function initLobby() {
   _carouselIdx = 0;
   setHeroSlide(0, true);
   startCarouselTimer();
+
+  // Render greeting immediately (name filled in later by load() once /api/me responds)
+  var _greetEl = document.getElementById('hero-greeting');
+  if (_greetEl && !_greetEl.innerHTML.trim()) {
+    var _h = new Date().getHours();
+    var _gw = _h < 12 ? 'Good morning' : _h < 17 ? 'Good afternoon' : 'Good evening';
+    var _gWords = _gw.split(' ');
+    _greetEl.innerHTML = _gWords.map(function(w, i) {
+      return '<span class="greet-word" style="animation-delay:' + (i * 0.12) + 's">' + w + '</span>';
+    }).join('&nbsp;');
+  }
 }
 
 function setHeroSlide(idx, instant) {
