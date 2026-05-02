@@ -1,4 +1,4 @@
-import { kvGet, kvSet, kvDel, kvKeys, zAdd, zRevRange, kvZadd, kvZrange, kvZrem } from './storage.js';
+import { kvGet, kvSet, kvDel, kvKeys, zAdd, zRevRange, kvZadd, kvZrange, kvZrem, kvIncrby } from './storage.js';
 import { nanoid } from 'nanoid';
 
 const VALID_STAGES = new Set(['review','live','ioi','dd','terms','close','realized','killed']);
@@ -11,19 +11,47 @@ export async function appendAuditEntry(dealId, entry) {
   await kvZadd(`audit:${dealId}`, entry.at ? new Date(entry.at).getTime() : Date.now(), JSON.stringify(entry));
 }
 
-// Recalculate ioi_count and ioi_agg_usd on the deal object from live IOI records.
-// Single source of truth — replaces divergent counter keys.
-export async function recalcIoiCounters(dealId) {
-  const deal = await kvGet(`deal:${dealId}`);
-  if (!deal) return null;
+// Atomic IOI counter delta. Race-safe — uses Redis INCRBY which is atomic.
+// dCount: +1 on IOI create, -1 on IOI reject or hard-delete (PDPA cleanup).
+// Approve does NOT move the counter (already counted from creation).
+// dAggUsd: signed dollar delta. Rounded to int because INCRBY is integer-only;
+// callers can read back via Number() — sub-cent precision is irrelevant for IOI sums.
+export async function bumpIoiCounters(dealId, dCount, dAggUsd) {
+  await Promise.all([
+    kvIncrby(`deal:${dealId}:ioi_count`, dCount),
+    kvIncrby(`deal:${dealId}:ioi_agg_usd`, Math.round(dAggUsd)),
+  ]);
+}
+
+// Manual reconciliation pass — admin-tool / audit-heal only, do NOT call from
+// hot paths. Reads live IOI records, computes truth, overwrites the atomic
+// counter keys and the embedded fields on the deal record.
+export async function reconcileIoiCounters(dealId) {
   const ioiIds = await kvZrange('ioi_index', 0, -1);
   const allIois = (await Promise.all(ioiIds.map(id => kvGet(`ioi:${id}`)))).filter(Boolean);
   const dealIois = allIois.filter(i => i.deal_id === dealId && i.status !== 'rejected');
-  deal.ioi_count = dealIois.length;
-  deal.ioi_agg_usd = dealIois.reduce((s, i) => s + (i.amount || 0), 0);
-  deal.updated_at = new Date().toISOString();
-  await kvSet(`deal:${dealId}`, deal);
-  return { ioi_count: deal.ioi_count, ioi_agg_usd: deal.ioi_agg_usd };
+  const count = dealIois.length;
+  const agg = dealIois.reduce((s, i) => s + (i.amount || 0), 0);
+  await Promise.all([
+    kvSet(`deal:${dealId}:ioi_count`, count),
+    kvSet(`deal:${dealId}:ioi_agg_usd`, Math.round(agg)),
+  ]);
+  // Keep the embedded fields in sync too for any reader that bypasses getDeal.
+  const deal = await kvGet(`deal:${dealId}`);
+  if (deal) {
+    deal.ioi_count = count;
+    deal.ioi_agg_usd = agg;
+    deal.updated_at = new Date().toISOString();
+    await kvSet(`deal:${dealId}`, deal);
+  }
+  return { ioi_count: count, ioi_agg_usd: agg };
+}
+
+// Back-compat alias — keep so existing imports don't break. Hot paths have
+// migrated to bumpIoiCounters; this delegates to reconcile for the audit/heal
+// callers that still want a full recompute.
+export async function recalcIoiCounters(dealId) {
+  return reconcileIoiCounters(dealId);
 }
 
 export function generateDealId() {
@@ -31,7 +59,21 @@ export function generateDealId() {
 }
 
 export async function getDeal(id) {
-  return kvGet(`deal:${id}`);
+  // Read deal record + atomic counter keys in parallel. Atomic keys are the
+  // source of truth post-P-6; embedded ioi_count/ioi_agg_usd on the deal
+  // object only used as a fallback for legacy records (sandbox seed) that
+  // haven't bumped yet.
+  const [deal, count, agg] = await Promise.all([
+    kvGet(`deal:${id}`),
+    kvGet(`deal:${id}:ioi_count`),
+    kvGet(`deal:${id}:ioi_agg_usd`),
+  ]);
+  if (!deal) return null;
+  return {
+    ...deal,
+    ioi_count: count == null ? (deal.ioi_count || 0) : Number(count),
+    ioi_agg_usd: agg == null ? (deal.ioi_agg_usd || 0) : Number(agg),
+  };
 }
 
 export async function saveDeal(deal) {
@@ -42,9 +84,11 @@ export async function saveDeal(deal) {
 }
 
 export async function listDeals(filter = {}) {
-  // Use sorted set index — works on all Upstash tiers, no KEYS needed
+  // Use sorted set index — works on all Upstash tiers, no KEYS needed.
+  // Route every fetch through getDeal so the atomic IOI counter merger fires
+  // for each record — readers always see fresh ioi_count / ioi_agg_usd.
   const ids = await zRevRange(DEAL_IDX, 0, 499);
-  const deals = (await Promise.all(ids.map(id => kvGet(`deal:${id}`)))).filter(Boolean);
+  const deals = (await Promise.all(ids.map(id => getDeal(id)))).filter(Boolean);
   if (filter.advisor_id) return deals.filter(d => d.advisor_id === filter.advisor_id);
   if (filter.stage) return deals.filter(d => d.stage === filter.stage);
   if (filter.live) return deals.filter(d => d.member_visible && !['killed','realized'].includes(d.stage));

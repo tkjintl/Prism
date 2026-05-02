@@ -10,6 +10,8 @@ import { dealTemplates, randomizeDeal } from './deal-templates.js';
 // Deletes every key matching the listed patterns using SCAN. Returns count removed.
 const WIPE_PATTERNS = [
   'deal:*',
+  'deal:*:ioi_count',
+  'deal:*:ioi_agg_usd',
   'ioi:*',
   'ioi_exists:*',
   'ioi_index',
@@ -368,6 +370,11 @@ export async function seedHighVolume() {
     deal.ioi_agg_usd = agg.agg;
     deal.updated_at = new Date().toISOString();
     await kvSet(`deal:${dealId}`, deal);
+    // P-6: write atomic counter keys so getDeal sees them as the source of
+    // truth on the very next read. Without this, the embedded fallback path
+    // would serve seeded counts until the first IOI op bumps the keys.
+    await kvSet(`deal:${dealId}:ioi_count`, agg.count);
+    await kvSet(`deal:${dealId}:ioi_agg_usd`, Math.round(agg.agg));
   });
 
   return {

@@ -4,6 +4,48 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — P-6: atomic IOI counters (race fix)
+
+`api/_lib/deal-storage.js`, `api/v2.js`, `api/_lib/bot-seed.js`. Replaced the read-modify-write `recalcIoiCounters(dealId)` on the IOI hot path with atomic INCRBY against dedicated keys `deal:{id}:ioi_count` and `deal:{id}:ioi_agg_usd` via new `bumpIoiCounters(dealId, dCount, dAggUsd)`. Two concurrent IOI submissions on the same deal can no longer drift the counter via last-write-wins (verified open by ConcurrencyBot stress tests). `getDeal` and `listDeals` now read the atomic keys and merge them into the returned object, falling back to the embedded `deal.ioi_count` for legacy records that haven't bumped yet. `recalcIoiCounters` kept as a back-compat alias delegating to a new `reconcileIoiCounters` (overwrites atomic keys from live IOIs) — only audit/heal endpoints still call it. Bot seed now writes atomic keys in addition to embedded fields, and `wipeAll` patterns updated to clear them. Five hot-path call sites migrated: ioi-create (+1 / +amt), reject-ioi (-1 / -amt if was non-rejected), delete-investor cleanup (-1 / -amt per non-rejected IOI), approve-ioi and respond-package (no counter change — call removed). Each bumped path also busts `cache:iois:all`.
+
+---
+
+## [2026-05-02] — Advisor deck: cover divider removed
+
+Removed `.cover-divider` hairline from slide 1 — it was rendering across "SINGAPORE" in the cover-meta line because it overlapped with the absolute-positioned meta block. Cover-title margin restored to 64px to preserve spacing.
+
+---
+
+## [2026-05-02] — Advisor deck: slide 5 tile cleanup + cover dash fix
+
+Slide 5 tightened: removed all geographic labels (Singapore/HK/Tokyo/Seoul/Taipei/Gulf), consolidated tiles to six distinct institutional categories (Family Offices, Fund-of-Funds, Sovereign & Quasi-Sovereign, Endowments & Foundations, Insurance & Pension, Corporate Treasuries) — no repeated category names, no marks. Lede shortened. Eyebrow simplified to "Institutional · mandate-driven." Headline tightened to "Built for a cohort we know."
+
+Cover slide: removed the stray "entering light ray" SVG line on the left of the prism glyph (was reading as a floating dash near the eyebrow). Refracted exit rays kept inside the SVG bounds.
+
+---
+
+## [2026-05-02] — Advisor deck: slide 5 reframe (no track-record claim)
+
+Slide 5 (Capital base) reworded. Removed "active investor directory" framing — platform is launching, no on-platform track record to claim. New headline: "Built for an institutional cohort we know." New lede positions the platform as extending the principals' prior private-market dealmaking history into a structured, attributable channel, calibrated for the LP profile transacted with across Asia-Pacific and the Gulf. Tile structure unchanged — they now read as category sketches of the cohort the platform is built for.
+
+---
+
+## [2026-05-02] — Advisor deck: cover slide rebuild
+
+Slide 1 (Cover) rebuilt — previous lockup was rendering off-slide, leaving the cover blank. Replaced with: large 148px prism glyph (refraction-ray treatment), AURUM | PRISM wordmark at 64px with gold rule, "Private Deal Platform · By Introduction Only" tag, hairline divider, "Deal Advisor Briefing" italic subtitle, "TACC Pte Ltd · Singapore · 2026" pinned to bottom. Removed broken corner-bracket frame and the near-invisible background prism mark.
+
+---
+
+## [2026-05-02] — Advisor deck: cover lockup, Asia-weighted capital base, portal screenshot mocks
+
+Revised `prism-presentation/advisor-deck.html`:
+- Slide 1 (Cover): replaced thin wordmark with a framed Aurum|Prism logo lockup (hairline corner brackets, prism glyph, "A TACC Platform · Singapore" eyebrow, "Private Deal Platform · By Introduction Only" undertag) — now the dominant cover element.
+- Slide 5 (Capital base): replaced Boston/New York/North America tiles with Asia-weighted set (Family Office Singapore + Hong Kong, Fund-of-Funds Tokyo, Sovereign GCC/Gulf, Endowment Seoul, Corporate Treasury Taipei). Eyebrow + lede reframed as "Asia-Pacific weighted · mandate-matched · on-platform" with selective Gulf and global allocator language.
+- Slides 7 & 8: wrapped both in a browser-chrome frame (traffic-light dots, `prism.theaurumcc.com/advisor` URL bar, logged-in user chip) plus a portal nav bar (Aurum|Prism wordmark, Dashboard/My Deals/Submit/Investors tabs).
+- Slide 7 expanded into a four-step wizard rail (Identity → Terms → Documents → Review), AI completeness chip, richer materials tray with file rows, save-draft + continue actions, AI operator note panel.
+- Slide 8 substantially expanded: 4 deal-switcher pills, stage-journey ribbon (Submit→Close), content tabs row (Overview · IOIs · Data Room · Activity · Settings), 3 IOI cards (Singapore, Tokyo, Seoul) with mandate-match %, IOI count strip (3 IOIs · $18M · 7 matched), full activity feed, and a data-room access panel showing per-document access state.
+- Updated slide 8 IOI #2 to read "Fund-of-Funds · Tokyo" (was New York) for capital-base consistency.
+
 ## [2026-05-02] — Deploy trigger: activate BOT_MODE env var
 
 Empty-content commit to force a Vercel rebuild so the newly-added `BOT_MODE=1` and updated `ADMIN_USERS` environment variables take effect on the running deployment. No code change.

@@ -1,7 +1,7 @@
 import { verifyToken, signToken, signResetCode, verifyResetToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
 import { ok, bad, unauth, getCookie, setCookieHeader } from './_lib/http.js';
 import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, kvZadd, kvZrem, healthCheck, isKvUnavailable } from './_lib/storage.js';
-import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, recalcIoiCounters, appendAuditEntry, validateDealForPublish } from './_lib/deal-storage.js';
+import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, recalcIoiCounters, bumpIoiCounters, appendAuditEntry, validateDealForPublish } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
   sendDataRoomAccess, sendAccessApplication,
@@ -696,8 +696,10 @@ async function _handler(req, res, resource, op) {
       deal.updated_at = new Date().toISOString();
       await saveDeal(deal);
       await appendAuditEntry(dealId, pkgAuditEntry);
-      // Recalculate IOI counters after package response
-      await recalcIoiCounters(dealId);
+      // P-6: package response does not change IOI count or aggregate — only
+      // flips a per-deal pushed_ioi_status and may advance stage to dd.
+      // No counter bump required. (Was previously a defensive recalc.)
+      try { await kvDel('cache:iois:all'); } catch {}
       // Notify investors in the package that data room access is confirmed
       if (decision === 'accepted' && pkg.iois?.length) {
         for (const pkgIoi of pkg.iois) {
@@ -2581,8 +2583,13 @@ Return ONLY valid JSON in this exact structure:
         await kvDel(`ioi:${ioi.id}`); keysRemoved++;
         await kvZrem('ioi_index', ioi.id);
         await kvDel(`ioi_exists:${ioi.deal_id}:${investorId}`); keysRemoved++;
-        await recalcIoiCounters(ioi.deal_id);
+        // P-6: only decrement the deal counters if the IOI was actually
+        // counted (rejected IOIs are excluded from ioi_count / ioi_agg_usd).
+        if (ioi.status !== 'rejected') {
+          await bumpIoiCounters(ioi.deal_id, -1, -(ioi.amount || 0));
+        }
       }
+      try { await kvDel('cache:iois:all'); } catch {}
 
       // Delete NDA signature records
       const ndaKeys = await kvKeys(`nda_signed:${investorId}:*`);
@@ -3423,10 +3430,11 @@ Return ONLY valid JSON in this exact structure:
       await kvSet(`ioi:${ioiId}`, ioi);
       // Register in sorted set index (score = submission time ms)
       await kvZadd('ioi_index', Date.now(), ioiId);
-      // dedupKey was already set to 'pending' atomically above via kvSetnx
-      // Increment deal counters
-      // Recalculate IOI counters from live records — single source of truth
-      await recalcIoiCounters(deal_id);
+      // dedupKey was already set to 'pending' atomically above via kvSetnx.
+      // P-6: atomic INCR on dedicated counter keys — race-safe under
+      // concurrent IOI submissions to the same deal.
+      await bumpIoiCounters(deal_id, 1, amt);
+      try { await kvDel('cache:iois:all'); } catch {}
       // Send IOI confirmation email to investor
       const ioiInst = auth.inst_id ? await kvGet(`inst:${auth.inst_id}`) : null;
       if (ioiInst) await sendIoiConfirmation(ioiInst, deal).catch(console.error);
@@ -3451,8 +3459,9 @@ Return ONLY valid JSON in this exact structure:
       await kvSet(`ioi:${ioi_id}`, ioi);
       // Update dedup to approved (allows future re-consideration)
       await kvSet(`ioi_exists:${ioi.deal_id}:${ioi.investor_id}`, 'approved');
-      // Recalculate IOI counters
-      await recalcIoiCounters(ioi.deal_id);
+      // P-6: approve does NOT change ioi_count / ioi_agg_usd — pending and
+      // approved are both included. Status flip only. No counter bump.
+      try { await kvDel('cache:iois:all'); } catch {}
       // Send data room access email
       const inst = ioi.investor_id.startsWith('inv-') ? await kvGet(`inst:${ioi.investor_id}`) : null;
       const deal = await getDeal(ioi.deal_id);
@@ -3466,7 +3475,8 @@ Return ONLY valid JSON in this exact structure:
       const { ioi_id } = req.body || {};
       const ioi = await kvGet(`ioi:${ioi_id}`);
       if (!ioi) return bad(res, 'IOI not found', 404);
-      const wasApproved = ioi.status === 'approved';
+      const prevStatus = ioi.status;
+      const wasApproved = prevStatus === 'approved';
       ioi.status = 'rejected';
       ioi.data_room_access = false;
       ioi.rejected_at = new Date().toISOString();
@@ -3474,8 +3484,12 @@ Return ONLY valid JSON in this exact structure:
       await kvSet(`ioi:${ioi_id}`, ioi);
       // DELETE dedup key so investor can re-submit
       await kvDel(`ioi_exists:${ioi.deal_id}:${ioi.investor_id}`);
-      // Recalculate IOI counters from live records — single source of truth
-      await recalcIoiCounters(ioi.deal_id);
+      // P-6: counter only includes non-rejected IOIs. If this IOI was already
+      // rejected (idempotent re-call) skip the decrement to avoid double-counting.
+      if (prevStatus !== 'rejected') {
+        await bumpIoiCounters(ioi.deal_id, -1, -(ioi.amount || 0));
+      }
+      try { await kvDel('cache:iois:all'); } catch {}
       // Send rejection email to investor
       const rejInst = ioi.investor_id.startsWith('inv-') ? await kvGet(`inst:${ioi.investor_id}`) : null;
       const rejDeal = await getDeal(ioi.deal_id);
