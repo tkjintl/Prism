@@ -81,10 +81,16 @@ export default async function handler(req, res) {
   try {
     return await _handler(req, res, resource, op);
   } catch (err) {
-    console.error('[v2] Unhandled error:', err?.message, { resource, op });
+    console.error('[v2] Unhandled error:', err?.message, err?.stack, { resource, op });
     await captureException(err, { resource, op }).catch(() => {});
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Internal server error' });
+      // In bot-test sandbox, surface the actual error message so failures are debuggable.
+      // In production (BOT_MODE off), keep the generic message to avoid leaking internals.
+      const exposeReal = process.env.BOT_MODE === '1';
+      const msg = exposeReal && err?.message
+        ? `[${resource}/${op}] ${err.message}`
+        : 'Internal server error';
+      res.status(500).json({ error: msg });
     }
   }
 }
