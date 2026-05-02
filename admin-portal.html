@@ -814,6 +814,136 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ioi-row-amount{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text);white-space:nowrap}
 .ioi-row-actions{text-align:right;white-space:nowrap}
 .ioi-row-date{font-family:var(--mono);font-size:10px;color:var(--text-3);white-space:nowrap}
+
+/* ── COMPREHENSIVE MOBILE ── */
+@media(max-width:768px){
+  .modal-box{max-height:80vh;overflow-y:auto}
+  .notif-panel{width:calc(100vw - 32px);right:0}
+  .lr-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .lr-tabs::-webkit-scrollbar{display:none}
+  .lr-tab{flex-shrink:0;white-space:nowrap}
+  .lr-body{padding:24px 16px 80px}
+  .ddp-inner{padding:calc(var(--nav-h) + 16px) 16px 80px}
+  .idp-body{padding:28px 16px 80px}
+  .adp-body{padding:28px 16px 80px}
+}
+
+@media(max-width:600px){
+  /* Pipeline table — card stacking */
+  .dp-row{display:block;padding:12px 16px;border-bottom:1px solid var(--border)}
+  .dp-row.header{display:none}
+  .dp-name{font-size:14px;font-weight:600;width:100%;display:block;margin-bottom:6px}
+  .dp-sub{font-size:11px}
+  .dp-stage-wrap,.dp-amount-wrap{display:inline-flex;align-items:center;gap:8px;margin-right:8px}
+  .dp-advisor{font-size:11px;color:var(--text-3);margin-top:4px;display:block}
+  .dp-actions{margin-top:8px;flex-wrap:wrap;gap:6px}
+  .dp-bar-wrap{display:none}
+
+  /* IOI table — override display:table back to block for mobile */
+  .ioi-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
+  .ioi-row{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border)}
+  .ioi-row>div{display:block;padding:0;border-bottom:none;font-size:12px}
+  .ioi-row.hdr{display:none}
+  .ioi-row:not(.hdr):hover>div{background:none}
+  .ioi-row:not(.hdr):hover{background:var(--bg-3)}
+  .ioi-row-name{width:100%;font-size:13px;margin-bottom:2px}
+  .ioi-row-typegeo{flex:1;font-size:11px;color:var(--text-3)}
+  .ioi-row-amount{white-space:nowrap}
+  .ioi-row-date{white-space:nowrap}
+  .ioi-row-actions{width:100%;text-align:left;margin-top:6px;display:flex;gap:5px;flex-wrap:wrap}
+
+  /* Tables — horizontal scroll */
+  .ddp-ioi-table,.ddp-ioi-table-full{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
+
+  /* Overview queue — single col already handled by existing media query */
+  .view-inner{padding:16px}
+
+  /* Push preview modal internals */
+  .pp-breakdown{grid-template-columns:1fr}
+  .pp-breakdown-col:first-child{border-right:none;border-bottom:1px solid var(--border)}
+  .pp-footer{flex-wrap:wrap}
+  .pp-confirm-btn{max-width:100%;flex:1 1 100%}
+
+  /* Deal detail breakdown */
+  .ddp-breakdown-row{grid-template-columns:1fr}
+
+  /* Launch review cols already stacks at 960px */
+  .lr-header{padding:0 16px}
+  .lr-deal-name{max-width:160px}
+
+  /* IOI deal group header wrapping */
+  .ioi-deal-hd{flex-wrap:wrap;gap:10px}
+  .ioi-deal-hd-right{width:100%}
+  .ioi-sub-wrap{width:100%}
+  .ioi-deal-footer{padding:10px 14px}
+
+  /* Deal submission cards */
+  .ds-card-body{grid-template-columns:1fr 1fr}
+  .ds-param-row{grid-template-columns:1fr}
+
+  /* Attention grid — full width cards */
+  .attention-grid{grid-template-columns:1fr}
+  .att-card{width:100%}
+  .att-btn{min-height:44px;padding:10px 14px;flex:1 1 auto}
+
+  /* Overview stage lanes — 2 col already at 900px, ensure no overflow */
+  .ov-stage-lanes{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ov-lane{min-width:140px}
+
+  /* Overview bottom grid — stacks at 900px, no extra needed */
+}
+
+@media(max-width:480px){
+  .kpi-card{padding:12px}
+  .view-inner{padding:12px}
+
+  /* Pipeline — hide low-priority cols */
+  .dp-closing,.dp-geo{display:none}
+
+  /* IOI queue actions full-width */
+  .iqi-row{display:block;padding:12px 14px}
+  .iqi-actions{width:100%;display:flex;flex-direction:row;gap:6px;margin-top:8px}
+
+  /* Section headers */
+  .section-hd{flex-wrap:wrap;gap:6px}
+  .section-hd-title{flex:1 1 100%}
+
+  /* Deal studio padding */
+  .ai-doc-slot,.ai-slot{padding:12px}
+  .ai-output-panel{padding:16px;min-height:240px}
+  .ai-tool-wrap{max-width:100%}
+
+  /* System panel */
+  .view-inner[style*="max-width:640px"]{max-width:100%}
+
+  /* IOI detail panel */
+  .idp-amount{font-size:32px}
+  .idp-meta-grid{grid-template-columns:1fr}
+  .idp-action-strip{padding:12px 16px;gap:6px}
+
+  /* Launch review stats grid */
+  .lr-stats-grid{grid-template-columns:1fr}
+  .lr-date-row{grid-template-columns:1fr}
+
+  /* Push preview modal */
+  .pp-header{padding:14px 16px 12px}
+  .pp-deal-block{padding:16px}
+  .pp-capital-block{padding:18px 16px}
+  .pp-breakdown-col{padding:12px 16px}
+  .pp-next-step{margin:0 16px 14px}
+  .pp-comment{padding:0 16px 16px}
+  .pp-footer{padding:12px 16px;gap:8px}
+
+  /* Deal detail panel */
+  .ddp-grid{gap:16px}
+  .ddp-econ-card{padding:14px}
+
+  /* Eq scenarios — already 3 col, needs wrap */
+  .eq-scenarios{grid-template-columns:1fr 1fr}
+
+  /* Overview queue badge */
+  .ov-queue-grid{gap:10px}
+}
 </style>
 <link rel="stylesheet" href="/mobile.css">
 </head>

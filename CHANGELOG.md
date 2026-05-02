@@ -4,6 +4,47 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: comprehensive mobile layout overhaul
+
+### Changes
+- `admin-portal.html`: Appended ~120 lines of inline mobile CSS before `</style>`, targeting iPhone 15 (390px) with breakpoints at ≤768px, ≤600px, and ≤480px.
+- Deal pipeline (`.dp-row`): block card layout at ≤600px; header hidden; `.dp-closing`/`.dp-geo` hidden at ≤480px; deal name full-width bold 14px; status+amount inline.
+- IOI table: overrides `display:table` back to block/flex card layout at ≤600px; header hidden; actions full-width flex row.
+- IOI deal-group header: wraps at ≤600px; `.ioi-sub-wrap` full-width.
+- Modals (`.modal-box`): `max-height:80vh; overflow-y:auto` at ≤768px; `.notif-panel` clamped to viewport width.
+- Push-preview modal: 2-col breakdown stacks at ≤600px; padding tightened at ≤480px.
+- Attention grid: 1-column at ≤600px; action buttons 44px min-height.
+- `.view-inner`: padding reduced at ≤600px and ≤480px.
+- Launch review: tabs scrollable; body/header padding reduced; deal name max-width trimmed.
+- Deal detail panel: breakdown stacks; IOI tables overflow-x scroll.
+- IOI detail panel: amount shrinks; meta grid 1-col; action strip padding reduced.
+- Deal Studio: slot/output panel padding reduced at ≤480px.
+- Overview: stage lanes get overflow-x:auto to prevent content loss.
+- `.eq-scenarios`: 2-col at ≤480px.
+- `.ddp-ioi-table`/`-full`: `display:block; overflow-x:auto` at ≤600px.
+
+---
+
+## [2026-05-01] — Advisor Portal: Comprehensive mobile inline styles
+
+### Changes
+- `advisor-portal.html`: Appended a new `@media` block before the final `</style>` tag covering all major layout-breaking issues on iPhone 15 (390px baseline).
+- Dashboard hero (`#dash-hero-static`): 1-column stack at ≤768px, `.dhs-visual` prism hidden, `.dhs-left` padding 28px 20px, `.dhs-headline` clamped to `clamp(22px,6vw,38px)`.
+- Hero stats (`.dhs-stats`): flex-wrap with 2-column layout at ≤480px; `.dhs-stat-div` separators hidden.
+- Hero CTA buttons (`.dhs-actions`/`.dhs-ctas`): full-width column stack at ≤480px.
+- Stage journey: `.sj-connector` hidden at ≤480px; stage padding reduced; `min-width:0!important` reinforcement at ≤768px.
+- Deal header: full-column at ≤600px, ring flipped to row + shrunk to 64px, quick-stats wrap.
+- IOI push card: tightened padding at ≤480px, `.ipc-body` stacks to column, action buttons full-width.
+- Dashboard sections: `.dash-section-hd` flex-wrap at ≤480px, section padding reduced to 16px.
+- Submit wizard: padding reduced to 20px 16px at ≤480px, wizard labels truncated, nav buttons full-width.
+- Tab panels: padding reduced to 16px at ≤480px.
+- Content tabs: tighter padding at ≤480px.
+- Deal switcher: reduced padding/gap at ≤480px.
+- Notification panel: viewport-width at ≤400px to prevent overflow.
+- 360px floor: overview + materials grids collapse to 1-col.
+
+---
+
 ## [2026-05-01] — Add universal mobile.css foundation (admin + advisor portals)
 
 ### Changes

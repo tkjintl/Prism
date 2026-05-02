@@ -147,3 +147,50 @@ body {
     font-size: 16px !important;
   }
 }
+
+/* ─── 9. TWO-ROW NAV — WORDMARK+CONTROLS ROW 1, TABS ROW 2 ───────────────── */
+@media (max-width: 768px) {
+  .nav {
+    height: auto !important;
+    flex-wrap: wrap;
+    padding: 0 16px;
+    gap: 0;
+    align-items: stretch;
+  }
+  .nav-wordmark {
+    padding: 10px 0;
+    flex: 1;
+    flex-shrink: 0;
+  }
+  .nav-div { display: none; }
+  .nav-tabs {
+    order: 99;
+    width: 100%;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    border-top: 1px solid var(--border);
+    scrollbar-width: none;
+    padding: 0;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .ntab {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    font-size: 13px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .nav-r {
+    gap: 8px;
+    padding: 8px 0;
+    align-items: center;
+  }
+  .nav-user, .nav-user-info { display: none; }
+  :root { --nav-h: 88px; }
+}
+@media (max-width: 480px) {
+  .nav-wm-tacc { display: none; }
+}
