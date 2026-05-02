@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix admin dashboard IOI + DD column card overlap
+
+### Changes
+- `admin-portal.html`: Added `flex-shrink:0;overflow:hidden` to `.ov-action-card` — root cause of overlap was flex container shrinking cards below content height
+- `admin-portal.html`: Removed conflicting FIX 3 CSS (`min-height:80px`, `-webkit-line-clamp`) that fought with other overrides
+- `admin-portal.html`: Rebuilt DD card % panel from `position:absolute` to flex sidebar — more reliable containment, no overflow bleed
+- `admin-portal.html`: Removed duplicate `.ov-ac-name` CAT F override that conflicted with base rule
+
+---
+
 ## [2026-05-01] — Critical bug fixes: setup-password redirect, broadcast Q&A, Indicated labels + TESTING_PLAN.md
 
 ### Changes
