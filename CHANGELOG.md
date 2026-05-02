@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Critical bug fixes: setup-password redirect, broadcast Q&A, Indicated labels + TESTING_PLAN.md
+
+### Changes
+- `setup-password.html`: Fixed post-setup redirect from `/advisor` (404) → `/advisor-portal`
+- `api/v2.js`: Fixed broadcast Q&A always returning 400 — added broadcast code path in `answer-qa` handler that routes `{broadcast:true, message}` separately from standard `{qaId, answer}` path
+- `investor-portal.html`: "Subscribed" → "Indicated" for ring label and deal card bar sub-text (IOIs are non-binding indications, not subscriptions); also fixed broken closing tag from prior sed run
+- `TESTING_PLAN.md`: Created from scratch — 26 scenarios across public/advisor/investor/admin/API flows, Node.js bot runner, autocannon pressure test protocol, pre-launch checklist
+
+---
+
 ## [2026-05-01] — Production visual audit: typography floor, copy, mobile polish, brand consistency
 
 ### Changes
