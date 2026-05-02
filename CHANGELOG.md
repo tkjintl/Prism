@@ -4,6 +4,36 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Mobile-pass Batch B — overflow guards + missed pages
+
+Continued on `mobile-pass` branch. After Batch A, re-audit revealed:
+- **investor-portal**: residual 11-21px overflow caused by off-canvas `#view-deal` panel (positioned at left:100vw, scrollWidth picked it up)
+- **forgot-password**: residual 5-20px overflow on `.box` element wider than viewport
+- **reset-password.html / setup-password.html**: not touched in Batch A — same `.box` overflow pattern (24-30px)
+- **login.html landscape**: paranoia gate `(hover: none) and (pointer: coarse)` not matching in some emulation paths, leaving 4 inputs <16px
+
+**Files modified:** `investor-portal.html`, `forgot-password.html`, `reset-password.html` (new mobile block), `setup-password.html` (new mobile block), `login.html`.
+
+**Approach:** split mobile rules into two gates:
+- **Width-only `@media (max-width: 768px)`** for overflow guards, input font-size, and box constraints. Desktop is ≥1024px so width-only gate already excludes it; the paranoia gate was redundant for these rules and was preventing the rules from firing in landscape orientation.
+- **Width + paranoia `@media (max-width: 768px) and (hover: none) and (pointer: coarse)`** kept only for safe-area-inset rules (genuinely touch-device-specific).
+
+**Specific fixes:**
+- Investor-portal: `#view-deal { max-width: 100vw }` + width-only overflow guards on html/body.
+- Forgot-password / reset-password / setup-password: `.box { max-width: 100% !important; width: calc(100vw - 32px) !important; box-sizing: border-box; margin: auto }` so the centered card fits the viewport.
+- Login: input font-size rule moved to width-only gate so landscape (667×375) gets it too.
+
+**Verification:**
+- Mobile audit re-run: 40/40 viewports show overflow=0 (was 26 P0 overflow defects pre-Batch-A).
+- Desktop math at 1280/1440/1920: width gate `false`, paranoia gate `false`, computed input.fontSize unchanged (12px desktop / 16px mobile), html.overflowX unchanged from v2.0.
+
+**Still remaining (deferred):**
+- ~22 sub-44px tap targets on `index.html` (footer micro-copy at 9-11px — intentional v2 styling, would need careful selective bumps).
+- 1 input <16px on login landscape (`#inv-code` has inline `style="font-size:13px"` that beats the stylesheet rule).
+- Investor-portal "INVESTOR DEMO" badge overlap (RISKY, deferred).
+
+---
+
 ## [2026-05-02] — Mobile-pass Batch A — surgical mobile fixes, desktop untouched
 
 Branch: `mobile-pass` cut from `v2.0` tag (commit `a158aeb`). All changes are CSS-only additions, scoped behind `@media (max-width: 768px) and (hover: none) and (pointer: coarse)` — desktop CSS at ≥769px (and any non-touch device) is mathematically excluded.

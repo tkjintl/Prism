@@ -3633,11 +3633,17 @@ load();
    Desktop (≥769px) and non-touch screens are mathematically excluded.
    Do not add desktop-affecting rules in this block.
 ═══════════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
-  /* Kill horizontal overflow without clipping content visually */
+@media (max-width: 768px) {
+  /* Width-only gate for overflow guards. Desktop never matches.
+     A desktop user resizing their window narrow gets these too — harmless. */
   html, body { overflow-x: hidden; }
   .nav, .dd-inner { max-width: 100vw; box-sizing: border-box; }
-  /* Safe-area insets for notched iPhones */
+  /* Off-canvas deal detail panel is positioned at left:100vw and slides in.
+     Without an explicit max-width:100vw on its parent, scrollWidth picks it up. */
+  #view-deal { max-width: 100vw; }
+}
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  /* Safe-area insets only fire on real touch devices (notched iPhones). */
   .nav { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
   .dd-inner { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
   body { padding-bottom: env(safe-area-inset-bottom); }
