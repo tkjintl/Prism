@@ -2245,8 +2245,19 @@ let NEW_SUBMISSIONS=[
   },
 ];
 
-const STAGE_ORDER=['review','live','dd','close','realized'];
-const STAGE_LABELS={review:'Review',live:'Live',dd:'Due Diligence',close:'Close',realized:'Realized'};
+// Server-side lifecycle: review → live → ioi → dd → terms → close → realized.
+// killed is a terminal divergence reachable from any pre-realized stage.
+const STAGE_ORDER=['review','live','ioi','dd','terms','close','realized'];
+const STAGE_LABELS={review:'Review',live:'Live',ioi:'IOI',dd:'Due Diligence',terms:'Terms',close:'Close',realized:'Realized',killed:'Killed'};
+// Per-stage advance action: which API endpoint moves a deal forward.
+function nextStageActionFor(stage){
+  if(stage==='review')return {label:'Publish to Live',target:'live',endpoint:'publish-deal'};
+  if(stage==='live'||stage==='ioi')return {label:'Open Due Diligence',target:'dd',endpoint:'push-package'};
+  if(stage==='dd')return {label:'Advance to Terms',target:'terms',endpoint:'advance-stage'};
+  if(stage==='terms')return {label:'Advance to Close',target:'close',endpoint:'advance-stage'};
+  if(stage==='close')return {label:'Mark Realized',target:'realized',endpoint:'advance-stage'};
+  return null; // realized / killed → terminal, no advance
+}
 const STAGE_CHIP={live:'sc-live',dd:'sc-dd',review:'sc-review',close:'sc-close'};
 const CLASS_CHIP_COL={credit:'color:var(--blue)',pe:'color:var(--gold)',re:'color:var(--green)',infra:'color:var(--slate)'};
 
@@ -3488,7 +3499,12 @@ function renderPipeline(){
         <span class="dp-stage-chip ${STAGE_CHIP[d.stage]||'sc-review'}">${STAGE_LABELS[d.stage]||d.stage}</span>
         <div style="font-family:var(--mono);font-size:11px;color:${days>90?'var(--green)':days>45?'var(--amber)':'var(--red)'}">${days}d</div>
         <div class="dp-actions" onclick="event.stopPropagation()">
-          ${(nextStage&&nextStage!=='dd')?`<button class="dp-btn advance" onclick="openModal('${d.id}','${nextStage}')">→ ${STAGE_LABELS[nextStage]}</button>`:''}
+          ${(()=>{
+            const a=nextStageActionFor(d.stage);
+            if(!a)return '';
+            if(a.endpoint==='push-package')return `<button class="dp-btn advance" onclick="pushPackage('${d.id}')">✦ DD →</button>`;
+            return `<button class="dp-btn advance" onclick="openModal('${d.id}','${a.target}')">→ ${STAGE_LABELS[a.target]}</button>`;
+          })()}
         </div>
       </div>`;
     }).join('')}`;
@@ -3545,10 +3561,26 @@ const _mc=document.getElementById('modal-confirm');if(_mc)_mc.onclick=async func
   if(!pendingDealId)return;
   const d=DEALS.find(x=>x.id===pendingDealId);
   const targetStage=pendingStage;
-  d.stage=targetStage;closeModal();renderPipeline();renderKPIs();
+  closeModal();
+  // Route to the correct server endpoint based on transition.
+  // - review -> live = publish-deal (sets member_visible, audit, email)
+  // - dd / terms / close -> next = advance-stage (validated transition table)
+  // push-package (live/ioi -> dd) is invoked via the pushPackage() flow, not this modal.
+  let url, body;
+  if(targetStage==='live'){
+    url='/api/v2?resource=admin&op=publish-deal';
+    body={dealId:pendingDealId,launch_mode:'listed',target_segments:['institutional','hnw']};
+  }else{
+    url='/api/v2?resource=admin&op=advance-stage';
+    body={dealId:pendingDealId,target:targetStage};
+  }
+  const r=await api('POST',url,body);
+  if(!r||r.ok===false){
+    toast(`Failed to advance: ${r?.error||'unknown error'}`,'err');
+    return;
+  }
+  d.stage=targetStage;renderPipeline();renderKPIs();
   toast(`${d.name} advanced to ${STAGE_LABELS[targetStage]}`,'ok');
-  // Persist stage change to KV via API
-  api('POST','/api/v2?resource=deals',{action:'update',id:d.id,stage:targetStage}).catch(()=>{});
 };
 const _sm=document.getElementById('stage-modal');if(_sm)_sm.addEventListener('click',function(e){if(e.target===this)closeModal();});
 
@@ -4083,10 +4115,16 @@ function buildDealDetailHTML(deal){
           <span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">Current Stage</span>
         </div>
         <div class="ddp-ctrl-btns">
-          ${(nextStage&&nextStage!=='dd')?`<button class="ddp-ctrl-btn advance" onclick="openModal('${deal.id}','${nextStage}');closeDealDetail()">→ Advance to ${STAGE_LABELS[nextStage]}</button>`:''}
+          ${(()=>{
+            const a=nextStageActionFor(deal.stage);
+            if(!a)return '';
+            // push-package has its own modal/preview path; advance-stage and
+            // publish-deal go through openModal which routes to the right endpoint.
+            if(a.endpoint==='push-package')return `<button class="ddp-ctrl-btn push" onclick="pushPackage('${deal.id}');closeDealDetail()">✦ ${a.label}</button>`;
+            return `<button class="ddp-ctrl-btn advance" onclick="openModal('${deal.id}','${a.target}');closeDealDetail()">→ ${a.label}</button>`;
+          })()}
           <button class="ddp-ctrl-btn" onclick="closeDealDetail();openCloseRaiseModal('${deal.id}')">Close Raise</button>
           <button class="ddp-ctrl-btn" onclick="closeDealDetail();openDelayRaiseModal('${deal.id}')">Delay Raise</button>
-          <button class="ddp-ctrl-btn push" onclick="pushPackage('${deal.id}');closeDealDetail()">✦ Open Due Diligence</button>
         </div>
       </div>
 
