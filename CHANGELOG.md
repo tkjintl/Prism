@@ -4,6 +4,42 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## ★ [2026-05-02] — **PRISM PLATFORM v3 — Official Release** ★
+
+Tagged `v3.0` (commit `22d1ddd`). Snapshot saved as `Prism Platform v3.zip`. Cumulative state on top of v2.0 baseline:
+
+**Mobile-pass (Batches A+B+C, merged as v2.1-mobile):**
+- 0 horizontal-overflow defects across 40 mobile audit captures (was 26 P0)
+- All form inputs ≥16px on mobile (no iOS auto-zoom)
+- Safe-area-inset for notched iPhones
+- Demo badge translucent + pointer-events:none on all viewports
+
+**Operator UX (v2.2-operator-ux):**
+- Unified test credentials: `tkj@theaurumcc.com / 1234` (operator), `jwc@theaurumcc.com / 1234` (advisor + investor)
+- Admin-supplied password / access-code overrides on `advisor:create` and `inst:approve`
+- Admin View-As: one-click impersonation FAB on admin-portal
+
+**v3 finishing touches (this session, after v2.2):**
+- Desktop overflow fix on admin-portal `.ov-queue-grid` and `.ov-stage-lanes` (auto-fit minmax — pre-existing v2.0 bug now resolved)
+- View Uploaded modal: shows 4 advisor-uploaded docs (NDA, Deck, Financials, Term Sheet) + structured fields
+- Generate AI Profile button surfaced on 2 places (NEW DEALS card + Deal Studio card + inside View Uploaded modal footer)
+
+**What v3 delivers vs v2:**
+- Mobile parity: every portal renders cleanly on phone
+- Operator can hop into advisor/investor views without logout/login
+- Single set of test credentials across all roles (no more remembering Sarah)
+- Desktop dashboard fits laptop viewports (1366-1920px) without bleeding
+- View Uploaded gives operator clear visibility of what advisor submitted vs. AI-generated content
+
+**Production:**
+- Custom domain `www.aurumprism.com` live (HTTP 200)
+- All 3 logins working, KV connected
+- Rollback: `git checkout v2.0` reverts to pre-mobile baseline; `git checkout v2.2-operator-ux` to pre-v3-finish
+
+Tag: `v3.0` @ commit `22d1ddd`. Snapshot: `Prism Platform v3.zip` (code only — excludes `.git`, `.claude`, `node_modules`, `.vercel`, prior zips, `mobile-audit/screenshots*`).
+
+---
+
 ## [2026-05-02] — Admin overflow fix + View Uploaded / Generate AI Profile buttons
 
 **Three changes to `admin-portal.html`:**
