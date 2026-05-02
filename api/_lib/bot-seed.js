@@ -39,11 +39,15 @@ export async function wipeAll() {
     if (pattern.includes('*')) {
       total += await kvScanDel(pattern);
     } else {
-      // Exact-key delete (sorted set keys without wildcards)
-      const existed = await kvGet(pattern);
-      if (existed !== null && existed !== undefined) {
-        await kvDel(pattern);
-        total += 1;
+      // Exact-key delete. DEL works on any Redis type (string, hash, sorted set,
+      // list); previously we kvGet-ed first to count, but kvGet on a sorted set
+      // throws WRONGTYPE. Just call DEL — it returns 1 if deleted, 0 if missing.
+      try {
+        const removed = await kvDel(pattern);
+        if (removed) total += 1;
+      } catch {
+        // Quota errors etc. propagate via the storage layer; ignore other
+        // edge cases here so a single key doesn't abort the whole wipe.
       }
     }
   }
