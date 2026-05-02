@@ -4,6 +4,31 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Phase 5 backend: API waterfall fix (advisor dashboard endpoint) + IOI index (eliminate Redis KEYS scans)
+
+### `api/_lib/storage.js`
+- Added `kvZrem(key, member)` — removes a member from a sorted set. Upstash `zrem` with in-memory fallback.
+
+### `api/_lib/deal-storage.js`
+- Imports `kvZrange`, `kvZrem` from storage.
+- `recalcIoiCounters`: replaced `kvKeys('ioi:IOI-*')` O(N) scan with `kvZrange('ioi_index', 0, -1)` sorted-set read.
+- `seedIois`: adds each seeded IOI to `ioi_index` via `kvZadd` so the index is populated from test data seed.
+
+### `api/v2.js`
+- Imports `kvZadd`, `kvZrem` from storage.
+- Added `getAllIois()` inner helper — reads `ioi_index` sorted set, fetches all IOI records in parallel with `Promise.all`. Called by every operation that previously did `kvKeys('ioi:IOI-*')`.
+- `marketplace/ioi` (IOI creation): calls `kvZadd('ioi_index', Date.now(), ioiId)` after `kvSet` to register each new IOI in the index.
+- `admin/delete-investor`: calls `kvZrem('ioi_index', ioi.id)` alongside `kvDel` when deleting investor IOI records.
+- **Replaced all 15+ `kvKeys('ioi:IOI-*')` call sites** with `getAllIois()`: `post-nav-update`, `post-distribution`, `getApprovedIoi`, `inst/distributions`, `inst/performance`, `admin/ioi-by-deal`, `admin/deal-detail`, `admin/push-preview`, `admin/push-package`, `admin/capital-call-notify`, `admin/distribution-notify`, `admin/match-investors`, `admin/compliance-cron`, `admin/generate-statements`, `admin/generate-statements-cron`, `marketplace/my-iois`, `marketplace/deal-iois`, `admin/delete-investor`.
+- `admin/publish-deal`: replaced `kvKeys('deal:*')` scan (to clear featured flag) with `listDeals()` which already uses the `deals:index` sorted set. Uses `saveDeal` to persist changes so the index stays in sync.
+- `admin/generate-statements-cron`: moved `getAllIois()` outside the per-deal loop — fetches once, filters per deal inside the loop.
+- Added `advisor/dashboard` GET endpoint — returns `{ advisor, deals, stats }` in a single response. Fetches advisor profile and deal list in parallel via `Promise.all`. Computes `{ totalDeals, liveDeals, totalIois, totalAum }` server-side. Eliminates the need for separate sequential API calls on portal load.
+
+### `advisor-portal.html`
+- `load()`: changed initial data fetch from `op=me` to `op=dashboard`. Response shape is identical (`advisor`, `deals`) with the addition of `stats`. No changes to downstream rendering logic.
+
+---
+
 ## [2026-05-02] — Phase 3 + Phase 4 frontend: AI score card, investor matching panel, priority approvals queue, NAV update UI, performance dashboard, distribution workflow
 
 ### Phase 3 Frontend — Admin Portal (`admin-portal.html`)

@@ -1,4 +1,4 @@
-import { kvGet, kvSet, kvDel, kvKeys, zAdd, zRevRange, kvZadd } from './storage.js';
+import { kvGet, kvSet, kvDel, kvKeys, zAdd, zRevRange, kvZadd, kvZrange, kvZrem } from './storage.js';
 import { nanoid } from 'nanoid';
 
 const VALID_STAGES = new Set(['review','live','ioi','dd','terms','close','realized','killed']);
@@ -16,8 +16,8 @@ export async function appendAuditEntry(dealId, entry) {
 export async function recalcIoiCounters(dealId) {
   const deal = await kvGet(`deal:${dealId}`);
   if (!deal) return null;
-  const ioiKeys = await kvKeys('ioi:IOI-*');
-  const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+  const ioiIds = await kvZrange('ioi_index', 0, -1);
+  const allIois = (await Promise.all(ioiIds.map(id => kvGet(`ioi:${id}`)))).filter(Boolean);
   const dealIois = allIois.filter(i => i.deal_id === dealId && i.status !== 'rejected');
   deal.ioi_count = dealIois.length;
   deal.ioi_agg_usd = dealIois.reduce((s, i) => s + (i.amount || 0), 0);
@@ -311,6 +311,7 @@ export async function seedIois(force = false) {
         notes: '',
       };
       await kvSet(`ioi:${ioiId}`, ioi);
+      await kvZadd('ioi_index', new Date(ioi.submitted_at).getTime(), ioiId);
       seeded.push(ioiId);
     }
   }

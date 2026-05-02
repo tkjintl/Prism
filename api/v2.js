@@ -1,6 +1,6 @@
 import { verifyToken, signToken, signResetCode, verifyResetToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
 import { ok, bad, unauth, getCookie, setCookieHeader } from './_lib/http.js';
-import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, healthCheck, isKvUnavailable } from './_lib/storage.js';
+import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, kvZadd, kvZrem, healthCheck, isKvUnavailable } from './_lib/storage.js';
 import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, recalcIoiCounters, appendAuditEntry } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
@@ -116,6 +116,13 @@ async function _handler(req, res, resource, op) {
     return await getAdmin() || await getAdvisor() || await getInst();
   }
 
+  // Fetch all IOI records via the ioi_index sorted set — O(log N + M) vs O(N) KEYS scan.
+  // Returns an array of hydrated IOI objects (nulls filtered).
+  async function getAllIois() {
+    const ioiIds = await kvZrange('ioi_index', 0, -1);
+    return (await Promise.all(ioiIds.map(id => kvGet(`ioi:${id}`)))).filter(Boolean);
+  }
+
   // ─────────────────────────────────────────────────────────────
   // ADVISOR RESOURCE
   // ─────────────────────────────────────────────────────────────
@@ -198,6 +205,53 @@ async function _handler(req, res, resource, op) {
         return { ...deal, pushed_ioi };
       }));
       return ok(res, { advisor: sanitizeAdvisor(full), deals: enrichedDeals });
+    }
+
+    // ── dashboard — single combined load for advisor portal ──────
+    // Collapses 3 sequential round trips into 1 parallel fetch.
+    // Returns: advisor profile, enriched deals list, and aggregate stats.
+    if (op === 'dashboard') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+
+      const [full, deals] = await Promise.all([
+        kvGet(`advisor:${adv.advisor_id}`),
+        listDeals({ advisor_id: adv.advisor_id }),
+      ]);
+      if (!full) return unauth(res);
+
+      // Hydrate pushed_ioi from latest package for each deal (parallel)
+      const enrichedDeals = await Promise.all(deals.map(async deal => {
+        const pkgListKey = `packages:deal:${deal.id}`;
+        const pkgList = await kvGet(pkgListKey);
+        if (!pkgList || !pkgList.length) return deal;
+        const latestPkgId = pkgList[pkgList.length - 1];
+        const pkg = await kvGet(`package:${latestPkgId}`);
+        if (!pkg) return deal;
+        const pushed_ioi = {
+          id: pkg.packageId,
+          investor_type: pkg.iois?.[0]?.type || '',
+          investor_region: pkg.iois?.[0]?.geo || '',
+          amount: pkg.indicatedTotal || 0,
+          date: pkg.generatedAt ? new Date(pkg.generatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
+          note: pkg.admin_comment || '',
+          status: deal.pushed_ioi_status || 'pending',
+          ioi_count: pkg.iois?.length || 0,
+        };
+        return { ...deal, pushed_ioi };
+      }));
+
+      // Aggregate stats — computed server-side so the client doesn't have to
+      const totalDeals = enrichedDeals.length;
+      const liveDeals = enrichedDeals.filter(d => d.stage === 'live' || d.stage === 'ioi' || d.stage === 'dd').length;
+      const totalIois = enrichedDeals.reduce((s, d) => s + (d.ioi_count || 0), 0);
+      const totalAum  = enrichedDeals.reduce((s, d) => s + (d.ioi_agg_usd || 0), 0);
+
+      return ok(res, {
+        advisor: sanitizeAdvisor(full),
+        deals: enrichedDeals,
+        stats: { totalDeals, liveDeals, totalIois, totalAum },
+      });
     }
 
     if (op === 'deals') {
@@ -650,8 +704,7 @@ async function _handler(req, res, resource, op) {
       await appendAuditEntry(dealId, auditEntry);
 
       // Email all approved IOI holders
-      const navIoiKeys = await kvKeys('ioi:IOI-*');
-      const navAllIois = (await Promise.all(navIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const navAllIois = await getAllIois();
       const navApprovedIois = navAllIois.filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'));
       const navEmailData = { dealName: deal.name, navPerUnit: navEntry.navPerUnit, totalNavUsd: navEntry.totalNavUsd, asOfDate };
       for (const ioi of navApprovedIois) {
@@ -684,8 +737,7 @@ async function _handler(req, res, resource, op) {
       const now = new Date().toISOString();
 
       // Fetch approved IOIs to calculate per-investor shares
-      const distIoiKeys = await kvKeys('ioi:IOI-*');
-      const distAllIois = (await Promise.all(distIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const distAllIois = await getAllIois();
       const distApprovedIois = distAllIois.filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'));
 
       const perInvestorAmounts = distApprovedIois.map(ioi => {
@@ -1013,11 +1065,8 @@ async function _handler(req, res, resource, op) {
     async function getApprovedIoi(dealId, investorId) {
       const ioiId = await kvGet(`ioi_exists:${dealId}:${investorId}`);
       if (!ioiId || ioiId === 'pending' || ioiId === 'rejected') return null;
-      // ioiId is 'approved' for the dedup sentinel set by approve-ioi — look up by scan
-      // The dedup value was set to 'approved' (a string), so we need the actual IOI id.
-      // Scan ioi:IOI-* for the matching record.
-      const ioiKeys = await kvKeys('ioi:IOI-*');
-      const iois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      // dedup key is set to 'approved' (a string sentinel) — resolve via index
+      const iois = await getAllIois();
       return iois.find(i => i.deal_id === dealId && i.investor_id === investorId && i.status === 'approved') || null;
     }
 
@@ -1172,8 +1221,7 @@ async function _handler(req, res, resource, op) {
       if (!instAuth) return unauth(res);
 
       // Find all deals where this investor has an approved IOI
-      const invIoiKeys = await kvKeys('ioi:IOI-*');
-      const invAllIois = (await Promise.all(invIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const invAllIois = await getAllIois();
       const invDealIds = [...new Set(
         invAllIois
           .filter(i => i.investor_id === instAuth.inst_id && i.status === 'approved')
@@ -1210,8 +1258,7 @@ async function _handler(req, res, resource, op) {
       const instAuth = await getInst();
       if (!instAuth) return unauth(res);
 
-      const perfIoiKeys = await kvKeys('ioi:IOI-*');
-      const perfAllIois = (await Promise.all(perfIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const perfAllIois = await getAllIois();
       const approvedIois = perfAllIois.filter(i => i.investor_id === instAuth.inst_id && i.status === 'approved');
 
       let totalCommitted = 0;
@@ -1586,14 +1633,14 @@ Return ONLY valid JSON in this exact structure:
 
       // If this deal is featured, clear featured flag on all other live deals
       if (deal.featured) {
-        const allKeys = await kvKeys('deal:*');
-        await Promise.all(allKeys.map(async key => {
-          const other = await kvGet(key);
-          if (other && other.id !== dealId && other.featured) {
+        const allDeals = await listDeals();
+        await Promise.all(allDeals
+          .filter(other => other.id !== dealId && other.featured)
+          .map(async other => {
             other.featured = false;
-            await kvSet(key, other);
-          }
-        }));
+            await saveDeal(other);
+          })
+        );
       }
 
       // Audit log
@@ -1642,8 +1689,7 @@ Return ONLY valid JSON in this exact structure:
 
       const deals = await listDeals();
       // Fetch all IOIs once and bucket by deal_id
-      const ioiKeys = await kvKeys('ioi:IOI-*');
-      const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const allIois = await getAllIois();
       const ioiByDeal = {};
       for (const ioi of allIois) {
         if (!ioiByDeal[ioi.deal_id]) ioiByDeal[ioi.deal_id] = [];
@@ -1742,8 +1788,7 @@ Return ONLY valid JSON in this exact structure:
       if (!deal) return bad(res, 'Deal not found', 404);
 
       // Fetch all IOIs for this deal
-      const ioiKeys = await kvKeys('ioi:IOI-*');
-      const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const allIois = await getAllIois();
       const dealIois = allIois.filter(i => i.deal_id === dealId);
 
       const ioiTotal = dealIois.length;
@@ -1888,8 +1933,7 @@ Return ONLY valid JSON in this exact structure:
       if (!deal) return bad(res, 'Deal not found', 404);
 
       // Fetch IOIs for this deal
-      const ioiKeys = await kvKeys('ioi:IOI-*');
-      const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const allIois = await getAllIois();
       const dealIois = allIois.filter(i => i.deal_id === dealId);
       const approvedIois = dealIois.filter(i => i.status === 'approved');
 
@@ -1961,8 +2005,7 @@ Return ONLY valid JSON in this exact structure:
       if (!deal) return bad(res, 'Deal not found', 404);
 
       // Collect all IOIs for this deal
-      const ioiKeys = await kvKeys('ioi:IOI-*');
-      const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const allIois = await getAllIois();
       const dealIois = allIois.filter(i => i.deal_id === dealId);
       const approvedIois = dealIois.filter(i => i.status === 'approved');
 
@@ -2258,11 +2301,11 @@ Return ONLY valid JSON in this exact structure:
       if (inst.code) { await kvDel(`inst_code:${inst.code}`); keysRemoved++; }
 
       // Delete all IOI records belonging to this investor
-      const delIoiKeys = await kvKeys('ioi:IOI-*');
-      const delAllIois = (await Promise.all(delIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const delAllIois = await getAllIois();
       const investorIois = delAllIois.filter(i => i.investor_id === investorId);
       for (const ioi of investorIois) {
         await kvDel(`ioi:${ioi.id}`); keysRemoved++;
+        await kvZrem('ioi_index', ioi.id);
         await kvDel(`ioi_exists:${ioi.deal_id}:${investorId}`); keysRemoved++;
         await recalcIoiCounters(ioi.deal_id);
       }
@@ -2297,8 +2340,7 @@ Return ONLY valid JSON in this exact structure:
 
       let ccTargetIds = investorIds;
       if (!ccTargetIds?.length) {
-        const ccIoiKeys = await kvKeys('ioi:IOI-*');
-        const ccAllIois = (await Promise.all(ccIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+        const ccAllIois = await getAllIois();
         ccTargetIds = ccAllIois
           .filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'))
           .map(i => i.investor_id);
@@ -2330,8 +2372,7 @@ Return ONLY valid JSON in this exact structure:
 
       let distTargetIds = investorIds;
       if (!distTargetIds?.length) {
-        const distIoiKeys = await kvKeys('ioi:IOI-*');
-        const distAllIois = (await Promise.all(distIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+        const distAllIois = await getAllIois();
         distTargetIds = distAllIois
           .filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'))
           .map(i => i.investor_id);
@@ -2406,8 +2447,7 @@ Return ONLY valid JSON in this exact structure:
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
 
-      const matchIoiKeys = await kvKeys('ioi:IOI-*');
-      const matchAllIois = (await Promise.all(matchIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const matchAllIois = await getAllIois();
       const dealIois = matchAllIois.filter(i => i.deal_id === dealId);
       const existingIoiByInvestor = {};
       for (const ioi of dealIois) {
@@ -2491,8 +2531,7 @@ Return ONLY valid JSON in this exact structure:
       const compInvestors = (await Promise.all(compInstKeys.map(k => kvGet(k)))).filter(Boolean);
 
       // Fetch all IOIs once to check which investors have active IOIs
-      const compIoiKeys = await kvKeys('ioi:IOI-*');
-      const compAllIois = (await Promise.all(compIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const compAllIois = await getAllIois();
       const investorWithActiveIoi = new Set(
         compAllIois
           .filter(i => i.status === 'approved' || i.status === 'pending')
@@ -2575,8 +2614,7 @@ Return ONLY valid JSON in this exact structure:
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
 
-      const stmtIoiKeys = await kvKeys('ioi:IOI-*');
-      const stmtAllIois = (await Promise.all(stmtIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const stmtAllIois = await getAllIois();
       const stmtApproved = stmtAllIois.filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'));
 
       const now = new Date();
@@ -2670,9 +2708,9 @@ Return ONLY valid JSON in this exact structure:
       let totalGenerated = 0;
       const dealResults = [];
 
+      // Fetch all IOIs once outside the per-deal loop to avoid redundant round trips
+      const cronStmtAllIois = await getAllIois();
       for (const deal of targetDeals) {
-        const cronStmtIoiKeys = await kvKeys('ioi:IOI-*');
-        const cronStmtAllIois = (await Promise.all(cronStmtIoiKeys.map(k => kvGet(k)))).filter(Boolean);
         const cronApproved = cronStmtAllIois.filter(i => i.deal_id === deal.id && i.status === 'approved' && i.investor_id.startsWith('inv-'));
 
         let dealStatementCount = 0;
@@ -2821,6 +2859,8 @@ Return ONLY valid JSON in this exact structure:
         submitted_at: new Date().toISOString(),
       };
       await kvSet(`ioi:${ioiId}`, ioi);
+      // Register in sorted set index (score = submission time ms)
+      await kvZadd('ioi_index', Date.now(), ioiId);
       // dedupKey was already set to 'pending' atomically above via kvSetnx
       // Increment deal counters
       // Recalculate IOI counters from live records — single source of truth
@@ -2880,8 +2920,8 @@ Return ONLY valid JSON in this exact structure:
       const auth = await getAnyAuth();
       if (!auth) return unauth(res);
       const investorId = auth.inst_id || auth.advisor_id || auth.email;
-      const keys = await kvKeys('ioi:IOI-*');
-      const iois = (await Promise.all(keys.map(k => kvGet(k)))).filter(i => i && i.investor_id === investorId);
+      const allIoiRecords = await getAllIois();
+      const iois = allIoiRecords.filter(i => i.investor_id === investorId);
       return ok(res, { iois });
     }
 
@@ -2889,9 +2929,8 @@ Return ONLY valid JSON in this exact structure:
       const admin = await getAdmin();
       if (!admin) return unauth(res);
       const { deal_id } = req.query;
-      const keys = await kvKeys('ioi:IOI-*');
-      const all = await Promise.all(keys.map(k => kvGet(k)));
-      const iois = all.filter(i => i && (!deal_id || i.deal_id === deal_id));
+      const allIoisList = await getAllIois();
+      const iois = allIoisList.filter(i => !deal_id || i.deal_id === deal_id);
       return ok(res, { iois });
     }
   }

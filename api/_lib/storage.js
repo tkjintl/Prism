@@ -110,6 +110,17 @@ export async function kvZadd(key, score, member) {
   return zAdd(key, score, member);
 }
 
+// Remove a member from a sorted set
+export async function kvZrem(key, member) {
+  const r = getRedis();
+  if (r) { try { return await r.zrem(key, member); } catch { /* fall through */ } }
+  const raw = _mem.get(key);
+  if (!raw) return 0;
+  const arr = JSON.parse(raw).filter(x => x.member !== member);
+  _mem.set(key, JSON.stringify(arr));
+  return 1;
+}
+
 // Range query for audit sorted set — returns members in score order (ascending by default)
 export async function kvZrange(key, start, stop, opts = {}) {
   const r = getRedis();

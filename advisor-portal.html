@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
 <style>
 :root {
   --bg:#F7F5F1;--bg-2:#FFFFFF;--bg-3:#EFECE6;--surface:#FFFFFF;
@@ -835,16 +835,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <!-- Notification panel outside nav for correct stacking context -->
 <div id="notif-backdrop" onclick="toggleNotifPanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);z-index:999;animation:fadeIn .18s ease"></div>
-<div class="notif-panel" id="notif-panel">
+<div class="notif-panel" id="notif-panel" role="region" aria-labelledby="notif-panel-title-adv">
   <div class="notif-panel-hdr">
-    <span class="notif-panel-title">Notifications</span>
+    <span class="notif-panel-title" id="notif-panel-title-adv">Notifications</span>
     <button class="notif-mark-all" onclick="markAllNotifRead()">Mark all read</button>
   </div>
   <div class="notif-list" id="notif-list"><div class="notif-empty">No notifications</div></div>
 </div>
 
 <!-- ══ REVIEW NOTIFICATION OVERLAY ══ -->
-<div id="review-notify-overlay" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,9,8,.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;animation:fadeIn .3s ease">
+<div id="review-notify-overlay" role="dialog" aria-modal="true" aria-labelledby="rno-title" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,9,8,.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;animation:fadeIn .3s ease">
   <div id="review-notify-box" style="max-width:520px;width:90%;background:var(--surface);border:1px solid var(--gold-bd);border-radius:var(--r);padding:0;overflow:hidden">
     <div style="background:linear-gradient(135deg,var(--bg-2),var(--bg-3));padding:32px 36px 24px;border-bottom:1px solid var(--border)">
       <div style="font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Action Required</div>
@@ -2690,10 +2690,32 @@ async function wizHandleFile(slot,input){
   }
 }
 
+/* ── FOCUS TRAP UTILITY ── */
+const FOCUSABLE_SEL='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+function trapFocus(modalEl){
+  const prev=document.activeElement;
+  const getFocusable=()=>Array.from(modalEl.querySelectorAll(FOCUSABLE_SEL)).filter(el=>el.offsetParent!==null);
+  const onKeyDown=e=>{
+    if(e.key!=='Tab')return;
+    const els=getFocusable();if(!els.length)return;
+    const first=els[0],last=els[els.length-1];
+    if(e.shiftKey){if(document.activeElement===first){e.preventDefault();last.focus();}}
+    else{if(document.activeElement===last){e.preventDefault();first.focus();}}
+  };
+  modalEl.addEventListener('keydown',onKeyDown);
+  const first=getFocusable()[0];if(first)first.focus();
+  return function releaseFocus(){
+    modalEl.removeEventListener('keydown',onKeyDown);
+    if(prev&&prev.focus)prev.focus();
+  };
+}
+let _reviewOverlayRelease=null;
+
 /* ── REVIEW OVERLAY ── */
 function dismissReviewOverlay(goToReview){
   const el=document.getElementById('review-notify-overlay');
   if(el)el.style.display='none';
+  if(_reviewOverlayRelease){_reviewOverlayRelease();_reviewOverlayRelease=null;}
   if(goToReview&&_pendingReviewDealId){
     const idx=DEALS.findIndex(x=>x.id===_pendingReviewDealId);
     if(idx>=0){
@@ -3130,7 +3152,7 @@ async function load(){
     if(firmEl)firmEl.textContent=me.firm||'';
     renderDashboard(); // refresh hero with real name immediately
 
-    const d=await fetchSilent('/api/v2?resource=advisor&op=me');
+    const d=await fetchSilent('/api/v2?resource=advisor&op=dashboard');
     if(d?.ok){
       // Refine nav with full advisor profile
       if(d.advisor){
