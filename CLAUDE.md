@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Aurum — Command Center
 
 Two platforms in parallel:
-- **Aurum Kilo**: invite-only investment platform, physical gold (1kg LBMA) + private credit, 100 founding members, Singapore VCC, Q3 2026 first close
+- **Aurum Prism**: invite-only deal-flow platform connecting deal advisors with institutional investors. Operated by TACC Pte Ltd, Singapore. Roles: operator (admin), advisor, investor. Lifecycle: review → live/ioi → dd → terms → close → realized/killed.
 - Platform 2: TBD
 
 Non-technical operator. Always summarize in plain English. Bias toward action.

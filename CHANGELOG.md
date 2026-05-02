@@ -4,6 +4,26 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Aurum Prism rebrand cleanup: agents, CLAUDE.md, landing page perf
+
+### `index.html`
+- Restored from commit `5009ee2` (the last clean Aurum Prism · Private Deal Platform version). The Aurum Kilo / physical-gold-VCC copy that had been silently introduced by commit `9be214d` (whose message claimed only perf/a11y changes) is now gone. Title, meta description, hero, How It Works, footer, legal disclaimer all back to deal-platform copy.
+- Re-applied the legitimate perf items from `9be214d`: added `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`; canvas particle count 80 → 40; `prefers-reduced-motion` gate on the canvas animation (single static draw for reduced-motion users; live `change` listener resumes animation if the OS setting is toggled mid-session).
+
+### `CLAUDE.md`
+- Platform 1 description rewritten — was "physical gold (1kg LBMA) + private credit, 100 founding members, Singapore VCC, Q3 2026 first close" (Aurum Kilo content under a Prism label); now reads as "invite-only deal-flow platform connecting deal advisors with institutional investors. Operated by TACC Pte Ltd, Singapore. Roles: operator (admin), advisor, investor. Lifecycle: review → live/ioi → dd → terms → close → realized/killed."
+
+### `.claude/agents/*.md`
+- All 6 agent definitions rewritten to fit the actual platform (Aurum Prism deal-flow, not the Aurum Kilo gold fund) and the actual stack (Vanilla JS HTML SPAs + Vercel Functions + Upstash Redis, not Next.js + Postgres + Prisma).
+- `build.md` — stack corrected; routing pattern (single `api/v2.js` handler, `kv*` helpers, `appendAuditEntry`) called out so spawned agents extend rather than fork.
+- `ui.md` — stack corrected; brand tokens corrected to actual values (`--gold:#C5A572`); cross-portal sync rule added.
+- `connect.md` — Singapore Freeport / LBMA gold / bank credit-line integrations removed; replaced with the actual stub-until-env-var integrations (Resend, Upstash, Vercel Blob, DocuSign, Onfido, Sentry, Anthropic via AI Gateway).
+- `review.md` — NAV/LTV critical-path replaced with auth, deal lifecycle, IOI integrity, cross-portal sync, email triggers.
+- `strategy.md` — Aurum Century Club / The Kilo / gold-collateralized-credit context replaced with deal-flow platform context (US + Asia, family offices and sovereign funds).
+- `write.md` — "Kilo deck" voice reference replaced with platform register guidance; explicit instruction to update both HTML and plaintext email templates.
+
+---
+
 ## [2026-05-02] — Investor portal wordmark: failed-revert cleanup
 
 ### `investor-portal.html`
