@@ -2463,7 +2463,7 @@ function renderOverview(){
         <span>Action Queue</span>
         <span class="ov-collapsible-arrow" id="ov-s1-arrow">&#9660;</span>
       </div>
-      <div class="ov-collapsible-body closed" id="ov-s1">
+      <div class="ov-collapsible-body ${window.innerWidth>768?'open':'closed'}" id="ov-s1">
         <div style="padding:16px 0">
           <div class="ov-queue-grid">
             ${queueCol('ov-dot-amber','New Deals',submissionCards)}
@@ -2479,7 +2479,7 @@ function renderOverview(){
         <span>Deal Pipeline</span>
         <span class="ov-collapsible-arrow" id="ov-s2-arrow">&#9660;</span>
       </div>
-      <div class="ov-collapsible-body closed" id="ov-s2">
+      <div class="ov-collapsible-body ${window.innerWidth>768?'open':'closed'}" id="ov-s2">
         <div style="padding:16px 0">
           <div class="ov-stage-section" style="margin-bottom:0">
             <div class="ov-section-hd">
@@ -2496,7 +2496,7 @@ function renderOverview(){
         <span>Team Access</span>
         <span class="ov-collapsible-arrow" id="ov-s3-arrow">&#9660;</span>
       </div>
-      <div class="ov-collapsible-body closed" id="ov-s3">
+      <div class="ov-collapsible-body ${window.innerWidth>768?'open':'closed'}" id="ov-s3">
         <div style="padding:16px 0">
           <div class="ov-signup-grid" style="margin-top:0">
             <div class="ov-panel">
@@ -2516,7 +2516,7 @@ function renderOverview(){
         <span>Activity</span>
         <span class="ov-collapsible-arrow" id="ov-s4-arrow">&#9660;</span>
       </div>
-      <div class="ov-collapsible-body closed" id="ov-s4">
+      <div class="ov-collapsible-body ${window.innerWidth>768?'open':'closed'}" id="ov-s4">
         <div style="padding:16px 0">
           <div class="ov-bottom-grid">
             <div class="ov-panel">
