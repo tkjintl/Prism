@@ -484,7 +484,62 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   .foot-sg{text-align:left}
   /* Member-tier <a> tap target safety (if/when used) */
   a.tier-cta{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+
+  /* ── TIER CARDS → SWIPEABLE CAROUSEL (mobile only) ── */
+  .tiers-grid{
+    display:flex!important;
+    grid-template-columns:none!important;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    scroll-behavior:smooth;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    gap:14px;
+    padding:8px 20px 4px;
+    margin:48px -20px 0;
+  }
+  .tiers-grid::-webkit-scrollbar{display:none}
+  .tiers-grid > .tier{
+    flex:0 0 calc(100% - 40px);
+    scroll-snap-align:center;
+    scroll-snap-stop:always;
+    padding:28px 24px;
+  }
+  /* Card 1 — Institutional: warmer gold-tinted */
+  .tiers-grid > .tier:nth-child(1){
+    background:linear-gradient(180deg,rgba(212,175,99,.07) 0%,rgba(0,0,0,.42) 100%)!important;
+    border:1px solid rgba(197,165,114,.42)!important;
+  }
+  .tiers-grid > .tier:nth-child(1) .tier-watermark{color:rgba(197,165,114,.07)}
+  /* Card 2 — HNW & Private: subtle blue-violet tint */
+  .tiers-grid > .tier:nth-child(2){
+    background:linear-gradient(180deg,rgba(120,140,200,.07) 0%,rgba(0,0,0,.42) 100%)!important;
+    border:1px solid rgba(120,140,200,.32)!important;
+  }
+  .tiers-grid > .tier:nth-child(2) .tier-badge.inst{
+    color:#8da4d8;border-color:rgba(141,164,216,.34);background:rgba(141,164,216,.07);
+  }
+  .tiers-grid > .tier:nth-child(2) .tier-watermark{color:rgba(141,164,216,.07)}
+
+  /* Pagination dots */
+  .tiers-dots{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    margin-top:18px;
+  }
+  .tiers-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:rgba(197,165,114,.22);
+    border:none;padding:0;cursor:pointer;
+    transition:background .22s,transform .22s,width .22s;
+  }
+  .tiers-dot.on{background:var(--gold);transform:scale(1.4)}
 }
+/* Hide pagination dots on desktop */
+@media (min-width:769px){.tiers-dots{display:none}}
 
 /* Top-nav rework (≤640px): suppress the salesy gold CTA, surface Member Login */
 @media (max-width:640px){
@@ -1142,6 +1197,10 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
       <div class="tier-watermark">§</div>
     </div>
   </div>
+  <div class="tiers-dots" aria-hidden="true">
+    <button type="button" class="tiers-dot on" data-idx="0" aria-label="Show institutional tier"></button>
+    <button type="button" class="tiers-dot" data-idx="1" aria-label="Show private tier"></button>
+  </div>
 </section>
 
 <!-- REQUEST ACCESS FORM -->
@@ -1401,6 +1460,26 @@ async function submitForm(){
   document.querySelectorAll('.cat-opt').forEach(el=>{el.style.background='transparent';el.style.borderColor='var(--goldBd)';el.style.color='var(--sub)';});
   if(btn){btn.disabled=false;btn.textContent='Submit Application →';}
 }
+
+/* ── Tier carousel: pagination dot sync + tap-to-scroll (mobile only) ── */
+(function(){
+  var grid=document.querySelector('.tiers-grid');
+  var dots=document.querySelectorAll('.tiers-dots .tiers-dot');
+  if(!grid||!dots.length)return;
+  function active(){
+    var w=grid.clientWidth;if(!w)return 0;
+    return Math.round(grid.scrollLeft/w);
+  }
+  function sync(){
+    var i=Math.max(0,Math.min(dots.length-1,active()));
+    dots.forEach(function(d,k){d.classList.toggle('on',k===i)});
+  }
+  var t;grid.addEventListener('scroll',function(){clearTimeout(t);t=setTimeout(sync,40)},{passive:true});
+  dots.forEach(function(d,k){d.addEventListener('click',function(){
+    grid.scrollTo({left:k*grid.clientWidth,behavior:'smooth'});
+  })});
+  window.addEventListener('resize',sync);sync();
+})();
 </script>
 </body>
 </html>

@@ -4,6 +4,22 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Mobile landing polish v5 — tier cards swipe carousel (`index.html`)
+
+Two flat black tier cards stacked vertically read as dull and identical on mobile. Operator brief: convert to swipeable carousel with pagination dots, differentiate the two cards visually, restrained tone (private bank, not casino). Mobile only, desktop untouched.
+
+- **Carousel via CSS scroll-snap** — inside `@media (max-width:768px)`, `.tiers-grid` switches to `display:flex` with `overflow-x:auto`, `scroll-snap-type:x mandatory`, `scroll-behavior:smooth`, hidden scrollbar. Cards become `flex:0 0 calc(100% - 40px)` with `scroll-snap-align:center`. Negative horizontal margin (`margin:48px -20px 0`) + matching `padding:8px 20px 4px` lets cards bleed to the edge while the section's 20px padding stays intact — no horizontal page overflow.
+- **Pagination dots** — added `<div class="tiers-dots">` with two `<button class="tiers-dot">` elements after `.tiers-grid` inside `#access`. Gold (`var(--gold)` active, `rgba(197,165,114,.22)` inactive), 6×6px, scaled 1.4× when active. Hidden on desktop via `@media (min-width:769px){.tiers-dots{display:none}}`.
+- **~15 lines of vanilla JS** at the end of the script tag — IIFE that watches `.tiers-grid` scroll position (debounced 40ms), computes active card index from `scrollLeft / clientWidth`, toggles `.on` on the matching dot. Dots are also click-targets (`scrollTo({left:k*clientWidth,behavior:'smooth'})`). No-op on desktop because the grid never gets `overflow-x:auto`.
+- **Card differentiation (mobile only, via `:nth-child` inside the ≤768px block)**:
+  - Card 1 (Institutional): `linear-gradient(180deg,rgba(212,175,99,.07),rgba(0,0,0,.42))`, gold border `rgba(197,165,114,.42)` — warmer, slightly more visible than baseline.
+  - Card 2 (HNW & Private): `linear-gradient(180deg,rgba(120,140,200,.07),rgba(0,0,0,.42))`, blue-violet border `rgba(120,140,200,.32)`, badge recolored `#8da4d8` to match the tint. Pill stays subtle.
+  - Watermark `§` recolored on each card to match its tint at 7% alpha. Subtle gradients only — no glow, no shadow burst.
+- **Selectors used**: `.tiers-grid` (parent), `.tier` (cards), `.tier-cta-card`, `.tier-watermark`, `.tier-badge.inst`. New: `.tiers-dots`, `.tiers-dot`, `.tiers-dot.on`. No existing class names changed; desktop tier styling at lines 219–243 is fully preserved.
+- Verified at 390×844: one card per viewport, ~20px gold/blue rim of next card peeks at the right edge as a swipe affordance, snap-to-center is solid, dots track scroll position, no horizontal overflow on `<html>`/`<body>`, CTAs inside cards remain tappable (44px min-height already enforced).
+
+---
+
 ## [2026-05-02] — Mobile landing polish v4 — hero copy + prism position (`index.html`)
 
 Two operator tweaks following v3, mobile-only.
