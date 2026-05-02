@@ -456,10 +456,12 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
    - Form rows stack, footer rows stack, toast legible, safe-area padding
 ═══════════════════════════════════════════════════════════════════ */
 @media (max-width:768px){
-  /* Notched iPhone safe-area padding for fixed nav */
-  nav{padding-top:env(safe-area-inset-top)}
-  /* Hero vertical rhythm: less above the wordmark, more compression below */
-  .hero-left{padding:64px 24px 28px!important;min-height:auto!important}
+  /* Notched iPhone safe-area padding for fixed nav + breathing room above items */
+  nav{padding-top:calc(env(safe-area-inset-top) + 10px)!important;padding-bottom:8px!important}
+  /* Hide the entire secondary nav row (Platform / Access Tiers) on mobile */
+  .n-links{display:none!important}
+  /* Hero vertical rhythm: clear left/right padding so wordmark isn't clipped, tighter below */
+  .hero-left{padding:96px 28px 28px!important;min-height:auto!important}
   .hero-eyebrow{margin-bottom:18px}
   .hero-eyebrow-rule{margin-top:10px}
   .hero-label{margin-bottom:18px}
@@ -486,20 +488,24 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   nav .btn-nav:not(.ghost){display:none!important}
   /* Re-show Member Login (was display:none earlier in this file) */
   .btn-nav.ghost{display:inline-flex!important;align-items:center;justify-content:center}
-  /* Make Member Login readable + tappable */
+  /* Member Login: quiet utility link — small, tight, ~38px tappable */
   nav .btn-nav.ghost{
-    font-size:11px!important;
-    letter-spacing:.14em!important;
-    padding:10px 16px!important;
-    min-height:44px;
-    color:var(--gold)!important;
-    border-color:var(--goldBdS)!important;
-    background:var(--goldW);
+    font-size:10px!important;
+    letter-spacing:.12em!important;
+    padding:8px 12px!important;
+    min-height:38px!important;
+    height:38px;
+    color:var(--goldD)!important;
+    border-color:var(--goldBd)!important;
+    background:transparent!important;
     margin-left:0!important;
     align-self:center;
+    line-height:1;
   }
-  /* Slightly larger row-2 nav links for tap */
-  .n-link{font-size:9px!important;height:44px!important}
+}
+/* Override the global ≤768px tap-target rule that forces 44px on .btn-nav */
+@media (max-width:768px) and (hover:none) and (pointer:coarse){
+  .btn-nav.ghost{min-height:38px!important}
 }
 
 /* Mobile body CTA reduction (≤768px) — operator brief:

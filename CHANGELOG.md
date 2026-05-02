@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Mobile landing polish v2 (`index.html`)
+
+Operator review on iPhone 14 (390×844) flagged Member Login pill too loud, nav touching the notch, redundant second nav row, and "AURUM | PRISM" wordmark clipped at left edge. All fixes scoped to mobile media queries; desktop untouched.
+
+- **Member Login pill** shrunk from 11px / 44px-min to 10px / 38px height, padding 8px×12px, transparent background, muted gold (`--goldD`) — reads as a quiet utility link, no longer competes with content as a primary CTA.
+- **Notched safe-area** fixed: `nav` `padding-top: calc(env(safe-area-inset-top) + 10px)` plus 8px bottom padding so the pill never kisses the viewport top, and the nav has visible breathing room on regular mobile too.
+- **Second nav row removed** on ≤768px — `.n-links` (Platform / Access Tiers) hidden entirely. Single-row nav: wordmark + Member Login only.
+- **Hero left padding** increased from 24px to 28px and top from 64px to 96px so the 32px italic-ish "AURUM | PRISM" wordmark has clear margin on both sides and sits below the nav with air before the eyebrow pill (compression below the wordmark preserved from v1).
+- Added a guard rule in `(max-width:768px) and (hover:none) and (pointer:coarse)` so the global 44px tap-target floor on `.btn-nav` doesn't override the new 38px Member Login height.
+
 ## [2026-05-02] — Mobile landing page polish (`index.html`)
 
 Tone target: private bank register, not SaaS funnel. All changes scoped to `@media (max-width:768px)` / `≤640px`. Desktop untouched.
