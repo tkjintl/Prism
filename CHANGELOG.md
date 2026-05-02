@@ -4,6 +4,14 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Investor portal wordmark: failed-revert cleanup
+
+### `investor-portal.html`
+- Top-left brand block restored to match admin/advisor exactly. Eyebrow `TACC Pte Ltd · Singapore` → `A TACC Platform`. Brand name `Aurum | Kilo` → `Aurum | Prism`. Leftover from the reverted Aurum Kilo rebrand (`0d4c82b`). Wordmark CSS classes (`.nav-wordmark`, `.nav-wm-tacc`, `.nav-wm-name`, `.nav-wm-aurum`, `.nav-wm-rule`, `.nav-wm-prism`) are byte-identical across all three portals — no CSS change needed.
+- Advisor portal wordmark already matched admin (no change).
+
+---
+
 ## [2026-05-02] — Phase 5 frontend: performance, accessibility, and design token consolidation
 
 ### `advisor-portal.html`
