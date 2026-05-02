@@ -3823,11 +3823,11 @@ load();
 
 /* ── MOBILE FULL-PANE HERO: prism + greeting fills viewport on startup ── */
 @media(max-width:768px){
-  /* Hero fills the full viewport */
+  /* Hero: full-viewport flex column, everything centered */
   #dash-hero-static{
     display:flex!important;
     flex-direction:column!important;
-    align-items:center!important;
+    align-items:stretch!important;
     justify-content:center!important;
     height:100svh!important;
     height:100vh!important;
@@ -3835,37 +3835,61 @@ load();
     min-height:100vh!important;
     padding:0!important;
     gap:0!important;
+    grid-template-columns:none!important;
   }
 
-  /* Prism: large, centered, takes ~52% of viewport */
+  /* Prism: full-width flex row centered, ~50% of viewport height */
   .dhs-visual{
     order:-1!important;
     display:flex!important;
+    flex-direction:row!important;
     align-items:center!important;
     justify-content:center!important;
     width:100%!important;
-    flex:0 0 52svh!important;
-    flex:0 0 52vh!important;
+    flex:0 0 50vh!important;
+    flex:0 0 50svh!important;
     min-height:0!important;
     max-height:none!important;
     padding:0!important;
     background:none!important;
+    position:relative!important;
   }
+  /* Inner prism container: 15% larger than before (300px vs 260px) */
   .dhs-vis-inner{
-    width:min(260px,76vw)!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:min(300px,88vw)!important;
+    margin:0 auto!important;
+    position:relative!important;
     gap:0!important;
   }
   .dhs-prism-wrap{
     width:100%!important;
+    display:block!important;
+  }
+  .dhs-prism-svg{
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
   }
   .dhs-ring-float{display:none!important}
-  .dhs-action-badge{display:none!important}
+  /* Action badge: JS sets display:flex via inline style, override with absolute pos centred */
+  #dhs-action-badge{
+    position:absolute!important;
+    top:8px!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    white-space:nowrap!important;
+  }
 
-  /* Left: centered text block, only greeting visible */
+  /* Left text block: centered, only eyebrow + headline + firm visible */
   .dhs-left{
+    order:0!important;
     flex:0 0 auto!important;
     width:100%!important;
-    padding:0 24px clamp(32px,6svh,64px)!important;
+    padding:0 24px clamp(28px,5svh,56px)!important;
     display:flex!important;
     flex-direction:column!important;
     align-items:center!important;
@@ -3873,21 +3897,23 @@ load();
     text-align:center!important;
   }
   .dhs-eyebrow{
+    width:100%!important;
     justify-content:center!important;
-    margin-bottom:18px!important;
+    margin-bottom:16px!important;
   }
   .dhs-headline{
+    width:100%!important;
     font-size:clamp(34px,9.5vw,56px)!important;
     text-align:center!important;
-    margin-bottom:8px!important;
-    max-width:none!important;
+    margin-bottom:6px!important;
   }
   .dhs-firm{
+    width:100%!important;
     text-align:center!important;
     margin-bottom:0!important;
   }
 
-  /* Hide everything below greeting in the hero — visible in scrolled dashboard */
+  /* Hide secondary content — shows when scrolling into dash-root */
   #dhs-tagline,
   #dhs-stats,
   .dhs-actions,
@@ -3896,26 +3922,26 @@ load();
     display:none!important;
   }
 
-  /* Scroll indicator — subtle chevron at bottom of hero */
+  /* Scroll chevron hint at bottom of hero */
   #dash-hero-static::after{
-    content:'';
+    content:''!important;
     position:absolute!important;
-    bottom:22px!important;
+    bottom:20px!important;
     left:50%!important;
-    transform:translateX(-50%)!important;
-    width:18px!important;
-    height:18px!important;
-    border-right:1.5px solid rgba(197,165,114,.45)!important;
-    border-bottom:1.5px solid rgba(197,165,114,.45)!important;
+    width:16px!important;
+    height:16px!important;
+    border-right:1.5px solid rgba(197,165,114,.5)!important;
+    border-bottom:1.5px solid rgba(197,165,114,.5)!important;
     transform:translateX(-50%) rotate(45deg)!important;
     animation:chevronBounce 2s ease-in-out infinite!important;
     background:none!important;
     background-image:none!important;
+    background-size:unset!important;
   }
 }
 @keyframes chevronBounce{
-  0%,100%{opacity:.35;transform:translateX(-50%) rotate(45deg) translateY(0)}
-  50%{opacity:.75;transform:translateX(-50%) rotate(45deg) translateY(5px)}
+  0%,100%{opacity:.3;transform:translateX(-50%) rotate(45deg) translateY(0)}
+  50%{opacity:.7;transform:translateX(-50%) rotate(45deg) translateY(6px)}
 }
 </style>
 </body>
