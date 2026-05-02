@@ -1703,7 +1703,9 @@ async function _handler(req, res, resource, op) {
       });
       if (missingOnApprove.length) return bad(res, 'Cannot approve — incomplete profile: ' + missingOnApprove.join(', '), 400);
 
-      const code = 'INST-' + generateCode();
+      // Admin can pass an explicit code (skips email + uses provided value)
+      const adminCode = (req.body?.code || '').toString().trim();
+      const code = adminCode.length > 0 ? adminCode : 'INST-' + generateCode();
       inst.status = 'approved';
       inst.code = code;
       inst.approved_at = new Date().toISOString();
