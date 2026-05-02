@@ -135,10 +135,13 @@ async function inBatches(items, size, fn) {
 export async function seedHighVolume() {
   const now = new Date().toISOString();
 
-  // ─── 30 advisors ─────────────────────────────────────────────────────
+  // ─── 5 advisors ──────────────────────────────────────────────────────
+  // Lean seed for debug-only bot testing — was 30/150/400/~1500 (≈3.5K Redis ops
+  // per reset), now 5/15/25/~50 (≈250 ops). Bots can still surface every code
+  // path; smaller volume just means lower burn against the Upstash quota.
   const sharedAdvisorPwHash = await bcrypt.hash('TestPass123!', 12);
   const advisors = [];
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 5; i++) {
     const firmBase = ADVISOR_FIRM_NAMES[i % ADVISOR_FIRM_NAMES.length];
     const idx = Math.floor(i / ADVISOR_FIRM_NAMES.length); // suffix counter to keep emails unique
     const slug = firmBase.toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -162,10 +165,10 @@ export async function seedHighVolume() {
     await kvSet(`advisor_email:${a.email}`, a.id);
   });
 
-  // ─── 150 investors (100 institutional, 50 hnw) ──────────────────────
+  // ─── 15 investors (10 institutional, 5 hnw) ─────────────────────────
   const investors = [];
-  for (let i = 0; i < 150; i++) {
-    const isInst = i < 100;
+  for (let i = 0; i < 15; i++) {
+    const isInst = i < 10;
     const id = `inv-bot-${String(i + 1).padStart(3, '0')}`;
     const firmName = (isInst
       ? `${pick(['Atlas', 'Meridian', 'Sterling', 'Hargrove', 'Westbrook', 'Pinehurst', 'Ravenscroft', 'Helvetia', 'Magellan', 'Brunswick'])} ${pick(['Capital', 'Asset Management', 'Endowment', 'Fund', 'Partners'])}`
@@ -195,16 +198,16 @@ export async function seedHighVolume() {
     await kvSet(`inst_code:${inv.code}`, inv.id);
   });
 
-  // ─── 400 deals across stage distribution ─────────────────────────────
-  // 80 review, 200 live/ioi, 60 dd, 30 terms, 20 close, 10 realized
+  // ─── 25 deals across stage distribution ──────────────────────────────
+  // 5 review, 8 live, 5 ioi, 3 dd, 2 terms, 1 close, 1 realized
   const stagePlan = [
-    ...Array(80).fill('review'),
-    ...Array(100).fill('live'),
-    ...Array(100).fill('ioi'),
-    ...Array(60).fill('dd'),
-    ...Array(30).fill('terms'),
-    ...Array(20).fill('close'),
-    ...Array(10).fill('realized'),
+    ...Array(5).fill('review'),
+    ...Array(8).fill('live'),
+    ...Array(5).fill('ioi'),
+    ...Array(3).fill('dd'),
+    ...Array(2).fill('terms'),
+    ...Array(1).fill('close'),
+    ...Array(1).fill('realized'),
   ];
   // Shuffle for varied deal IDs/timing
   for (let i = stagePlan.length - 1; i > 0; i--) {
@@ -293,7 +296,7 @@ export async function seedHighVolume() {
   const ioiSpecs = [];
   for (const deal of deals) {
     if (!ioiTargetStages.has(deal.stage)) continue;
-    const count = randInt(2, 8);
+    const count = randInt(1, 3);
     const usedInvestors = new Set();
     for (let k = 0; k < count; k++) {
       // Avoid duplicate investor per deal
