@@ -1540,92 +1540,21 @@ a{color:inherit;text-decoration:none}
   .hero-stat { border-left: none !important; border-right: none !important; padding-left: 0 !important; margin-left: 0 !important; }
 }
 
-/* ── MOBILE FULL-PANE HERO: investor portal — prism + greeting fills viewport ── */
+/* ── GREETING: large serif headline matching advisor portal ── */
 @media(max-width:768px){
-  /* Hero fills full available height below nav — deal content stays below fold */
-  .lobby-hero{
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    height:calc(100svh - var(--nav-h))!important;
-    height:calc(100vh - var(--nav-h))!important;
-    min-height:0!important;
-    overflow:hidden!important;
-    grid-template-columns:none!important;
-    padding:0!important;
-    position:relative!important;
-  }
-
-  /* Prism: first, large — ~46% of available height */
-  .hero-visual{
-    order:-1!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    width:100%!important;
-    flex:0 0 46vh!important;
-    flex:0 0 46svh!important;
-    min-height:0!important;
-    max-height:none!important;
-    padding:0!important;
-    background:none!important;
-  }
-  .inv-vis-inner{
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    width:min(300px,88vw)!important;
-    margin:0 auto!important;
-    gap:0!important;
-  }
-  .prism-svg-wrap{width:100%!important;animation:prismEnter .9s .1s var(--ease) both,prismRotate 6s .9s ease-in-out infinite!important}
-  .prism-svg{display:block!important;width:100%!important;height:auto!important}
-  .inv-deal-ring{display:none!important}
-  .ring-float{display:none!important}
-  .ring-detail-card{display:none!important}
-
-  /* Greeting: second item, large centered, 2 lines (greeting / name) */
   .lobby-greeting{
-    order:1!important;
-    position:static!important;
-    display:block!important;
-    width:100%!important;
-    text-align:center!important;
-    font-family:'Cormorant Garamond',Georgia,serif!important;
-    font-style:italic!important;
-    font-size:clamp(34px,9.5vw,54px)!important;
-    font-weight:400!important;
-    line-height:1.1!important;
-    letter-spacing:-.015em!important;
-    color:var(--text)!important;
-    padding:0 20px 0!important;
-    padding-bottom:clamp(32px,6svh,64px)!important;
-    pointer-events:none!important;
-    z-index:2!important;
-  }
-  /* Greeting words ("Good evening,") stay inline — white */
-  .lobby-greeting .greet-word{
-    display:inline!important;
-    color:var(--text)!important;
-  }
-  /* Name ("James Walker") breaks to its own line in gold */
-  .lobby-greeting .greet-name{
-    display:block!important;
-    color:var(--gold-b)!important;
-    font-style:italic!important;
-    margin-top:2px!important;
-  }
-
-  /* Deal content: flows after greeting, below fold — scrolls into view */
-  .hero-content{
-    width:100%!important;
-    flex:0 0 auto!important;
-    flex-shrink:0!important;
-    padding:20px 20px 0!important;
-    justify-content:flex-start!important;
+    font-family:'Cormorant Garamond',Georgia,serif !important;
+    font-style:italic !important;
+    font-size:clamp(36px,9vw,56px) !important;
+    font-weight:400 !important;
+    line-height:1.05 !important;
+    letter-spacing:-.015em !important;
+    color:var(--text) !important;
+    padding:clamp(20px,4vh,40px) 20px 0 !important;
+    position:static !important;
+    pointer-events:none;
   }
 }
-
 </style>
 </head>
 <body>
@@ -1650,7 +1579,7 @@ a{color:inherit;text-decoration:none}
       <div class="nav-user-type" id="nav-user-type"></div>
     </div>
     <div class="nav-avatar" id="nav-avatar"></div>
-    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☾</button>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
     <button onclick="logout()" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:6px 10px;transition:color .15s;min-height:36px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
@@ -1817,7 +1746,6 @@ a{color:inherit;text-decoration:none}
 <div class="demo-badge">Investor Demo</div>
 
 <script>
-(function(){const t=localStorage.getItem('prism_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☀':'☾';})();
 /* ── API + AUTH ── */
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
@@ -2898,10 +2826,8 @@ function showClosingInstructions(dealId) {
 /* ── INIT ── */
 function toggleTheme(){
   const h=document.documentElement,dark=h.dataset.theme==='dark';
-  const next=dark?'light':'dark';
-  h.dataset.theme=next;
-  localStorage.setItem('prism_theme',next);
-  document.getElementById('theme-btn').textContent=dark?'☀':'☾';
+  h.dataset.theme=dark?'light':'dark';
+  document.getElementById('theme-btn').textContent=dark?'☾':'☀';
 }
 async function logout(){
   await fetch('/api/inst/logout',{method:'POST',credentials:'include'});
