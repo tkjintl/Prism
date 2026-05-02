@@ -4,56 +4,6 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
-## [2026-05-02] — Aurum Kilo rebrand: full copy overhaul across landing page, member portal, and email templates
-
-### Brand change
-- Platform rebranded from "Aurum Prism (Private Deal Platform)" to "Aurum Kilo" — invite-only Singapore VCC physical gold fund, 100 founding members, Q3 2026 first close.
-- Register shifted throughout to private bank tone: no buzzwords, no verb-driven CTAs, no exclamation marks, no "Hi"/"Hey" salutations.
-
-### `index.html`
-- Page title, meta description, and nav wordmark updated to "Aurum Kilo".
-- Hero headline: "Physical gold. One hundred members." Sub-headline references 1kg LBMA-accredited bars, Singapore VCC structure, institutional investors.
-- Added scarcity note: "The founding cohort is limited to 100 institutional members. Applications are reviewed by invitation."
-- "How It Works" section rewritten as three fund mandate pillars: Physical Allocation (direct LBMA ownership, quarterly audit), Institutional Custody (MAS oversight, Singapore custodian), VCC Efficiency (pass-through tax, redeemable sub-funds).
-- All mock deal card IRR labels changed from "IRR" to "Target IRR" (replace_all). Detail mock labels updated to "Target IRR*".
-- CTA language: "Apply for Membership" / "Request Access". Scarcity line added below primary CTA.
-- All SaaS/marketplace/deal discovery language removed from public-facing sections.
-- Footer updated to Aurum Kilo branding.
-
-### `investor-portal.html`
-- Page title updated to "Aurum Kilo · Member Portal". Nav wordmark: "Aurum / Kilo" with "TACC Pte Ltd · Singapore".
-- Deal card IRR template: `${d.target_irr}% Target IRR` (was plain "IRR").
-- Equity scenario chart: disclaimer added — "Target returns are not guaranteed. Figures are illustrative only and based on stated targets. Past performance does not indicate future results."
-- Chart section label: "Value Path · $500K at Base Case Target IRR · N-Year Hold (Illustrative)".
-- All error/toast messages formalised: connection errors, minimum indication, document unavailability, document access failures.
-- Success toast: "Your enquiry has been submitted." (was "Question submitted").
-- Session expired modal body: formal language, no casual phrasing.
-- Portfolio greeting changed from "Welcome back," to "Your membership portfolio —".
-- Demo badge: "Member Portal" (was "Investor Demo").
-- Position sub-line: "Target IRR" qualifier added.
-- Highlight texts: "(not guaranteed)" appended to IRR references.
-- "Back to Opportunities" → "Back to Marketplace".
-
-### `api/_lib/email.js`
-- FROM address updated: `Aurum Kilo <prism@theaurumcc.com>`.
-- base() header/footer: "Aurum Kilo · Singapore Variable Capital Company"; footer includes VCC registration disclaimer.
-- IOI package header: "AURUM KILO / SINGAPORE VARIABLE CAPITAL COMPANY".
-- All templates rewritten to "Dear [Name]," salutation, formal body, "Yours sincerely, The Aurum Kilo Team" sign-off.
-- `sendAccessCode`: subject — "Your Aurum Kilo membership application — access confirmed".
-- `sendIoiConfirmation`: formal receipt acknowledgement, no casual language.
-- `sendIoiRejection`: formal decline with appreciation, no filler phrases.
-- `sendQaAnswerToInvestor`: "A response to your enquiry … is now available in your member portal."
-- `sendDistributionNotice`: "A distribution has been processed in respect of your position …"
-- `sendPasswordReset`: fully formal, no casual tone.
-- `sendQaReminder`: "enquiries" not "questions", 24-hour response expectation.
-- `sendNavUpdate`: formal salutation and sign-off.
-- `sendStatementAvailable`: formal "Dear [Name]," opening; "retain this document for your records".
-- `sendDistributionNoticeWithAmount`: subject lowercase; formal opening/sign-off; "processed in respect of your position".
-- `sendWelcomeDay2`: subject "Your Aurum Kilo membership — next steps"; content references fund mandate (physical allocation, institutional custody, member portal), not app onboarding steps.
-- `sendWelcomeDay7`: subject "Aurum Kilo — one week in"; content references founding cohort scarcity and physical gold mandate; no marketplace/deal language.
-
----
-
 ## [2026-05-02] — Phase 5 frontend: performance, accessibility, and design token consolidation
 
 ### `advisor-portal.html`
