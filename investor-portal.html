@@ -2094,7 +2094,7 @@ function applyHeroSlide(d, mode, pct, days, content) {
   const modeConfig = {
     featured:   { label: 'Featured Opportunity', urgency: pct >= 90, cls: '' },
     coming_soon:{ label: 'Coming Soon — Accepting Interest', urgency: false, cls: 'coming-soon' },
-    almost_full:{ label: `${pct}% Subscribed — Filling Fast`, urgency: pct >= 80, cls: 'almost-full' },
+    almost_full:{ label: `${pct}% Indicated — Filling Fast`, urgency: pct >= 80, cls: 'almost-full' },
   };
   const cfg = modeConfig[mode] || modeConfig.featured;
 
@@ -2329,7 +2329,7 @@ async function openDeal(id, action) {
   // Animate ring
   setTimeout(() => {
     document.getElementById('panel-ring-pct').textContent = pct + '%';
-    document.getElementById('pri-title').textContent = overSub ? 'Oversubscribed' : `${pct}% Subscribed`;
+    document.getElementById('pri-title').textContent = overSub ? 'Oversubscribed' : `${pct}% Indicated`;
     document.getElementById('pri-detail').innerHTML = `<em>${fmU(d.ioi_agg)}</em> of ${fmU(d.target_alloc)}<br>from <em>${d.ioi_count} investors</em>`;
     const r = document.getElementById('panel-ring');
     r.style.stroke = overSub ? 'var(--green)' : pct >= 80 ? 'var(--amber)' : 'var(--gold)';
