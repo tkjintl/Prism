@@ -4,6 +4,20 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Animated welcome hero: prism illustration + entrance animations
+
+### Changes
+- `advisor-portal.html` + `investor-portal.html`: Full hero animation overhaul applied to both portals.
+- Prism SVG boost: fill gradient opacity raised from ~0.035 to 0.18, outline stroke from 0.10 to 0.26, incoming beam opacity from 0.07–0.18 to 0.14–0.40. Added left/right face polygons with separate gradients for 3D depth. Spectrum rays brightened to near-full opacity with vivid hue values.
+- `prismEnter` keyframe: prism scales in from 0.88 + 24px translateY on page load, then transitions into the continuous `prismRotate` drop-shadow pulse.
+- `beamPulse`, `raySpectrum`, `vertexGlow`, `particleDrift`, `breatheGlow` all boosted — animations were previously at sub-perceptible opacity levels.
+- Ambient background glow: two radial gradients on `::before` pseudo-element (left-weighted gold) animate on a 4s `ambientPulse` loop. Grid texture on `::after` at 1.8% opacity, 60px repeating.
+- Staggered greeting entrance: greeting words injected as individual `<span>` elements with incremental `animation-delay`, name rendered in gold with extra 140ms stagger.
+- KPI counter animation: `requestAnimationFrame` count-up on numeric stats (deals count, investor count, target IRR, term). Stat rows also stagger in with `statReveal`.
+- Prism visible on mobile: removed `display:none` on `.dhs-visual` / `.hero-visual` at ≤768px. Compact 200px prism shown above text content on mobile. Ring float card hidden to keep mobile clean.
+
+---
+
 ## [2026-05-01] — 6-issue mobile audit fixes across index + admin portals
 
 ### Changes
