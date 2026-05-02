@@ -342,18 +342,35 @@ export default async function handler(req, res) {
     if (op === 'answer-qa') {
       const adv = await getAdvisor();
       if (!adv) return unauth(res);
-      const { dealId, qaId, answer } = req.body || {};
-      if (!dealId || !qaId || !answer) return bad(res, 'dealId, qaId, and answer required');
+      const { dealId, qaId, answer, broadcast, message } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
       if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      const advObj = await kvGet(`advisor:${adv.advisor_id}`);
+      const senderName = advObj?.name || advObj?.firm_name || adv.advisor_id;
       const qa = (await kvGet(`qa:${dealId}`)) || [];
+      // Broadcast / opening statement path
+      if (broadcast && message) {
+        const broadcastEntry = {
+          id: 'qa-bc-' + Date.now().toString(36),
+          type: 'advisor_open',
+          message: message.trim(),
+          sentBy: senderName,
+          sentAt: new Date().toISOString(),
+          broadcast: true,
+        };
+        qa.push(broadcastEntry);
+        await kvSet(`qa:${dealId}`, qa);
+        return ok(res, { ok: true });
+      }
+      // Standard Q&A reply path
+      if (!qaId || !answer) return bad(res, 'dealId, qaId, and answer required');
       const entry = qa.find(q => q.id === qaId);
       if (!entry) return bad(res, 'Question not found', 404);
-      const advObj = await kvGet(`advisor:${adv.advisor_id}`);
       entry.answer = answer.trim();
       entry.answeredAt = new Date().toISOString();
-      entry.answeredBy = advObj?.name || advObj?.firm_name || adv.advisor_id;
+      entry.answeredBy = senderName;
       await kvSet(`qa:${dealId}`, qa);
       return ok(res, { ok: true });
     }
