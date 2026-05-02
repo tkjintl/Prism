@@ -557,26 +557,44 @@ class AdminBot{
     if(choices.length===0)choices.push('publish');
     const pick=rand(choices);
 
+    // Soft-skip race: when another tick already moved the target, the API returns
+    // 404 ("Deal not found" / "IOI not found") or 400 ("already approved"). Treat as
+    // benign progress, not a bug. Real bugs (500, 401, etc.) still surface.
+    const softSkip=async (fn,label)=>{
+      try{return await fn();}catch(e){
+        if(e.status===404||e.status===409)return {persona:this.persona,action:`${label} (raced — target moved)`,ok:true};
+        throw e;
+      }
+    };
+
     if(pick==='publish'){
       const d=reviewDeals[reviewDeals.length-1]||recent[0];
       if(!d)return {persona:this.persona,action:'No review-stage deal to publish',ok:true};
-      await botFetch('/api/v2?resource=admin&op=publish-deal',{method:'POST',body:JSON.stringify({dealId:d.id,launch_mode:'listed',target_segments:['institutional','hnw']})});
-      return {persona:this.persona,action:`Published "${d.name}" to live`,ok:true};
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=publish-deal',{method:'POST',body:JSON.stringify({dealId:d.id,launch_mode:'listed',target_segments:['institutional','hnw']})});
+        return {persona:this.persona,action:`Published "${d.name}" to live`,ok:true};
+      },`Publish skip "${d.name}"`);
     }
     if(pick==='approve_ioi'){
       const i=pendingIois[pendingIois.length-1];
-      await botFetch('/api/v2?resource=marketplace&op=approve-ioi',{method:'POST',body:JSON.stringify({ioi_id:i.id})});
-      return {persona:this.persona,action:`Approved IOI ${i.id}`,ok:true};
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=marketplace&op=approve-ioi',{method:'POST',body:JSON.stringify({ioi_id:i.id})});
+        return {persona:this.persona,action:`Approved IOI ${i.id}`,ok:true};
+      },`Approve IOI skip ${i.id}`);
     }
     if(pick==='approve_inst'){
       const inst=pendingInsts[0];
-      await botFetch('/api/v2?resource=admin&op=approve',{method:'POST',body:JSON.stringify({inst_id:inst.id})});
-      return {persona:this.persona,action:`Approved investor ${inst.firm_name||inst.email}`,ok:true};
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=approve',{method:'POST',body:JSON.stringify({inst_id:inst.id})});
+        return {persona:this.persona,action:`Approved investor ${inst.firm_name||inst.email}`,ok:true};
+      },`Approve investor skip`);
     }
     if(pick==='push_package'){
       const d=rand(liveOrIoi);
-      await botFetch('/api/v2?resource=admin&op=push-package',{method:'POST',body:JSON.stringify({dealId:d.id,comment:'Bot-driven package push'})});
-      return {persona:this.persona,action:`Pushed package on "${d.name}" (→ DD)`,ok:true};
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=push-package',{method:'POST',body:JSON.stringify({dealId:d.id,comment:'Bot-driven package push'})});
+        return {persona:this.persona,action:`Pushed package on "${d.name}" (→ DD)`,ok:true};
+      },`Push package skip "${d.name}"`);
     }
     return {persona:this.persona,action:'No-op',ok:true};
   }
@@ -612,6 +630,8 @@ class InvestorBot{
       return {persona:this.persona,action:`IOI on "${d.name}" @ $${amt.toLocaleString()}`,ok:true};
     }catch(e){
       if(e.status===409){this.myIoiDeals.add(d.id);return {persona:this.persona,action:`IOI already exists for "${d.name}" (skipped)`,ok:true};}
+      // Soft-skip race: deal moved out of marketplace between fetch and IOI submit
+      if(e.status===404||(e.body&&/not available|deal not found/i.test(e.body.error||'')))return {persona:this.persona,action:`IOI skip "${d.name}" (raced — deal moved)`,ok:true};
       throw e;
     }
   }

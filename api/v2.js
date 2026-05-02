@@ -2957,7 +2957,15 @@ Return ONLY valid JSON in this exact structure:
       const STUCK_WINDOW_MS = 60 * 1000;
       const now = Date.now();
 
-      const orphanIois = allIois.filter(i => i.investor_id && !investorById.has(i.investor_id) && !i.investor_id.startsWith('INV-SEED-'));
+      const orphanCandidates = allIois.filter(i => i.investor_id && !investorById.has(i.investor_id) && !i.investor_id.startsWith('INV-SEED-'));
+      // Defensive: kvKeys('inst:*') can occasionally miss a recently-written key
+      // under high concurrency. Confirm orphans via direct lookup before flagging.
+      const orphanIois = [];
+      const directChecks = await Promise.all(orphanCandidates.map(async i => {
+        const direct = await kvGet(`inst:${i.investor_id}`);
+        return direct ? null : i;
+      }));
+      for (const r of directChecks) if (r) orphanIois.push(r);
       if (orphanIois.length) issues.push({
         type: 'orphan_iois', severity: 'high', count: orphanIois.length,
         samples: orphanIois.slice(0, 5).map(i => ({ ioi_id: i.id, investor_id: i.investor_id, deal_id: i.deal_id })),
