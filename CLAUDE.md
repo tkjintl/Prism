@@ -135,6 +135,7 @@ Required in Vercel Dashboard → Environment Variables (or `.env.local` for loca
 | `SITE_URL` | No trailing slash (e.g. `https://prism.theaurumcc.com`) |
 | `NOTIFY_EMAILS` | Optional — comma-separated operator alert emails |
 | `PRISM_TACC_BRIDGE_SECRET` | Optional — HMAC for `/api/deals/tacc-feed` |
+| `BOT_MODE` | Optional — set to `1` on bot-test deploys to suppress emails, mock AI scoring, allow rate-limit bypass for admin-driven bot loops |
 
 Missing `KV_*` → data stored in-memory only, lost on cold restart.
 Missing `RESEND_API_KEY` → emails logged to console.

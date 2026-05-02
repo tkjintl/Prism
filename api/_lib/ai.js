@@ -71,6 +71,49 @@ const SCORING_SYSTEM_PROMPT = `You are a private capital deal analyst for Aurum 
  * @returns {Promise<object|null>}
  */
 export async function scoreDeal(deal) {
+  // BOT_MODE — return synthetic varied score, no Anthropic call.
+  if (process.env.BOT_MODE === '1') {
+    const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const completeness_score = rand(50, 100); // 5-10 on 0-100 scale → use 50-100 to match existing 0-100 shape
+    const plausibility_score = rand(50, 90);
+    const r = Math.random();
+    const recommended_action = r < 0.6 ? 'publish' : r < 0.9 ? 'review' : 'reject';
+    const completenessFlagPool = [
+      'Hold-period field is sparse',
+      'Originator track record not detailed',
+      'Fee structure thin on specifics',
+      'Geography label is generic',
+      'Highlights array is shorter than typical',
+    ];
+    const plausibilityFlagPool = [
+      `Target IRR of ${deal.target_irr || 'N/A'}% is on the upper end for ${deal.asset_class || 'this asset class'}`,
+      'Hold period appears short relative to asset class norms',
+      'Allocation size is large relative to typical fund vintage',
+      'Target multiple implies aggressive exit assumptions',
+      'Hurdle rate is below market for this risk profile',
+    ];
+    const riskFlagPool = [
+      'Concentration risk in single geography',
+      'Dependency on continued monetary easing',
+      'Limited operational track record from sponsor',
+      'Mark-to-market exposure if held in liquid sleeve',
+      'FX exposure not hedged in base case',
+      'Refinancing risk in year 3',
+    ];
+    const pickN = (pool, n) => {
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, n);
+    };
+    return {
+      completeness_score,
+      completeness_flags: pickN(completenessFlagPool, rand(1, 3)),
+      plausibility_score,
+      plausibility_flags: pickN(plausibilityFlagPool, rand(1, 3)),
+      operator_brief: `[BOT] ${deal.name || 'Unnamed deal'}: ${deal.asset_class || 'unspecified'} opportunity in ${deal.geography || 'unspecified geography'}. Synthetic scoring only — bot mode.`,
+      recommended_action,
+      risk_flags: pickN(riskFlagPool, rand(1, 3)),
+    };
+  }
   try {
     const fields = {
       name: deal.name,

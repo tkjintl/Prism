@@ -2,6 +2,12 @@ const FROM = 'Aurum Prism <prism@theaurumcc.com>';
 const SITE = process.env.SITE_URL || 'https://prism.theaurumcc.com';
 
 async function send(to, subject, html, templateType = 'unknown') {
+  // BOT_MODE bypass — sandbox testing. Suppress all outbound mail.
+  if (process.env.BOT_MODE === '1') {
+    const recip = Array.isArray(to) ? to.join(',') : to;
+    console.log(`[BOT-MODE] email suppressed → ${recip} | ${subject}`);
+    return { ok: true, suppressed: true };
+  }
   const key = process.env.RESEND_API_KEY;
   if (!key) { console.warn('[Prism Email] No RESEND_API_KEY — email not sent:', subject, 'to', to); return; }
   const recipients = Array.isArray(to) ? to : [to];

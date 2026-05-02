@@ -4,6 +4,49 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Bot-test sandbox frontend: bot-driver.html + bot-viewer.html
+
+### `bot-driver.html` (new)
+- Admin-gated SPA that drives three bot personas (AdvisorBot / AdminBot / InvestorBot) against the sandbox endpoints. Hero counters + stage breakdown auto-refresh every 1.5s from `admin/sandbox-status`. Control strip exposes Start/Pause/Reset/Run-Audit, a 1×/5×/25×/MAX speed toggle, and per-persona checkbox toggles. Live action log capped at 200 rows with red error rows, scroll-lock + jump-to-live pill. All bot fetches send `x-bot-mode:1`. Reset modal requires typing `WIPE ALL DATA` to enable the destructive button. Audit modal renders `sandbox-summary.issues` with severity chips and click-to-expand samples. Reuses the admin-portal focus-trap pattern with `role=dialog aria-modal=true`. Per-persona auto-pause after 50 consecutive errors.
+
+### `bot-viewer.html` (new)
+- Admin-gated read-only mirror. Same hero counters + stage bar component as the driver. Two-column Recent Deals (25) / Recent IOIs (25) panels and a 50-row audit log section. Top-right LIVE pill flips green/pulse on poll success and red on failure. Polls `admin/sandbox-status` every 1.5s.
+
+---
+
+## [2026-05-02] — Bot-test sandbox backend: BOT_MODE flag, high-volume seed, integrity audit
+
+### `api/_lib/email.js`
+- `send()` now short-circuits when `BOT_MODE === '1'`: logs `[BOT-MODE] email suppressed → {to} | {subject}` and returns `{ ok: true, suppressed: true }`. No Resend fetch. Production behavior with `BOT_MODE` unset is unchanged — full delivery + alert-on-failure path retained.
+
+### `api/_lib/ai.js`
+- `scoreDeal(deal)` returns a synthetic varied score when `BOT_MODE === '1'` — randomized completeness/plausibility scores, weighted recommended_action (60/30/10 publish/review/reject), 1-3 plausible flag strings. Skips the Anthropic call entirely. Off-state behavior unchanged.
+
+### `api/_lib/storage.js` (new helper)
+- `kvScanDel(pattern, batchSize)` — SCAN-based bulk delete that iterates with cursor until exhausted, batches DELs in groups of 50. Used by sandbox wipe; no KEYS in prod.
+
+### `api/_lib/deal-templates.js` (new)
+- 20 institutional deal shells across asset classes / geographies / structures. Names: Marquette Credit Fund III, Sterling Infrastructure Partners II, Whitmore Family Co-Invest IV, Ashford Real Estate Debt, Kingsbridge Capital Asia Pre-IPO, etc. `randomizeDeal(template, seed)` applies ±15% raise size, ±2pp IRR, varied min ticket, term ±12 months, vintage suffix. Field shape matches `createDeal`.
+
+### `api/_lib/bot-seed.js` (new)
+- `wipeAll()` — SCAN-deletes every key matching deal:*, ioi:*, ioi_exists:*, ioi_index, inst:*, inst_email:*, inst_code:*, advisor:*, advisor_email:*, audit:*, deals:index, nda_signed:*, statement:*, distribution:*, welcome_seq:*, compliance_flag:*, qa_pending:*, ratelimit:*, revoked:*, deal_doc:*, pdoc:*, pdoc_meta:*. Returns count removed. Idempotent.
+- `seedBotAccounts()` — pinned bot users: advisor `bot-adv` / `bot.advisor@aurumprism.test` / `BotPass123!`; investor `bot-inv` / `bot.investor@aurumprism.test` / code `BOTCODE`. Admin login uses `ADMIN_USERS` env var.
+- `seedHighVolume()` — 30 advisors with shared `TestPass123!`, 150 investors (100 institutional / 50 hnw, all approved with auto-generated codes), 400 deals (80 review, 100 live, 100 ioi, 60 dd, 30 terms, 20 close, 10 realized) randomized from templates, 2-8 IOIs per deal at live/ioi/dd/terms (mostly pending, ~30% approved, ~10% rejected). All deals indexed in `deals:index`, all IOIs in `ioi_index`, every state-changing action appended to `audit:{dealId}`. Promise.all batches of 25 to avoid Redis serial hammering.
+
+### `api/v2.js`
+- New helper `shouldBypassRateLimit(req)` — returns true ONLY when `BOT_MODE === '1'` AND request carries `x-bot-mode: 1` AND a valid `prism_admin` cookie verifies. Tightly scoped — production traffic without `BOT_MODE` set can never bypass.
+- The three rate-limit gates (advisor login, advisor forgot-password, investor login) now defer to the bypass before incrementing.
+- New admin ops in `resource=admin`:
+  - `op=sandbox-reset` (POST, body `{ confirm: 'WIPE ALL DATA' }`) — wipeAll → seedBotAccounts → seedHighVolume. Returns counts.
+  - `op=sandbox-status` (GET) — counts (deals/iois/advisors/investors with breakdowns), 25 most recent deals, 25 most recent IOIs, last 50 audit entries across recent deals.
+  - `op=sandbox-summary` (GET) — integrity audit: orphan IOIs, IOIs without deal, stuck deals (no audit in 60s for live/ioi/dd), missing audit entries, ioi counter mismatches, approved-but-no-code investors. Returns `{ ok, issues: [...], summary }`.
+- Existing `op=seed` left untouched.
+
+### `CLAUDE.md`
+- Added `BOT_MODE` to the env-var table.
+
+---
+
 ## [2026-05-02] — Access Tiers: restore two-card layout, add HNW + Private category gating
 
 ### `index.html`

@@ -121,6 +121,40 @@ export async function kvZrem(key, member) {
   return 1;
 }
 
+// SCAN-based key deletion. Iterates with cursor until exhausted, batching DELs.
+// Returns count of keys deleted. Used by bot-seed wipeAll — never use KEYS in prod.
+export async function kvScanDel(pattern, batchSize = 200) {
+  const r = getRedis();
+  let total = 0;
+  if (r) {
+    let cursor = '0';
+    try {
+      do {
+        const result = await r.scan(cursor, { match: pattern, count: batchSize });
+        // Upstash returns [nextCursor, keysArray]
+        const next = Array.isArray(result) ? result[0] : result.cursor;
+        const keys = Array.isArray(result) ? result[1] : result.keys;
+        cursor = String(next);
+        if (keys && keys.length) {
+          // Batch DELs in groups of 50 to avoid hitting payload limits
+          for (let i = 0; i < keys.length; i += 50) {
+            const slice = keys.slice(i, i + 50);
+            await Promise.all(slice.map(k => r.del(k).catch(() => 0)));
+            total += slice.length;
+          }
+        }
+      } while (cursor !== '0');
+      return total;
+    } catch { /* fall through to in-memory */ }
+  }
+  // In-memory fallback
+  const re = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+  for (const k of [..._mem.keys()]) {
+    if (re.test(k)) { _mem.delete(k); total++; }
+  }
+  return total;
+}
+
 // Range query for audit sorted set — returns members in score order (ascending by default)
 export async function kvZrange(key, start, stop, opts = {}) {
   const r = getRedis();

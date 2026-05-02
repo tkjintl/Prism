@@ -17,6 +17,7 @@ import { uploadDocument, getDocumentUrl } from './_lib/blob-storage.js';
 import { sendSubscriptionDocument, checkEnvelopeStatus } from './_lib/docusign.js';
 import { initiateKycCheck, getKycStatus } from './_lib/kyc.js';
 import { callAI, scoreDeal } from './_lib/ai.js';
+import { wipeAll, seedBotAccounts, seedHighVolume } from './_lib/bot-seed.js';
 import bcrypt from 'bcryptjs';
 
 // ── Rate limiting helper (sliding window via Redis INCR+EXPIRE) ─────────────
@@ -42,6 +43,23 @@ function getClientIp(req) {
   const fwd = req.headers['x-forwarded-for'];
   if (fwd) return fwd.split(',')[0].trim();
   return req.socket?.remoteAddress || 'unknown';
+}
+
+// BOT_MODE rate-limit bypass.
+// Returns true ONLY if all of the following hold:
+//   1. process.env.BOT_MODE === '1'
+//   2. Request carries header `x-bot-mode: 1`
+//   3. Request carries a valid `prism_admin` cookie (verified via JWT)
+// Tightly scoped — production traffic without BOT_MODE set can never bypass.
+async function shouldBypassRateLimit(req) {
+  if (process.env.BOT_MODE !== '1') return false;
+  if (req.headers['x-bot-mode'] !== '1') return false;
+  const t = getCookie(req, 'prism_admin');
+  if (!t) return false;
+  try {
+    const p = await verifyToken(t);
+    return !!(p && p.role === 'admin');
+  } catch { return false; }
 }
 
 export default async function handler(req, res) {
@@ -130,7 +148,7 @@ async function _handler(req, res, resource, op) {
 
     if (op === 'login') {
       const ip = getClientIp(req);
-      if (await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+      if (!(await shouldBypassRateLimit(req)) && await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const { email, password } = req.body || {};
       if (!email || !password) return bad(res, 'Email and password required');
       const stored = await kvGet(`advisor_email:${email.toLowerCase()}`);
@@ -336,7 +354,7 @@ async function _handler(req, res, resource, op) {
 
     if (op === 'forgot-password') {
       const ip = getClientIp(req);
-      if (await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+      if (!(await shouldBypassRateLimit(req)) && await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const { email } = req.body || {};
       if (!email) return bad(res, 'Email required');
       const stored = await kvGet(`advisor_email:${email.toLowerCase()}`);
@@ -938,7 +956,7 @@ async function _handler(req, res, resource, op) {
 
     if (op === 'login') {
       const ip = getClientIp(req);
-      if (await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+      if (!(await shouldBypassRateLimit(req)) && await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const { email, code } = req.body || {};
       if (!email || !code) return bad(res, 'Email and access code required');
       const instId = await kvGet(`inst_email:${email.toLowerCase().trim()}`);
@@ -2935,6 +2953,232 @@ Return ONLY valid JSON in this exact structure:
       const allIoisList = await getAllIois();
       const iois = allIoisList.filter(i => !deal_id || i.deal_id === deal_id);
       return ok(res, { iois });
+    }
+
+    // ─── Bot-test sandbox: destructive wipe + reseed ─────────────
+    if (op === 'sandbox-reset') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { confirm } = req.body || {};
+      if (confirm !== 'WIPE ALL DATA') return bad(res, 'Confirmation phrase required: pass body { confirm: "WIPE ALL DATA" }');
+      const wiped = await wipeAll();
+      const accounts = await seedBotAccounts();
+      const volume = await seedHighVolume();
+      return ok(res, {
+        wiped,
+        advisors: volume.advisors_created + 1, // +1 for bot-adv
+        investors: volume.investors_created + 1, // +1 for bot-inv
+        deals: volume.deals_created,
+        iois: volume.iois_created,
+        bot_accounts: accounts,
+      });
+    }
+
+    if (op === 'sandbox-status') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const dealIds = await kvZrange('deals:index', 0, -1, { rev: true });
+      const allDeals = (await Promise.all(dealIds.map(id => kvGet(`deal:${id}`)))).filter(Boolean);
+      const allIois = await getAllIois();
+      const advKeys = await kvKeys('advisor:adv-*');
+      const advisors = (await Promise.all(advKeys.map(k => kvGet(k)))).filter(Boolean);
+      const advisorBotKeys = await kvKeys('advisor:adv-bot-*');
+      const advisorBot = (await Promise.all(advisorBotKeys.map(k => kvGet(k)))).filter(Boolean);
+      const advisorPinnedBot = await kvGet('advisor:bot-adv');
+      const allAdvisors = [...advisors, ...advisorBot, ...(advisorPinnedBot ? [advisorPinnedBot] : [])];
+      // Deduplicate (kvKeys can match adv-bot-* AND adv-* depending on patterns)
+      const advMap = new Map();
+      for (const a of allAdvisors) advMap.set(a.id, a);
+
+      const instKeys = await kvKeys('inst:*');
+      const investors = (await Promise.all(instKeys.map(k => kvGet(k)))).filter(Boolean).filter(i => i && typeof i === 'object' && i.id && !i.id.startsWith('advisor'));
+
+      const deals_by_stage = {};
+      for (const d of allDeals) deals_by_stage[d.stage] = (deals_by_stage[d.stage] || 0) + 1;
+      const iois_by_status = {};
+      for (const i of allIois) iois_by_status[i.status] = (iois_by_status[i.status] || 0) + 1;
+      const investors_by_status = {};
+      for (const inv of investors) investors_by_status[inv.status] = (investors_by_status[inv.status] || 0) + 1;
+
+      const recent_deals = allDeals.slice(0, 25).map(d => ({
+        id: d.id, name: d.name, stage: d.stage, advisor_id: d.advisor_id,
+        target_alloc_usd: d.target_alloc_usd, ioi_count: d.ioi_count,
+        created_at: d.created_at,
+      }));
+
+      const recent_iois = [...allIois]
+        .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
+        .slice(0, 25)
+        .map(i => ({
+          id: i.id, deal_id: i.deal_id, investor_id: i.investor_id,
+          investor_firm: i.investor_firm, amount: i.amount,
+          status: i.status, submitted_at: i.submitted_at,
+        }));
+
+      // Merge audit entries across the most recent 25 deals' audit sets,
+      // then sort desc and take top 50. Avoids fetching audit for all 400 deals.
+      const auditSampleDeals = allDeals.slice(0, 25);
+      const auditEntries = [];
+      await Promise.all(auditSampleDeals.map(async d => {
+        const entries = await kvZrange(`audit:${d.id}`, 0, -1, { rev: true });
+        for (const raw of entries) {
+          try {
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            auditEntries.push({ deal_id: d.id, ...parsed });
+          } catch { /* skip malformed */ }
+        }
+      }));
+      auditEntries.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+      const audit = auditEntries.slice(0, 50);
+
+      return ok(res, {
+        counts: {
+          deals: allDeals.length,
+          deals_by_stage,
+          iois: allIois.length,
+          iois_by_status,
+          advisors: advMap.size,
+          investors: investors.length,
+          investors_by_status,
+        },
+        recent_deals,
+        recent_iois,
+        audit,
+      });
+    }
+
+    if (op === 'sandbox-summary') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+
+      const dealIds = await kvZrange('deals:index', 0, -1);
+      const allDeals = (await Promise.all(dealIds.map(id => kvGet(`deal:${id}`)))).filter(Boolean);
+      const dealById = new Map(allDeals.map(d => [d.id, d]));
+      const allIois = await getAllIois();
+
+      // Investor lookup
+      const instKeys = await kvKeys('inst:*');
+      const allInvestors = (await Promise.all(instKeys.map(k => kvGet(k)))).filter(Boolean)
+        .filter(i => i && typeof i === 'object' && i.id);
+      const investorById = new Map(allInvestors.map(i => [i.id, i]));
+
+      const issues = [];
+      const STUCK_WINDOW_MS = 60 * 1000; // 60s threshold per spec
+      const now = Date.now();
+
+      // 1. Orphan IOIs — investor_id not resolvable
+      const orphanIois = allIois.filter(i => i.investor_id && !investorById.has(i.investor_id) && !i.investor_id.startsWith('INV-SEED-'));
+      if (orphanIois.length) issues.push({
+        type: 'orphan_iois',
+        severity: 'high',
+        count: orphanIois.length,
+        samples: orphanIois.slice(0, 5).map(i => ({ ioi_id: i.id, investor_id: i.investor_id, deal_id: i.deal_id })),
+      });
+
+      // 2. IOIs with no matching deal
+      const ioisNoDeal = allIois.filter(i => !dealById.has(i.deal_id));
+      if (ioisNoDeal.length) issues.push({
+        type: 'iois_without_deal',
+        severity: 'high',
+        count: ioisNoDeal.length,
+        samples: ioisNoDeal.slice(0, 5).map(i => ({ ioi_id: i.id, deal_id: i.deal_id })),
+      });
+
+      // 3. Stuck deals — in live/ioi/dd with no audit entry in last 60s
+      const stuckSet = new Set(['live', 'ioi', 'dd']);
+      const stuckDeals = [];
+      const auditCheckResults = await Promise.all(allDeals.map(async d => {
+        if (!stuckSet.has(d.stage)) return null;
+        const entries = await kvZrange(`audit:${d.id}`, 0, -1, { rev: true });
+        let lastTs = 0;
+        for (const raw of entries.slice(0, 1)) {
+          try {
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            const t = new Date(parsed.at).getTime();
+            if (t > lastTs) lastTs = t;
+          } catch {}
+        }
+        return { deal: d, lastTs, entryCount: entries.length };
+      }));
+      for (const r of auditCheckResults) {
+        if (!r) continue;
+        if (r.lastTs && (now - r.lastTs) > STUCK_WINDOW_MS) {
+          stuckDeals.push({ id: r.deal.id, stage: r.deal.stage, last_audit_age_ms: now - r.lastTs });
+        }
+      }
+      if (stuckDeals.length) issues.push({
+        type: 'stuck_deals',
+        severity: 'medium',
+        count: stuckDeals.length,
+        samples: stuckDeals.slice(0, 5),
+      });
+
+      // 4. Missing audit entries — deal exists but audit:{dealId} sorted set has 0 entries
+      const missingAudit = [];
+      for (const r of auditCheckResults) {
+        if (r && r.entryCount === 0) missingAudit.push({ id: r.deal.id, stage: r.deal.stage });
+      }
+      // Also check non-stuck-set deals
+      const remainingDeals = allDeals.filter(d => !stuckSet.has(d.stage));
+      const remainingChecks = await Promise.all(remainingDeals.map(async d => {
+        const entries = await kvZrange(`audit:${d.id}`, 0, 0);
+        return entries.length === 0 ? { id: d.id, stage: d.stage } : null;
+      }));
+      for (const r of remainingChecks) if (r) missingAudit.push(r);
+      if (missingAudit.length) issues.push({
+        type: 'missing_audit_entries',
+        severity: 'high',
+        count: missingAudit.length,
+        samples: missingAudit.slice(0, 5),
+      });
+
+      // 5. Counter mismatches — deal.ioi_count != actual non-rejected IOI count
+      const ioiCountByDeal = new Map();
+      const ioiAggByDeal = new Map();
+      for (const i of allIois) {
+        if (i.status === 'rejected') continue;
+        ioiCountByDeal.set(i.deal_id, (ioiCountByDeal.get(i.deal_id) || 0) + 1);
+        ioiAggByDeal.set(i.deal_id, (ioiAggByDeal.get(i.deal_id) || 0) + (i.amount || 0));
+      }
+      const counterMismatch = [];
+      for (const d of allDeals) {
+        const actualCount = ioiCountByDeal.get(d.id) || 0;
+        const actualAgg = ioiAggByDeal.get(d.id) || 0;
+        const declaredCount = d.ioi_count || 0;
+        const declaredAgg = d.ioi_agg_usd || 0;
+        if (actualCount !== declaredCount || actualAgg !== declaredAgg) {
+          counterMismatch.push({
+            deal_id: d.id,
+            declared_count: declaredCount,
+            actual_count: actualCount,
+            declared_agg: declaredAgg,
+            actual_agg: actualAgg,
+          });
+        }
+      }
+      if (counterMismatch.length) issues.push({
+        type: 'ioi_counter_mismatch',
+        severity: 'medium',
+        count: counterMismatch.length,
+        samples: counterMismatch.slice(0, 5),
+      });
+
+      // 6. Investors with status=approved but no access code
+      const approvedNoCode = allInvestors.filter(i => i.status === 'approved' && !i.code);
+      if (approvedNoCode.length) issues.push({
+        type: 'approved_investors_without_code',
+        severity: 'high',
+        count: approvedNoCode.length,
+        samples: approvedNoCode.slice(0, 5).map(i => ({ id: i.id, email: i.email, firm_name: i.firm_name })),
+      });
+
+      const totalIssueCount = issues.reduce((s, i) => s + i.count, 0);
+      return ok(res, {
+        ok: issues.length === 0,
+        issues,
+        summary: `${totalIssueCount} issue${totalIssueCount === 1 ? '' : 's'} found across ${issues.length} categor${issues.length === 1 ? 'y' : 'ies'}`,
+      });
     }
   }
 
