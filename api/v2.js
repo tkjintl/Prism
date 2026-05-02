@@ -2880,6 +2880,8 @@ Return ONLY valid JSON in this exact structure:
         console.error('[sandbox-reset] seedHighVolume failed:', e?.message || e);
         return bad(res, 'Reset failed during high-volume seed: ' + (e?.message || 'unknown'), 500);
       }
+      // Bust the status cache so the next poll computes fresh
+      try { await kvDel('bot:status:cache'); } catch {}
       return ok(res, {
         wiped,
         advisors: volume.advisors_created + 1,
@@ -2893,6 +2895,18 @@ Return ONLY valid JSON in this exact structure:
     if (op === 'sandbox-status') {
       const admin = await getAdmin();
       if (!admin) return unauth(res);
+
+      // Cache the heavy fan-out aggregation in Redis with a 5s TTL.
+      // sandbox-status fans out to ~2,000 reads per call (deals + iois + advisors +
+      // investors + audit samples). Driver + viewer polling every 1.5-5s would burn
+      // tens of thousands of ops per minute. Cache turns most polls into a single
+      // kvGet, dropping cost ~40x while keeping freshness within 5s.
+      try {
+        const cached = await kvGet('bot:status:cache');
+        if (cached && typeof cached === 'object') {
+          return ok(res, cached);
+        }
+      } catch { /* cache miss is fine, fall through to recompute */ }
 
       const dealIds = await kvZrange('deals:index', 0, -1, { rev: true });
       const allDeals = (await Promise.all(dealIds.map(id => kvGet(`deal:${id}`)))).filter(Boolean);
@@ -2945,7 +2959,7 @@ Return ONLY valid JSON in this exact structure:
       auditEntries.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
       const audit = auditEntries.slice(0, 50);
 
-      return ok(res, {
+      const payload = {
         counts: {
           deals: allDeals.length,
           deals_by_stage,
@@ -2958,7 +2972,10 @@ Return ONLY valid JSON in this exact structure:
         recent_deals,
         recent_iois,
         audit,
-      });
+      };
+      // Cache for 5s — keeps polling cheap. Reset endpoint should bust this cache.
+      try { await kvSet('bot:status:cache', payload, { ex: 5 }); } catch {}
+      return ok(res, payload);
     }
 
     if (op === 'sandbox-summary') {

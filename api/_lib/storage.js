@@ -56,18 +56,30 @@ export async function healthCheck() {
 // is performed before throwing — Upstash REST has occasional connection blips.
 // ─────────────────────────────────────────────────────────────────────────────
 
+function isQuotaError(err) {
+  const msg = (err?.message || String(err || '')).toLowerCase();
+  return msg.includes('max requests limit') || msg.includes('quota') || msg.includes('429') || msg.includes('exceeded');
+}
+
 async function withRedis(op, fallback) {
   const r = getRedis();
   if (!r) return await fallback();
-  // 3 retries with exponential backoff (50ms / 200ms / 800ms) to absorb
-  // transient Upstash REST blips and concurrent-connection rate-limits.
-  const delays = [50, 200, 800];
+  // 2 retries with backoff (100ms / 400ms) for transient REST blips.
+  // DO NOT retry on quota / 429 / max-requests errors — retries multiply
+  // billable commands against an already-exhausted quota and never recover.
+  // Surface quota errors immediately so the platform fails fast and the
+  // operator sees the real problem.
+  const delays = [100, 400];
   let lastErr = null;
   for (let attempt = 0; attempt <= delays.length; attempt++) {
     try {
       return await op(r);
     } catch (e) {
       lastErr = e;
+      if (isQuotaError(e)) {
+        console.error('[STORAGE] Quota exhausted — not retrying:', e?.message);
+        throw e;
+      }
       if (attempt < delays.length) {
         await new Promise(res => setTimeout(res, delays[attempt]));
       }

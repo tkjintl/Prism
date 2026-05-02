@@ -679,11 +679,12 @@ function startPersonaLoop(persona){
 
 async function startBots(){
   if(state.running&&!state.paused){state.paused=true;setStatus();return;}
-  if(state.paused){state.paused=false;setStatus();return;}
+  if(state.paused){state.paused=false;setStatus();refreshCounters();return;}
   state.running=true;state.paused=false;
   document.getElementById('btn-start').textContent='Resume';
   document.getElementById('btn-pause').disabled=false;
   setStatus();
+  refreshCounters();
   for(const p of ['advisor','admin','investor']){
     if(state.personas[p])startPersonaLoop(p);
   }
@@ -784,7 +785,11 @@ async function runAudit(){
   if(!okAdmin)return;
   setStatus();
   refreshCounters();
-  setInterval(refreshCounters,1500);
+  // Counter polling: 6s while running, paused entirely while idle/paused.
+  // sandbox-status is server-cached for 5s so this is at most ~1 Redis op/poll.
+  setInterval(()=>{
+    if(state.running&&!state.paused)refreshCounters();
+  },6000);
   // Esc closes modals
   document.addEventListener('keydown',e=>{
     if(e.key!=='Escape')return;
