@@ -1665,6 +1665,22 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
 </div>
 
+<!-- Send-to-Advisor Preview modal -->
+<div class="modal-overlay hidden" id="send-advisor-modal">
+  <div class="pp-modal-box" role="dialog" aria-modal="true" aria-labelledby="sa-modal-title" style="max-width:780px">
+    <div style="padding:24px 28px 20px;border-bottom:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Review &amp; Send</div>
+      <div id="sa-modal-title" style="font-family:var(--serif);font-style:italic;font-size:24px;color:var(--text)">Preview before sending to advisor</div>
+      <div style="font-family:var(--sans);font-size:13px;color:var(--text-2);margin-top:8px;line-height:1.55">The advisor will review and approve this exact content. Edit anything below before confirming. Once approved by the advisor, you can publish to the investor marketplace.</div>
+    </div>
+    <div id="sa-modal-body" style="padding:20px 28px;max-height:60vh;overflow-y:auto"></div>
+    <div style="padding:16px 28px;border-top:1px solid var(--border);display:flex;gap:12px;justify-content:flex-end;background:var(--bg-3)">
+      <button class="modal-cancel" onclick="closeSendAdvisorModal()" style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 20px;background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:2px;cursor:pointer">Cancel</button>
+      <button class="modal-confirm" id="sa-confirm-btn" onclick="confirmSendToAdvisor()" style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 24px;background:var(--gold);color:#1A1410;border:none;border-radius:2px;cursor:pointer;font-weight:600">Confirm &amp; Send to Advisor →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Close Raise modal -->
 <div class="modal-overlay hidden" id="close-raise-modal">
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="close-raise-modal-title" style="max-width:440px">
@@ -3198,24 +3214,85 @@ async function approveDeal(dealId,btn){
   }
 }
 
-async function sendToAdvisorReview(dealId,btn){
+// Two-step flow: sendToAdvisorReview opens a preview modal showing exactly
+// what the advisor will see. Operator can edit any field inline. Confirm
+// button calls confirmSendToAdvisor which actually fires the API.
+let _saPendingDealId=null;
+let _saPendingBtn=null;
+function _saEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function sendToAdvisorReview(dealId,btn){
   if(!dealId){toast('No deal selected','err');return;}
-  if(btn){btn.disabled=true;btn.textContent='Sending…';}
-  const payload={dealId};
-  if(_launchContent){
-    if(_launchContent.thesis)payload.thesis=_launchContent.thesis;
-    if(_launchContent.tagline)payload.tagline=_launchContent.tagline;
-    if(_launchContent.highlights)payload.highlights=_launchContent.highlights;
-  }
+  // Pull the latest draft content — _launchContent is populated when admin
+  // came through Deal Studio. Otherwise read from the NEW_SUBMISSIONS record.
+  const s=NEW_SUBMISSIONS.find(x=>x.id===dealId)||{};
+  const tagline=(_launchContent?.tagline)||s.tagline||'';
+  const thesis=(_launchContent?.thesis)||s.thesis||s.mk_notes||'';
+  const overview=s.company_overview||'';
+  const highlightsArr=(_launchContent?.highlights)||s.highlights||[];
+  const highlightsText=Array.isArray(highlightsArr)
+    ? highlightsArr.map(h=>typeof h==='string'?h:(h.s?(h.s+(h.b?' — '+h.b:'')):JSON.stringify(h))).join('\n')
+    : '';
+  const body=document.getElementById('sa-modal-body');
+  body.innerHTML=`
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px">Deal: <span style="color:var(--gold)">${_saEsc(s.name||dealId)}</span> · From <strong>${_saEsc(s.advisor||'—')}</strong> · ${_saEsc(s.advisor_firm||'')}</div>
+    <div style="margin-bottom:18px">
+      <label style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:6px">Tagline (investor-card headline)</label>
+      <input id="sa-tagline" type="text" maxlength="120" value="${_saEsc(tagline)}" style="width:100%;padding:10px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:14px">
+    </div>
+    <div style="margin-bottom:18px">
+      <label style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:6px">Investment Thesis</label>
+      <textarea id="sa-thesis" rows="4" style="width:100%;padding:10px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.6;resize:vertical">${_saEsc(thesis)}</textarea>
+    </div>
+    <div style="margin-bottom:18px">
+      <label style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:6px">Company Overview</label>
+      <textarea id="sa-overview" rows="3" style="width:100%;padding:10px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.6;resize:vertical">${_saEsc(overview)}</textarea>
+    </div>
+    <div style="margin-bottom:6px">
+      <label style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:6px">Highlights (one per line)</label>
+      <textarea id="sa-highlights" rows="5" style="width:100%;padding:10px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.6;resize:vertical">${_saEsc(highlightsText)}</textarea>
+    </div>`;
+  _saPendingDealId=dealId;
+  _saPendingBtn=btn;
+  document.getElementById('send-advisor-modal').classList.remove('hidden');
+  _modalReleasers&&(_modalReleasers['send-advisor-modal']=trapFocus(document.querySelector('#send-advisor-modal .pp-modal-box')));
+}
+
+function closeSendAdvisorModal(){
+  document.getElementById('send-advisor-modal').classList.add('hidden');
+  if(_modalReleasers&&_modalReleasers['send-advisor-modal']){_modalReleasers['send-advisor-modal']();delete _modalReleasers['send-advisor-modal'];}
+  _saPendingDealId=null;_saPendingBtn=null;
+}
+
+async function confirmSendToAdvisor(){
+  const dealId=_saPendingDealId;
+  if(!dealId){closeSendAdvisorModal();return;}
+  const confirmBtn=document.getElementById('sa-confirm-btn');
+  confirmBtn.disabled=true;confirmBtn.textContent='Sending…';
+  const payload={
+    dealId,
+    tagline:(document.getElementById('sa-tagline')?.value||'').trim(),
+    thesis:(document.getElementById('sa-thesis')?.value||'').trim(),
+    company_overview:(document.getElementById('sa-overview')?.value||'').trim(),
+    highlights:(document.getElementById('sa-highlights')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean),
+  };
   const res=await api('POST','/api/v2?resource=admin&op=send-to-advisor-review',payload);
+  confirmBtn.disabled=false;confirmBtn.textContent='Confirm & Send to Advisor →';
   if(res?.ok){
     const s=NEW_SUBMISSIONS.find(x=>x.id===dealId);
-    if(s){s.advisor_review_status='pending';s.generated=true;}
+    if(s){
+      s.advisor_review_status='pending';
+      s.generated=true;
+      s.tagline=payload.tagline;
+      s.thesis=payload.thesis;
+      s.company_overview=payload.company_overview;
+      s.highlights=payload.highlights;
+    }
+    closeSendAdvisorModal();
     renderOverview();renderKPIs();
     toast('Sent to advisor for review','ok');
   }else{
-    if(btn){btn.disabled=false;btn.textContent='Send to Advisor →';}
-    toast('Failed to send','err');
+    toast(res?.error||'Failed to send','err');
   }
 }
 

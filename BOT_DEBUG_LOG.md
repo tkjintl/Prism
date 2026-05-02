@@ -10,7 +10,65 @@ Each entry includes file path + line numbers + exact diff prescription, so all o
 
 # Open / Pending Fixes (apply in this order)
 
-## P-9 · `marketplace&op=approve-ioi` not idempotent ❌ OPEN — production bug
+## P-12 · Send-to-Advisor had no preview screen ✅ FIXED
+
+**File:** `admin-portal.html`
+**Commit:** (this session)
+**Severity:** Operator workflow — admin clicked button → API fired → no chance to review the AI-drafted copy that was about to go to the advisor.
+**Fix shipped:** Two-step flow.
+1. Click "Send to Advisor →" on a generated submission card → opens new `send-advisor-modal` showing tagline / thesis / company_overview / highlights as editable fields, populated from `_launchContent` (Deal Studio output) or the deal record.
+2. Operator can edit any field inline. Click "Confirm & Send to Advisor →" to fire `op=send-to-advisor-review` with the (possibly edited) payload.
+3. Cancel button + Esc backs out, no API call fired.
+The Deal Studio path's "Send to Advisor" button (line 3763 area) also routes through the new preview modal — same handshake from both entry points.
+
+---
+
+## P-13 · Mandatory form filling enforced ✅ FIXED
+
+**Files:** `api/v2.js` (inst register + admin approve), `index.html` (landing form)
+**Commit:** (this session)
+**Severity:** Production gap — incomplete records could be created and approved.
+**Fix shipped:**
+- `inst&op=register` now requires: email, firm_name, contact_name, category, institution_type, aum_range, invest_focus, role. Returns 400 + missing-list. ticket_range mirrored from aum_range.
+- `admin&op=approve` (investor) re-validates same set before approval.
+- Landing form `submitForm()` validates all 7 client-side, asterisks added on labels.
+- ApplicantBot already supplies all fields — no bot change needed.
+- Combined with previously-shipped: advisor `op=register` (11 required fields) and `createDeal` (15 required fields). Every entry point gated.
+
+---
+
+## P-14 · `op=ai-generate` not BOT_MODE-gated → token burn risk ✅ FIXED
+
+**File:** `api/v2.js` (op=ai-generate handler)
+**Commit:** (this session)
+**Severity:** Token spend — operator clicking "Generate with AI" during a sandbox session would make a real Anthropic call.
+**Fix shipped:** When `BOT_MODE=1`, handler returns a synthetic mock payload (`[BOT-MODE mock] ...` prefixed tagline/thesis/overview/highlights) without calling `callAI`. Production unchanged. Bot test session is now zero-Anthropic-spend even if the operator clicks the AI button by mistake.
+
+---
+
+## P-9 · `marketplace&op=approve-ioi` not idempotent ✅ FIXED (this session)
+
+Surfaced as duplicate "Approved IOI X" lines in bot log (4× same IOI).
+**Fix:** early return `{ ioi, idempotent: true }` if `ioi.status === 'approved'`. No re-fire of email or counter recalc.
+
+## P-10 · `admin&op=publish-deal` not idempotent ✅ FIXED (this session)
+
+Surfaced as 5× duplicate publish on same deal.
+**Fix:** early return `{ deal, idempotent: true }` if `deal.stage === 'live'`. No re-fire of audit entry or stage_changed email.
+
+## P-11 · `admin&op=approve` (investor) not idempotent ✅ FIXED (this session)
+
+Surfaced as 4× "Approved investor X" within seconds.
+**Fix:** early return `{ inst, idempotent: true }` if `inst.status === 'approved'` AND `reveal_code` is not set. The reveal_code path remains the explicit way to re-surface the access code. No more rotating-code-on-re-approval bug.
+
+## P-15 · `admin&op=approve-advisor` returned 400 on dupe instead of idempotent ✅ FIXED (this session)
+
+Surfaced as 3× red "Error — Advisor already active" in bot audit.
+**Fix:** changed `if (adv.status === 'active') return bad('Advisor already active')` → `return ok({ advisor, idempotent: true })`. Consistent with the other three approval endpoints. Audit no longer flags advisor-approval races.
+
+---
+
+## OLD-P-9 · (superseded) `marketplace&op=approve-ioi` not idempotent ❌ OPEN — production bug
 
 **File:** `api/v2.js` line ~3196 (approve-ioi handler)
 **Severity:** High — duplicate emails to investors in production
@@ -555,9 +613,16 @@ New free Upstash database `crisp-kite-113455` created. Vercel env vars updated. 
 
 **Production code fixes (real platform):**
 1. **P-6** atomic IOI counters — `api/_lib/deal-storage.js` lines 14–27, `getDeal` line 33, `api/v2.js` 5 call sites (lines 649, 2364, 3196, 3217, 3240), `api/_lib/bot-seed.js` seed counter keys.
-2. ~~P-7 required-content gating~~ ✅ DONE this session.
-3. **P-8** remove / disable AI generation tool — operator preference. Approach 2 (env flag).
+2. ~~P-7 required-content gating~~ ✅ DONE.
+3. ~~P-8 disable AI generation tool~~ ✅ DONE — BOT_MODE-gates the AI calls (P-14). User confirmed they're keeping AI for Deal Studio in production; just want zero burn during testing.
 4. **B-12** admin display formatting cleanup — round IRR, format dates, NaNd → `—`, dedup separators. ~5 lines in `admin-portal.html`.
+5. ~~P-9 approve-ioi idempotency~~ ✅ DONE.
+6. ~~P-10 publish-deal idempotency~~ ✅ DONE.
+7. ~~P-11 admin approve (investor) idempotency~~ ✅ DONE.
+8. ~~P-12 Send-to-Advisor preview screen~~ ✅ DONE.
+9. ~~P-13 Mandatory form filling on signup~~ ✅ DONE.
+10. ~~P-14 AI-generate BOT_MODE gate~~ ✅ DONE.
+11. ~~P-15 approve-advisor idempotency~~ ✅ DONE.
 
 **Bot-test infrastructure (after production fixes):**
 5. **B-10** revert audit auto-heal — `api/v2.js` lines 3095–3132 (after P-6 lands).

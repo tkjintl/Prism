@@ -1469,7 +1469,10 @@ async function _handler(req, res, resource, op) {
       if (!advisor_id) return bad(res, 'advisor_id required');
       const adv = await kvGet(`advisor:${advisor_id}`);
       if (!adv) return bad(res, 'Advisor not found', 404);
-      if (adv.status === 'active') return bad(res, 'Advisor already active');
+      // Idempotent: re-clicking Approve (or a duplicate API call from a cached
+      // pending list) returns the existing record without rotating the password
+      // or re-firing the welcome email.
+      if (adv.status === 'active') return ok(res, { advisor: sanitizeAdvisor(adv), idempotent: true });
       const required = ['email','firm_name','name','title','phone','firm_website','jurisdiction','year_founded','regulatory_status','aum_managed'];
       const missing = required.filter(k => adv[k] == null || String(adv[k]).trim() === '');
       if (!Array.isArray(adv.primary_asset_classes) || adv.primary_asset_classes.length === 0) missing.push('primary_asset_classes');
@@ -1542,6 +1545,13 @@ async function _handler(req, res, resource, op) {
         inst.audit_log.push({ at: new Date().toISOString(), actor: admin.email, action: 'code_revealed' });
         await kvSet(`inst:${inst_id}`, inst);
         return ok(res, { code: inst.code });
+      }
+
+      // Idempotent: a re-click after approval is benign. Returns existing
+      // record without rotating the access code or re-firing the email.
+      // (reveal_code path above is the explicit way to surface code again.)
+      if (inst.status === 'approved') {
+        return ok(res, { inst: sanitizeInst(inst), idempotent: true });
       }
 
       // Approval gate: investor profile must be complete. Same field set as
@@ -1825,6 +1835,13 @@ Return ONLY valid JSON in this exact structure:
 
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
+
+      // Idempotent: if the deal is already live, a duplicate publish call
+      // returns the existing record without re-firing audit entries or
+      // notification emails.
+      if (deal.stage === 'live') {
+        return ok(res, { deal, idempotent: true });
+      }
 
       const now = new Date().toISOString();
 
@@ -3399,6 +3416,11 @@ Return ONLY valid JSON in this exact structure:
       const { ioi_id } = req.body || {};
       const ioi = await kvGet(`ioi:${ioi_id}`);
       if (!ioi) return bad(res, 'IOI not found', 404);
+      // Idempotent: a duplicate approve call returns the existing record
+      // without re-firing the data-room-access email or re-recalcing counters.
+      if (ioi.status === 'approved') {
+        return ok(res, { ioi, idempotent: true });
+      }
       ioi.status = 'approved';
       ioi.data_room_access = true;
       ioi.approved_at = new Date().toISOString();
