@@ -3707,5 +3707,27 @@ load();
 @media(max-width:480px){
   .submit-wrap{padding-bottom:80px}
 }
+
+/* ── FIX: deal-switcher overlap — nav actual height > --nav-h var on mobile ── */
+@media(max-width:768px){
+  :root{--nav-h:96px}
+  .view{padding-top:96px!important}
+}
+
+/* ── FIX: stage circles — spread evenly across full width ── */
+@media(max-width:480px){
+  .stage-journey{overflow-x:hidden!important;padding:0 8px!important}
+  .sj-inner{gap:0!important;padding:12px 0!important;width:100%!important}
+  .sj-stage{flex:1!important;min-width:0!important;align-items:center!important}
+  .sj-connector{display:block!important;flex:1!important;min-width:0!important;height:2px!important;margin:0!important}
+  .sj-circle{width:26px!important;height:26px!important;font-size:9px!important}
+  .sj-label{font-size:6px!important;white-space:normal!important;text-align:center!important;max-width:44px!important;line-height:1.2!important}
+}
+
+/* ── FIX: Overview / Materials tabs — fill full row equally ── */
+@media(max-width:768px){
+  .content-tabs{padding:0!important}
+  .ctab{flex:1!important;text-align:center!important;padding:13px 8px!important;justify-content:center!important;display:flex!important;align-items:center!important}
+}
 </style>
 </body>
