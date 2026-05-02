@@ -4,6 +4,38 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Platform audit + 4 dead endpoints wired (Stage 2)
+
+`api/v2.js`, `api/_lib/bot-seed.js`, `admin-portal.html`, `CLAUDE.md`. Audit surfaced 4 frontend fetch URLs with no API handlers — every real user hitting them got 404s. Wired all four:
+- `inst&op=nda-accept` — formal NDA acceptance with timestamp + document hash, enriches the existing `nda_signed:{instId}:{dealId}` record. Compliance audit trail now persists (was being silently dropped pre-fix).
+- `inst&op=notices` — investor's own pending + acknowledged notices. Reads `notice:{investorId}:*`. Newest first.
+- `inst&op=acknowledge-notice` — flips notice status to `acknowledged`. Idempotent.
+- `advisor&op=earnings` — computes per-deal intro fees + projected carry from advisor's deals. Empty payments array until real disbursement system wired.
+
+Capital-call-notify and distribution-notify extended to write per-investor notice records (with proper amount based on IOI / pro-rata share, reference number, deal name, type). Wipe patterns include `notice:*` and `payment:*`.
+
+Cleanup: CLAUDE.md `/control` reference replaced with `/bot-driver` Reset (the actual seed mechanism). Admin portal nav got Bot Driver + Bot Viewer links for partner demos.
+
+Full audit findings + 14 noted intentional gaps documented in `PLATFORM_AUDIT.md`. Commits: `cfba82f`, `0ebcfd3`, `a6e7508`.
+
+---
+
+## [2026-05-02] — Audit auto-heal reverted + read-side audit fix
+
+`api/v2.js`. After P-6 atomic counters made counter drift impossible in normal operation, the audit's recalcIoiCounters self-heal became redundant — it would have hidden any future drift instead of surfacing it. Reverted to plain mismatch reporting. Removed the now-unused `recalcIoiCounters` import from v2.js (still exported as alias from deal-storage.js for any external caller).
+
+Also fixed a read-side audit bug: sandbox-status and sandbox-summary were calling `kvGet('deal:{id}')` directly, returning the embedded `d.ioi_count` field. After P-6, embedded is fallback-only; atomic keys are source of truth. Audit was reading stale embedded field while atomic keys had real counts — declared lagged actual on every audit. Routed both audit dealId fetches through `getDeal()` so audit sees the same merged values that customer reads see.
+
+Stuck-deals rule rewritten: previous 60s window flagged normal pipeline backpressure as "stuck." New 30-day threshold only flags truly abandoned deals. Severity dropped to 'low'. Commits: `b1edb58`, `713f336`.
+
+---
+
+## [2026-05-02] — B-12: Admin display polish
+
+`admin-portal.html`. IRR rounding (`+irr.toFixed(1)+%`) so bot-randomized templates don't show 14 decimals. NaNd → `—` when closing_date null. Double-bullet `From X · ·` separator dedup. IOI row name fallback chain (`investor_firm || investor_email || investor_id || 'Investor'`). adaptDeal IOI rows now read `ioi.geo || ioi.geography` instead of hardcoded `—`, and date computation guards against null `submitted_at`. Render-only — no API or data-shape changes. Commit: `caa7921`.
+
+---
+
 ## [2026-05-02] — P-6: atomic IOI counters (race fix)
 
 `api/_lib/deal-storage.js`, `api/v2.js`, `api/_lib/bot-seed.js`. Replaced the read-modify-write `recalcIoiCounters(dealId)` on the IOI hot path with atomic INCRBY against dedicated keys `deal:{id}:ioi_count` and `deal:{id}:ioi_agg_usd` via new `bumpIoiCounters(dealId, dCount, dAggUsd)`. Two concurrent IOI submissions on the same deal can no longer drift the counter via last-write-wins (verified open by ConcurrencyBot stress tests). `getDeal` and `listDeals` now read the atomic keys and merge them into the returned object, falling back to the embedded `deal.ioi_count` for legacy records that haven't bumped yet. `recalcIoiCounters` kept as a back-compat alias delegating to a new `reconcileIoiCounters` (overwrites atomic keys from live IOIs) — only audit/heal endpoints still call it. Bot seed now writes atomic keys in addition to embedded fields, and `wipeAll` patterns updated to clear them. Five hot-path call sites migrated: ioi-create (+1 / +amt), reject-ioi (-1 / -amt if was non-rejected), delete-investor cleanup (-1 / -amt per non-rejected IOI), approve-ioi and respond-package (no counter change — call removed). Each bumped path also busts `cache:iois:all`.

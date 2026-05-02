@@ -8,6 +8,23 @@ Each entry includes file path + line numbers + exact diff prescription, so all o
 
 ---
 
+## L-1..L-6 · Dead-link audit findings ✅ ALL FIXED (Stage 2.1)
+
+Cross-portal audit at end of session surfaced 4 dead API endpoints + 2 doc/UX gaps. All fixed and shipped.
+
+| ID | Issue | Commit |
+|---|---|---|
+| L-1 | `inst&op=nda-accept` missing → formal NDA acceptance never persisted | `cfba82f` |
+| L-2 | `inst&op=notices` missing → investor Notices tab always empty | `cfba82f` |
+| L-3 | `inst&op=acknowledge-notice` missing → ack button silent fail | `cfba82f` |
+| L-4 | `advisor&op=earnings` missing → tab showed fallback message | `cfba82f` |
+| L-5 | CLAUDE.md `/control` reference (no such page) | `0ebcfd3` |
+| L-6 | Admin nav missing Bot Driver / Bot Viewer entries | `0ebcfd3` |
+
+Full audit (8 categories run, 14 noted intentional gaps) → `PLATFORM_AUDIT.md`.
+
+---
+
 # Open / Pending Fixes (apply in this order)
 
 ## B-15 · AuthBoundaryBot test design flaw — shared cookie jar 🧹 KNOWN LIMITATION
@@ -685,11 +702,11 @@ New free Upstash database `crisp-kite-113455` created. Vercel env vars updated. 
 
 # Production Fix Queue (apply in this order)
 
-**Production code fixes (real platform):**
-1. **P-6** atomic IOI counters — `api/_lib/deal-storage.js` lines 14–27, `getDeal` line 33, `api/v2.js` 5 call sites (lines 649, 2364, 3196, 3217, 3240), `api/_lib/bot-seed.js` seed counter keys.
+**Production code fixes (real platform) — all current items closed:**
+1. ~~P-6 atomic IOI counters~~ ✅ DONE (commit `7de76b7`).
 2. ~~P-7 required-content gating~~ ✅ DONE.
-3. ~~P-8 disable AI generation tool~~ ✅ DONE — BOT_MODE-gates the AI calls (P-14). User confirmed they're keeping AI for Deal Studio in production; just want zero burn during testing.
-4. **B-12** admin display formatting cleanup — round IRR, format dates, NaNd → `—`, dedup separators. ~5 lines in `admin-portal.html`.
+3. ~~P-8 disable AI generation tool~~ ✅ DONE.
+4. ~~B-12 admin display formatting~~ ✅ DONE (commit `caa7921`).
 5. ~~P-9 approve-ioi idempotency~~ ✅ DONE.
 6. ~~P-10 publish-deal idempotency~~ ✅ DONE.
 7. ~~P-11 admin approve (investor) idempotency~~ ✅ DONE.
@@ -697,6 +714,11 @@ New free Upstash database `crisp-kite-113455` created. Vercel env vars updated. 
 9. ~~P-13 Mandatory form filling on signup~~ ✅ DONE.
 10. ~~P-14 AI-generate BOT_MODE gate~~ ✅ DONE.
 11. ~~P-15 approve-advisor idempotency~~ ✅ DONE.
+12. ~~B-10 audit auto-heal revert~~ ✅ DONE (commit `b1edb58`).
+13. ~~P-16 auto-publish on advisor approval~~ ✅ DONE.
+14. ~~L-1..L-6 dead links~~ ✅ DONE (commits `cfba82f`, `0ebcfd3`).
+
+**Zero open production bugs at this point.** Bot test infrastructure (B-* items) and untested code paths (OQ-*) listed below for follow-up but not blocking launch.
 
 **Bot-test infrastructure (after production fixes):**
 5. **B-10** revert audit auto-heal — `api/v2.js` lines 3095–3132 (after P-6 lands).
