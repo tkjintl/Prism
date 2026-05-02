@@ -4,6 +4,17 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Mobile landing polish v3 — hero copy (`index.html`)
+
+Operator feedback after v2: the "NOW ACCEPTING APPLICATIONS · EARLY ACCESS OPEN" pill and the long descriptive sub paragraph were too startup-pitch for the first screen. Tightened to a private-bank statement; mobile-only, desktop untouched.
+
+- **Eyebrow pill hidden on mobile** — `.hero-label{display:none!important}` inside the ≤768px media query. Desktop still shows the pulsing amber pill.
+- **Hero sub paragraph rewritten for mobile** — added a parallel `<p class="hero-sub-mobile">` element. Desktop hides it (`display:none` baseline); mobile hides the original `.hero-sub` and shows the new one. Copy: *"A private register for institutional investors and the advisors bringing them deals — credit, equity, real estate, infrastructure."* No "Aurum Prism" repeat, no "platform", no geography. Statement form, not description.
+- **Mobile sub styling** — Cormorant 18px, 300 weight, italic, `--sub` color, line-height 1.55, max-width 34ch so it wraps cleanly to two lines on 390px.
+- **First-screen render verified on iPhone 14 (390×844)**: nav (Member Login only) → AURUM | PRISM wordmark eyebrow → headline → new italic statement, all above the fold; pill gone, no hero CTA; comfortable breathing room.
+
+---
+
 ## [2026-05-02] — Mobile landing polish v2 (`index.html`)
 
 Operator review on iPhone 14 (390×844) flagged Member Login pill too loud, nav touching the notch, redundant second nav row, and "AURUM | PRISM" wordmark clipped at left edge. All fixes scoped to mobile media queries; desktop untouched.
