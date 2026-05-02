@@ -2855,9 +2855,25 @@ Return ONLY valid JSON in this exact structure:
       if (!admin) return unauth(res);
       const { confirm } = req.body || {};
       if (confirm !== 'WIPE ALL DATA') return bad(res, 'Confirmation phrase required: pass body { confirm: "WIPE ALL DATA" }');
-      const wiped = await wipeAll();
-      const accounts = await seedBotAccounts();
-      const volume = await seedHighVolume();
+      let wiped, accounts, volume;
+      try {
+        wiped = await wipeAll();
+      } catch (e) {
+        console.error('[sandbox-reset] wipeAll failed:', e?.message || e);
+        return bad(res, 'Reset failed during wipe phase: ' + (e?.message || 'unknown'), 500);
+      }
+      try {
+        accounts = await seedBotAccounts();
+      } catch (e) {
+        console.error('[sandbox-reset] seedBotAccounts failed:', e?.message || e);
+        return bad(res, 'Reset failed during bot-account seed: ' + (e?.message || 'unknown'), 500);
+      }
+      try {
+        volume = await seedHighVolume();
+      } catch (e) {
+        console.error('[sandbox-reset] seedHighVolume failed:', e?.message || e);
+        return bad(res, 'Reset failed during high-volume seed: ' + (e?.message || 'unknown'), 500);
+      }
       return ok(res, {
         wiped,
         advisors: volume.advisors_created + 1,

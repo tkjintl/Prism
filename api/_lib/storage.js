@@ -59,17 +59,22 @@ export async function healthCheck() {
 async function withRedis(op, fallback) {
   const r = getRedis();
   if (!r) return await fallback();
-  try {
-    return await op(r);
-  } catch (e1) {
-    // One retry — Upstash REST has occasional transient failures
+  // 3 retries with exponential backoff (50ms / 200ms / 800ms) to absorb
+  // transient Upstash REST blips and concurrent-connection rate-limits.
+  const delays = [50, 200, 800];
+  let lastErr = null;
+  for (let attempt = 0; attempt <= delays.length; attempt++) {
     try {
       return await op(r);
-    } catch (e2) {
-      console.error('[STORAGE] Redis op failed after 1 retry:', e2?.message || e2);
-      throw e2;
+    } catch (e) {
+      lastErr = e;
+      if (attempt < delays.length) {
+        await new Promise(res => setTimeout(res, delays[attempt]));
+      }
     }
   }
+  console.error('[STORAGE] Redis op failed after retries:', lastErr?.message || lastErr);
+  throw lastErr;
 }
 
 export async function kvGet(key) {

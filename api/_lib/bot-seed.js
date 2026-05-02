@@ -157,7 +157,7 @@ export async function seedHighVolume() {
       created_at: now,
     });
   }
-  await inBatches(advisors, 25, async (a) => {
+  await inBatches(advisors, 8, async (a) => {
     await kvSet(`advisor:${a.id}`, a);
     await kvSet(`advisor_email:${a.email}`, a.id);
   });
@@ -189,7 +189,7 @@ export async function seedHighVolume() {
       created_at: now,
     });
   }
-  await inBatches(investors, 25, async (inv) => {
+  await inBatches(investors, 8, async (inv) => {
     await kvSet(`inst:${inv.id}`, inv);
     await kvSet(`inst_email:${inv.email}`, inv.id);
     await kvSet(`inst_code:${inv.code}`, inv.id);
@@ -277,7 +277,7 @@ export async function seedHighVolume() {
   }
 
   // Persist deals + index + audit entries
-  await inBatches(deals, 25, async (deal) => {
+  await inBatches(deals, 8, async (deal) => {
     await kvSet(`deal:${deal.id}`, deal);
     await kvZadd('deals:index', new Date(deal.created_at).getTime(), deal.id);
     // Mirror audit_log entries into the audit:{dealId} sorted set
@@ -330,7 +330,7 @@ export async function seedHighVolume() {
     }
   }
 
-  await inBatches(ioiSpecs, 25, async (ioi) => {
+  await inBatches(ioiSpecs, 8, async (ioi) => {
     await kvSet(`ioi:${ioi.id}`, ioi);
     await kvSet(`ioi_exists:${ioi.deal_id}:${ioi.investor_id}`, ioi.id);
     await kvZadd('ioi_index', new Date(ioi.submitted_at).getTime(), ioi.id);
@@ -353,7 +353,7 @@ export async function seedHighVolume() {
     slot.agg += ioi.amount;
     dealsByIdAffected.set(ioi.deal_id, slot);
   }
-  await inBatches([...dealsByIdAffected.entries()], 25, async ([dealId, agg]) => {
+  await inBatches([...dealsByIdAffected.entries()], 8, async ([dealId, agg]) => {
     const deal = await kvGet(`deal:${dealId}`);
     if (!deal) return;
     deal.ioi_count = agg.count;
