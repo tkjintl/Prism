@@ -4,6 +4,13 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Landing page: show prism diagram on mobile hero
+
+### Changes
+- `index.html`: On mobile (≤900px), unhid the `.hero-right` prism section which was `display:none`. Each pane (text/CTA + prism) now fills one full viewport (`min-height:100svh`) so the stats section below stays off-screen until scrolled. Side labels ("Deals flow in" / "Capital flows out") hidden on mobile. Prism centered at `min(300px,80%)` width with ambient glow backdrop.
+
+---
+
 ## [2026-05-01] — Fix admin portal mobile nav light mode
 
 ### Changes

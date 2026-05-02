@@ -326,7 +326,7 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
 
 @media(max-width:900px){
   .hero-inner,.platform-grid,.tiers-grid,.access-inner,.foot-top{grid-template-columns:1fr}
-  .hero-right,.stats-inner{display:none}
+  .stats-inner{display:none}
   .features-grid{grid-template-columns:1fr}
   .feat{border-right:0;border-bottom:1px solid var(--border)}
   nav{padding:0 20px}
@@ -336,6 +336,36 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   .stats-inner{grid-template-columns:1fr 1fr;gap:24px;display:grid}
   h1{font-size:clamp(42px,10vw,64px)}
   .feat-num{font-size:90px}
+  /* Hero container: stack vertically, each pane fills one viewport */
+  .hero{display:block;padding:0;overflow:visible}
+  .hero-inner{max-width:100%;gap:0;padding:0}
+  .hero-left{
+    min-height:100vh;
+    min-height:100svh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:88px 24px 48px;
+    position:relative;
+    z-index:2;
+  }
+  /* Show prism below hero CTA on mobile — fills full viewport */
+  .hero-right{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    min-height:100svh;
+    width:100%;
+    transform:none;
+    padding:40px 24px;
+    position:relative;
+  }
+  .hero-prism-scene{flex-direction:column;align-items:center;gap:0;width:100%}
+  .hp-side{display:none}
+  .hp-prism-wrap{width:min(300px,80%);margin:auto}
+  /* Subtle ambient glow behind prism on mobile */
+  .hero-right::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 55%,rgba(197,165,114,.06) 0%,transparent 70%);pointer-events:none}
 }
 
 /* ── MOBILE NAV FIX ── */
