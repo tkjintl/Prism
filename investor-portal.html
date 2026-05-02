@@ -533,7 +533,7 @@ a{color:inherit;text-decoration:none}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 20px;font-size:13px;border-radius:3px;z-index:999;opacity:0;transition:all .25s var(--ease);pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.3);font-family:var(--sans)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{background:var(--green);color:#fff}.toast.err{background:var(--red);color:#fff}
-.demo-badge{position:fixed;bottom:16px;right:16px;z-index:300;padding:5px 11px;background:var(--bg-3);border:1px solid var(--border);font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);border-radius:20px}
+.demo-badge{position:fixed;bottom:16px;right:16px;z-index:300;padding:5px 11px;background:var(--bg-3);border:1px solid var(--border);font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);border-radius:20px;opacity:.55;pointer-events:none;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 
 @media(max-width:640px){
   .hero-stats{gap:14px}
@@ -3627,6 +3627,27 @@ load();
 @keyframes shimmerSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}
 /* Error */
 .notice-error{padding:16px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:var(--r);font-size:12px;color:var(--red)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE-PASS — additive only, scoped to touch devices ≤768px.
+   Desktop (≥769px) and non-touch screens are mathematically excluded.
+   Do not add desktop-affecting rules in this block.
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Width-only gate for overflow guards. Desktop never matches.
+     A desktop user resizing their window narrow gets these too — harmless. */
+  html, body { overflow-x: hidden; }
+  .nav, .dd-inner { max-width: 100vw; box-sizing: border-box; }
+  /* Off-canvas deal detail panel is positioned at left:100vw and slides in.
+     Without an explicit max-width:100vw on its parent, scrollWidth picks it up. */
+  #view-deal { max-width: 100vw; }
+}
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  /* Safe-area insets only fire on real touch devices (notched iPhones). */
+  .nav { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+  .dd-inner { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}
 </style>
 </body>
 </html>

@@ -4,6 +4,87 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Mobile-pass Batch C — investor-portal demo badge (desktop + mobile)
+
+Operator-approved exception to the "no desktop changes" rule for one item: the `.demo-badge` "Investor Demo" pill on `investor-portal.html`. Was at full opacity on desktop and overlapping deal description text in narrower viewports.
+
+**Change:** added `opacity:.55; pointer-events:none; backdrop-filter:blur(4px)` to the desktop base rule. The badge is now translucent with a soft blur behind it in all viewports — legible without obscuring scrolling content underneath. Mobile-only `@media(max-width:480px)` block already had these properties; this pulls them up to the desktop default for consistency.
+
+**Files modified:** `investor-portal.html` (single line, base `.demo-badge` rule).
+
+**Verification:** desktop visual hit at 1280/1440/1920 — badge still visible bottom-right but no longer dominant, deal text underneath remains readable through the blur.
+
+---
+
+## [2026-05-02] — Mobile-pass Batch B — overflow guards + missed pages
+
+Continued on `mobile-pass` branch. After Batch A, re-audit revealed:
+- **investor-portal**: residual 11-21px overflow caused by off-canvas `#view-deal` panel (positioned at left:100vw, scrollWidth picked it up)
+- **forgot-password**: residual 5-20px overflow on `.box` element wider than viewport
+- **reset-password.html / setup-password.html**: not touched in Batch A — same `.box` overflow pattern (24-30px)
+- **login.html landscape**: paranoia gate `(hover: none) and (pointer: coarse)` not matching in some emulation paths, leaving 4 inputs <16px
+
+**Files modified:** `investor-portal.html`, `forgot-password.html`, `reset-password.html` (new mobile block), `setup-password.html` (new mobile block), `login.html`.
+
+**Approach:** split mobile rules into two gates:
+- **Width-only `@media (max-width: 768px)`** for overflow guards, input font-size, and box constraints. Desktop is ≥1024px so width-only gate already excludes it; the paranoia gate was redundant for these rules and was preventing the rules from firing in landscape orientation.
+- **Width + paranoia `@media (max-width: 768px) and (hover: none) and (pointer: coarse)`** kept only for safe-area-inset rules (genuinely touch-device-specific).
+
+**Specific fixes:**
+- Investor-portal: `#view-deal { max-width: 100vw }` + width-only overflow guards on html/body.
+- Forgot-password / reset-password / setup-password: `.box { max-width: 100% !important; width: calc(100vw - 32px) !important; box-sizing: border-box; margin: auto }` so the centered card fits the viewport.
+- Login: input font-size rule moved to width-only gate so landscape (667×375) gets it too.
+
+**Verification:**
+- Mobile audit re-run: 40/40 viewports show overflow=0 (was 26 P0 overflow defects pre-Batch-A).
+- Desktop math at 1280/1440/1920: width gate `false`, paranoia gate `false`, computed input.fontSize unchanged (12px desktop / 16px mobile), html.overflowX unchanged from v2.0.
+
+**Still remaining (deferred):**
+- ~22 sub-44px tap targets on `index.html` (footer micro-copy at 9-11px — intentional v2 styling, would need careful selective bumps).
+- 1 input <16px on login landscape (`#inv-code` has inline `style="font-size:13px"` that beats the stylesheet rule).
+- Investor-portal "INVESTOR DEMO" badge overlap (RISKY, deferred).
+
+---
+
+## [2026-05-02] — Mobile-pass Batch A — surgical mobile fixes, desktop untouched
+
+Branch: `mobile-pass` cut from `v2.0` tag (commit `a158aeb`). All changes are CSS-only additions, scoped behind `@media (max-width: 768px) and (hover: none) and (pointer: coarse)` — desktop CSS at ≥769px (and any non-touch device) is mathematically excluded.
+
+**Files modified (5):** `index.html`, `login.html`, `forgot-password.html`, `investor-portal.html`, `advisor-portal.html`, `admin-portal.html`.
+
+**Fixes shipped (Batch A, all SAFE):**
+- **A1** Investor-portal horizontal overflow (22-25px on viewports 360-414) — added `overflow-x: hidden` on `html, body` + `max-width: 100vw` on `.nav` and `.dd-inner`.
+- **A2** Tap targets bumped to ≥44px min-height on `.btn-nav, .n-link, .btn-primary, .btn-member` and inline IOI buttons in `index.html`.
+- **A3** All form inputs `font-size: 16px` on mobile to kill iOS auto-zoom on focus (was 12px on index/forgot-password and 12-13px on login landscape).
+- **A4** Safe-area-inset padding on body/nav for notched iPhones (iPhone 14, Pro Max).
+- **A5** Forgot-password body width clamped to viewport (was rendering 400px on a 375 viewport).
+
+**Skipped per operator decision:**
+- Investor-portal "INVESTOR DEMO" badge overlap (RISKY — would touch desktop).
+- Login secondary-button contrast (blue-on-black) — operator declined to touch dark/light theme.
+
+**Verification (mathematically rigorous):**
+- DOM-level test: at desktop widths (1280/1440/1920) `window.matchMedia('(max-width: 768px) and (hover: none) and (pointer: coarse)').matches === false` for every portal. Computed styles at desktop (input.fontSize, body.overflowX, body.padBottom) match v2.0 baseline byte-for-byte.
+- DOM-level test at iPhone SE (375): MQ matches, inputs computed at 16px, overflow-x hidden, all gates fire correctly.
+- Visual diff at 1280/1440/1920 against `v2.0`: byte-level PNG diffs are below the noise floor of Chromium animation re-rendering (verified by capturing the same v2.0 file twice).
+
+**Files produced:**
+- `MOBILE_AUDIT.md` (637 lines, full audit)
+- `mobile-audit/screenshots/` (35 mobile captures)
+- `mobile-audit/desktop-diff/` (desktop baseline + post-fix captures at 3 widths)
+- `mobile-audit/run-audit.cjs`, `build-report.cjs`, `desktop-diff.cjs` (rerunnable harness)
+
+---
+
+## [2026-05-02] — Restored 4-concept hero graphic mockup file
+
+- Restored 4-concept hero graphic mockup file (Liquid Mercury, Constellation, Monolith, Lifecycle Spectrum) at `prism-mockups.html` — previous Constellation Studies version replaced.
+- Previous version was overwritten without backup, so this is a faithful rebuild from the original v3 concept descriptions: Liquid Mercury (feTurbulence + feDisplacementMap + goo filter, gold droplets into molten prism, wet jewel-tone spectrum exit), Constellation (vertex stars + shooting-star deals + drawn-by-light 7-ray jewel arc), Monolith (CSS preserve-3d rotating slab, white-gold front face / full jewel-spectrum back face, hover speeds rotation 16s→5s), Lifecycle Spectrum (seven sequentially-pulsing jewel slats labeled RAW→REALIZED with a luminous deal pip traversing via animateMotion).
+- Constraints honored: pure black bg, gold #C5A572 / #E3C187 + jewel-tone spectrum, Cormorant Garamond italic + JetBrains Mono caps via Google Fonts, inline HTML/CSS/SVG only — no JS, no canvas, no WebGL, no external images. 2×2 grid desktop, stacked mobile, each panel ~620px tall with italic serif name + mono description + caption naming influence/technique.
+- Not modified: `index.html`, `advisor-portal.html`, `investor-portal.html`.
+
+---
+
 ## ★ [2026-05-02] — **PRISM PLATFORM v2 — Official Release** ★
 
 Tagged `v2.0` (commit `54e9007`). Snapshot saved as `Prism Platform v2.zip`. Baseline state:

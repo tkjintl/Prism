@@ -170,6 +170,19 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
   .operator-bar{padding:12px 16px}
   .fp-box{width:calc(100vw - 32px);padding:24px 20px}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE-PASS — additive only, scoped to touch devices ≤768px.
+   Desktop (≥769px) and non-touch screens are mathematically excluded.
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Width-only gate so landscape phones (667×375) also get input fix. Desktop is ≥1024px so never matches. */
+  input, select, textarea { font-size: 16px; }
+}
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); padding-top: max(0px, env(safe-area-inset-top)); }
+  html, body { overflow-x: hidden; }
+}
 </style>
 </head>
 <body>
