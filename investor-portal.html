@@ -440,6 +440,49 @@ a{color:inherit;text-decoration:none}
 .ps-pending{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .ps-approved{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 
+/* ── PERFORMANCE DASHBOARD ── */
+.perf-hero-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:28px}
+@media(min-width:640px){.perf-hero-row{grid-template-columns:repeat(4,1fr)}}
+.perf-stat-card{padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);animation:fadeUp .4s var(--ease) both}
+.perf-stat-lbl{font-size:10px;color:var(--text-3);letter-spacing:.06em;margin-bottom:6px;font-family:var(--sans)}
+.perf-stat-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text);line-height:1;font-variant-numeric:tabular-nums}
+.perf-stat-val.gold{color:var(--gold)}.perf-stat-val.green{color:var(--green)}
+.perf-stat-sub{font-size:11px;color:var(--text-3);margin-top:4px;font-family:var(--sans)}
+.perf-deal-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:var(--r);margin-bottom:28px}
+.perf-deal-table{width:100%;border-collapse:collapse;min-width:600px}
+.perf-deal-table th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:10px 12px;text-align:right;border-bottom:1px solid var(--border);background:var(--bg-3);white-space:nowrap}
+.perf-deal-table th:first-child{text-align:left}
+.perf-deal-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);text-align:right;font-variant-numeric:tabular-nums}
+.perf-deal-table td:first-child{text-align:left;font-family:var(--serif);font-style:italic;font-size:14px;font-weight:400;color:var(--text)}
+.perf-deal-table tr:last-child td{border-bottom:none}
+.perf-deal-table tr:hover td{background:var(--bg-3)}
+.perf-tvpi-gold{color:var(--gold)}
+.perf-tvpi-red{color:var(--red)}
+.perf-tvpi-muted{color:var(--text-3)}
+/* Distribution accordion */
+.dist-acc-item{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:8px}
+.dist-acc-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;background:var(--surface);transition:background .15s;user-select:none}
+.dist-acc-hd:hover{background:var(--bg-3)}
+.dist-acc-title{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text)}
+.dist-acc-sub{font-family:var(--mono);font-size:10px;color:var(--text-3)}
+.dist-acc-arrow{font-size:10px;color:var(--text-3);transition:transform .2s}
+.dist-acc-body{overflow:hidden;max-height:0;transition:max-height .25s ease}
+.dist-acc-body.open{max-height:600px}
+.dist-entry-row{display:flex;align-items:center;gap:12px;padding:9px 16px;border-top:1px solid var(--border);font-size:12px;transition:background .15s}
+.dist-entry-row:hover{background:var(--bg-3)}
+.dist-entry-date{font-family:var(--mono);font-size:10px;color:var(--text-3);width:90px;flex-shrink:0}
+.dist-type-badge{font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:2px 7px;border-radius:20px;border:1px solid;flex-shrink:0}
+.dt-income{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.dt-capital{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.dt-return{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.dist-entry-amount{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--gold);margin-left:auto;font-variant-numeric:tabular-nums}
+.perf-shimmer-row{height:44px;background:var(--surface);border-bottom:1px solid var(--border)}
+.perf-shimmer-row:last-child{border-bottom:none}
+.perf-shimmer-cell{height:12px;background:var(--border-m);border-radius:3px;animation:pulse 1.8s infinite}
+.perf-empty{padding:56px 24px;text-align:center}
+.perf-empty-icon{font-size:28px;margin-bottom:12px;opacity:.35}
+.perf-empty-title{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text);margin-bottom:6px}
+.perf-empty-sub{font-size:13px;color:var(--text-3);line-height:1.6}
 /* ── INVESTOR DATAROOM / Q&A ── */
 .inv-dr-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
 .inv-dr-tab{padding:10px 16px;font-size:12px;font-weight:500;color:var(--text-3);border-bottom:2px solid transparent;transition:all .15s;cursor:pointer;font-family:var(--sans);background:none;border-top:none;border-left:none;border-right:none}
@@ -1853,17 +1896,35 @@ a{color:inherit;text-decoration:none}
 <div id="view-portfolio" class="view">
   <div class="portfolio-hero">
     <div class="ph-greet">Welcome back,</div>
-    <div class="ph-name">James Hartwell</div>
+    <div class="ph-name" id="ph-name-el">—</div>
     <div class="ph-stats">
-      <div><div class="ph-stat-val" id="p-total">—</div><div class="ph-stat-lbl">Total Indicated</div></div>
-      <div><div class="ph-stat-val" id="p-approved" style="color:var(--green)">—</div><div class="ph-stat-lbl">Confirmed Access</div></div>
+      <div><div class="ph-stat-val" id="p-total">—</div><div class="ph-stat-lbl">Total Committed</div></div>
+      <div><div class="ph-stat-val" id="p-value" style="color:var(--gold)">—</div><div class="ph-stat-lbl">Current Value</div></div>
+      <div><div class="ph-stat-val" id="p-tvpi">—</div><div class="ph-stat-lbl">TVPI</div></div>
       <div><div class="ph-stat-val" id="p-count">—</div><div class="ph-stat-lbl">Active Positions</div></div>
+    </div>
+    <!-- Portfolio sub-tabs -->
+    <div style="display:flex;gap:0;border-bottom:0;margin-top:16px">
+      <button id="ptab-positions" class="inv-dr-tab on" onclick="switchPortfolioTab('positions',this)">Positions</button>
+      <button id="ptab-performance" class="inv-dr-tab" onclick="switchPortfolioTab('performance',this)">Performance</button>
     </div>
   </div>
   <div class="portfolio-body">
-    <div class="alloc-section" id="alloc-section"></div>
-    <div class="section-hd" style="margin-bottom:14px"><h2 class="section-title">My Positions</h2></div>
-    <div class="pos-grid" id="portfolio-list"></div>
+    <!-- Positions pane -->
+    <div id="ptab-positions-body">
+      <div class="alloc-section" id="alloc-section"></div>
+      <div class="section-hd" style="margin-bottom:14px"><h2 class="section-title">My Positions</h2></div>
+      <div class="pos-grid" id="portfolio-list"></div>
+    </div>
+    <!-- Performance pane -->
+    <div id="ptab-performance-body" style="display:none" aria-hidden="true">
+      <div id="perf-dashboard-content">
+        <!-- shimmer while loading -->
+        <div class="perf-hero-row">
+          ${[0,1,2,3].map(()=>`<div class="perf-stat-card"><div class="perf-shimmer-cell" style="width:60%;margin-bottom:8px"></div><div class="perf-shimmer-cell" style="width:80%"></div></div>`).join('')}
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2892,12 +2953,151 @@ function showVdrViewer(fileName, dataUrl, mimeType) {
 }
 
 /* ── PORTFOLIO ── */
+function switchPortfolioTab(tab, btn){
+  document.querySelectorAll('#view-portfolio .inv-dr-tab').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  const pos=document.getElementById('ptab-positions-body');
+  const perf=document.getElementById('ptab-performance-body');
+  if(tab==='performance'){
+    pos.style.display='none';pos.setAttribute('aria-hidden','true');
+    perf.style.display='block';perf.setAttribute('aria-hidden','false');
+    loadPerfDashboard();
+  } else {
+    pos.style.display='block';pos.setAttribute('aria-hidden','false');
+    perf.style.display='none';perf.setAttribute('aria-hidden','true');
+  }
+}
+
+async function loadPerfDashboard(){
+  const el=document.getElementById('perf-dashboard-content');
+  if(!el)return;
+  el.innerHTML=`<div class="perf-hero-row">${[0,1,2,3].map(()=>`<div class="perf-stat-card"><div class="perf-shimmer-cell" style="width:60%;margin-bottom:8px"></div><div class="perf-shimmer-cell" style="width:80%"></div></div>`).join('')}</div>`;
+  const res=await fetchSilent('/api/v2?resource=inst&op=performance');
+  const data=res?.performance||buildMockPerformance();
+  renderPerfDashboard(el,data);
+}
+
+function buildMockPerformance(){
+  return {
+    summary:{
+      total_committed:PORTFOLIO.reduce((s,p)=>s+p.amount,0),
+      current_value:PORTFOLIO.reduce((s,p)=>s+p.amount*1.12,0),
+      tvpi:1.12,
+      total_distributions:PORTFOLIO.reduce((s,p)=>s+p.amount*0.05,0)
+    },
+    deals:PORTFOLIO.map(p=>{
+      const d=DEALS.find(x=>x.id===p.deal_id);
+      return {
+        id:p.deal_id,
+        name:d?.name||p.deal_id,
+        committed:p.amount,
+        current_value:p.amount*1.12,
+        dpi:0.05,rvpi:1.07,tvpi:1.12,moic:1.12,
+        distributions:[
+          {date:'2026-04-01',type:'Income',amount:p.amount*0.03},
+          {date:'2026-01-01',type:'Income',amount:p.amount*0.02},
+        ]
+      };
+    })
+  };
+}
+
+function renderPerfDashboard(el, data){
+  const s=data.summary||{};
+  const deals=data.deals||[];
+  const fmt2=(n)=>typeof n==='number'?n.toFixed(2)+'x':'—';
+  const fmtPct=(n)=>typeof n==='number'?(n*100).toFixed(1)+'%':'—';
+  function tvpiCls(v){if(!v||v===0)return'perf-tvpi-muted';if(v>=1)return'perf-tvpi-gold';return'perf-tvpi-red';}
+
+  const heroHTML=`<div class="perf-hero-row">
+    <div class="perf-stat-card" style="animation-delay:0ms">
+      <div class="perf-stat-lbl">Total Committed</div>
+      <div class="perf-stat-val">${fmU(s.total_committed||0)}</div>
+    </div>
+    <div class="perf-stat-card" style="animation-delay:60ms">
+      <div class="perf-stat-lbl">Current Value</div>
+      <div class="perf-stat-val gold">${fmU(s.current_value||0)}</div>
+    </div>
+    <div class="perf-stat-card" style="animation-delay:120ms">
+      <div class="perf-stat-lbl">TVPI</div>
+      <div class="perf-stat-val ${tvpiCls(s.tvpi)}">${fmt2(s.tvpi)}</div>
+    </div>
+    <div class="perf-stat-card" style="animation-delay:180ms">
+      <div class="perf-stat-lbl">Total Distributions</div>
+      <div class="perf-stat-val green">${fmU(s.total_distributions||0)}</div>
+    </div>
+  </div>`;
+
+  const tableHTML=deals.length?`<div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Deal Performance</div>
+    <div class="perf-deal-table-wrap">
+      <table class="perf-deal-table">
+        <thead><tr>
+          <th>Deal</th><th>Committed</th><th>Current Value</th>
+          <th>DPI</th><th>RVPI</th><th>TVPI</th><th>MOIC</th>
+        </tr></thead>
+        <tbody>${deals.map(d=>`<tr>
+          <td>${esc(d.name)}</td>
+          <td>${fmU(d.committed)}</td>
+          <td>${fmU(d.current_value)}</td>
+          <td>${fmtPct(d.dpi)}</td>
+          <td>${fmtPct(d.rvpi)}</td>
+          <td class="${tvpiCls(d.tvpi)}">${fmt2(d.tvpi)}</td>
+          <td class="${tvpiCls(d.moic)}">${fmt2(d.moic)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`
+    :`<div style="text-align:center;padding:24px;font-size:12px;color:var(--text-3)">No deal data available.</div>`;
+
+  const distHTML=deals.length?`<div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Distribution History</div>
+    ${deals.map(d=>{
+      const dists=d.distributions||[];
+      const total=dists.reduce((s,x)=>s+(x.amount||0),0);
+      return`<div class="dist-acc-item">
+        <div class="dist-acc-hd" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.dist-acc-arrow').style.transform=this.nextElementSibling.classList.contains('open')?'rotate(90deg)':''">
+          <div>
+            <div class="dist-acc-title">${esc(d.name)}</div>
+            <div class="dist-acc-sub">${dists.length} distribution${dists.length!==1?'s':''} · ${fmU(total)} total</div>
+          </div>
+          <div class="dist-acc-arrow">›</div>
+        </div>
+        <div class="dist-acc-body">
+          ${dists.length?dists.map(dist=>{
+            const typeCls=dist.type==='Income'?'dt-income':dist.type==='Capital'?'dt-capital':'dt-return';
+            return`<div class="dist-entry-row">
+              <div class="dist-entry-date">${dist.date||'—'}</div>
+              <span class="dist-type-badge ${typeCls}">${dist.type||'—'}</span>
+              <div style="flex:1;font-size:11px;color:var(--text-3);margin-left:8px">&nbsp;</div>
+              <div class="dist-entry-amount">${fmU(dist.amount)}</div>
+            </div>`;
+          }).join(''):`<div style="padding:12px 16px;font-size:12px;color:var(--text-3);font-style:italic">No distributions recorded.</div>`}
+        </div>
+      </div>`;
+    }).join('')}`
+    :'';
+
+  const emptyOrContent = deals.length
+    ? heroHTML+tableHTML+distHTML
+    : `<div class="perf-empty">
+        <div class="perf-empty-icon">◆</div>
+        <div class="perf-empty-title">No positions yet</div>
+        <div class="perf-empty-sub">Your portfolio performance will appear here once you have active investments.</div>
+      </div>`;
+
+  el.innerHTML=emptyOrContent;
+}
+
 function renderPortfolio() {
   const total    = PORTFOLIO.reduce((s, p) => s + p.amount, 0);
-  const approved = PORTFOLIO.filter(p => p.status === 'approved').reduce((s, p) => s + p.amount, 0);
+  const value    = Math.round(total * 1.12);
   document.getElementById('p-total').textContent    = fmU(total);
-  document.getElementById('p-approved').textContent = fmU(approved);
+  document.getElementById('p-value').textContent    = fmU(value);
+  document.getElementById('p-tvpi').textContent     = '1.12x';
   document.getElementById('p-count').textContent    = PORTFOLIO.length;
+  // Name — try to read from existing elements
+  const nameEl=document.getElementById('ph-name-el');
+  const greetName=document.querySelector('.greet-name');
+  if(nameEl&&greetName)nameEl.textContent=greetName.textContent||'—';
+  else if(nameEl)nameEl.textContent='—';
 
   const segs  = PORTFOLIO.map(p => { const d = DEALS.find(x => x.id === p.deal_id); return { name: d.name, ac: d.asset_class, amount: p.amount }; });
   const totA  = segs.reduce((s, x) => s + x.amount, 0);

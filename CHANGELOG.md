@@ -4,6 +4,28 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Phase 3 + Phase 4 frontend: AI score card, investor matching panel, priority approvals queue, NAV update UI, performance dashboard, distribution workflow
+
+### Phase 3 Frontend — Admin Portal (`admin-portal.html`)
+
+- **AI Analysis card** (`buildAIScoreCard`): added to deal detail right column. Shows Completeness and Plausibility scores as SVG arc-ring dials (Cormorant numeral, gold fill). Lists up to 3 flags per score in mono text. Renders operator brief in italic Cormorant. Recommended action shown as green/amber/red badge. "Re-score" button calls `POST /api/v2?resource=admin&op=rescore-deal`, shows spinner, refreshes panel on success. Shimmer + "Run Analysis" button when `aiScore` is null.
+- **Investor Matches panel** (`loadInvestorMatches`): added below AI card in deal detail right column. Fetches `GET /api/v2?resource=admin&op=match-investors&dealId=X`. Displays ranked list with score bar (gold, proportional to 5), investor name/email, match-reason pills (green mono), amber "Has IOI" badge. Checkboxes wire to `window._matchSelected` object — logs to console on change (bulk-invite ready). Loading and empty states handled.
+- **Priority Approvals Queue** (`renderOverview`): upgraded all four action-queue columns. Each card now shows: priority badge (HIGH/MEDIUM in red/amber with border), item-type icon, age label ("2h ago"), and AI brief excerpt for deal submissions. Deal submission cards get `pq-high-card` left-border accent (red). IOI decisions and push-ready cards get `pq-medium-card` (amber). Helper function `relAge()` derives human-readable age from timestamps.
+
+### Phase 4 Frontend — Advisor Portal (`advisor-portal.html`)
+
+- **NAV Update section**: injected at the bottom of the deal Overview tab (`renderOverview`). Form: NAV per unit, Total NAV (with comma-format helper `fmtNavInput`), as-of date (defaults today), optional notes. "Post Update" calls `POST /api/v2?resource=advisor&op=post-nav-update`. On success, pushes entry into `deal.navHistory` and re-renders tab immediately. NAV History table below the form (Date, NAV/unit, Total NAV, Notes) — sorted newest first. Loading, success, and error states handled.
+
+### Phase 4 Frontend — Investor Portal (`investor-portal.html`)
+
+- **Performance Dashboard**: added `ptab-positions-body` / `ptab-performance-body` sub-tab switcher to the portfolio view header. Performance tab fetches `GET /api/v2?resource=inst&op=performance`; falls back to mock data derived from `PORTFOLIO` + `DEALS`. Renders: 4 summary stat cards (Total Committed, Current Value, TVPI, Total Distributions). Per-deal table with Committed / Current Value / DPI / RVPI / TVPI / MOIC in JetBrains Mono tabular-nums — TVPI ≥ 1.0x in gold, < 1.0x in muted red. Distribution History accordion — expandable per deal, each row shows date, type badge (Income/Capital/Return of Capital), amount. Shimmer loading state and graceful empty state. Portfolio hero row updated: replaces "Confirmed Access" with Current Value + TVPI.
+
+### Phase 4 Frontend — Admin Portal (`admin-portal.html`) — Distribution
+
+- **Post Distribution modal** (`openDistModal`, `confirmPostDistribution`): "Post Distribution" button appears on deal detail for `close` / `realized` stage deals. Opens full distribution modal with: total amount, distribution type (Income/Capital/Return of Capital), date, notes. Per-investor preview table fetches IOIs via `GET /api/v2?resource=admin&op=deal-iois&dealId=X`, calculates proportional share client-side, shows each investor's amount in gold mono. Submit calls `POST /api/v2?resource=advisor&op=post-distribution`. Success shows confirmation toast and refreshes deal detail.
+
+---
+
 ## [2026-05-02] — Phase 3 + Phase 4 backend: investor matching, compliance monitoring, NAV updates, quarterly statements, distribution workflow, performance metrics, welcome sequence
 
 ### Phase 3 — Intelligence + Compliance

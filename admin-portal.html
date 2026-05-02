@@ -608,6 +608,69 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   /* KPI card touch targets */
   .kpi-card{padding:14px 16px}
 }
+/* ── AI SCORE CARD ── */
+.ai-score-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.ai-score-card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.ai-score-card-title{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.ai-score-dials{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+.ai-score-dial{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ai-dial-wrap{position:relative;width:84px;height:84px}
+.ai-dial-wrap svg{width:100%;height:100%}
+.ai-dial-track{fill:none;stroke:var(--border-m);stroke-width:7;stroke-linecap:round}
+.ai-dial-fill{fill:none;stroke:var(--gold);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset 1s var(--ease)}
+.ai-dial-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.ai-dial-pct{font-family:var(--serif);font-size:24px;font-weight:400;color:var(--text);line-height:1}
+.ai-dial-sub{font-family:var(--mono);font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
+.ai-score-dial-name{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
+.ai-flags{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.ai-flag-item{display:flex;align-items:flex-start;gap:6px;font-family:var(--mono);font-size:9px;color:var(--text-3);line-height:1.4;letter-spacing:.02em}
+.ai-flag-dot{width:4px;height:4px;border-radius:50%;background:var(--amber);flex-shrink:0;margin-top:4px}
+.ai-score-brief{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text-2);line-height:1.7;padding:10px 12px;background:var(--bg-3);border-left:2px solid var(--gold-bd);border-radius:0 3px 3px 0;margin-bottom:12px}
+.ai-action-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid;font-weight:500}
+.ai-action-publish{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.ai-action-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.ai-action-reject{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.ai-rescore-btn{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border:1px solid var(--border-m);color:var(--text-3);background:transparent;border-radius:2px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.ai-rescore-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.ai-rescore-btn:disabled{opacity:.4;cursor:not-allowed}
+.ai-score-shimmer{animation:pulse 1.8s infinite}
+.ai-score-shimmer .ai-shimmer-block{height:12px;background:var(--border-m);border-radius:3px;margin-bottom:8px}
+/* ── INVESTOR MATCH PANEL ── */
+.inv-match-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.inv-match-hd{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px}
+.inv-match-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.inv-match-row:last-child{border-bottom:none}
+.inv-match-rank{font-family:var(--mono);font-size:9px;color:var(--text-3);width:16px;flex-shrink:0;text-align:center}
+.inv-match-info{flex:1;min-width:0}
+.inv-match-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inv-match-email{font-family:var(--mono);font-size:9px;color:var(--text-3)}
+.inv-match-bar-wrap{width:80px;flex-shrink:0}
+.inv-match-bar-track{height:3px;background:var(--border-m);border-radius:2px;overflow:hidden;margin-bottom:3px}
+.inv-match-bar-fill{height:100%;background:var(--gold);border-radius:2px}
+.inv-match-score{font-family:var(--mono);font-size:9px;color:var(--text-3);text-align:right}
+.inv-match-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.inv-match-tag{font-family:var(--mono);font-size:8px;letter-spacing:.06em;padding:2px 6px;border-radius:20px;border:1px solid var(--green-bd);background:var(--green-bg);color:var(--green)}
+.inv-match-ioi-badge{font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:20px;border:1px solid var(--amber-bd);background:var(--amber-bg);color:var(--amber);letter-spacing:.06em}
+.inv-match-check{width:16px;height:16px;flex-shrink:0;accent-color:var(--gold);cursor:pointer}
+.inv-match-empty{font-size:12px;color:var(--text-3);font-style:italic;padding:8px 0}
+/* ── PRIORITY QUEUE BADGE ── */
+.pq-priority-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-family:var(--mono);font-size:7px;letter-spacing:.12em;text-transform:uppercase;border:1px solid;font-weight:500;flex-shrink:0}
+.pq-high{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.pq-medium{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.pq-low{color:var(--text-3);border-color:var(--border-m);background:transparent}
+.pq-item-icon{font-size:11px;flex-shrink:0}
+.pq-age{font-family:var(--mono);font-size:9px;color:var(--text-3);white-space:nowrap;margin-left:auto;padding-left:6px}
+.pq-ai-brief{font-size:10px;color:var(--text-3);font-style:italic;line-height:1.4;margin:3px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ov-action-card.pq-high-card{border-left:3px solid var(--red)}
+.ov-action-card.pq-medium-card{border-left:3px solid var(--amber)}
+.pq-section-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);padding:8px 16px 4px;background:var(--bg-2);border-bottom:1px solid var(--border)}
+/* ── DISTRIBUTION MODAL ── */
+.dist-modal-box{max-width:560px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;animation:fadeUp .25s var(--ease);box-shadow:0 24px 64px rgba(0,0,0,.15);max-height:90vh;overflow-y:auto}
+.dist-preview-table{width:100%;border-collapse:collapse;margin-top:10px}
+.dist-preview-table th{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}
+.dist-preview-table td{font-size:11px;padding:7px 8px;border-bottom:1px solid var(--border);color:var(--text)}
+.dist-preview-table tr:last-child td{border-bottom:none}
+.dist-preview-table .dist-amount-cell{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--gold)}
 /* ── EQUITY VALUE PATH (mirrored from investor portal for admin preview) ── */
 .eq-scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
 .eq-sc{border:1px solid var(--border);border-radius:var(--r);padding:12px 10px;text-align:center}
@@ -1957,6 +2020,53 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   <div id="pkg-preview-actions" style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:16px 32px;display:flex;gap:12px;justify-content:flex-end"></div>
 </div>
 
+<!-- ══ DISTRIBUTION MODAL ══ -->
+<div class="modal-overlay hidden" id="dist-modal">
+  <div class="dist-modal-box">
+    <div class="modal-title" style="margin-bottom:16px">Post Distribution</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Total Amount (USD) <span style="color:var(--red)">*</span></label>
+          <div style="display:flex;align-items:center;gap:0">
+            <span style="padding:9px 10px;background:var(--border);border:1px solid var(--border-m);border-right:none;border-radius:3px 0 0 3px;font-family:var(--mono);font-size:12px;color:var(--text-2)">$</span>
+            <input type="text" id="dist-amount" inputmode="numeric" placeholder="0" oninput="fmtAmtInput(this);updateDistPreview()" style="flex:1;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:0 3px 3px 0;font-family:var(--mono);font-size:12px;color:var(--text);outline:none">
+          </div>
+        </div>
+        <div>
+          <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Distribution Date <span style="color:var(--red)">*</span></label>
+          <input type="date" id="dist-date" style="width:100%;box-sizing:border-box;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none">
+        </div>
+      </div>
+      <div>
+        <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Distribution Type</label>
+        <select id="dist-type" onchange="updateDistPreview()" style="width:100%;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;appearance:none;cursor:pointer">
+          <option value="Income">Income</option>
+          <option value="Capital">Capital</option>
+          <option value="Return of Capital">Return of Capital</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Notes <span style="opacity:.5">(optional)</span></label>
+        <textarea id="dist-notes" rows="2" placeholder="Additional context…" style="width:100%;box-sizing:border-box;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;resize:vertical"></textarea>
+      </div>
+      <div id="dist-preview-section" style="display:none">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Per-Investor Preview</div>
+        <div style="background:var(--bg-3);border:1px solid var(--border);border-radius:3px;overflow:hidden;max-height:200px;overflow-y:auto">
+          <table class="dist-preview-table">
+            <thead><tr><th>Investor</th><th>IOI Amount</th><th>Share %</th><th>Distribution</th></tr></thead>
+            <tbody id="dist-preview-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="document.getElementById('dist-modal').classList.add('hidden')">Cancel</button>
+      <button class="modal-confirm" onclick="confirmPostDistribution()" id="dist-confirm-btn">Post Distribution</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="demo-badge">Admin Demo</div>
 
@@ -2269,13 +2379,31 @@ function renderOverview(){
 
   /* ── Action Queue columns ── */
 
+  // Helper: relative age
+  function relAge(dateStr){
+    if(!dateStr)return'';
+    const ms=Date.now()-new Date(dateStr).getTime();
+    const h=Math.floor(ms/3600000);
+    if(h<1)return'just now';
+    if(h<24)return h+'h ago';
+    return Math.floor(h/24)+'d ago';
+  }
+
   // Column 1: New Deals (advisor submissions awaiting AI generation + review, exclude approved)
   const submissionCards = NEW_SUBMISSIONS.filter(s => s.advisor_review_status !== 'approved').map(s => {
     const generated = !!(s.thesis || s.tagline || s.ai_content || s.generated);
-    return `<div class="ov-action-card">
-      <div class="ov-ac-tag amber">New Deal · ${s.submitted||'Recent'}</div>
+    const aiRef=s.aiScore?.operator_brief?`<div class="pq-ai-brief">AI: ${s.aiScore.operator_brief}</div>`:'';
+    const age=relAge(s.submitted_at||s.submitted);
+    return `<div class="ov-action-card pq-high-card">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+        <span class="pq-priority-badge pq-high">HIGH</span>
+        <span class="pq-item-icon">📄</span>
+        <div class="ov-ac-tag amber" style="margin:0">Deal Submission</div>
+        <span class="pq-age">${age}</span>
+      </div>
       <div class="ov-ac-name">${s.name}</div>
       <div class="ov-ac-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''}<br>${s.target_irr}% IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()}</div>
+      ${aiRef}
       <div class="ov-ac-actions">
         ${!generated ?
           `<button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])">✦ Generate with AI →</button>` :
@@ -2292,8 +2420,13 @@ function renderOverview(){
 
   // Column 1b: Ready to Publish (advisor-approved, awaiting admin publish)
   const readyToPublishCards = NEW_SUBMISSIONS.filter(s => s.advisor_review_status === 'approved').map(s =>
-    `<div class="ov-action-card" style="border-left:2px solid var(--green)">
-      <div class="ov-ac-tag" style="color:var(--green)">Advisor Approved · Ready</div>
+    `<div class="ov-action-card" style="border-left:3px solid var(--green)">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+        <span class="pq-priority-badge pq-high">HIGH</span>
+        <span class="pq-item-icon">✓</span>
+        <div class="ov-ac-tag" style="color:var(--green);margin:0">Ready to Publish</div>
+        <span class="pq-age">${relAge(s.submitted_at||s.submitted)}</span>
+      </div>
       <div class="ov-ac-name">${s.name}</div>
       <div class="ov-ac-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''}<br>${s.target_irr}% IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()}</div>
       <div class="ov-ac-actions">
@@ -2304,10 +2437,15 @@ function renderOverview(){
 
   // Column 2: Inbound IOI from Investors (pending approvals)
   const ioiDecisionCards = DEALS.flatMap(d =>
-    d.iois.filter(i => i.status === 'pending').map(ioi => `<div class="ov-action-card">
-      <div class="ov-ac-tag gold">${d.name.length>24?d.name.substring(0,24)+'…':d.name}</div>
+    d.iois.filter(i => i.status === 'pending').map(ioi => `<div class="ov-action-card pq-medium-card">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+        <span class="pq-priority-badge pq-medium">MEDIUM</span>
+        <span class="pq-item-icon">↑</span>
+        <div class="ov-ac-tag gold" style="margin:0">${d.name.length>20?d.name.substring(0,20)+'…':d.name}</div>
+        <span class="pq-age">${ioi.isNew?'just now':ioi.date||''}</span>
+      </div>
       <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${ioi.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
-      <div class="ov-ac-meta">${ioi.type} · ${ioi.geo} · <strong>${fmU(ioi.amount)}</strong><br>${ioi.date}${ioi.isNew?' · <span style="color:var(--amber)">New</span>':''}</div>
+      <div class="ov-ac-meta">${ioi.type} · ${ioi.geo} · <strong>${fmU(ioi.amount)}</strong>${ioi.isNew?' · <span style="color:var(--amber)">New</span>':''}</div>
       <div class="ov-ac-actions">
         <button class="att-btn att-approve" onclick="actIoi('${d.id}','${ioi.id}','approved');renderOverview();renderKPIs()">Approve</button>
         <button class="att-btn att-decline" onclick="actIoi('${d.id}','${ioi.id}','declined');renderOverview();renderKPIs()">Decline</button>
@@ -2335,7 +2473,11 @@ function renderOverview(){
     ).join('');
     return `<div class="ov-action-card" style="display:flex;padding:0;gap:0">
       <div style="flex:1;min-width:0;padding:12px 16px">
-        <div class="ov-ac-tag violet">Open Due Diligence</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+          <span class="pq-priority-badge pq-medium">MEDIUM</span>
+          <span class="pq-item-icon">✦</span>
+        </div>
+        <div class="ov-ac-tag violet" style="margin-bottom:4px">Open Due Diligence</div>
         <div class="ov-ac-name">${d.name}</div>
         <div class="ov-ac-meta">${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}</div>
         ${investorRows}
@@ -3562,6 +3704,8 @@ async function openDealDetail(dealId){
     const fill=document.getElementById('ddp-alloc-fill');
     if(fill)fill.style.width=fill.dataset.pct+'%';
   });
+  // Load investor matches async
+  loadInvestorMatches(dealId);
 }
 
 function closeDealDetail(){
@@ -3906,8 +4050,207 @@ function buildDealDetailHTML(deal){
         ${deal.advisor_email?`<div class="ddp-adv-email">${deal.advisor_email}</div>`:''}
         <div style="font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:8px">Submitted ${submitted}</div>
       </div>
+
+      <!-- AI Brief card -->
+      ${buildAIScoreCard(deal)}
+
+      <!-- Investor Matches panel -->
+      <div class="inv-match-panel" id="ddp-match-panel">
+        <div class="inv-match-hd">Investor Matches</div>
+        <div id="ddp-match-body" style="font-size:12px;color:var(--text-3);font-style:italic">Loading matches…</div>
+      </div>
+
+      <!-- Distribution button (close/realized only) -->
+      ${(deal.stage==='close'||deal.stage==='realized')?`<button onclick="openDistModal('${deal.id}')" style="width:100%;padding:10px;background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:3px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);cursor:pointer;transition:all .15s;margin-bottom:16px" onmouseover="this.style.background='var(--gold)';this.style.color='var(--bg)'" onmouseout="this.style.background='var(--gold-bg)';this.style.color='var(--gold)'">◆ Post Distribution</button>`:''}
     </div>
   </div>`;
+}
+
+/* ── AI SCORE CARD ── */
+function buildAIScoreCard(deal){
+  const ai=deal.aiScore;
+  if(!ai){
+    return`<div class="ai-score-card" id="ddp-ai-card">
+      <div class="ai-score-card-hd">
+        <div class="ai-score-card-title">AI Analysis</div>
+      </div>
+      <div class="ai-score-shimmer" style="padding:8px 0">
+        <div class="ai-shimmer-block" style="width:60%"></div>
+        <div class="ai-shimmer-block" style="width:80%"></div>
+        <div class="ai-shimmer-block" style="width:45%"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:12px">Scoring pending…</div>
+      <button class="ai-rescore-btn" id="ai-run-btn" onclick="runAIScore('${deal.id}')">
+        <span id="ai-run-spinner" style="display:none">⏳</span>
+        Run Analysis
+      </button>
+    </div>`;
+  }
+  const comp=Math.round((ai.completeness_score||0)*100);
+  const plab=Math.round((ai.plausibility_score||0)*100);
+  function dialSVG(pct,id){
+    const r=34,cx=42,cy=42,circ=2*Math.PI*r;
+    const offset=circ*(1-pct/100);
+    return`<svg viewBox="0 0 84 84" width="84" height="84">
+      <circle cx="${cx}" cy="${cy}" r="${r}" class="ai-dial-track" transform="rotate(-90 ${cx} ${cy})"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" class="ai-dial-fill" transform="rotate(-90 ${cx} ${cy})"
+        stroke-dasharray="${circ}" stroke-dashoffset="${offset}" id="${id}"/>
+    </svg>`;
+  }
+  const actionMap={publish:'ai-action-publish',review:'ai-action-review',reject:'ai-action-reject'};
+  const actionLabel={publish:'Publish',review:'Review',reject:'Reject'};
+  const action=ai.recommended_action||'review';
+  const badgeCls=actionMap[action]||'ai-action-review';
+  const compFlags=(ai.completeness_flags||[]).slice(0,3);
+  const plabFlags=(ai.plausibility_flags||[]).slice(0,3);
+  return`<div class="ai-score-card" id="ddp-ai-card">
+    <div class="ai-score-card-hd">
+      <div class="ai-score-card-title">AI Analysis</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ai-action-badge ${badgeCls}">${actionLabel[action]||'Review'}</span>
+        <button class="ai-rescore-btn" id="ai-run-btn" onclick="runAIScore('${deal.id}')">
+          <span id="ai-run-spinner" style="display:none">⏳</span>
+          Re-score
+        </button>
+      </div>
+    </div>
+    <div class="ai-score-dials">
+      <div class="ai-score-dial">
+        <div class="ai-dial-wrap">
+          ${dialSVG(comp,'ai-dial-comp')}
+          <div class="ai-dial-label">
+            <div class="ai-dial-pct">${comp}</div>
+            <div class="ai-dial-sub">%</div>
+          </div>
+        </div>
+        <div class="ai-score-dial-name">Completeness</div>
+        ${compFlags.length?`<div class="ai-flags">${compFlags.map(f=>`<div class="ai-flag-item"><div class="ai-flag-dot"></div>${f}</div>`).join('')}</div>`:''}
+      </div>
+      <div class="ai-score-dial">
+        <div class="ai-dial-wrap">
+          ${dialSVG(plab,'ai-dial-plab')}
+          <div class="ai-dial-label">
+            <div class="ai-dial-pct">${plab}</div>
+            <div class="ai-dial-sub">%</div>
+          </div>
+        </div>
+        <div class="ai-score-dial-name">Plausibility</div>
+        ${plabFlags.length?`<div class="ai-flags">${plabFlags.map(f=>`<div class="ai-flag-item"><div class="ai-flag-dot"></div>${f}</div>`).join('')}</div>`:''}
+      </div>
+    </div>
+    ${ai.operator_brief?`<div class="ai-score-brief">${ai.operator_brief}</div>`:''}
+  </div>`;
+}
+
+async function runAIScore(dealId){
+  const btn=document.getElementById('ai-run-btn');
+  const spinner=document.getElementById('ai-run-spinner');
+  if(btn){btn.disabled=true;if(spinner)spinner.style.display='inline';}
+  const res=await api('POST','/api/v2?resource=admin&op=rescore-deal',{dealId});
+  if(res?.ok){
+    toast('AI analysis updated','ok');
+    openDealDetail(dealId);
+  } else {
+    toast('Scoring failed — try again','err');
+    if(btn){btn.disabled=false;if(spinner)spinner.style.display='none';}
+  }
+}
+
+/* ── INVESTOR MATCHES ── */
+async function loadInvestorMatches(dealId){
+  const body=document.getElementById('ddp-match-body');
+  if(!body)return;
+  const res=await fetchSilent(`/api/v2?resource=admin&op=match-investors&dealId=${dealId}`);
+  const matches=res?.matches||[];
+  if(!matches.length){body.innerHTML='<div class="inv-match-empty">No investor matches found.</div>';return;}
+  window._matchSelected={};
+  body.innerHTML=matches.map((m,i)=>{
+    const scoreW=Math.round((m.score||0)/5*100);
+    const tags=(m.match_reasons||[]).map(r=>`<span class="inv-match-tag">${r}</span>`).join('');
+    const ioiBadge=m.has_ioi?'<span class="inv-match-ioi-badge">Has IOI</span>':'';
+    return`<div class="inv-match-row">
+      <div class="inv-match-rank">${i+1}</div>
+      <div>
+        <input type="checkbox" class="inv-match-check" id="mc-${m.id||i}" onchange="window._matchSelected['${m.id||i}']=this.checked;console.log('Selected matches:',Object.keys(window._matchSelected).filter(k=>window._matchSelected[k]))">
+      </div>
+      <div class="inv-match-info">
+        <div class="inv-match-name">${m.name||'—'}</div>
+        <div class="inv-match-email">${m.email||''}</div>
+        <div class="inv-match-tags" style="margin-top:4px">${tags}${ioiBadge}</div>
+      </div>
+      <div class="inv-match-bar-wrap">
+        <div class="inv-match-bar-track"><div class="inv-match-bar-fill" style="width:${scoreW}%"></div></div>
+        <div class="inv-match-score">${(m.score||0).toFixed(1)}/5</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── DISTRIBUTION MODAL ── */
+let _distDealId=null;
+let _distIois=[];
+
+async function openDistModal(dealId){
+  _distDealId=dealId;
+  _distIois=[];
+  document.getElementById('dist-amount').value='';
+  document.getElementById('dist-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('dist-type').value='Income';
+  document.getElementById('dist-notes').value='';
+  document.getElementById('dist-preview-body').innerHTML='';
+  document.getElementById('dist-preview-section').style.display='none';
+  document.getElementById('dist-modal').classList.remove('hidden');
+  // fetch IOIs for preview
+  const res=await fetchSilent(`/api/v2?resource=admin&op=deal-iois&dealId=${dealId}`);
+  _distIois=(res?.iois||[]).filter(i=>i.status==='approved');
+  updateDistPreview();
+}
+
+function updateDistPreview(){
+  const raw=(document.getElementById('dist-amount')?.value||'').replace(/[^0-9.]/g,'');
+  const total=parseFloat(raw)||0;
+  const tbody=document.getElementById('dist-preview-body');
+  const section=document.getElementById('dist-preview-section');
+  if(!tbody||!section)return;
+  // Use local deal IOIs if API hasn't returned yet
+  const iois=_distIois.length?_distIois:(DEALS.find(d=>d.id===_distDealId)?.iois||[]).filter(i=>i.status==='approved');
+  if(!iois.length){section.style.display='none';return;}
+  const totalIOI=iois.reduce((s,i)=>s+(i.amount||0),0);
+  if(totalIOI<=0){section.style.display='none';return;}
+  section.style.display='block';
+  tbody.innerHTML=iois.map(ioi=>{
+    const share=totalIOI>0?(ioi.amount/totalIOI):0;
+    const dist=total*share;
+    return`<tr>
+      <td>${ioi.name||ioi.investor_firm||'—'}</td>
+      <td style="font-family:var(--mono);font-size:10px">${fmU(ioi.amount)}</td>
+      <td style="font-family:var(--mono);font-size:10px">${(share*100).toFixed(1)}%</td>
+      <td class="dist-amount-cell">${total>0?fmU(dist):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function confirmPostDistribution(){
+  const raw=(document.getElementById('dist-amount')?.value||'').replace(/[^0-9.]/g,'');
+  const amount=parseFloat(raw);
+  const date=document.getElementById('dist-date')?.value;
+  const type=document.getElementById('dist-type')?.value;
+  const notes=document.getElementById('dist-notes')?.value||'';
+  if(!amount||amount<=0){toast('Enter a distribution amount','err');return;}
+  if(!date){toast('Select a distribution date','err');return;}
+  const btn=document.getElementById('dist-confirm-btn');
+  if(btn)btn.disabled=true;
+  const res=await api('POST','/api/v2?resource=advisor&op=post-distribution',{
+    dealId:_distDealId,amount,date,type,notes
+  });
+  if(btn)btn.disabled=false;
+  if(res?.ok||res?.success){
+    document.getElementById('dist-modal').classList.add('hidden');
+    toast('Distribution posted','ok');
+    openDealDetail(_distDealId);
+  } else {
+    toast(res?.error||'Failed to post distribution','err');
+  }
 }
 
 function toggleEconEdit(){
