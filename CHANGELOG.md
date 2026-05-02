@@ -4,6 +4,53 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — External service integrations: four stubs (STUBBED — activate via env var)
+
+### Changes
+
+Four paid external service integrations wired in as env-var-gated stubs. All are inert
+until the corresponding env var is set. No paid traffic, no npm installs required to run.
+
+- **Vercel Blob (`api/_lib/blob-storage.js`)** — STUBBED  
+  `uploadDocument()` and `getDocumentUrl()` added. When `BLOB_READ_WRITE_TOKEN` is absent,
+  VDR file uploads continue to store base64 in Redis (existing behavior, 1 MB limit).
+  When the token is present, files are uploaded to Vercel Blob and a URL is stored instead.
+  `vdr-upload` and `vdr-file` endpoints in `api/v2.js` wired to use blob-storage helpers
+  automatically. Activate: Vercel Dashboard > Storage > Blob > create store > copy token.
+
+- **Sentry (`api/_lib/sentry.js`)** — STUBBED  
+  `captureException()` and `captureMessage()` added using the Sentry HTTP envelope API
+  (no npm install — plain fetch). When `SENTRY_DSN` is absent, errors and key events log
+  to console only. `api/v2.js` top-level handler now wrapped in try/catch that calls
+  `captureException` on unhandled errors. `captureMessage` fires at three decision points:
+  deal published, IOI created, investor approved. Activate: sentry.io > Project Settings > DSN.
+
+- **DocuSign (`api/_lib/docusign.js`)** — STUBBED  
+  `sendSubscriptionDocument()` and `checkEnvelopeStatus()` added. When
+  `DOCUSIGN_ACCESS_TOKEN` + `DOCUSIGN_ACCOUNT_ID` are absent, calls log a stub message and
+  return `{ stubbed: true }`. Two new admin endpoints added to `api/v2.js`:
+  `resource=admin&op=send-subscription-doc` (sends envelope, stores `deal.subscriptionEnvelopeId`)
+  and `resource=admin&op=check-subscription-status` (polls DocuSign, sets `deal.subscriptionSigned`).
+  Activate: developers.docusign.com > JWT Grant auth > set env vars.
+
+- **KYC/AML (`api/_lib/kyc.js`)** — STUBBED  
+  `initiateKycCheck()` and `getKycStatus()` added. Supports Onfido (default) and Persona
+  via `KYC_PROVIDER` env var. When `KYC_PROVIDER_API_KEY` is absent, returns
+  `{ stubbed: true, checkId: 'stub-<investorId>', status: 'pending' }`. `api/v2.js`
+  `admin&op=approve` now calls `initiateKycCheck` after approval (non-fatal — investor
+  approval completes even if KYC call fails). Stores `inst.kycCheckId` and `inst.kycStatus`
+  on the investor record. New `resource=admin&op=kyc-status` endpoint polls current status.
+  Activate: onfido.com or withpersona.com > set `KYC_PROVIDER_API_KEY` + `KYC_PROVIDER`.
+
+### Files changed
+- `api/v2.js` — imports + handler wrapper + 3 captureMessage calls + blob wiring + DocuSign/KYC endpoints
+- `api/_lib/blob-storage.js` — new file
+- `api/_lib/sentry.js` — new file
+- `api/_lib/docusign.js` — new file
+- `api/_lib/kyc.js` — new file
+
+---
+
 ## [2026-05-02] — Phase 2 frontend additions: Earnings view, NDA modal, Capital Call notices
 
 ### Changes

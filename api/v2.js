@@ -1,12 +1,19 @@
 import { verifyToken, signToken, signResetCode, verifyResetToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
 import { ok, bad, unauth, getCookie, setCookieHeader } from './_lib/http.js';
-import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, healthCheck } from './_lib/storage.js';
-import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois } from './_lib/deal-storage.js';
+import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, healthCheck, isKvUnavailable } from './_lib/storage.js';
+import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, recalcIoiCounters, appendAuditEntry } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
   sendDataRoomAccess, sendAccessApplication,
   sendAdvisorWelcome, sendPasswordReset, sendIoiPackage,
+  sendIoiConfirmation, sendIoiRejection, sendDataRoomPackageResponse,
+  sendQaQuestionToAdvisor, sendQaAnswerToInvestor,
+  sendCapitalCallNotice, sendDistributionNotice, sendQaReminder,
 } from './_lib/email.js';
+import { captureException, captureMessage } from './_lib/sentry.js';
+import { uploadDocument, getDocumentUrl } from './_lib/blob-storage.js';
+import { sendSubscriptionDocument, checkEnvelopeStatus } from './_lib/docusign.js';
+import { initiateKycCheck, getKycStatus } from './_lib/kyc.js';
 import bcrypt from 'bcryptjs';
 
 // ── Rate limiting helper (sliding window via Redis INCR+EXPIRE) ─────────────
@@ -47,30 +54,60 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
+  // ── Sentry top-level error capture ──────────────────────────
+  // Wraps the entire handler so unhandled exceptions are reported.
+  // SENTRY_DSN env var must be set to activate — see api/_lib/sentry.js.
+  try {
+    return await _handler(req, res, resource, op);
+  } catch (err) {
+    console.error('[v2] Unhandled error:', err?.message, { resource, op });
+    await captureException(err, { resource, op }).catch(() => {});
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+}
+
+// Inner handler — separated so the try/catch above can wrap everything cleanly.
+async function _handler(req, res, resource, op) {
+
   // ── Health check ────────────────────────────────────────────
   if (resource === 'health') {
     const h = await healthCheck();
-    return ok(res, h);
+    return ok(res, { ...h, kv: isKvUnavailable() ? 'unavailable' : 'connected' });
   }
 
   // ── Auth helpers ─────────────────────────────────────────────
+  // ── Denylist check helper ────────────────────────────────────────
+  async function isRevoked(payload) {
+    if (!payload?.jti) return false;
+    const hit = await kvGet('revoked:' + payload.jti);
+    return !!hit;
+  }
+
   async function getAdmin() {
     const t = getCookie(req, 'prism_admin');
     if (!t) return null;
     const p = await verifyToken(t);
-    return p?.role === 'admin' ? p : null;
+    if (!p || p.role !== 'admin') return null;
+    if (await isRevoked(p)) { res.setHeader('Set-Cookie', setCookieHeader('prism_admin', '', clearCookieOpts())); return null; }
+    return p;
   }
   async function getAdvisor() {
     const t = getCookie(req, 'prism_advisor');
     if (!t) return null;
     const p = await verifyToken(t);
-    return p?.role === 'advisor' ? p : null;
+    if (!p || p.role !== 'advisor') return null;
+    if (await isRevoked(p)) { res.setHeader('Set-Cookie', setCookieHeader('prism_advisor', '', clearCookieOpts())); return null; }
+    return p;
   }
   async function getInst() {
     const t = getCookie(req, 'prism_inst');
     if (!t) return null;
     const p = await verifyToken(t);
-    return p?.role === 'inst' ? p : null;
+    if (!p || p.role !== 'inst') return null;
+    if (await isRevoked(p)) { res.setHeader('Set-Cookie', setCookieHeader('prism_inst', '', clearCookieOpts())); return null; }
+    return p;
   }
   async function getAnyAuth() {
     return await getAdmin() || await getAdvisor() || await getInst();
@@ -120,6 +157,12 @@ export default async function handler(req, res) {
     }
 
     if (op === 'logout') {
+      // Revoke the current token by writing its jti to the denylist (7d TTL — matches token lifetime)
+      const t = getCookie(req, 'prism_advisor');
+      if (t) {
+        const p = await verifyToken(t);
+        if (p?.jti) await kvSet('revoked:' + p.jti, '1', { ex: 604800 });
+      }
       res.setHeader('Set-Cookie', setCookieHeader('prism_advisor', '', clearCookieOpts()));
       return ok(res);
     }
@@ -275,14 +318,26 @@ export default async function handler(req, res) {
       const newMeta = [];
       for (const file of files) {
         if (!file.id || !file.name || !file.data) return bad(res, `File entry missing id, name, or data`);
-        await kvSet(`vdr:${dealId}:file:${file.id}`, file.data);
+
+        // [BLOB] Attempt Vercel Blob upload; fall back to base64-in-Redis if not activated.
+        // Set BLOB_READ_WRITE_TOKEN in Vercel env vars to activate — see api/_lib/blob-storage.js.
+        const contentType = file.type || 'application/octet-stream';
+        const blobUrl = await uploadDocument(
+          `vdr/${dealId}/${file.id}-${file.name}`,
+          file.data,
+          contentType
+        );
+        // Store URL if uploaded to Blob, otherwise store raw base64 (legacy path)
+        await kvSet(`vdr:${dealId}:file:${file.id}`, blobUrl || file.data);
+
         const meta = {
           id: file.id,
           name: file.name,
           size: file.size || 0,
           folder: file.folder || '',
-          type: file.type || 'application/octet-stream',
+          type: contentType,
           uploadedAt: new Date().toISOString(),
+          storageType: blobUrl ? 'blob' : 'redis',
         };
         if (!existingIds.has(file.id)) {
           existingIndex.push(meta);
@@ -393,6 +448,13 @@ export default async function handler(req, res) {
       entry.answeredAt = new Date().toISOString();
       entry.answeredBy = senderName;
       await kvSet(`qa:${dealId}`, qa);
+      // Delete the pending reminder key — question is answered
+      await kvDel(`qa_pending:${dealId}:${qaId}`);
+      // Email the investor who asked
+      if (entry.investor_id && entry.investor_id.startsWith('inv-')) {
+        const qaInvestor = await kvGet(`inst:${entry.investor_id}`);
+        if (qaInvestor) await sendQaAnswerToInvestor(qaInvestor, deal).catch(console.error);
+      }
       return ok(res, { ok: true });
     }
 
@@ -464,13 +526,25 @@ export default async function handler(req, res) {
       deal.pushed_ioi_status = decision;
       if (decision === 'accepted') {
         deal.stage = 'dd';
-        deal.ioi_agg_usd = (deal.ioi_agg_usd || 0) + (pkg.indicatedTotal || 0);
-        deal.ioi_count = (deal.ioi_count || 0) + (pkg.iois?.length || 0);
       }
+      const pkgAuditEntry = { at: new Date().toISOString(), actor: adv.advisor_id, action: `package_${decision}`, meta: { packageId } };
       deal.audit_log = deal.audit_log || [];
-      deal.audit_log.push({ at: new Date().toISOString(), actor: adv.advisor_id, action: `package_${decision}`, meta: { packageId } });
+      deal.audit_log.push(pkgAuditEntry);
       deal.updated_at = new Date().toISOString();
       await saveDeal(deal);
+      await appendAuditEntry(dealId, pkgAuditEntry);
+      // Recalculate IOI counters after package response
+      await recalcIoiCounters(dealId);
+      // Notify investors in the package that data room access is confirmed
+      if (decision === 'accepted' && pkg.iois?.length) {
+        for (const pkgIoi of pkg.iois) {
+          const ioiRecord = await kvGet(`ioi:${pkgIoi.id}`);
+          if (ioiRecord?.investor_id?.startsWith('inv-')) {
+            const pkgInst = await kvGet(`inst:${ioiRecord.investor_id}`);
+            if (pkgInst) await sendDataRoomPackageResponse(pkgInst, deal).catch(console.error);
+          }
+        }
+      }
       return ok(res, { ok: true, decision, stage: deal.stage });
     }
 
@@ -669,6 +743,12 @@ export default async function handler(req, res) {
     }
 
     if (op === 'logout') {
+      // Revoke the current token by writing its jti to the denylist (30d TTL — matches token lifetime)
+      const t = getCookie(req, 'prism_inst');
+      if (t) {
+        const p = await verifyToken(t);
+        if (p?.jti) await kvSet('revoked:' + p.jti, '1', { ex: 2592000 });
+      }
       res.setHeader('Set-Cookie', setCookieHeader('prism_inst', '', clearCookieOpts()));
       return ok(res);
     }
@@ -831,14 +911,22 @@ export default async function handler(req, res) {
       const fileMeta = index.find(f => f.id === fileId);
       if (!fileMeta) return bad(res, 'File not found', 404);
 
-      const data = await kvGet(`vdr:${dealId}:file:${fileId}`);
-      if (!data) return bad(res, 'File content not found', 404);
+      const rawFileData = await kvGet(`vdr:${dealId}:file:${fileId}`);
+      if (!rawFileData) return bad(res, 'File content not found', 404);
+
+      // [BLOB] Resolve stored value: Blob URL returned directly, base64 wrapped in data URI.
+      // Clients receiving a value starting with https:// should redirect; otherwise decode
+      // as a data URI (legacy Redis path).
+      const resolvedFileData = getDocumentUrl(
+        rawFileData,
+        fileMeta.type || 'application/octet-stream'
+      );
 
       return ok(res, {
         ok: true,
         name: fileMeta.name,
         type: fileMeta.type,
-        data,
+        data: resolvedFileData,
         watermark: {
           investorId: instAuth.inst_id,
           investorName: inst.firm_name || inst.contact_name || instAuth.inst_id,
@@ -866,17 +954,29 @@ export default async function handler(req, res) {
       if (ddDeadline && new Date() > ddDeadline) return bad(res, 'DD period has closed — questions are no longer accepted', 403);
 
       const qaId = 'qa-' + Date.now().toString(36);
+      const qaSubmittedAt = new Date().toISOString();
       const qa = (await kvGet(`qa:${dealId}`)) || [];
       qa.push({
         id: qaId,
         question: question.trim(),
         askedBy: inst.firm_name || inst.contact_name || instAuth.inst_id,
-        askedAt: new Date().toISOString(),
+        askedAt: qaSubmittedAt,
+        investor_id: instAuth.inst_id,
         answer: null,
         answeredAt: null,
         answeredBy: null,
       });
       await kvSet(`qa:${dealId}`, qa);
+
+      // Store pending key for 48h reminder (score = submission timestamp ms)
+      // TTL is 48h — question auto-expires from pending set if ignored beyond reminder window
+      await kvSet(`qa_pending:${dealId}:${qaId}`, JSON.stringify({ dealId, qaId, submittedAt: qaSubmittedAt, reminderSent: false }), { ex: 172800 });
+
+      // Email the deal's advisor
+      if (deal.advisor_id && deal.advisor_id.startsWith('adv-')) {
+        const qaAdvisor = await kvGet(`advisor:${deal.advisor_id}`);
+        if (qaAdvisor) await sendQaQuestionToAdvisor(qaAdvisor, deal, question.trim()).catch(console.error);
+      }
 
       return ok(res, { ok: true, qaId });
     }
@@ -930,6 +1030,33 @@ export default async function handler(req, res) {
       await kvSet(`inst:${inst_id}`, inst);
       await kvSet(`inst_code:${code}`, inst_id);
       await sendAccessCode(inst).catch(console.error);
+
+      // [SENTRY] Track every investor approval
+      await captureMessage(
+        `Investor approved: ${inst.firm_name} (${inst.email})`,
+        'info',
+        { inst_id, actor: admin.email }
+      ).catch(() => {});
+
+      // [KYC] Initiate KYC/AML check via Onfido or Persona.
+      // Stubbed until KYC_PROVIDER_API_KEY env var is set — see api/_lib/kyc.js.
+      try {
+        const nameParts = (inst.contact_name || '').trim().split(/\s+/);
+        const firstName = nameParts[0] || inst.contact_name || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        const kycResult = await initiateKycCheck(
+          inst_id, firstName, lastName, inst.email
+        );
+        inst.kycCheckId = kycResult.checkId;
+        inst.kycStatus = kycResult.status;
+        inst.kycStubbed = kycResult.stubbed || false;
+        inst.kycInitiatedAt = new Date().toISOString();
+        await kvSet(`inst:${inst_id}`, inst);
+      } catch (kycErr) {
+        // KYC failure is non-fatal — investor approval still proceeds
+        console.error('[KYC] initiateKycCheck failed (non-fatal):', kycErr.message);
+      }
+
       return ok(res, { message: 'Approved. Access code sent by email.' });
     }
 
@@ -1186,6 +1313,13 @@ Return ONLY valid JSON in this exact structure:
 
       deal.updated_at = now;
       await saveDeal(deal);
+
+      // [SENTRY] Track every deal publication as a named event
+      await captureMessage(
+        `Deal published: ${deal.name}`,
+        'info',
+        { dealId, launch_mode: deal.launch_mode, featured: deal.featured, actor: admin.email }
+      ).catch(() => {});
 
       return ok(res, {
         ok: true,
@@ -1703,6 +1837,115 @@ Return ONLY valid JSON in this exact structure:
       await saveDeal(deal);
       return ok(res, { ok: true });
     }
+
+    // ── send-subscription-doc ─────────────────────────────────────
+    // Send a subscription agreement PDF to an investor for e-signature via DocuSign.
+    // STUBBED until DOCUSIGN_ACCESS_TOKEN + DOCUSIGN_ACCOUNT_ID are set — see api/_lib/docusign.js.
+    // Stores deal.subscriptionEnvelopeId when sent; sets deal.subscriptionSigned = true when complete.
+    if (op === 'send-subscription-doc') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId, investorId } = req.body || {};
+      if (!dealId || !investorId) return bad(res, 'dealId and investorId required');
+
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      const inst = await kvGet(`inst:${investorId}`);
+      if (!inst) return bad(res, 'Investor not found', 404);
+
+      // Load the subscription document from deal_doc slot 'term' (term sheet / sub doc)
+      const subDoc = await kvGet(`deal_doc:${dealId}:term`);
+      const documentBase64 = subDoc?.data || null;
+
+      console.log(`[v2] send-subscription-doc: deal=${dealId} investor=${investorId}`);
+
+      const result = await sendSubscriptionDocument(
+        inst.email,
+        inst.contact_name || inst.firm_name,
+        deal.name,
+        documentBase64
+      );
+
+      if (!result.stubbed && result.envelopeId) {
+        deal.subscriptionEnvelopeId = result.envelopeId;
+        deal.subscriptionSentAt = new Date().toISOString();
+        deal.subscriptionSentTo = investorId;
+        deal.audit_log = deal.audit_log || [];
+        deal.audit_log.push({
+          at: new Date().toISOString(),
+          actor: admin.email,
+          action: 'subscription_doc_sent',
+          meta: { investorId, envelopeId: result.envelopeId },
+        });
+        deal.updated_at = new Date().toISOString();
+        await saveDeal(deal);
+      }
+
+      return ok(res, { ok: true, ...result });
+    }
+
+    // ── check-subscription-status ─────────────────────────────────
+    // Poll DocuSign for envelope completion and update deal.subscriptionSigned.
+    // STUBBED until DOCUSIGN_ACCESS_TOKEN + DOCUSIGN_ACCOUNT_ID are set.
+    if (op === 'check-subscription-status') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (!deal.subscriptionEnvelopeId) {
+        return ok(res, { status: 'not_sent', subscriptionSigned: false });
+      }
+
+      const statusResult = await checkEnvelopeStatus(deal.subscriptionEnvelopeId);
+
+      if (statusResult.status === 'completed' && !deal.subscriptionSigned) {
+        deal.subscriptionSigned = true;
+        deal.subscriptionSignedAt = statusResult.completedAt || new Date().toISOString();
+        deal.audit_log = deal.audit_log || [];
+        deal.audit_log.push({
+          at: new Date().toISOString(),
+          actor: 'system',
+          action: 'subscription_signed',
+          meta: { envelopeId: deal.subscriptionEnvelopeId },
+        });
+        deal.updated_at = new Date().toISOString();
+        await saveDeal(deal);
+      }
+
+      return ok(res, {
+        ok: true,
+        envelopeId: deal.subscriptionEnvelopeId,
+        subscriptionSigned: deal.subscriptionSigned || false,
+        ...statusResult,
+      });
+    }
+
+    // ── kyc-status ────────────────────────────────────────────────
+    // Poll KYC/AML status for an investor and update investor record.
+    // STUBBED until KYC_PROVIDER_API_KEY is set — see api/_lib/kyc.js.
+    if (op === 'kyc-status') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { inst_id } = req.query;
+      if (!inst_id) return bad(res, 'inst_id required');
+
+      const inst = await kvGet(`inst:${inst_id}`);
+      if (!inst) return bad(res, 'Investor not found', 404);
+      if (!inst.kycCheckId) {
+        return ok(res, { kycStatus: 'not_initiated', kycCheckId: null });
+      }
+
+      const statusResult = await getKycStatus(inst.kycCheckId);
+      inst.kycStatus = statusResult.status;
+      if (statusResult.result) inst.kycResult = statusResult.result;
+      inst.kycLastChecked = new Date().toISOString();
+      await kvSet(`inst:${inst_id}`, inst);
+
+      return ok(res, { ok: true, kycCheckId: inst.kycCheckId, ...statusResult });
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -1745,15 +1988,11 @@ Return ONLY valid JSON in this exact structure:
       await kvSet(`ioi:${ioiId}`, ioi);
       // dedupKey was already set to 'pending' atomically above via kvSetnx
       // Increment deal counters
-      await kvIncrby(`deal_ioi_count:${deal_id}`, 1);
-      await kvIncrby(`deal_ioi_agg:${deal_id}`, amt);
-      // Sync back to deal object
-      const updatedDeal = await getDeal(deal_id);
-      if (updatedDeal) {
-        updatedDeal.ioi_count = (updatedDeal.ioi_count || 0) + 1;
-        updatedDeal.ioi_agg_usd = (updatedDeal.ioi_agg_usd || 0) + amt;
-        await kvSet(`deal:${deal_id}`, updatedDeal);
-      }
+      // Recalculate IOI counters from live records — single source of truth
+      await recalcIoiCounters(deal_id);
+      // Send IOI confirmation email to investor
+      const ioiInst = auth.inst_id ? await kvGet(`inst:${auth.inst_id}`) : null;
+      if (ioiInst) await sendIoiConfirmation(ioiInst, deal).catch(console.error);
       return ok(res, { ioi });
     }
 
@@ -1770,6 +2009,8 @@ Return ONLY valid JSON in this exact structure:
       await kvSet(`ioi:${ioi_id}`, ioi);
       // Update dedup to approved (allows future re-consideration)
       await kvSet(`ioi_exists:${ioi.deal_id}:${ioi.investor_id}`, 'approved');
+      // Recalculate IOI counters
+      await recalcIoiCounters(ioi.deal_id);
       // Send data room access email
       const inst = ioi.investor_id.startsWith('inv-') ? await kvGet(`inst:${ioi.investor_id}`) : null;
       const deal = await getDeal(ioi.deal_id);
@@ -1791,13 +2032,12 @@ Return ONLY valid JSON in this exact structure:
       await kvSet(`ioi:${ioi_id}`, ioi);
       // DELETE dedup key so investor can re-submit
       await kvDel(`ioi_exists:${ioi.deal_id}:${ioi.investor_id}`);
-      // DECREMENT deal counters (fix audit finding)
-      const deal = await getDeal(ioi.deal_id);
-      if (deal && ioi.amount) {
-        deal.ioi_count = Math.max(0, (deal.ioi_count || 0) - 1);
-        deal.ioi_agg_usd = Math.max(0, (deal.ioi_agg_usd || 0) - ioi.amount);
-        await kvSet(`deal:${ioi.deal_id}`, deal);
-      }
+      // Recalculate IOI counters from live records — single source of truth
+      await recalcIoiCounters(ioi.deal_id);
+      // Send rejection email to investor
+      const rejInst = ioi.investor_id.startsWith('inv-') ? await kvGet(`inst:${ioi.investor_id}`) : null;
+      const rejDeal = await getDeal(ioi.deal_id);
+      if (rejInst && rejDeal) await sendIoiRejection(rejInst, rejDeal).catch(console.error);
       return ok(res, { ioi });
     }
 
