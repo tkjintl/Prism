@@ -3478,6 +3478,7 @@ Return ONLY valid JSON in this exact structure:
             const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
             const actor = String(parsed.actor || '');
             if (actor.startsWith('system:bot-seed')) continue;
+            if (parsed.meta && parsed.meta.bot_seed === true) continue;
             nonSeedCount++;
             const t = new Date(parsed.at).getTime();
             if (t > lastTs) lastTs = t;
