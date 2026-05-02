@@ -4,6 +4,14 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix hero section light mode on investor + advisor portals
+
+### Changes
+- `investor-portal.html`: Added `[data-theme="light"]` overrides for `.lobby-hero` — was hardcoded `background:#0A0908` (dark only). Light mode now shows cream gradient `#F5F3EF → #EFECE6` with adapted gold glow and subtle dark grid lines
+- `advisor-portal.html`: Added comprehensive `[data-theme="light"]` overrides for the entire hardcoded dark hero CSS block — covers `.dhs-headline`, `.dhs-tagline`, `.dhs-stat-val/lbl/div`, `.dhs-sub-bar-track`, `.dhs-ring-pct/sub/detail`, `#dhs-ring-target`, `#dhs-ring-investors`, `.dhs-btn-ghost`, `.dhs-social`, `.dhs-visual`, and the SVG ring track stroke — all now use CSS vars that respond to theme
+
+---
+
 ## [2026-05-01] — Fix notifications across all portals + investor light mode
 
 ### Changes

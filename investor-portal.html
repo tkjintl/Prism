@@ -136,6 +136,9 @@ a{color:inherit;text-decoration:none}
   background-size:60px 60px;
   animation:gridFadeIn 1.2s .3s both;
 }
+[data-theme="light"] .lobby-hero{background:linear-gradient(160deg,#F5F3EF 0%,#EFECE6 100%)}
+[data-theme="light"] .lobby-hero::before{background:radial-gradient(ellipse 60% 70% at 20% 50%,rgba(168,129,58,.06) 0%,transparent 62%),radial-gradient(ellipse 40% 50% at 78% 52%,rgba(168,129,58,.04) 0%,transparent 55%)}
+[data-theme="light"] .lobby-hero::after{background-image:linear-gradient(rgba(0,0,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.03) 1px,transparent 1px)}
 @media(min-width:900px){.lobby-hero{grid-template-columns:55% 45%}}
 .hero-content{padding:clamp(44px,9vh,88px) clamp(24px,5vw,72px);display:flex;flex-direction:column;justify-content:center;z-index:2;position:relative;animation:fadeUp .7s .05s var(--ease) both}
 .lobby-greeting{
