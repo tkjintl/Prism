@@ -1596,6 +1596,40 @@ async function _handler(req, res, resource, op) {
   // ─────────────────────────────────────────────────────────────
   if (resource === 'admin') {
 
+    // ─── View-As: operator-only impersonation for QA ─────────────
+    // Issues a fresh advisor or investor cookie alongside the admin cookie.
+    // Operator can then navigate to /advisor-portal or /investor-portal and
+    // see exactly what that user sees. The admin cookie is preserved so they
+    // can hop back to /admin-portal without re-logging-in.
+    if (op === 'view-as-advisor') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { advisor_id } = req.body || {};
+      if (!advisor_id) return bad(res, 'advisor_id required');
+      const adv = await kvGet(`advisor:${advisor_id}`);
+      if (!adv) return bad(res, 'Advisor not found', 404);
+      const { signToken, cookieOpts } = await import('./_lib/auth.js');
+      const { setCookieHeader } = await import('./_lib/http.js');
+      const token = await signToken({ advisor_id: adv.id, email: adv.email, firm: adv.firm_name, role: 'advisor', impersonated_by: admin.email }, '7d');
+      res.setHeader('Set-Cookie', setCookieHeader('prism_advisor', token, cookieOpts(604800)));
+      return ok(res, { advisor: { id: adv.id, email: adv.email, firm_name: adv.firm_name, name: adv.name } });
+    }
+
+    if (op === 'view-as-investor') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { inst_id } = req.body || {};
+      if (!inst_id) return bad(res, 'inst_id required');
+      const inst = await kvGet(`inst:${inst_id}`);
+      if (!inst) return bad(res, 'Investor not found', 404);
+      if (inst.status !== 'approved') return bad(res, 'Investor not approved — cannot impersonate', 400);
+      const { signToken, cookieOpts } = await import('./_lib/auth.js');
+      const { setCookieHeader } = await import('./_lib/http.js');
+      const token = await signToken({ inst_id: inst.id, email: inst.email, firm: inst.firm_name, role: 'investor', impersonated_by: admin.email }, '30d');
+      res.setHeader('Set-Cookie', setCookieHeader('prism_inst', token, cookieOpts(2592000)));
+      return ok(res, { inst: { id: inst.id, email: inst.email, firm_name: inst.firm_name } });
+    }
+
     if (op === 'approve-advisor') {
       // Admin approves a pending advisor signup. Re-validates that all
       // required profile fields are present (admin can't accidentally

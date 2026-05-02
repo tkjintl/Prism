@@ -4,6 +4,22 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Admin View-As: operator can impersonate any advisor or investor
+
+Operator-only QA tool. Floating "↪ View As" button (bottom-right of admin portal) opens a modal with two tabs (Advisors / Investors). Clicking any row sets a fresh session cookie for that user and opens their portal in a new tab. The operator's admin cookie stays intact in the original tab.
+
+**Files modified:** `admin-portal.html` (added FAB + modal + JS at end of body), `api/v2.js` (two new admin ops).
+
+**API:**
+- `POST /api/v2?resource=admin&op=view-as-advisor` body `{advisor_id}` → sets `prism_advisor` cookie, returns advisor record
+- `POST /api/v2?resource=admin&op=view-as-investor` body `{inst_id}` → sets `prism_inst` cookie, returns inst record (only works for `status:approved` investors)
+
+Both ops are admin-gated (`getAdmin()` check). Tokens include `impersonated_by: <admin email>` claim for audit visibility.
+
+**Why:** operator was bouncing between logout/login cycles to test advisor/investor views. With this, one click hops them into any user's session. Useful when running bot-driver to simulate multi-user flows.
+
+---
+
 ## [2026-05-02] — Mobile-pass Batch C — investor-portal demo badge (desktop + mobile)
 
 Operator-approved exception to the "no desktop changes" rule for one item: the `.demo-badge` "Investor Demo" pill on `investor-portal.html`. Was at full opacity on desktop and overlapping deal description text in narrower viewports.
