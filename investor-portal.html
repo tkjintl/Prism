@@ -1686,6 +1686,7 @@ a{color:inherit;text-decoration:none}
   <div class="nav-tabs">
     <button class="ntab on" onclick="showView('lobby',this)">Opportunities</button>
     <button class="ntab"    onclick="showView('portfolio',this)">My Portfolio</button>
+    <button class="ntab"    onclick="showView('notices',this)" id="notices-ntab">Notices</button>
   </div>
   <div class="nav-r">
     <div class="nav-user-info">
@@ -2434,12 +2435,10 @@ async function openDeal(id, action) {
         ${!signed ? `
         <div class="nda-gate">
           <div class="nda-gate-title">NDA Required</div>
-          <div class="nda-gate-body">To access full deal documents and submit an expression of interest, please confirm your agreement to the Non-Disclosure Agreement for this transaction.</div>
-          <div class="nda-toggle-row">
-            <label class="toggle-sw"><input type="checkbox" id="nda-toggle" onchange="signNda('${d.id}')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
-            <span class="tog-text">I agree to the NDA terms for <strong>${esc(d.name)}</strong> and confirm I am a qualified investor.</span>
-          </div>
-        </div>` : ''}
+          <div class="nda-gate-body">To access full deal documents and submit an expression of interest, you must review and sign the Non-Disclosure Agreement for this transaction.</div>
+          <button class="nda-review-btn" onclick="openNdaModal('${d.id}','${esc(d.name)}')">Review &amp; Sign NDA →</button>
+        </div>` : `
+        <div class="nda-signed-badge"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><circle cx="7" cy="7" r="7" fill="rgba(90,158,114,0.18)"/><path d="M4 7l2 2 4-4" stroke="#5a9e72" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> NDA Signed</div>`}
         <div id="ioi-form-inner" style="${!signed ? 'opacity:.35;pointer-events:none' : ''}">
           <label class="ioi-lbl">Indication Amount (USD)</label>
           <input type="text" inputmode="numeric" class="ioi-input" id="ioi-input" value="500,000" oninput="fmtAmtInput(this);syncSlider()">
@@ -2531,21 +2530,85 @@ async function openDeal(id, action) {
   if(action === 'ioi') setTimeout(() => document.getElementById('ioi-form')?.scrollIntoView({ behavior: 'smooth' }), 450);
 }
 
+/* ─── NDA MODAL ─── */
+function openNdaModal(dealId, dealName) {
+  const modal = document.getElementById('nda-modal');
+  const title = document.getElementById('nda-modal-deal');
+  const scroll = document.getElementById('nda-scroll');
+  const agreeChk = document.getElementById('nda-agree-chk');
+  const agreeRow = document.getElementById('nda-agree-row');
+  const signBtn  = document.getElementById('nda-sign-btn');
+
+  title.textContent = dealName || 'this transaction';
+  scroll.scrollTop = 0;
+  agreeChk.checked = false;
+  agreeChk.disabled = true;
+  agreeRow.style.opacity = '.45';
+  signBtn.disabled = true;
+  signBtn.textContent = 'Scroll to read agreement';
+  modal.dataset.dealId = dealId;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Enable agree checkbox only after investor scrolls near bottom
+  function onScroll() {
+    const nearBottom = scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - 40;
+    if(nearBottom) {
+      agreeChk.disabled = false;
+      agreeRow.style.opacity = '1';
+      signBtn.textContent = agreeChk.checked ? 'Sign NDA →' : 'Confirm agreement to sign';
+      scroll.removeEventListener('scroll', onScroll);
+    }
+  }
+  scroll.addEventListener('scroll', onScroll);
+}
+
+function closeNdaModal() {
+  const modal = document.getElementById('nda-modal');
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function onNdaAgreeChange() {
+  const signBtn = document.getElementById('nda-sign-btn');
+  const checked = document.getElementById('nda-agree-chk').checked;
+  signBtn.disabled = !checked;
+  signBtn.textContent = checked ? 'Sign NDA →' : 'Confirm agreement to sign';
+}
+
+async function submitNdaSign() {
+  const modal = document.getElementById('nda-modal');
+  const dealId = modal.dataset.dealId;
+  const signBtn = document.getElementById('nda-sign-btn');
+
+  signBtn.disabled = true;
+  signBtn.textContent = 'Signing…';
+
+  const investorId = document.getElementById('nav-user-name')?.dataset?.id || '';
+  const payload = {
+    dealId,
+    timestamp: Date.now(),
+    documentHash: '[placeholder — to be set when real PDF is linked]',
+    investorId,
+  };
+
+  // Fire and forget — don't block UI on API failure
+  api('POST', '/api/v2?resource=inst&op=nda-accept', payload).catch(() => {});
+
+  ndaSigned[dealId] = true;
+  closeNdaModal();
+  toast('NDA signed — documents unlocked', 'ok');
+  setTimeout(() => openDeal(dealId), 350);
+}
+
 async function signNda(dealId) {
-  const checked = document.getElementById('nda-toggle').checked;
-  ndaSigned[dealId] = checked;
+  // Legacy path — no longer used from NDA gate, kept for backward compat
+  ndaSigned[dealId] = true;
   const inner = document.getElementById('ioi-form-inner');
-  if(inner) {
-    inner.style.opacity = checked ? '1' : '.35';
-    inner.style.pointerEvents = checked ? '' : 'none';
-  }
-  if(checked) {
-    // Record NDA sign via API (fire and forget — don't block UI)
-    api('POST', '/api/v2?resource=inst&op=record-nda', { dealId }).catch(() => {});
-    toast('NDA agreed — documents unlocked', 'ok');
-    // Refresh doc cards
-    setTimeout(() => openDeal(dealId), 300);
-  }
+  if(inner) { inner.style.opacity = '1'; inner.style.pointerEvents = ''; }
+  api('POST', '/api/v2?resource=inst&op=record-nda', { dealId }).catch(() => {});
+  toast('NDA agreed — documents unlocked', 'ok');
+  setTimeout(() => openDeal(dealId), 300);
 }
 
 function checkAcks() {
@@ -3075,7 +3138,273 @@ async function load(){
     initLobby();
   }
 }
+/* ─── NOTICES ─── */
+let NOTICES_LOADED = false;
+
+async function loadNotices() {
+  if(NOTICES_LOADED) return;
+  NOTICES_LOADED = true;
+
+  const container = document.getElementById('notices-list');
+  container.innerHTML = '<div class="notice-shimmer"><div class="notice-sh-row"></div><div class="notice-sh-row" style="width:70%"></div></div>';
+
+  const data = await fetchSilent('/api/v2?resource=inst&op=notices');
+
+  if(!data || data._unauth) {
+    renderNotices([]);
+    return;
+  }
+  if(data.error) {
+    container.innerHTML = '<div class="notice-error">Could not load notices. Please try again later.</div>';
+    return;
+  }
+  renderNotices(data.notices || []);
+}
+
+function renderNotices(notices) {
+  const container = document.getElementById('notices-list');
+  const badge = document.getElementById('notices-count-badge');
+  const pending = notices.filter(n => n.status !== 'acknowledged');
+  if(badge) badge.textContent = pending.length > 0 ? String(pending.length) : '';
+  if(badge) badge.style.display = pending.length > 0 ? '' : 'none';
+
+  // Update nav tab badge
+  const ntab = document.getElementById('notices-ntab');
+  if(ntab && pending.length > 0) {
+    if(!ntab.querySelector('.ntab-notice-badge')) {
+      const b = document.createElement('span');
+      b.className = 'ntab-notice-badge';
+      b.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:var(--amber);border-radius:8px;font-family:var(--mono);font-size:8px;color:#fff;margin-left:6px;font-weight:500';
+      ntab.appendChild(b);
+    }
+    ntab.querySelector('.ntab-notice-badge').textContent = String(pending.length);
+  }
+
+  if(!notices.length) {
+    container.innerHTML = '<div class="notice-empty"><div class="notice-empty-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" stroke="var(--border-m)" stroke-width="1.5"/><path d="M14 8v7M14 18v1" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="notice-empty-text">No pending notices</div><div class="notice-empty-sub">Capital call and distribution notices will appear here.</div></div>';
+    return;
+  }
+
+  container.innerHTML = notices.map(n => noticeCardHtml(n)).join('');
+}
+
+function noticeCardHtml(n) {
+  const isCall = n.type === 'capital_call';
+  const statusCls = n.status === 'acknowledged' ? 'notice-badge-ack' : 'notice-badge-pending';
+  const statusLbl = n.status === 'acknowledged' ? 'Acknowledged' : 'Pending';
+  const icon = isCall
+    ? `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l8 15H2L10 2z" stroke="var(--amber)" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 8v4M10 14v1" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"/></svg>`
+    : `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="var(--green)" stroke-width="1.5"/><path d="M6.5 10l2.5 2.5 4.5-4.5" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const iconBg = isCall ? 'background:var(--amber-bg);border-color:var(--amber-bd)' : 'background:var(--green-bg);border-color:var(--green-bd)';
+  const title = isCall ? `Capital Call — ${n.deal_name||'—'}` : `Distribution — ${n.deal_name||'—'}`;
+  const amount = n.amount ? `<span style="font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)">${'$'+(n.amount>=1e6?(n.amount/1e6).toFixed(2)+'M':(n.amount/1e3).toFixed(0)+'K')}</span>` : '';
+
+  return `<div class="notice-card ${isCall?'notice-card-call':'notice-card-dist'}" id="notice-${n.id}">
+    <div class="notice-card-top">
+      <div class="notice-icon" style="${iconBg};border:1px solid">${icon}</div>
+      <div class="notice-card-body">
+        <div class="notice-card-title">${esc(title)}</div>
+        <div class="notice-card-meta">${n.date_issued ? `Issued ${esc(n.date_issued)}` : '—'}${n.amount ? ' · ' : ''}${amount}</div>
+      </div>
+      <div class="notice-card-right">
+        <span class="notice-badge ${statusCls}">${statusLbl}</span>
+        ${n.status !== 'acknowledged' ? `<button class="notice-expand-btn" onclick="toggleNoticeDetail('${n.id}')">View details</button>` : ''}
+      </div>
+    </div>
+    <div class="notice-detail" id="notice-detail-${n.id}" style="display:none">
+      <div class="notice-detail-inner">
+        ${n.wire_instructions ? `<div class="notice-field"><div class="notice-field-lbl">Wire Instructions</div><div class="notice-field-val">${esc(n.wire_instructions)}</div></div>` : '<div class="notice-field"><div class="notice-field-lbl">Wire Instructions</div><div class="notice-field-val" style="color:var(--text-3);font-style:italic">To be provided by operator</div></div>'}
+        ${n.reference ? `<div class="notice-field"><div class="notice-field-lbl">Reference Number</div><div class="notice-field-val" style="font-family:var(--mono)">${esc(n.reference)}</div></div>` : ''}
+        ${n.due_date ? `<div class="notice-field"><div class="notice-field-lbl">Due Date</div><div class="notice-field-val">${esc(n.due_date)}</div></div>` : ''}
+        ${n.notes ? `<div class="notice-field"><div class="notice-field-lbl">Notes</div><div class="notice-field-val">${esc(n.notes)}</div></div>` : ''}
+        ${n.status !== 'acknowledged' ? `<button class="notice-ack-btn" onclick="acknowledgeNotice('${n.id}')">Acknowledge Notice</button>` : '<div style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--green);text-transform:uppercase">Acknowledged</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleNoticeDetail(id) {
+  const el = document.getElementById('notice-detail-' + id);
+  if(!el) return;
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  const btn = el.closest('.notice-card')?.querySelector('.notice-expand-btn');
+  if(btn) btn.textContent = open ? 'View details' : 'Hide details';
+}
+
+async function acknowledgeNotice(noticeId) {
+  const btn = document.querySelector(`#notice-${noticeId} .notice-ack-btn`);
+  if(btn) { btn.disabled = true; btn.textContent = 'Acknowledging…'; }
+
+  const res = await api('POST', '/api/v2?resource=inst&op=acknowledge-notice', { noticeId });
+
+  if(res && !res.error) {
+    toast('Notice acknowledged', 'ok');
+    // Refresh in-place
+    const card = document.getElementById('notice-'+noticeId);
+    if(card) {
+      const badge = card.querySelector('.notice-badge');
+      if(badge) { badge.textContent = 'Acknowledged'; badge.className = 'notice-badge notice-badge-ack'; }
+      const detail = card.querySelector('.notice-detail');
+      if(detail) detail.style.display = 'none';
+      const expandBtn = card.querySelector('.notice-expand-btn');
+      if(expandBtn) expandBtn.remove();
+    }
+    // Update pending badge count
+    const pending = document.querySelectorAll('.notice-badge-pending').length;
+    const ntabBadge = document.querySelector('#notices-ntab .ntab-notice-badge');
+    if(ntabBadge) ntabBadge.textContent = pending > 0 ? String(pending) : '';
+  } else {
+    toast('Could not acknowledge. Please try again.', 'err');
+    if(btn) { btn.disabled = false; btn.textContent = 'Acknowledge Notice'; }
+  }
+}
+
+const _inv_origShowView = showView;
+function showView(name, btn) {
+  _inv_origShowView(name, btn);
+  if(name === 'notices') loadNotices();
+}
+
 load();
 </script>
+
+<!-- ══ NDA MODAL ══ -->
+<div id="nda-modal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(10,9,8,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeNdaModal()">
+  <div class="nda-modal-box">
+    <div class="nda-modal-hd">
+      <div>
+        <div class="nda-modal-eyebrow">Non-Disclosure Agreement</div>
+        <div class="nda-modal-title" id="nda-modal-deal">—</div>
+      </div>
+      <button onclick="closeNdaModal()" class="nda-modal-close">&#x2715;</button>
+    </div>
+    <div class="nda-scroll" id="nda-scroll">
+      <div class="nda-body-text">
+        <p class="nda-p-lede">NON-DISCLOSURE AGREEMENT</p>
+        <p><strong>CONFIDENTIAL — FOR QUALIFIED INVESTORS ONLY</strong></p>
+        <p>This Non-Disclosure Agreement ("Agreement") is entered into between Aurum Capital Consultants Pte. Ltd. (the "Disclosing Party") and the investor identified below (the "Recipient").</p>
+        <p><strong>1. Definition of Confidential Information.</strong> "Confidential Information" means all information disclosed by the Disclosing Party to the Recipient in connection with the transaction identified above (the "Transaction"), whether disclosed orally, in writing, or by any other means, including but not limited to financial statements, business plans, deal structures, investor lists, term sheets, and any other materials provided through the Aurum Prism platform.</p>
+        <p><strong>2. Obligations of Recipient.</strong> The Recipient agrees to: (a) hold all Confidential Information in strict confidence; (b) not disclose any Confidential Information to any third party without prior written consent of the Disclosing Party; (c) use Confidential Information solely for the purpose of evaluating the Transaction; (d) limit access to Confidential Information to its employees, advisors, or representatives who have a need to know and who are bound by confidentiality obligations no less restrictive than those contained herein.</p>
+        <p><strong>3. Exceptions.</strong> The obligations of confidentiality shall not apply to information that: (a) is or becomes publicly available other than through breach of this Agreement; (b) was rightfully known to the Recipient prior to disclosure without restriction; (c) is required to be disclosed by applicable law or regulation, provided the Recipient gives prompt written notice to the Disclosing Party.</p>
+        <p><strong>4. No Licence.</strong> Nothing in this Agreement grants the Recipient any rights, title, or interest in or to any Confidential Information or intellectual property of the Disclosing Party.</p>
+        <p><strong>5. Term.</strong> This Agreement shall remain in effect for a period of three (3) years from the date of execution, or until the Transaction is publicly disclosed or abandoned, whichever is earlier.</p>
+        <p><strong>6. Qualified Investor Acknowledgement.</strong> By signing this Agreement, the Recipient confirms that they are a qualified, accredited, or institutional investor as defined by applicable laws in their jurisdiction and that they understand this opportunity is a private placement not registered under any securities act.</p>
+        <p><strong>7. Governing Law.</strong> This Agreement shall be governed by and construed in accordance with the laws of Singapore. Any disputes arising hereunder shall be subject to the exclusive jurisdiction of the courts of Singapore.</p>
+        <p><strong>8. Entire Agreement.</strong> This Agreement constitutes the entire agreement between the parties with respect to its subject matter and supersedes all prior and contemporaneous agreements, negotiations, and understandings.</p>
+        <p style="margin-top:24px;font-style:italic;color:var(--text-3)">[Full NDA text to be inserted by operator before go-live. The above is a placeholder template.]</p>
+        <div class="nda-scroll-sentinel"></div>
+      </div>
+    </div>
+    <div class="nda-modal-ft">
+      <div class="nda-agree-row" id="nda-agree-row">
+        <label class="toggle-sw" style="flex-shrink:0;margin-top:1px">
+          <input type="checkbox" id="nda-agree-chk" disabled onchange="onNdaAgreeChange()">
+          <div class="tog-track"></div>
+          <div class="tog-thumb"></div>
+        </label>
+        <span class="nda-agree-text">I have read and agree to the Non-Disclosure Agreement above, and confirm I am a qualified investor.</span>
+      </div>
+      <div class="nda-modal-actions">
+        <button onclick="closeNdaModal()" class="nda-cancel-btn">Cancel</button>
+        <button id="nda-sign-btn" class="nda-sign-btn" disabled onclick="submitNdaSign()">Scroll to read agreement</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VIEW: NOTICES ══ -->
+<div id="view-notices" class="view">
+  <div class="notices-wrap">
+    <div class="notices-hd">
+      <div>
+        <div class="notices-eyebrow"><span class="notices-dot"></span>Capital Calls &amp; Distributions</div>
+        <h2 class="notices-title">Notices</h2>
+        <p class="notices-sub">Official notices relating to your committed positions. Acknowledge receipt to confirm you have reviewed each notice.</p>
+      </div>
+      <div class="notices-count-badge-wrap">
+        <span id="notices-count-badge" class="notices-count-badge" style="display:none">0</span>
+      </div>
+    </div>
+    <div id="notices-list" class="notices-list"></div>
+  </div>
+</div>
+
+<style>
+/* ── NDA GATE ADDITIONS ── */
+.nda-review-btn{display:inline-flex;align-items:center;padding:10px 20px;background:var(--gold);color:#0A0908;font-size:12px;font-weight:600;border-radius:2px;border:none;cursor:pointer;transition:all .2s var(--ease);font-family:var(--sans);margin-top:10px}
+.nda-review-btn:hover{background:var(--gold-b);transform:translateY(-1px);box-shadow:0 6px 18px rgba(197,165,114,.22)}
+.nda-signed-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--green-bg);border:1px solid var(--green-bd);border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:12px;font-weight:500}
+
+/* ── NDA MODAL ── */
+.nda-modal-box{background:var(--surface);border:1px solid var(--border-m);border-radius:var(--r);width:100%;max-width:580px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;animation:scaleIn .22s var(--ease)}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.nda-modal-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)}
+.nda-modal-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px}
+.nda-modal-title{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text);line-height:1.2}
+.nda-modal-close{background:none;border:none;color:var(--text-3);font-size:18px;cursor:pointer;line-height:1;padding:4px 6px;transition:color .15s;flex-shrink:0;margin-top:-2px}
+.nda-modal-close:hover{color:var(--text)}
+.nda-scroll{flex:1;overflow-y:auto;padding:24px;min-height:0}
+.nda-body-text{font-size:12px;color:var(--text-2);line-height:1.9;font-family:var(--sans)}
+.nda-body-text p{margin-bottom:14px}
+.nda-p-lede{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:18px!important}
+.nda-scroll-sentinel{height:8px}
+.nda-modal-ft{padding:16px 24px;border-top:1px solid var(--border);background:var(--bg-3)}
+.nda-agree-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;transition:opacity .2s}
+.nda-agree-text{font-size:12px;color:var(--text-2);line-height:1.6;font-family:var(--sans)}
+.nda-modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.nda-cancel-btn{padding:10px 18px;border:1px solid var(--border-m);border-radius:2px;font-size:12px;font-weight:500;color:var(--text-2);background:none;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.nda-cancel-btn:hover{border-color:var(--border-m);color:var(--text)}
+.nda-sign-btn{padding:10px 22px;background:var(--gold);color:#0A0908;font-size:12px;font-weight:600;border-radius:2px;border:none;cursor:pointer;font-family:var(--sans);transition:all .2s}
+.nda-sign-btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+.nda-sign-btn:not(:disabled):hover{background:var(--gold-b);transform:translateY(-1px)}
+
+/* ── NOTICES VIEW ── */
+.notices-wrap{padding:0 0 clamp(40px,6vh,72px)}
+.notices-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:clamp(32px,5vh,52px) clamp(24px,5vw,72px);border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--bg) 0%,var(--bg-2) 100%);flex-wrap:wrap;gap:16px}
+.notices-eyebrow{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.notices-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite;flex-shrink:0}
+.notices-title{font-family:var(--serif);font-style:italic;font-size:clamp(28px,4vw,44px);color:var(--text);font-weight:400;margin-bottom:6px}
+.notices-sub{font-size:13px;color:var(--text-3);max-width:520px;line-height:1.7}
+.notices-count-badge{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 8px;border-radius:14px;background:var(--amber);font-family:var(--mono);font-size:12px;font-weight:500;color:#fff}
+.notices-list{padding:clamp(20px,4vh,40px) clamp(24px,5vw,72px);display:flex;flex-direction:column;gap:14px}
+/* Notice card */
+.notice-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;animation:fadeUp .35s var(--ease) both;transition:border-color .15s}
+.notice-card-call{border-left:3px solid var(--amber)}
+.notice-card-dist{border-left:3px solid var(--green)}
+.notice-card-top{display:flex;align-items:center;gap:14px;padding:18px 20px;flex-wrap:wrap}
+.notice-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.notice-card-body{flex:1;min-width:0}
+.notice-card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;font-family:var(--sans)}
+.notice-card-meta{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.notice-card-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+/* Status badge */
+.notice-badge{padding:3px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;border:1px solid}
+.notice-badge-pending{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.notice-badge-ack{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+/* Expand btn */
+.notice-expand-btn{font-size:11px;color:var(--gold);background:none;border:none;cursor:pointer;font-family:var(--sans);padding:0;transition:opacity .15s;white-space:nowrap}
+.notice-expand-btn:hover{opacity:.75}
+/* Detail panel */
+.notice-detail{background:var(--bg-3);border-top:1px solid var(--border)}
+.notice-detail-inner{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.notice-field-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:4px}
+.notice-field-val{font-size:13px;color:var(--text);line-height:1.6}
+/* Acknowledge btn */
+.notice-ack-btn{align-self:flex-start;padding:10px 22px;background:var(--gold);color:#0A0908;font-size:12px;font-weight:600;border-radius:2px;border:none;cursor:pointer;font-family:var(--sans);transition:all .2s;margin-top:4px}
+.notice-ack-btn:hover{background:var(--gold-b);transform:translateY(-1px)}
+.notice-ack-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+/* Empty state */
+.notice-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center;gap:12px}
+.notice-empty-icon{color:var(--text-3)}
+.notice-empty-text{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text-2)}
+.notice-empty-sub{font-size:12px;color:var(--text-3);max-width:320px;line-height:1.7}
+/* Shimmer */
+.notice-shimmer{padding:20px;display:flex;flex-direction:column;gap:10px}
+.notice-sh-row{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--border) 0%,var(--border-m) 50%,var(--border) 100%);background-size:200% 100%;animation:shimmerSlide 1.4s infinite}
+@keyframes shimmerSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* Error */
+.notice-error{padding:16px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:var(--r);font-size:12px;color:var(--red)}
+</style>
 </body>
 </html>

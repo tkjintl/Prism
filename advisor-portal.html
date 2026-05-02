@@ -817,6 +817,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab on" onclick="showView('overview',this)">Dashboard</button>
     <button class="ntab" onclick="showView('deal',this)">My Deals</button>
     <button class="ntab" onclick="showView('submit',this)">Submit New Deal</button>
+    <button class="ntab" onclick="showView('earnings',this)">Earnings</button>
   </div>
   <div class="nav-r">
     <div class="nav-user">
@@ -1062,6 +1063,81 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div class="submit-sub">Reviewed by the Aurum team before going live to investors.</div>
     <div class="wizard-steps" id="wizard-steps"></div>
     <div class="wizard-form" id="wizard-form"></div>
+  </div>
+</div>
+
+<!-- ══ VIEW: EARNINGS ══ -->
+<div id="view-earnings" class="view">
+  <div class="earn-wrap">
+
+    <!-- Summary card -->
+    <div class="earn-hero">
+      <div class="earn-hero-inner">
+        <div class="earn-eyebrow"><span class="earn-dot"></span>Fee Summary</div>
+        <div class="earn-total-lbl">Total estimated earnings</div>
+        <div class="earn-total-val" id="earn-total-val">—</div>
+        <div class="earn-total-sub" id="earn-total-sub">Across all active and closed deals</div>
+      </div>
+      <div class="earn-hero-cards" id="earn-hero-cards"></div>
+    </div>
+
+    <!-- Intro fees table -->
+    <div class="earn-section">
+      <div class="earn-section-hd">
+        <div class="earn-section-title">Intro Fees</div>
+        <div class="earn-section-mono">Per deal · estimated amounts</div>
+      </div>
+      <div class="earn-table-wrap">
+        <table class="earn-table" id="earn-intro-table">
+          <thead>
+            <tr>
+              <th>Deal</th>
+              <th>Status</th>
+              <th class="earn-th-num">Intro Fee %</th>
+              <th class="earn-th-num">Deal Size</th>
+              <th class="earn-th-num">Est. Fee</th>
+            </tr>
+          </thead>
+          <tbody id="earn-intro-tbody">
+            <tr class="earn-loading-row"><td colspan="5"><div class="earn-shimmer"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Carry table -->
+    <div class="earn-section">
+      <div class="earn-section-hd">
+        <div class="earn-section-title">Carry</div>
+        <div class="earn-section-mono">Projected on exit</div>
+      </div>
+      <div class="earn-table-wrap">
+        <table class="earn-table" id="earn-carry-table">
+          <thead>
+            <tr>
+              <th>Deal</th>
+              <th>Status</th>
+              <th class="earn-th-num">Carry %</th>
+              <th class="earn-th-num">Projected Gain</th>
+              <th class="earn-th-num">Proj. Carry</th>
+            </tr>
+          </thead>
+          <tbody id="earn-carry-tbody">
+            <tr class="earn-loading-row"><td colspan="5"><div class="earn-shimmer"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payment history -->
+    <div class="earn-section">
+      <div class="earn-section-hd">
+        <div class="earn-section-title">Payment History</div>
+        <div class="earn-section-mono">Past disbursements</div>
+      </div>
+      <div id="earn-payments-list"></div>
+    </div>
+
   </div>
 </div>
 
@@ -3320,6 +3396,156 @@ function filterDashByStage(stage) {
   goDashDeal(idx>=0?idx:0);
 }
 
+/* ─── EARNINGS ─── */
+const fmDollar = n => { if(!n && n!==0) return '—'; if(n>=1e6) return '$'+(n/1e6).toFixed(2)+'M'; if(n>=1e3) return '$'+(n/1e3).toFixed(0)+'K'; return '$'+n.toLocaleString(); };
+
+let EARNINGS_DATA = null;
+let EARNINGS_LOADED = false;
+
+function buildEarningsFromDeals() {
+  // Fallback: build placeholder rows from local DEALS array
+  const rows = DEALS.map(d => ({
+    deal_id: d.id,
+    deal_name: d.name,
+    stage: d.stage,
+    deal_size: d.target_alloc || 0,
+    intro_fee_pct: null,
+    intro_fee_est: null,
+    carry_pct: null,
+    carry_gain: null,
+    carry_est: null,
+  }));
+  return { intro: rows, carry: rows, payments: [] };
+}
+
+function stageChipClass(stage) {
+  if(!stage) return 'earn-chip-review';
+  if(stage==='live'||stage==='live_ioi') return 'earn-chip-live';
+  if(stage==='dd') return 'earn-chip-dd';
+  if(stage==='close'||stage==='terms') return 'earn-chip-close';
+  if(stage==='realized') return 'earn-chip-realized';
+  if(stage==='killed') return 'earn-chip-killed';
+  return 'earn-chip-review';
+}
+function stageLabel(stage) {
+  const MAP = {live:'Live',live_ioi:'Live · IOI',review:'Under Review',dd:'Due Diligence',terms:'Term Sheet',close:'Closing',realized:'Realized',killed:'Killed'};
+  return MAP[stage] || (stage||'—');
+}
+
+function renderEarnings(data) {
+  // Summary totals
+  const introTotal = (data.intro||[]).reduce((s,r)=>s+(r.intro_fee_est||0),0);
+  const carryTotal = (data.carry||[]).reduce((s,r)=>s+(r.carry_est||0),0);
+  const paidTotal  = (data.payments||[]).filter(p=>p.status==='paid').reduce((s,p)=>s+(p.amount||0),0);
+  const grandTotal = introTotal + carryTotal;
+
+  document.getElementById('earn-total-val').textContent = grandTotal ? fmDollar(grandTotal) : '—';
+  document.getElementById('earn-total-sub').textContent = grandTotal
+    ? 'Intro fees + projected carry across all deals'
+    : 'No fee data available yet — earnings will populate as deals progress';
+
+  document.getElementById('earn-hero-cards').innerHTML = [
+    {lbl:'Intro fees (est.)', val:fmDollar(introTotal), cls:'', sub:'At deal close'},
+    {lbl:'Carry (projected)', val:fmDollar(carryTotal), cls:'green', sub:'On exit / realisation'},
+    {lbl:'Received to date', val:fmDollar(paidTotal), cls:'gold', sub:'Cash disbursed'},
+  ].map(c=>`<div class="earn-stat-card">
+    <div class="earn-sc-lbl">${c.lbl}</div>
+    <div class="earn-sc-val ${c.cls}">${c.val}</div>
+    <div class="earn-sc-sub">${c.sub}</div>
+  </div>`).join('');
+
+  // Intro fees table
+  const introTbody = document.getElementById('earn-intro-tbody');
+  if(!data.intro||!data.intro.length) {
+    introTbody.innerHTML = '<tr><td colspan="5" class="earn-empty">No deals found.</td></tr>';
+  } else {
+    introTbody.innerHTML = data.intro.map(r => `<tr>
+      <td><span class="earn-td-deal">${esc(r.deal_name)}</span></td>
+      <td><span class="earn-chip ${stageChipClass(r.stage)}">${stageLabel(r.stage)}</span></td>
+      <td class="earn-td-num dim">${r.intro_fee_pct != null ? r.intro_fee_pct+'%' : '—'}</td>
+      <td class="earn-td-num">${fmDollar(r.deal_size)}</td>
+      <td class="earn-td-num gold">${r.intro_fee_est != null ? fmDollar(r.intro_fee_est) : '—'}</td>
+    </tr>`).join('');
+  }
+
+  // Carry table
+  const carryTbody = document.getElementById('earn-carry-tbody');
+  if(!data.carry||!data.carry.length) {
+    carryTbody.innerHTML = '<tr><td colspan="5" class="earn-empty">No carry data available.</td></tr>';
+  } else {
+    carryTbody.innerHTML = data.carry.map(r => `<tr>
+      <td><span class="earn-td-deal">${esc(r.deal_name)}</span></td>
+      <td><span class="earn-chip ${stageChipClass(r.stage)}">${stageLabel(r.stage)}</span></td>
+      <td class="earn-td-num dim">${r.carry_pct != null ? r.carry_pct+'%' : '—'}</td>
+      <td class="earn-td-num">${r.carry_gain != null ? fmDollar(r.carry_gain) : '—'}</td>
+      <td class="earn-td-num green">${r.carry_est != null ? fmDollar(r.carry_est) : '—'}</td>
+    </tr>`).join('');
+  }
+
+  // Payment history
+  const payList = document.getElementById('earn-payments-list');
+  if(!data.payments||!data.payments.length) {
+    payList.innerHTML = '<div class="earn-empty" style="padding:24px 0;text-align:center;color:var(--text-3);font-size:12px;font-style:italic">No payments recorded yet.</div>';
+  } else {
+    const items = data.payments.map(p => {
+      const isCarry = p.type==='carry';
+      const statusCls = p.status==='paid'?'earn-pay-paid':p.status==='processing'?'earn-pay-processing':'earn-pay-pending';
+      const statusLbl = p.status==='paid'?'Paid':p.status==='processing'?'Processing':'Pending';
+      return `<div class="earn-payment-item">
+        <div class="earn-pay-icon ${isCarry?'earn-pay-icon-carry':'earn-pay-icon-intro'}">${isCarry?'◎':'⬡'}</div>
+        <div class="earn-pay-body">
+          <div class="earn-pay-deal">${esc(p.deal_name)}</div>
+          <div class="earn-pay-meta">${esc(p.date||'—')} · ${isCarry?'Carried interest':'Intro / referral fee'}</div>
+        </div>
+        <div class="earn-pay-right">
+          <div class="earn-pay-amt">${fmDollar(p.amount)}</div>
+          <div class="earn-pay-status ${statusCls}">${statusLbl}</div>
+        </div>
+      </div>`;
+    }).join('');
+    payList.innerHTML = `<div class="earn-pay-list">${items}</div>`;
+  }
+}
+
+async function loadEarnings() {
+  if(EARNINGS_LOADED) return;
+  EARNINGS_LOADED = true;
+
+  // Set loading shimmer rows
+  ['earn-intro-tbody','earn-carry-tbody'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = '<tr class="earn-loading-row"><td colspan="5"><div class="earn-shimmer"></div></td></tr>';
+  });
+  document.getElementById('earn-payments-list').innerHTML = '<div class="earn-shimmer" style="height:14px;border-radius:4px;margin:16px 0"></div>';
+
+  const data = await fetchSilent('/api/v2?resource=advisor&op=earnings');
+
+  if(!data || data._unauth) {
+    // Use local deals as placeholder skeleton
+    const fallback = buildEarningsFromDeals();
+    renderEarnings(fallback);
+    return;
+  }
+  if(data.error) {
+    ['earn-intro-tbody','earn-carry-tbody'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.innerHTML = `<tr><td colspan="5"><div class="earn-error">Could not load earnings data. The endpoint may not be wired up yet.</div></td></tr>`;
+    });
+    document.getElementById('earn-total-val').textContent = '—';
+    return;
+  }
+
+  EARNINGS_DATA = data;
+  renderEarnings(data);
+}
+
+// Hook earnings load into showView
+const _origShowView = showView;
+function showView(name, btn) {
+  _origShowView(name, btn);
+  if(name === 'earnings') loadEarnings();
+}
+
 load();
 </script>
 <!-- Prism Doc Viewer Modal -->
@@ -3473,6 +3699,72 @@ load();
 .dash-pdoc-meta{font-size:11px;color:var(--text-3)}
 .dash-pdoc-arrow{font-size:14px;color:var(--text-3);transition:all .18s}
 .dash-pdoc-card:hover .dash-pdoc-arrow{color:var(--gold);transform:translateX(3px)}
+</style>
+
+<style>
+/* ── EARNINGS VIEW ── */
+.earn-wrap{padding:0 0 clamp(40px,6vh,72px)}
+.earn-hero{background:linear-gradient(135deg,var(--bg) 0%,var(--bg-2) 60%,var(--bg-3) 100%);border-bottom:1px solid var(--border);padding:clamp(32px,5vh,56px) clamp(24px,5vw,72px);display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap;position:relative;overflow:hidden}
+.earn-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 70% at 15% 50%,rgba(197,165,114,.04) 0%,transparent 60%);pointer-events:none}
+.earn-hero-inner{z-index:1;position:relative}
+.earn-eyebrow{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.earn-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite;flex-shrink:0}
+.earn-total-lbl{font-size:11px;color:var(--text-3);letter-spacing:.05em;margin-bottom:8px}
+.earn-total-val{font-family:var(--mono);font-size:clamp(36px,5vw,60px);font-weight:500;color:var(--gold);line-height:1;letter-spacing:-.01em;animation:statReveal .5s var(--ease) both}
+.earn-total-sub{font-size:12px;color:var(--text-3);margin-top:8px}
+.earn-hero-cards{display:flex;gap:12px;flex-wrap:wrap;z-index:1;position:relative;align-items:flex-start}
+.earn-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;min-width:130px;animation:fadeUp .4s var(--ease) both}
+.earn-sc-lbl{font-size:10px;color:var(--text-3);letter-spacing:.04em;margin-bottom:6px}
+.earn-sc-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text);line-height:1}
+.earn-sc-val.gold{color:var(--gold)}.earn-sc-val.green{color:var(--green)}.earn-sc-val.amber{color:var(--amber)}
+.earn-sc-sub{font-size:11px;color:var(--text-3);margin-top:4px}
+/* Section */
+.earn-section{padding:clamp(24px,4vh,40px) clamp(24px,5vw,72px) 0}
+.earn-section-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.earn-section-title{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--text)}
+.earn-section-mono{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+/* Table */
+.earn-table-wrap{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.earn-table{width:100%;border-collapse:collapse;font-size:12px}
+.earn-table thead{background:var(--bg-3)}
+.earn-table th{padding:10px 16px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);border-bottom:1px solid var(--border);font-weight:500}
+.earn-th-num{text-align:right}
+.earn-table td{padding:13px 16px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text-2)}
+.earn-table tbody tr:last-child td{border-bottom:none}
+.earn-table tbody tr:hover td{background:var(--bg-3)}
+.earn-td-deal{font-weight:500;color:var(--text);font-family:var(--sans)}
+.earn-td-num{font-family:var(--mono);font-size:13px;text-align:right;color:var(--text)}
+.earn-td-num.gold{color:var(--gold)}.earn-td-num.green{color:var(--green)}.earn-td-num.dim{color:var(--text-3)}
+/* Status chip */
+.earn-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;border:1px solid;white-space:nowrap}
+.earn-chip-live{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.earn-chip-dd{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.earn-chip-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.earn-chip-close{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.earn-chip-realized{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.earn-chip-killed{color:var(--text-3);border-color:var(--border);background:var(--bg-3)}
+/* Shimmer loading */
+.earn-loading-row td{padding:16px}
+.earn-shimmer{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--border) 0%,var(--border-m) 50%,var(--border) 100%);background-size:200% 100%;animation:shimmerSlide 1.4s infinite}
+@keyframes shimmerSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* Empty state */
+.earn-empty{padding:36px 16px;text-align:center;color:var(--text-3);font-size:12px;font-style:italic}
+/* Payment history */
+.earn-payment-item{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
+.earn-payment-item:last-child{border-bottom:none}
+.earn-pay-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;border:1px solid}
+.earn-pay-icon-intro{background:var(--gold-bg);color:var(--gold);border-color:var(--gold-bd)}
+.earn-pay-icon-carry{background:var(--green-bg);color:var(--green);border-color:var(--green-bd)}
+.earn-pay-body{flex:1}
+.earn-pay-deal{font-size:13px;font-weight:500;color:var(--text)}
+.earn-pay-meta{font-size:11px;color:var(--text-3);margin-top:2px}
+.earn-pay-right{text-align:right;flex-shrink:0}
+.earn-pay-amt{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text)}
+.earn-pay-status{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+.earn-pay-paid{color:var(--green)}.earn-pay-pending{color:var(--amber)}.earn-pay-processing{color:var(--blue)}
+.earn-pay-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0 20px}
+/* Error state */
+.earn-error{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--red-bg);border:1px solid var(--red-bd);border-radius:var(--r);font-size:12px;color:var(--red);margin-bottom:16px}
 </style>
 
 

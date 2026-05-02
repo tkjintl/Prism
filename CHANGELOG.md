@@ -4,6 +4,37 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Phase 2 frontend additions: Earnings view, NDA modal, Capital Call notices
+
+### Changes
+
+**`advisor-portal.html` — Earnings tab**
+- Added "Earnings" nav tab as fourth top-level view (`view-earnings`).
+- Summary hero card: total estimated earnings in gold JetBrains Mono; three stat cards for intro fees, projected carry, and cash received to date.
+- Intro fee table: Deal | Status | Intro Fee % | Deal Size | Estimated Fee — shimmer loading state, empty state, error state handled.
+- Carry table: same structure with Carry % | Projected Gain | Projected Carry columns.
+- Payment history list: icon, deal name, type (intro/carry), amount, status badge (Paid / Processing / Pending).
+- Fetches `GET /api/v2?resource=advisor&op=earnings`. If endpoint not yet live or returns null, gracefully falls back to local `DEALS` array as placeholder skeleton with `—` for unset fee values. If API returns an error object, shows inline error banner without breaking the page.
+- `showView` extended (non-destructive wrapper) to call `loadEarnings()` on first visit to the Earnings tab; subsequent visits skip re-fetch.
+
+**`investor-portal.html` — NDA modal with scroll-gate**
+- Replaced bare checkbox NDA gate with a "Review & Sign NDA" button that opens a full-screen modal.
+- Modal contains a scrollable `<div>` with full NDA placeholder text (8 clauses); the "I have read and agree" checkbox and Sign button are locked until the investor scrolls within 40px of the bottom.
+- On sign: captures `{ timestamp, documentHash, investorId }` and posts to `POST /api/v2?resource=inst&op=nda-accept` (fire-and-forget, does not block UI). Sets `ndaSigned[dealId] = true`, closes modal, refreshes deal view.
+- Already-signed state: shows "NDA Signed" green badge in place of the gate.
+- Legacy `signNda()` function retained for backward compatibility with any direct callers; wired to the same `ndaSigned` map.
+
+**`investor-portal.html` — Notices section**
+- Added "Notices" nav tab as third top-level view (`view-notices`).
+- Capital call notices: gold warning-triangle SVG icon, amber left-border, "PENDING" badge.
+- Distribution notices: green checkmark SVG icon, green left-border.
+- Each card: title, date issued, amount, expandable detail panel (wire instructions placeholder, reference number, due date, notes).
+- "Acknowledge Notice" button posts to `POST /api/v2?resource=inst&op=acknowledge-notice` with `{ noticeId }`. On success, badge flips to "Acknowledged" in-place, pending count badge on nav tab decrements.
+- Fetches `GET /api/v2?resource=inst&op=notices`. Endpoint not yet live: falls back to empty state ("No pending notices"). Shimmer loading rows shown during fetch.
+- Pending notice count badge appears on the Notices nav tab when there are unacknowledged items.
+
+---
+
 ## [2026-05-02] — Stored XSS remediation: Q&A thread and deal fields
 
 ### Changes
