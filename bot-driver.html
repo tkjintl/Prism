@@ -368,7 +368,10 @@ const state={
   errorStreaks:{advisor:0,admin:0,investor:0},
   cookies:{advisor:false,investor:false},
 };
-const SPEED_MS={'1':2000,'5':400,'25':80,'MAX':0};
+// Speed → minimum tick interval (ms). MAX is floored at 50ms to cap Redis op rate.
+// Even with cached endpoints, an unbounded tight loop can burn 1000s of ops/sec
+// on the hot endpoints that aren't cached (deal submission, IOI submission).
+const SPEED_MS={'1':2000,'5':400,'25':80,'MAX':50};
 const STAGES=['review','live','ioi','dd','terms','close','realized','killed'];
 
 /* ========== Counters refresh ========== */

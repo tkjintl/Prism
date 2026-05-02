@@ -151,9 +151,18 @@ async function _handler(req, res, resource, op) {
 
   // Fetch all IOI records via the ioi_index sorted set — O(log N + M) vs O(N) KEYS scan.
   // Returns an array of hydrated IOI objects (nulls filtered).
+  // 5s Redis cache — getAllIois is called from 15+ endpoints. Without caching,
+  // a single bot tick that touches my-iois + performance + ioi-submit triggers
+  // ~4,500 Redis ops; with caching it's typically 1 (cache hit).
   async function getAllIois() {
+    try {
+      const cached = await kvGet('cache:iois:all');
+      if (Array.isArray(cached)) return cached;
+    } catch {}
     const ioiIds = await kvZrange('ioi_index', 0, -1);
-    return (await Promise.all(ioiIds.map(id => kvGet(`ioi:${id}`)))).filter(Boolean);
+    const list = (await Promise.all(ioiIds.map(id => kvGet(`ioi:${id}`)))).filter(Boolean);
+    try { await kvSet('cache:iois:all', list, { ex: 5 }); } catch {}
+    return list;
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -851,16 +860,25 @@ async function _handler(req, res, resource, op) {
       // Public (authenticated) marketplace endpoint
       const auth = await getAnyAuth();
       if (!auth) return unauth(res);
+      const admin = await getAdmin();
+      // 5s cache on the live-deals fan-out (~500 ops per call). InvestorBot hits
+      // this every tick. Cache key separates admin (sees all) from non-admin views.
+      const cacheKey = admin ? 'cache:marketplace:admin' : 'cache:marketplace:public';
+      try {
+        const cached = await kvGet(cacheKey);
+        if (cached && Array.isArray(cached.deals)) return ok(res, cached);
+      } catch {}
       const deals = await listDeals({ live: true });
       // Strip internal fields for non-admin; also exclude preview deals from investor view
-      const admin = await getAdmin();
       const visibleDeals = admin
         ? deals
         : deals.filter(d => d.member_visible && d.stage === 'live' && d.launch_mode !== 'preview');
       const safe = admin
         ? visibleDeals
         : visibleDeals.map(d => { const { advisor_id, audit_log, ...rest } = d; return rest; });
-      return ok(res, { deals: safe });
+      const payload = { deals: safe };
+      try { await kvSet(cacheKey, payload, { ex: 5 }); } catch {}
+      return ok(res, payload);
     }
 
     if (op === 'tacc-feed') {
@@ -2880,8 +2898,13 @@ Return ONLY valid JSON in this exact structure:
         console.error('[sandbox-reset] seedHighVolume failed:', e?.message || e);
         return bad(res, 'Reset failed during high-volume seed: ' + (e?.message || 'unknown'), 500);
       }
-      // Bust the status cache so the next poll computes fresh
-      try { await kvDel('bot:status:cache'); } catch {}
+      // Bust all caches so next polls compute fresh
+      try {
+        await kvDel('bot:status:cache');
+        await kvDel('cache:iois:all');
+        await kvDel('cache:marketplace:public');
+        await kvDel('cache:marketplace:admin');
+      } catch {}
       return ok(res, {
         wiped,
         advisors: volume.advisors_created + 1,
