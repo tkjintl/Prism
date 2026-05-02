@@ -135,13 +135,12 @@ async function inBatches(items, size, fn) {
 export async function seedHighVolume() {
   const now = new Date().toISOString();
 
-  // ─── 5 advisors ──────────────────────────────────────────────────────
-  // Lean seed for debug-only bot testing — was 30/150/400/~1500 (≈3.5K Redis ops
-  // per reset), now 5/15/25/~50 (≈250 ops). Bots can still surface every code
-  // path; smaller volume just means lower burn against the Upstash quota.
+  // ─── 2 advisors ──────────────────────────────────────────────────────
+  // Minimal debug seed — was 30/150/400/~1500. Now 2/4/10/~12 (≈90 Redis ops
+  // per reset). Bots still exercise every code path, just over a tiny surface.
   const sharedAdvisorPwHash = await bcrypt.hash('TestPass123!', 12);
   const advisors = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 2; i++) {
     const firmBase = ADVISOR_FIRM_NAMES[i % ADVISOR_FIRM_NAMES.length];
     const idx = Math.floor(i / ADVISOR_FIRM_NAMES.length); // suffix counter to keep emails unique
     const slug = firmBase.toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -165,10 +164,10 @@ export async function seedHighVolume() {
     await kvSet(`advisor_email:${a.email}`, a.id);
   });
 
-  // ─── 15 investors (10 institutional, 5 hnw) ─────────────────────────
+  // ─── 4 investors (2 institutional, 2 hnw) ───────────────────────────
   const investors = [];
-  for (let i = 0; i < 15; i++) {
-    const isInst = i < 10;
+  for (let i = 0; i < 4; i++) {
+    const isInst = i < 2;
     const id = `inv-bot-${String(i + 1).padStart(3, '0')}`;
     const firmName = (isInst
       ? `${pick(['Atlas', 'Meridian', 'Sterling', 'Hargrove', 'Westbrook', 'Pinehurst', 'Ravenscroft', 'Helvetia', 'Magellan', 'Brunswick'])} ${pick(['Capital', 'Asset Management', 'Endowment', 'Fund', 'Partners'])}`
@@ -198,16 +197,15 @@ export async function seedHighVolume() {
     await kvSet(`inst_code:${inv.code}`, inv.id);
   });
 
-  // ─── 25 deals across stage distribution ──────────────────────────────
-  // 5 review, 8 live, 5 ioi, 3 dd, 2 terms, 1 close, 1 realized
+  // ─── 10 deals across stage distribution ──────────────────────────────
+  // 2 review, 3 live, 2 ioi, 1 dd, 1 terms, 1 close
   const stagePlan = [
-    ...Array(5).fill('review'),
-    ...Array(8).fill('live'),
-    ...Array(5).fill('ioi'),
-    ...Array(3).fill('dd'),
-    ...Array(2).fill('terms'),
+    ...Array(2).fill('review'),
+    ...Array(3).fill('live'),
+    ...Array(2).fill('ioi'),
+    ...Array(1).fill('dd'),
+    ...Array(1).fill('terms'),
     ...Array(1).fill('close'),
-    ...Array(1).fill('realized'),
   ];
   // Shuffle for varied deal IDs/timing
   for (let i = stagePlan.length - 1; i > 0; i--) {

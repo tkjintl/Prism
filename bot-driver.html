@@ -726,7 +726,7 @@ async function confirmReset(){
   stopAllLoops();
   try{
     await botFetch('/api/v2?resource=admin&op=sandbox-reset',{method:'POST',body:JSON.stringify({confirm:'WIPE ALL DATA'})});
-    pushLog('admin','Sandbox reset complete · seeded 6 advisors / 16 investors / 25 deals',true);
+    pushLog('admin','Sandbox reset complete · seeded 3 advisors / 5 investors / 10 deals',true);
     // Clear local state so bots re-login
     bots.advisor.loggedIn=false;bots.advisor.deals=[];
     bots.investor.loggedIn=false;bots.investor.myIoiDeals.clear();
