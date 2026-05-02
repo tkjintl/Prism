@@ -3167,7 +3167,10 @@ Return ONLY valid JSON in this exact structure:
       } catch { /* cache miss is fine, fall through to recompute */ }
 
       const dealIds = await kvZrange('deals:index', 0, -1, { rev: true });
-      const allDeals = (await Promise.all(dealIds.map(id => kvGet(`deal:${id}`)))).filter(Boolean);
+      // P-6: route through getDeal so the merged atomic counter values (the
+      // real source of truth post-P-6) are used. Embedded deal.ioi_count is
+      // never updated by bumpIoiCounters — reading it directly would lie.
+      const allDeals = (await Promise.all(dealIds.map(id => getDeal(id)))).filter(Boolean);
       const allIois = await getAllIois();
       const advKeys = await kvKeys('advisor:adv-*');
       const advisors = (await Promise.all(advKeys.map(k => kvGet(k)))).filter(Boolean);
@@ -3254,7 +3257,9 @@ Return ONLY valid JSON in this exact structure:
       if (!admin) return unauth(res);
 
       const dealIds = await kvZrange('deals:index', 0, -1);
-      const allDeals = (await Promise.all(dealIds.map(id => kvGet(`deal:${id}`)))).filter(Boolean);
+      // P-6: getDeal merges atomic counter keys — same source of truth that
+      // every real consumer reads. Audit must match.
+      const allDeals = (await Promise.all(dealIds.map(id => getDeal(id)))).filter(Boolean);
       const dealById = new Map(allDeals.map(d => [d.id, d]));
       const allIois = await getAllIois();
 
@@ -3264,7 +3269,6 @@ Return ONLY valid JSON in this exact structure:
       const investorById = new Map(allInvestors.map(i => [i.id, i]));
 
       const issues = [];
-      const STUCK_WINDOW_MS = 60 * 1000;
       const now = Date.now();
 
       const orphanCandidates = allIois.filter(i => i.investor_id && !investorById.has(i.investor_id) && !i.investor_id.startsWith('INV-SEED-'));
@@ -3287,8 +3291,17 @@ Return ONLY valid JSON in this exact structure:
         samples: ioisNoDeal.slice(0, 5).map(i => ({ ioi_id: i.id, deal_id: i.deal_id })),
       });
 
-      const stuckSet = new Set(['live', 'ioi', 'dd']);
-      const STUCK_ACTIVE_WINDOW_MS = 10 * 60 * 1000; // only consider deals with activity in the last 10 min
+      // Stuck-deal detection — only fire on TRULY long-stalled deals.
+      // Previous rule (60s–10min window) generated noise from normal bot-test
+      // pipeline backpressure: with hundreds of review-stage deals queued,
+      // AdminBot can't pick every live deal every minute, so they show as
+      // "stuck" by the 60s rule. In production, deals sit in stages for
+      // weeks — that's normal, not a bug.
+      // New rule: only flag deals in active stages (live/ioi/dd/terms) with
+      // NO audit activity for > 30 days. This is the real "abandoned deal"
+      // signal that matters in production.
+      const stuckSet = new Set(['live', 'ioi', 'dd', 'terms']);
+      const STUCK_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
       const stuckDeals = [];
       const auditCheckResults = await Promise.all(allDeals.map(async d => {
         if (!stuckSet.has(d.stage)) return null;
@@ -3307,14 +3320,12 @@ Return ONLY valid JSON in this exact structure:
         if (!r) continue;
         if (!r.lastTs) continue;
         const age = now - r.lastTs;
-        // Stuck = recent bot activity (< 10 min ago) but deal has been sitting > 60s without forward movement.
-        // Skip historical/seeded deals whose last audit is older than the active window — those are idle, not stuck.
-        if (age > STUCK_WINDOW_MS && age < STUCK_ACTIVE_WINDOW_MS) {
-          stuckDeals.push({ id: r.deal.id, stage: r.deal.stage, last_audit_age_ms: age });
+        if (age > STUCK_AGE_MS) {
+          stuckDeals.push({ id: r.deal.id, stage: r.deal.stage, last_audit_age_days: Math.round(age / 86400000) });
         }
       }
       if (stuckDeals.length) issues.push({
-        type: 'stuck_deals', severity: 'medium', count: stuckDeals.length,
+        type: 'stuck_deals', severity: 'low', count: stuckDeals.length,
         samples: stuckDeals.slice(0, 5),
       });
 
