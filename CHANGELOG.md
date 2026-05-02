@@ -4,6 +4,15 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix theme toggle CSS/localStorage + notif panel desktop positioning
+
+### Changes
+- `advisor-portal.html`: Swapped `:root` to dark defaults and `[data-theme="light"]` to light overrides (was reversed — `:root` had light colors despite defaulting to dark). Added localStorage save/restore to `toggleTheme()` using key `prism_advisor_theme`. Added init IIFE to apply saved theme before first paint. Fixed hardcoded nav button icon from `☀` to `☾` to match dark default.
+- `investor-portal.html`: CSS was already correct (`:root` dark, `[data-theme="light"]` override). Added localStorage save/restore to `toggleTheme()` using key `prism_investor_theme`. Added init IIFE to apply saved theme before first paint. Fixed hardcoded nav button icon from `☀` to `☾` to match dark default.
+- `admin-portal.html`: CSS and localStorage were already correct. Fixed `.notif-panel` desktop positioning — was empty (fell back to `position:absolute` with no positioned parent, rendering in wrong location). Changed to `position:fixed; top:calc(var(--nav-h) + 8px); right:20px` so panel anchors correctly below the nav bar. Backdrop (`#notif-backdrop`) confirmed correct: `display:none` by default, `display:block` only when `.open` class is added.
+
+---
+
 ## [2026-05-01] — Fix mobile hero layout: full-viewport height, remove phantom chevron, black breathing space
 
 ### Changes

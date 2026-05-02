@@ -11,18 +11,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root {
-  --bg:#F7F5F1;--bg-2:#FFFFFF;--bg-3:#EFECE6;--surface:#FFFFFF;
-  --border:rgba(0,0,0,0.07);--border-m:rgba(0,0,0,0.12);
-  --text:#18160F;--text-2:#5A5449;--text-3:#9C968A;
-  --gold:#A8813A;--gold-b:#C5A572;--gold-bg:rgba(168,129,58,0.07);--gold-bd:rgba(168,129,58,0.25);
-  --green:#2E6E48;--green-bg:rgba(46,110,72,0.07);--green-bd:rgba(46,110,72,0.25);
-  --amber:#8A5C1A;--amber-bg:rgba(138,92,26,0.08);--amber-bd:rgba(138,92,26,0.28);
-  --red:#8B3228;--red-bg:rgba(139,50,40,0.07);--red-bd:rgba(139,50,40,0.22);
-  --blue:#2B5C8A;--blue-bg:rgba(43,92,138,0.07);--blue-bd:rgba(43,92,138,0.25);
-  --serif:'Cormorant Garamond',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
-  --r:6px;--nav-h:56px;--ease:cubic-bezier(0.22,1,0.36,1);
-}
-[data-theme="dark"]{
   --bg:#0A0908;--bg-2:#100F0D;--bg-3:#161412;--surface:#131210;
   --border:rgba(255,255,255,0.07);--border-m:rgba(255,255,255,0.13);
   --text:#EDE8DF;--text-2:#A09A91;--text-3:#6B665E;
@@ -31,6 +19,18 @@
   --amber:#b8833a;--amber-bg:rgba(184,131,58,0.08);--amber-bd:rgba(184,131,58,0.28);
   --red:#b05e56;--red-bg:rgba(176,94,86,0.07);--red-bd:rgba(176,94,86,0.22);
   --blue:#5b85b8;--blue-bg:rgba(91,133,184,0.07);--blue-bd:rgba(91,133,184,0.25);
+  --serif:'Cormorant Garamond',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:6px;--nav-h:56px;--ease:cubic-bezier(0.22,1,0.36,1);
+}
+[data-theme="light"]{
+  --bg:#F7F5F1;--bg-2:#FFFFFF;--bg-3:#EFECE6;--surface:#FFFFFF;
+  --border:rgba(0,0,0,0.07);--border-m:rgba(0,0,0,0.12);
+  --text:#18160F;--text-2:#5A5449;--text-3:#9C968A;
+  --gold:#A8813A;--gold-b:#C5A572;--gold-bg:rgba(168,129,58,0.07);--gold-bd:rgba(168,129,58,0.25);
+  --green:#2E6E48;--green-bg:rgba(46,110,72,0.07);--green-bd:rgba(46,110,72,0.25);
+  --amber:#8A5C1A;--amber-bg:rgba(138,92,26,0.08);--amber-bd:rgba(138,92,26,0.28);
+  --red:#8B3228;--red-bg:rgba(139,50,40,0.07);--red-bd:rgba(139,50,40,0.22);
+  --blue:#2B5C8A;--blue-bg:rgba(43,92,138,0.07);--blue-bd:rgba(43,92,138,0.25);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{height:100%}
@@ -827,7 +827,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div class="notif-bell-wrap" id="notif-bell-wrap">
       <button class="notif-bell-btn" id="notif-bell-btn" onclick="toggleNotifPanel()" title="Notifications">🔔</button>
     </div>
-    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
+    <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☾</button>
     <button onclick="logout()" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:6px 10px;transition:color .15s;min-height:36px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
@@ -1069,6 +1069,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <div class="demo-badge">Advisor Demo</div>
 
 <script>
+(function(){const t=localStorage.getItem('prism_advisor_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☀':'☾';})();
 /* ─── API + AUTH ─── */
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
@@ -1325,8 +1326,10 @@ function toast(msg,k=''){
 
 function toggleTheme(){
   const h=document.documentElement,dark=h.dataset.theme==='dark';
-  h.dataset.theme=dark?'light':'dark';
-  document.getElementById('theme-btn').textContent=dark?'☾':'☀';
+  const next=dark?'light':'dark';
+  h.dataset.theme=next;
+  localStorage.setItem('prism_advisor_theme',next);
+  document.getElementById('theme-btn').textContent=dark?'☀':'☾';
 }
 async function logout(){
   await fetch('/api/v2?resource=advisor&op=logout',{method:'POST',credentials:'include'});

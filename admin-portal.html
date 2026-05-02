@@ -1360,7 +1360,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 #notif-backdrop.open{display:block}
 
 .notif-panel{
-  /* Override any previous mobile positioning */
+  position:fixed;
+  top:calc(var(--nav-h) + 8px);
+  right:20px;
 }
 @media(max-width:768px){
   .notif-panel{
