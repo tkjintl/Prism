@@ -4,6 +4,12 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Deploy trigger: activate BOT_MODE env var
+
+Empty-content commit to force a Vercel rebuild so the newly-added `BOT_MODE=1` and updated `ADMIN_USERS` environment variables take effect on the running deployment. No code change.
+
+---
+
 ## [2026-05-02] — Bot-test sandbox frontend: bot-driver.html + bot-viewer.html
 
 ### `bot-driver.html` (new)
