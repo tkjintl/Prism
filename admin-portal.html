@@ -1683,6 +1683,46 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
 </div>
 
+<!-- Capital Call modal — fires capital-call-notify per investor with IOI amount as default -->
+<div class="modal-overlay hidden" id="capital-call-modal">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="cc-modal-title" style="max-width:480px">
+    <div class="modal-title" id="cc-modal-title">Issue Capital Call</div>
+    <div style="font-family:var(--sans);font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:18px">
+      Sends a capital-call notice to every approved-IOI investor on this deal. Each notice carries their committed amount as the call value. Investors see it in their Notices tab and receive an email.
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:6px">Optional notes for investors</label>
+      <textarea id="cc-notes" rows="3" placeholder="e.g. Wire instructions will be issued separately. Funds due within 10 business days." style="width:100%;padding:10px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:13px"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="modal-cancel" onclick="closeCapitalCallModal()">Cancel</button>
+      <button class="modal-confirm" id="cc-confirm-btn" onclick="confirmCapitalCall()" style="background:var(--amber)">Issue Call →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Distribution modal — fires distribution-notify, computes per-investor pro-rata share -->
+<div class="modal-overlay hidden" id="distribution-modal">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="dist-modal-title" style="max-width:480px">
+    <div class="modal-title" id="dist-modal-title">Issue Distribution</div>
+    <div style="font-family:var(--sans);font-size:13px;color:var(--text-2);line-height:1.55;margin-bottom:18px">
+      Sends a distribution notice to every approved-IOI investor. Each investor's amount is their pro-rata share of the total pool. Investors see it in their Notices tab and receive an email.
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:6px">Distribution amount (USD) *</label>
+      <input id="dist-amount-input" type="text" inputmode="numeric" placeholder="e.g. 5,000,000" style="width:100%;padding:10px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:14px">
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:6px">Optional notes</label>
+      <textarea id="dist-notes" rows="3" placeholder="e.g. Q1 2027 distribution. Funds will be wired to your designated account within 5 business days." style="width:100%;padding:10px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--sans);font-size:13px"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="modal-cancel" onclick="closeDistributionModal()">Cancel</button>
+      <button class="modal-confirm" id="dist-confirm-btn" onclick="confirmDistribution()" style="background:var(--green)">Issue Distribution →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Close Raise modal -->
 <div class="modal-overlay hidden" id="close-raise-modal">
   <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="close-raise-modal-title" style="max-width:440px">
@@ -3021,6 +3061,65 @@ async function dealAction(dealId,action,params={}){
 
 let _crDealId=null,_drDealId=null;
 
+// Capital Call + Distribution modals — wired to capital-call-notify and
+// distribution-notify endpoints which write per-investor notice records
+// AND fire emails. Investor sees the notice in their Notices tab.
+let _ccDealId=null;
+function openCapitalCallModal(dealId){
+  _ccDealId=dealId;
+  const notes=document.getElementById('cc-notes');if(notes)notes.value='';
+  document.getElementById('capital-call-modal').classList.remove('hidden');
+  _modalReleasers['capital-call-modal']=trapFocus(document.querySelector('#capital-call-modal .modal-box'));
+}
+function closeCapitalCallModal(){
+  document.getElementById('capital-call-modal').classList.add('hidden');
+  if(_modalReleasers['capital-call-modal']){_modalReleasers['capital-call-modal']();delete _modalReleasers['capital-call-modal'];}
+  _ccDealId=null;
+}
+async function confirmCapitalCall(){
+  if(!_ccDealId)return;
+  const btn=document.getElementById('cc-confirm-btn');btn.disabled=true;btn.textContent='Issuing…';
+  const notes=(document.getElementById('cc-notes')?.value||'').trim();
+  const r=await api('POST','/api/v2?resource=admin&op=capital-call-notify',{dealId:_ccDealId,notes:notes||undefined});
+  btn.disabled=false;btn.textContent='Issue Call →';
+  if(r?.ok){
+    closeCapitalCallModal();
+    toast(`Capital call issued — ${r.sent} investor${r.sent===1?'':'s'} notified`,'ok');
+  }else{
+    toast(r?.error||'Capital call failed','err');
+  }
+}
+
+let _distDealId=null;
+function openDistributionModal(dealId){
+  _distDealId=dealId;
+  const a=document.getElementById('dist-amount-input');if(a)a.value='';
+  const n=document.getElementById('dist-notes');if(n)n.value='';
+  document.getElementById('distribution-modal').classList.remove('hidden');
+  _modalReleasers['distribution-modal']=trapFocus(document.querySelector('#distribution-modal .modal-box'));
+}
+function closeDistributionModal(){
+  document.getElementById('distribution-modal').classList.add('hidden');
+  if(_modalReleasers['distribution-modal']){_modalReleasers['distribution-modal']();delete _modalReleasers['distribution-modal'];}
+  _distDealId=null;
+}
+async function confirmDistribution(){
+  if(!_distDealId)return;
+  const raw=(document.getElementById('dist-amount-input')?.value||'').replace(/[^0-9.]/g,'');
+  const amount=parseFloat(raw);
+  if(!Number.isFinite(amount)||amount<=0){toast('Enter a positive distribution amount','err');return;}
+  const notes=(document.getElementById('dist-notes')?.value||'').trim();
+  const btn=document.getElementById('dist-confirm-btn');btn.disabled=true;btn.textContent='Issuing…';
+  const r=await api('POST','/api/v2?resource=admin&op=distribution-notify',{dealId:_distDealId,amount,notes:notes||undefined});
+  btn.disabled=false;btn.textContent='Issue Distribution →';
+  if(r?.ok){
+    closeDistributionModal();
+    toast(`Distribution issued — ${r.sent} investor${r.sent===1?'':'s'} notified`,'ok');
+  }else{
+    toast(r?.error||'Distribution failed','err');
+  }
+}
+
 function openCloseRaiseModal(dealId){
   _crDealId=dealId;
   const today=new Date().toISOString().split('T')[0];
@@ -4208,6 +4307,8 @@ function buildDealDetailHTML(deal){
             if(a.endpoint==='push-package')return `<button class="ddp-ctrl-btn push" onclick="pushPackage('${deal.id}');closeDealDetail()">✦ ${a.label}</button>`;
             return `<button class="ddp-ctrl-btn advance" onclick="openModal('${deal.id}','${a.target}');closeDealDetail()">→ ${a.label}</button>`;
           })()}
+          ${['close','realized'].includes(deal.stage)?`<button class="ddp-ctrl-btn" style="border-color:var(--amber-bd);color:var(--amber)" onclick="closeDealDetail();openCapitalCallModal('${deal.id}')">⚠ Issue Capital Call</button>`:''}
+          ${['close','realized'].includes(deal.stage)?`<button class="ddp-ctrl-btn" style="border-color:var(--green-bd);color:var(--green)" onclick="closeDealDetail();openDistributionModal('${deal.id}')">$ Issue Distribution</button>`:''}
           <button class="ddp-ctrl-btn" onclick="closeDealDetail();openCloseRaiseModal('${deal.id}')">Close Raise</button>
           <button class="ddp-ctrl-btn" onclick="closeDealDetail();openDelayRaiseModal('${deal.id}')">Delay Raise</button>
         </div>
