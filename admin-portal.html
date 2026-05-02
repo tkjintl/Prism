@@ -2104,7 +2104,7 @@ let _launchMode='featured';
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
 function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--bg-2,#fff);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
-function adaptDeal(d,allIois){const di=(allIois||[]).filter(i=>i.deal_id===d.id);return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,advisor:d.originator||d.advisor||'—',advisor_firm:d.advisor_firm||'',iois:di.map(ioi=>({id:ioi.id,name:ioi.investor_firm||ioi.investor_email||'Investor',init:(ioi.investor_firm||ioi.investor_email||'?').slice(0,2).toUpperCase(),type:ioi.institution_type||'Institutional',geo:'—',amount:ioi.amount,date:new Date(ioi.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}),status:ioi.status,isNew:(Date.now()-new Date(ioi.submitted_at))<172800000,pushed:false}))};}
+function adaptDeal(d,allIois){const di=(allIois||[]).filter(i=>i.deal_id===d.id);return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,advisor:d.originator||d.advisor||'—',advisor_firm:d.advisor_firm||'',iois:di.map(ioi=>{const _sub=ioi.submitted_at?new Date(ioi.submitted_at):null;const _subVal=_sub&&!isNaN(_sub)?_sub:null;return{id:ioi.id,name:ioi.investor_firm||ioi.investor_email||ioi.investor_id||'Investor',init:(ioi.investor_firm||ioi.investor_email||'?').slice(0,2).toUpperCase(),type:ioi.institution_type||'Institutional',geo:ioi.geo||ioi.geography||'—',amount:ioi.amount,date:_subVal?_subVal.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—',status:ioi.status,isNew:_subVal?(Date.now()-_subVal.getTime())<172800000:false,pushed:false};})};}
 
 /* ─── DATA ─── */
 let KILLED_DEALS=[];
@@ -2437,7 +2437,7 @@ function renderOverview(){
         <span class="pq-age">${age}</span>
       </div>
       <div class="ov-ac-name">${s.name}</div>
-      <div class="ov-ac-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''}<br>${s.target_irr}% IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()}</div>
+      <div class="ov-ac-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''}<br>${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
       ${aiRef}
       <div class="ov-ac-actions">
         ${!generated ?
@@ -2461,7 +2461,7 @@ function renderOverview(){
         <span class="pq-age">${relAge(s.submitted_at||s.submitted)}</span>
       </div>
       <div class="ov-ac-name">${s.name}</div>
-      <div class="ov-ac-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''}<br>${s.target_irr}% IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()}</div>
+      <div class="ov-ac-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''}<br>${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
       <div class="ov-ac-actions">
         <button class="att-btn att-approve" onclick="previewBeforePublish('${s.id}',this)">Publish Live →</button>
       </div>
@@ -3449,7 +3449,7 @@ function renderPipeline(){
               <div class="ds-chevron" id="dsc-chev-${s.id}">›</div>
               <div style="min-width:0">
                 <div class="ds-deal-name">${s.name}</div>
-                <div class="ds-deal-meta">From <strong>${s.advisor}</strong> · ${s.advisor_firm||''} · ${s.target_irr}% IRR · ${fmU(s.target_alloc)}</div>
+                <div class="ds-deal-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''} · ${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)}</div>
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
@@ -3460,7 +3460,7 @@ function renderPipeline(){
           <div class="ds-card-expandable" id="dsc-body-${s.id}" style="display:none">
             ${(s.company_overview||s.mk_notes)?`<div class="ds-overview">${s.company_overview||s.mk_notes}</div>`:''}
             <div class="ds-card-body">
-              <div><div class="ds-stat-lbl">Target IRR</div><div class="ds-stat-val">${s.target_irr}%</div></div>
+              <div><div class="ds-stat-lbl">Target IRR</div><div class="ds-stat-val">${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'}</div></div>
               <div><div class="ds-stat-lbl">Capacity</div><div class="ds-stat-val">${fmU(s.target_alloc)}</div></div>
               <div><div class="ds-stat-lbl">Min Ticket</div><div class="ds-stat-val">${fmU(s.min_ticket)}</div></div>
             </div>
@@ -3560,13 +3560,18 @@ function renderPipeline(){
     </div>
     ${DEALS.map((d,i)=>{
       const pct=Math.round(d.ioi_agg/d.target_alloc*100);
-      const days=Math.round((new Date(d.closing)-new Date())/86400000);
+      // B-12: format days-to-close cleanly. Null closing date → '—' instead of NaNd.
+      const daysRaw=d.closing?Math.round((new Date(d.closing)-new Date())/86400000):null;
+      const daysCell=daysRaw==null?'—':`${daysRaw}d`;
+      const daysColor=daysRaw==null?'var(--text-3)':(daysRaw>90?'var(--green)':daysRaw>45?'var(--amber)':'var(--red)');
       const ci=STAGE_ORDER.indexOf(d.stage);
       const nextStage=STAGE_ORDER[ci+1];
+      // B-12: round IRR to 1 decimal so seeded/randomized deals don't show 14 decimals.
+      const irrCell=d.target_irr!=null?`${(+d.target_irr).toFixed(1)}%`:'—';
       return`<div class="dp-row" style="animation-delay:${i*50}ms" onclick="openDealDetail('${d.id}')">
         <div>
           <div class="dp-name">${d.name}</div>
-          <div class="dp-sub">${d.geography} · ${d.target_irr}% IRR</div>
+          <div class="dp-sub">${d.geography||'—'} · ${irrCell} IRR</div>
         </div>
         <div class="dp-advisor">${d.advisor}</div>
         <div>
@@ -3575,7 +3580,7 @@ function renderPipeline(){
           <div style="font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:2px">${pct}% of ${fmU(d.target_alloc)}</div>
         </div>
         <span class="dp-stage-chip ${STAGE_CHIP[d.stage]||'sc-review'}">${STAGE_LABELS[d.stage]||d.stage}</span>
-        <div style="font-family:var(--mono);font-size:11px;color:${days>90?'var(--green)':days>45?'var(--amber)':'var(--red)'}">${days}d</div>
+        <div style="font-family:var(--mono);font-size:11px;color:${daysColor}">${daysCell}</div>
         <div class="dp-actions" onclick="event.stopPropagation()">
           ${(()=>{
             const a=nextStageActionFor(d.stage);
