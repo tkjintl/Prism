@@ -1499,8 +1499,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 </nav>
 
 <!-- Notification panel lives outside nav so z-index works correctly in root stacking context -->
-<div class="notif-panel" id="notif-panel" style="display:none">
-  <div class="notif-panel-hd">Pending Actions</div>
+<div class="notif-panel" id="notif-panel" role="region" aria-labelledby="notif-panel-title-admin" style="display:none">
+  <div class="notif-panel-hd" id="notif-panel-title-admin">Pending Actions</div>
   <div id="notif-panel-body"></div>
 </div>
 
@@ -1636,7 +1636,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <!-- Stage advance modal -->
 <div class="modal-overlay hidden" id="stage-modal">
-  <div class="modal-box">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-title" id="modal-title">Advance Stage?</div>
     <div class="modal-body" id="modal-body"></div>
     <div class="modal-actions">
@@ -1648,7 +1648,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <!-- Push IOI modal -->
 <div class="modal-overlay hidden" id="push-modal">
-  <div class="modal-box">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="push-modal-title">
     <div class="modal-title" id="push-modal-title">Push IOI to Advisor?</div>
     <div class="modal-body" id="push-modal-body"></div>
     <div class="modal-actions">
@@ -1660,15 +1660,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <!-- Push Preview modal -->
 <div class="modal-overlay hidden" id="push-preview-modal">
-  <div class="pp-modal-box">
+  <div class="pp-modal-box" role="dialog" aria-modal="true" aria-label="Deal Push Preview">
     <div id="push-preview-content"></div>
   </div>
 </div>
 
 <!-- Close Raise modal -->
 <div class="modal-overlay hidden" id="close-raise-modal">
-  <div class="modal-box" style="max-width:440px">
-    <div class="modal-title">Close Raise</div>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="close-raise-modal-title" style="max-width:440px">
+    <div class="modal-title" id="close-raise-modal-title">Close Raise</div>
     <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
       <div>
         <label style="font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-3);display:block;margin-bottom:5px">CLOSE DATE</label>
@@ -1689,7 +1689,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       </div>
     </div>
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="document.getElementById('close-raise-modal').classList.add('hidden')">Cancel</button>
+      <button class="modal-cancel" onclick="closeCloseRaiseModal()">Cancel</button>
       <button class="modal-confirm" onclick="confirmCloseRaise()" style="background:var(--red,#c0392b)">Close Raise</button>
     </div>
   </div>
@@ -1697,8 +1697,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <!-- Delay Raise modal -->
 <div class="modal-overlay hidden" id="delay-raise-modal">
-  <div class="modal-box" style="max-width:440px">
-    <div class="modal-title">Delay Raise</div>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="delay-raise-modal-title" style="max-width:440px">
+    <div class="modal-title" id="delay-raise-modal-title">Delay Raise</div>
     <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
       <div>
         <label style="font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-3);display:block;margin-bottom:5px">NEW TARGET DATE</label>
@@ -1721,7 +1721,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       </div>
     </div>
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="document.getElementById('delay-raise-modal').classList.add('hidden')">Cancel</button>
+      <button class="modal-cancel" onclick="closeDelayRaiseModal()">Cancel</button>
       <button class="modal-confirm" onclick="confirmDelayRaise()">Delay Raise</button>
     </div>
   </div>
@@ -2022,8 +2022,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <!-- ══ DISTRIBUTION MODAL ══ -->
 <div class="modal-overlay hidden" id="dist-modal">
-  <div class="dist-modal-box">
-    <div class="modal-title" style="margin-bottom:16px">Post Distribution</div>
+  <div class="dist-modal-box" role="dialog" aria-modal="true" aria-labelledby="dist-modal-title">
+    <div class="modal-title" id="dist-modal-title" style="margin-bottom:16px">Post Distribution</div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div>
@@ -2061,7 +2061,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       </div>
     </div>
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="document.getElementById('dist-modal').classList.add('hidden')">Cancel</button>
+      <button class="modal-cancel" onclick="document.getElementById('dist-modal').classList.add('hidden');if(_modalReleasers['dist-modal']){_modalReleasers['dist-modal']();delete _modalReleasers['dist-modal'];}">Cancel</button>
       <button class="modal-confirm" onclick="confirmPostDistribution()" id="dist-confirm-btn">Post Distribution</button>
     </div>
   </div>
@@ -2992,14 +2992,19 @@ function openCloseRaiseModal(dealId){
   const inp=document.getElementById('cr-date');
   if(inp)inp.value=today;
   document.getElementById('close-raise-modal').classList.remove('hidden');
+  _modalReleasers['close-raise-modal']=trapFocus(document.querySelector('#close-raise-modal .modal-box'));
 }
 
+function closeCloseRaiseModal(){
+  document.getElementById('close-raise-modal').classList.add('hidden');
+  if(_modalReleasers['close-raise-modal']){_modalReleasers['close-raise-modal']();delete _modalReleasers['close-raise-modal'];}
+}
 function confirmCloseRaise(){
   const date=document.getElementById('cr-date')?.value||'';
   const reason=document.getElementById('cr-reason')?.value||'';
   const notes=document.getElementById('cr-notes')?.value?.trim()||'';
   if(!date){toast('Select a close date','err');return;}
-  document.getElementById('close-raise-modal').classList.add('hidden');
+  closeCloseRaiseModal();
   dealAction(_crDealId,'close_raise',{closeDate:date,reason,notes});
 }
 
@@ -3008,14 +3013,19 @@ function openDelayRaiseModal(dealId){
   document.getElementById('dr-date').value='';
   document.getElementById('dr-notes').value='';
   document.getElementById('delay-raise-modal').classList.remove('hidden');
+  _modalReleasers['delay-raise-modal']=trapFocus(document.querySelector('#delay-raise-modal .modal-box'));
 }
 
+function closeDelayRaiseModal(){
+  document.getElementById('delay-raise-modal').classList.add('hidden');
+  if(_modalReleasers['delay-raise-modal']){_modalReleasers['delay-raise-modal']();delete _modalReleasers['delay-raise-modal'];}
+}
 function confirmDelayRaise(){
   const date=document.getElementById('dr-date')?.value||'';
   const reason=document.getElementById('dr-reason')?.value||'';
   const notes=document.getElementById('dr-notes')?.value?.trim()||'';
   if(!date){toast('Select a new target date','err');return;}
-  document.getElementById('delay-raise-modal').classList.add('hidden');
+  closeDelayRaiseModal();
   dealAction(_drDealId,'delay',{newDate:date,reason,notes});
 }
 
@@ -3291,8 +3301,12 @@ function openPushModal(dealId,ioiId){
   document.getElementById('push-modal-body').innerHTML=`Opening due diligence for <strong>${d.name}</strong>. All approved investors will receive data room access and <strong>${d.advisor}</strong> will be notified. The deal will move to DD stage automatically.`;
   document.getElementById('push-modal').classList.remove('hidden');
   document.getElementById('push-modal-confirm').onclick=confirmPush;
+  _modalReleasers['push-modal']=trapFocus(document.querySelector('#push-modal .modal-box'));
 }
-function closePushModal(){document.getElementById('push-modal').classList.add('hidden');pushDealId=null;pushIoiId=null;}
+function closePushModal(){
+  document.getElementById('push-modal').classList.add('hidden');pushDealId=null;pushIoiId=null;
+  if(_modalReleasers['push-modal']){_modalReleasers['push-modal']();delete _modalReleasers['push-modal'];}
+}
 async function confirmPush(){
   if(!pushDealId||!pushIoiId)return;
   const d=DEALS.find(x=>x.id===pushDealId);
@@ -3484,6 +3498,27 @@ async function savePlatformParams(dealId){
   toast('Parameters saved','ok');
 }
 
+/* ── FOCUS TRAP UTILITY ── */
+const FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+function trapFocus(modalEl){
+  const prev=document.activeElement;
+  const getFocusable=()=>Array.from(modalEl.querySelectorAll(FOCUSABLE)).filter(el=>!el.closest('[hidden]')&&el.offsetParent!==null);
+  const onKeyDown=e=>{
+    if(e.key!=='Tab')return;
+    const els=getFocusable();if(!els.length)return;
+    const first=els[0],last=els[els.length-1];
+    if(e.shiftKey){if(document.activeElement===first){e.preventDefault();last.focus();}}
+    else{if(document.activeElement===last){e.preventDefault();first.focus();}}
+  };
+  modalEl.addEventListener('keydown',onKeyDown);
+  const first=getFocusable()[0];if(first)first.focus();
+  return function releaseFocus(){
+    modalEl.removeEventListener('keydown',onKeyDown);
+    if(prev&&prev.focus)prev.focus();
+  };
+}
+const _modalReleasers={};
+
 /* ── STAGE MODAL ── */
 function openModal(dealId,targetStage){
   pendingDealId=dealId;pendingStage=targetStage;
@@ -3491,8 +3526,13 @@ function openModal(dealId,targetStage){
   document.getElementById('modal-title').textContent=`Advance to ${STAGE_LABELS[targetStage]}?`;
   document.getElementById('modal-body').textContent=`Move "${d.name}" from ${STAGE_LABELS[d.stage]} to ${STAGE_LABELS[targetStage]}. Approved investors will be notified by email.`;
   document.getElementById('stage-modal').classList.remove('hidden');
+  _modalReleasers['stage-modal']=trapFocus(document.querySelector('#stage-modal .modal-box'));
 }
-function closeModal(){document.getElementById('stage-modal').classList.add('hidden');pendingStage=null;pendingDealId=null;}
+function closeModal(){
+  document.getElementById('stage-modal').classList.add('hidden');
+  pendingStage=null;pendingDealId=null;
+  if(_modalReleasers['stage-modal']){_modalReleasers['stage-modal']();delete _modalReleasers['stage-modal'];}
+}
 const _mc=document.getElementById('modal-confirm');if(_mc)_mc.onclick=async function(){
   if(!pendingDealId)return;
   const d=DEALS.find(x=>x.id===pendingDealId);
@@ -4200,6 +4240,7 @@ async function openDistModal(dealId){
   document.getElementById('dist-preview-body').innerHTML='';
   document.getElementById('dist-preview-section').style.display='none';
   document.getElementById('dist-modal').classList.remove('hidden');
+  _modalReleasers['dist-modal']=trapFocus(document.querySelector('#dist-modal .dist-modal-box'));
   // fetch IOIs for preview
   const res=await fetchSilent(`/api/v2?resource=admin&op=deal-iois&dealId=${dealId}`);
   _distIois=(res?.iois||[]).filter(i=>i.status==='approved');
@@ -4246,6 +4287,7 @@ async function confirmPostDistribution(){
   if(btn)btn.disabled=false;
   if(res?.ok||res?.success){
     document.getElementById('dist-modal').classList.add('hidden');
+    if(_modalReleasers['dist-modal']){_modalReleasers['dist-modal']();delete _modalReleasers['dist-modal'];}
     toast('Distribution posted','ok');
     openDealDetail(_distDealId);
   } else {

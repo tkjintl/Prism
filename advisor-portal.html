@@ -2736,7 +2736,7 @@ function checkReviewOverlay(){
     const box=document.getElementById('rno-deal-name');
     if(box)box.textContent=pending.d.name||pending.n.deal_name||'';
     const overlay=document.getElementById('review-notify-overlay');
-    if(overlay)overlay.style.display='flex';
+    if(overlay){overlay.style.display='flex';_reviewOverlayRelease=trapFocus(document.getElementById('review-notify-box'));}
     return;
   }
   // Fallback: check advisor_review_status field
@@ -2746,7 +2746,7 @@ function checkReviewOverlay(){
     const box=document.getElementById('rno-deal-name');
     if(box)box.textContent=byStatus.name||'';
     const overlay=document.getElementById('review-notify-overlay');
-    if(overlay)overlay.style.display='flex';
+    if(overlay){overlay.style.display='flex';_reviewOverlayRelease=trapFocus(document.getElementById('review-notify-box'));}
   }
 }
 
@@ -3033,6 +3033,7 @@ function renderNotifBell(count){
   }
 }
 
+let _notifPanelRelease=null;
 function toggleNotifPanel(){
   const panel=document.getElementById('notif-panel');
   const bd=document.getElementById('notif-backdrop');
@@ -3041,11 +3042,13 @@ function toggleNotifPanel(){
   if(isOpen){
     panel.classList.remove('open');
     if(bd)bd.style.display='none';
+    if(_notifPanelRelease){_notifPanelRelease();_notifPanelRelease=null;}
     return;
   }
   renderNotifList();
   panel.classList.add('open');
   if(bd)bd.style.display='block';
+  _notifPanelRelease=trapFocus(panel);
 }
 
 function renderNotifList(){

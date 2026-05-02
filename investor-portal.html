@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Aurum Prism · Private Opportunities</title>
+<title>Aurum Kilo · Member Portal</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1718,11 +1718,11 @@ a{color:inherit;text-decoration:none}
 
 <nav class="nav">
   <div class="nav-wordmark">
-    <div class="nav-wm-tacc">A TACC Platform</div>
+    <div class="nav-wm-tacc">TACC Pte Ltd · Singapore</div>
     <div class="nav-wm-name">
       <span class="nav-wm-aurum">Aurum</span>
       <span class="nav-wm-rule" aria-hidden="true"></span>
-      <span class="nav-wm-prism">Prism</span>
+      <span class="nav-wm-prism">Kilo</span>
     </div>
   </div>
   <div class="nav-div"></div>
@@ -1747,8 +1747,8 @@ a{color:inherit;text-decoration:none}
   </div>
 </nav>
 
-<div class="notif-panel" id="notif-panel" style="display:none">
-  <div class="notif-panel-hd">Updates</div>
+<div class="notif-panel" id="notif-panel" role="region" aria-labelledby="notif-panel-title-inv" style="display:none">
+  <div class="notif-panel-hd" id="notif-panel-title-inv">Updates</div>
   <div id="notif-panel-body"></div>
 </div>
 
@@ -2591,6 +2591,28 @@ async function openDeal(id, action) {
   if(action === 'ioi') setTimeout(() => document.getElementById('ioi-form')?.scrollIntoView({ behavior: 'smooth' }), 450);
 }
 
+/* ── FOCUS TRAP UTILITY ── */
+const FOCUSABLE_SEL='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+function trapFocus(modalEl){
+  const prev=document.activeElement;
+  const getFocusable=()=>Array.from(modalEl.querySelectorAll(FOCUSABLE_SEL)).filter(el=>el.offsetParent!==null);
+  const onKeyDown=e=>{
+    if(e.key!=='Tab')return;
+    const els=getFocusable();if(!els.length)return;
+    const first=els[0],last=els[els.length-1];
+    if(e.shiftKey){if(document.activeElement===first){e.preventDefault();last.focus();}}
+    else{if(document.activeElement===last){e.preventDefault();first.focus();}}
+  };
+  modalEl.addEventListener('keydown',onKeyDown);
+  const first=getFocusable()[0];if(first)first.focus();
+  return function releaseFocus(){
+    modalEl.removeEventListener('keydown',onKeyDown);
+    if(prev&&prev.focus)prev.focus();
+  };
+}
+let _ndaModalRelease=null;
+let _notifPanelRelease=null;
+
 /* ─── NDA MODAL ─── */
 function openNdaModal(dealId, dealName) {
   const modal = document.getElementById('nda-modal');
@@ -2610,6 +2632,7 @@ function openNdaModal(dealId, dealName) {
   modal.dataset.dealId = dealId;
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  _ndaModalRelease = trapFocus(document.querySelector('#nda-modal .nda-modal-box'));
 
   // Enable agree checkbox only after investor scrolls near bottom
   function onScroll() {
@@ -2628,6 +2651,7 @@ function closeNdaModal() {
   const modal = document.getElementById('nda-modal');
   modal.style.display = 'none';
   document.body.style.overflow = '';
+  if(_ndaModalRelease){_ndaModalRelease();_ndaModalRelease=null;}
 }
 
 function onNdaAgreeChange() {
@@ -3247,6 +3271,7 @@ function closeNotifPanel() {
   var bd = document.getElementById('notif-backdrop');
   if (panel) panel.style.display = 'none';
   if (bd) bd.style.display = 'none';
+  if(_notifPanelRelease){_notifPanelRelease();_notifPanelRelease=null;}
 }
 
 function toggleNotifPanel() {
@@ -3256,6 +3281,8 @@ function toggleNotifPanel() {
   var opening = panel.style.display === 'none' || panel.style.display === '';
   panel.style.display = opening ? 'block' : 'none';
   if (bd) bd.style.display = opening ? 'block' : 'none';
+  if(opening){_notifPanelRelease=trapFocus(panel);}
+  else{if(_notifPanelRelease){_notifPanelRelease();_notifPanelRelease=null;}}
   if (opening) {
     var body = document.getElementById('notif-panel-body');
     if (!body) return;
@@ -3470,7 +3497,7 @@ load();
 </script>
 
 <!-- ══ NDA MODAL ══ -->
-<div id="nda-modal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(10,9,8,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeNdaModal()">
+<div id="nda-modal" role="dialog" aria-modal="true" aria-labelledby="nda-modal-deal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(10,9,8,.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeNdaModal()">
   <div class="nda-modal-box">
     <div class="nda-modal-hd">
       <div>

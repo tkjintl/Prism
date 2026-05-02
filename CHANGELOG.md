@@ -4,6 +4,32 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Phase 5 frontend: performance, accessibility, and design token consolidation
+
+### `advisor-portal.html`
+- JSZip `<script>` tag changed to `defer` — eliminates blocking parse during page load; safe because JSZip is only invoked on user-triggered document download.
+
+### `index.html`
+- Added `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` to the existing googleapis preconnect pair.
+- Canvas particle count halved from 80 to 40 — reduces GPU/CPU work per frame.
+- Added `prefers-reduced-motion` support: animation loop is gated behind `window.matchMedia('(prefers-reduced-motion: reduce)')`. Reduced-motion users get a single static draw; full animation otherwise. A `change` event listener handles mid-session OS setting toggles.
+
+### `login.html`
+- Added both Google Fonts preconnect tags (`fonts.googleapis.com` + `fonts.gstatic.com crossorigin`) before the stylesheet link.
+
+### `forgot-password.html`, `setup-password.html`, `reset-password.html`
+- Added Google Fonts preconnect tags to each.
+- Replaced all hardcoded colour and font literals with CSS custom properties (`--gold`, `--goldB`, `--goldD`, `--goldBd`, `--goldBdS`, `--goldW`, `--red`, `--redBd`, `--redW`, `--green`, `--greenBd`, `--greenW`, `--amber`, `--amberBd`, `--amberW`, `--wire`, `--muted`, `--text`, `--bg`, `--surface`, `--input-bg`, `--serif`, `--cond`, `--mono`). Token values match the `login.html` portal token set exactly. Layout unchanged.
+
+### `admin-portal.html`, `advisor-portal.html`, `investor-portal.html`
+- Added `role="dialog" aria-modal="true" aria-labelledby="..."` to every modal inner container: stage-modal, push-modal, push-preview-modal, close-raise-modal, delay-raise-modal, dist-modal (admin); review-notify-overlay (advisor); nda-modal (investor).
+- Added `role="region" aria-labelledby="..."` and heading `id` attributes to notification panels in all three portals.
+- Added a shared `trapFocus(modalEl)` utility function in each portal — captures the previously-focused element, intercepts Tab/Shift+Tab to cycle focus only within the modal's focusable elements, returns a `releaseFocus()` cleanup function.
+- Each modal open function calls `trapFocus` and stores the releaser. Each modal close function calls the releaser and restores focus to the trigger element.
+- Modals covered: all admin modals, advisor review-notify-overlay and notifications panel, investor NDA modal and notifications panel.
+
+---
+
 ## [2026-05-02] — Phase 5 backend: API waterfall fix (advisor dashboard endpoint) + IOI index (eliminate Redis KEYS scans)
 
 ### `api/_lib/storage.js`
