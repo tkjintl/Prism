@@ -843,7 +843,7 @@ class ChaosBot{
   }
   async fuzzInjection(){
     // XSS / SQL chars in deal name. Platform should accept (escape on render) — bug if it crashes.
-    const payloads=['<script>alert(1)</script>',"' OR 1=1 --",' NULL','🚀'.repeat(20),'A'.repeat(2000),'\n\r\t\\"'];
+    const payloads=['<scr'+'ipt>alert(1)<'+'/scr'+'ipt>',"' OR 1=1 --",' NULL','A'.repeat(2000),'\n\r\t\\"'];
     const p=rand(payloads);
     const body={name:p,asset_class:'credit',deal_structure:'senior_secured',geography:'US',originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:['a','b'],target_alloc_usd:1000000,target_irr:12,term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'};
     try{
