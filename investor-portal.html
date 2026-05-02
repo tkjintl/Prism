@@ -1816,7 +1816,7 @@ a{color:inherit;text-decoration:none}
 <div class="demo-badge">Investor Demo</div>
 
 <script>
-(function(){const t=localStorage.getItem('prism_investor_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☀':'☾';})();
+(function(){const t=localStorage.getItem('prism_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☀':'☾';})();
 /* ── API + AUTH ── */
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
@@ -2899,7 +2899,7 @@ function toggleTheme(){
   const h=document.documentElement,dark=h.dataset.theme==='dark';
   const next=dark?'light':'dark';
   h.dataset.theme=next;
-  localStorage.setItem('prism_investor_theme',next);
+  localStorage.setItem('prism_theme',next);
   document.getElementById('theme-btn').textContent=dark?'☀':'☾';
 }
 async function logout(){

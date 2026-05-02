@@ -1363,6 +1363,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   position:fixed;
   top:calc(var(--nav-h) + 8px);
   right:20px;
+  z-index:1000;
+}
+/* Desktop backdrop: invisible click-catcher only — no blur, no dark overlay */
+@media(min-width:769px){
+  #notif-backdrop{
+    background:transparent!important;
+    backdrop-filter:none!important;
+  }
 }
 @media(max-width:768px){
   .notif-panel{
@@ -1952,7 +1960,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <div class="demo-badge">Admin Demo</div>
 
 <script>
-(function(){const t=localStorage.getItem('prism_admin_theme');if(t)document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☀':'☾';})();
+(function(){const t=localStorage.getItem('prism_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☀':'☾';})();
 /* ── LAUNCH REVIEW state ── */
 let _launchDeal=null,_launchContent=null;
 let _launchMode='featured';
@@ -2151,7 +2159,7 @@ function toggleTheme(){
   const h=document.documentElement,dark=h.dataset.theme==='dark';
   const next=dark?'light':'dark';
   h.dataset.theme=next;
-  localStorage.setItem('prism_admin_theme',next);
+  localStorage.setItem('prism_theme',next);
   document.getElementById('theme-btn').textContent=dark?'☀':'☾';
 }
 async function logout(){
