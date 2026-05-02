@@ -1884,7 +1884,7 @@ a{color:inherit;text-decoration:none}
 <!-- ══ VIEW: DEAL DETAIL ══ -->
 <div id="view-deal">
   <div class="dd-inner">
-    <button class="dd-back" onclick="closeDeal()">← Back to Opportunities</button>
+    <button class="dd-back" onclick="closeDeal()">← Back to Marketplace</button>
     <div class="dd-grid">
       <div id="dd-left"></div>
       <div class="action-panel"><div class="action-sticky" id="dd-right"></div></div>
@@ -1895,7 +1895,7 @@ a{color:inherit;text-decoration:none}
 <!-- ══ VIEW: PORTFOLIO ══ -->
 <div id="view-portfolio" class="view">
   <div class="portfolio-hero">
-    <div class="ph-greet">Welcome back,</div>
+    <div class="ph-greet">Your membership portfolio —</div>
     <div class="ph-name" id="ph-name-el">—</div>
     <div class="ph-stats">
       <div><div class="ph-stat-val" id="p-total">—</div><div class="ph-stat-lbl">Total Committed</div></div>
@@ -1929,15 +1929,15 @@ a{color:inherit;text-decoration:none}
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="demo-badge">Investor Demo</div>
+<div class="demo-badge">Member Portal</div>
 
 <script>
 (function(){const t=localStorage.getItem('prism_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☾':'☀';})();
 /* ── API + AUTH ── */
 function esc(str){const d=document.createElement('div');d.textContent=str==null?'':String(str);return d.innerHTML;}
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
-async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
-function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--surface,#131210);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
+async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('We were unable to process your request. Please try again or contact your relationship manager.','err');return null;}}
+function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--surface,#131210);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:360px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:11px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again to continue.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
 const LOGO_COLORS={infra:{c:'#7B8FA1',bg:'rgba(123,143,161,0.12)',bd:'rgba(123,143,161,0.3)'},credit:{c:'#5b85b8',bg:'rgba(91,133,184,0.12)',bd:'rgba(91,133,184,0.3)'},pe:{c:'#C5A572',bg:'rgba(197,165,114,0.12)',bd:'rgba(197,165,114,0.3)'},re:{c:'#5a9e72',bg:'rgba(90,158,114,0.12)',bd:'rgba(90,158,114,0.3)'}};
 function adaptDeal(d,idx){const lc=LOGO_COLORS[d.asset_class]||LOGO_COLORS.credit;return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,hurdle:d.hurdle||d.hurdle_rate||8,featured:idx===0,tagline:d.mk_notes||d.tagline||'Private investment opportunity via Aurum Prism.',thesis:d.mk_notes||d.thesis||'',highlights:Array.isArray(d.highlights)&&d.highlights.length?d.highlights:[{icon:'◆',s:'Curated Opportunity',b:'Reviewed and approved by the Aurum Prism investment committee.'}],company:d.originator||d.name,ticker:(d.name||'???').replace(/[^A-Z]/gi,'').slice(0,3).toUpperCase(),logo_color:lc.c,logo_bg:lc.bg,logo_bd:lc.bd,ioi_investors:[]};}
 
@@ -1971,7 +1971,7 @@ let DEALS = [
     thesis:'Senior secured credit facility providing first lien security over a portfolio of 14 Southeast US middle-market corporate borrowers across logistics, light manufacturing, and healthcare services. The fund manager has deployed $1.8B across 38 transactions since 2015 with zero realized credit losses. Quarterly cash distributions commence in the first quarter post-close.',
     highlights:[
       {icon:'🔐', s:'First Lien Position',    b:'First priority lien on all collateral across 14 borrower entities — full recourse to sponsor.'},
-      {icon:'💰', s:'Quarterly Income',        b:'13% target IRR delivered via quarterly cash distributions starting Q1 post-close.'},
+      {icon:'💰', s:'Quarterly Income',        b:'13% target IRR (not guaranteed) delivered via quarterly cash distributions starting Q1 post-close.'},
       {icon:'✓',  s:'Zero Loss Track Record', b:'$1.8B deployed across 38 deals since 2015 — zero realized credit losses to date.'},
       {icon:'📋', s:'Diversified Portfolio',   b:'14 borrowers across 3 sectors — no single borrower exceeds 12% of the total facility.'}
     ],
@@ -2032,7 +2032,7 @@ let DEALS = [
     thesis:'Diversified first-lien portfolio across North American middle market with monthly cash distributions.',
     highlights:[
       {icon:'🔒', s:'Senior Secured',   b:'First lien security across all 16 portfolio positions.'},
-      {icon:'💰', s:'Monthly Income',   b:'14% target IRR via monthly cash distributions.'}
+      {icon:'💰', s:'Monthly Income',   b:'14% target IRR (not guaranteed) via monthly cash distributions.'}
     ],
     ioi_investors:['Whitmore Family Office','Thornwood Partners','Canmore Group','Atlas Endowment'],
   },
@@ -2105,13 +2105,14 @@ function buildReturnChart(d) {
       </tr>`;
     }
     return `<div class="chart-section">
-      <div class="chart-lbl">Value Path · $500K at Base Case IRR · ${termYrs}-Year Hold</div>
+      <div class="chart-lbl">Value Path · $500K at Base Case Target IRR · ${termYrs}-Year Hold (Illustrative)</div>
       <div class="eq-scenarios" id="rc-chart">${scenHtml}</div>
-      <div class="chart-lbl" style="margin-top:4px;margin-bottom:8px">Year-by-Year Projection · Base Case ${d.target_irr}% IRR</div>
+      <div class="chart-lbl" style="margin-top:4px;margin-bottom:8px">Year-by-Year Projection · Base Case ${d.target_irr}% Target IRR (Illustrative)</div>
       <table class="vp-table">
         <thead><tr><th>Period</th><th>Value</th><th>MOIC</th><th></th></tr></thead>
         <tbody>${rowsHtml}</tbody>
       </table>
+      <div style="margin-top:10px;font-size:10px;color:var(--text-3);font-family:var(--mono);line-height:1.6">* Target returns are not guaranteed. Figures are illustrative only and based on stated targets. Past performance does not indicate future results.</div>
     </div>`;
   }
   // Income / yield chart (credit, infra, RE)
@@ -2123,6 +2124,7 @@ function buildReturnChart(d) {
       <div class="rc-wrap"><div class="rc-val" id="rc-uv">—</div><div class="rc-bar rc-up" id="rc-u" style="height:0"></div><div class="rc-lbl">Upside</div></div>
     </div>
     <div class="hurdle-line"><div class="hurdle-dash"></div><div class="hurdle-lbl">Hurdle: ${d.hurdle}%</div></div>
+    <div style="margin-top:10px;font-size:10px;color:var(--text-3);font-family:var(--mono);line-height:1.6">* Target returns are not guaranteed. Figures are illustrative only and based on stated targets. Past performance does not indicate future results.</div>
   </div>`;
 }
 
@@ -2208,7 +2210,7 @@ function initLobby() {
       <div class="dc-header">
         <div class="dc-top-row">
           <div class="dc-logo" style="color:${d.logo_color};background:${d.logo_bg};border-color:${d.logo_bd}">${d.ticker}</div>
-          <span class="dc-irr">${d.target_irr}%<span> IRR</span></span>
+          <span class="dc-irr">${d.target_irr}%<span> Target IRR</span></span>
         </div>
         <div style="margin-bottom:6px"><span class="dc-class-tag ${CLASS_TAG[d.asset_class]}">${CLASS_LABEL[d.asset_class]}</span></div>
         <div class="dc-name">${esc(d.name)}</div>
@@ -2705,14 +2707,14 @@ function checkAcks() {
 async function submitIoi() {
   const d   = DEALS.find(x => x.id === activeDeal);
   const amt = readAmt(document.getElementById('ioi-input'));
-  if(!d || amt < 100000) { toast('Minimum indication: $100K', 'err'); return; }
+  if(!d || amt < 100000) { toast('The minimum indication is $100,000. Please enter a valid amount.', 'err'); return; }
   const cta = document.getElementById('ioi-cta');
   if(cta){cta.disabled=true;cta.textContent='Submitting…';}
   const r = await api('POST','/api/v2?resource=marketplace&op=ioi',{deal_id:d.id,amount:amt,notes:''});
   if(cta){cta.disabled=false;cta.textContent='Confirm Expression of Interest →';}
   // Hard-stop only on "already submitted" — other API errors (like deal not published yet) let the mock flow proceed
   if(r && !r.ok && r.error && r.error.toLowerCase().includes('already submitted')) {
-    toast(r.error,'err'); return;
+    toast('An expression of interest for this opportunity has already been received from your account.','err'); return;
   }
   const ex = PORTFOLIO.find(p => p.deal_id === activeDeal);
   if(!ex) PORTFOLIO.push({ deal_id: activeDeal, amount: amt, status: 'pending', submitted: 'Today', pipeline_step: 1 });
@@ -2729,10 +2731,10 @@ document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDeal(); 
 
 async function viewInvestorDoc(dealId, slot) {
   const res = await fetchSilent(`/api/v2?resource=inst&op=inst-doc-download&dealId=${dealId}&slot=${slot}`);
-  if (!res?.data) { toast('Document not available', 'err'); return; }
+  if (!res?.data) { toast('This document is not currently available. Please contact your relationship manager.', 'err'); return; }
   const doc = res;
   const b64 = doc.data;
-  if (!b64) { toast('Document not available', 'err'); return; }
+  if (!b64) { toast('This document is not currently available. Please contact your relationship manager.', 'err'); return; }
   try {
     const bin = atob(b64);
     const arr = new Uint8Array(bin.length);
@@ -2740,7 +2742,7 @@ async function viewInvestorDoc(dealId, slot) {
     const blob = new Blob([arr], { type: doc.type || 'application/pdf' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
-  } catch { toast('Error opening document', 'err'); }
+  } catch { toast('This document could not be opened. Please try again or contact your relationship manager.', 'err'); }
 }
 
 /* ── INVESTOR DEAL TAB SWITCHER ── */
@@ -2884,7 +2886,7 @@ async function submitInvestorQuestion(dealId) {
   const btn = document.getElementById('inv-qa-send-btn');
   if(!inp) return;
   const text = inp.value.trim();
-  if(!text) { toast('Please enter a question','err'); return; }
+  if(!text) { toast('Please enter your enquiry before submitting.','err'); return; }
   if(btn){btn.disabled=true;btn.textContent='...';}
 
   await api('POST','/api/v2?resource=inst&op=submit-qa',{dealId, question:text});
@@ -2904,7 +2906,7 @@ async function submitInvestorQuestion(dealId) {
   }
   inp.value = '';
   if(btn){btn.disabled=false;btn.textContent='SEND';}
-  toast('Question submitted','ok');
+  toast('Your enquiry has been submitted.','ok');
   renderInvestorDataroom();
   // Scroll chat to bottom so the new bubble is visible
   const chat = document.getElementById('inv-qa-chat');
@@ -3162,7 +3164,7 @@ function renderPortfolio() {
           ${isClose ? '<span class="closing-stage-chip">Closing</span>' : ''}
         </div>
         <div class="pos-name">${esc(d.name)}</div>
-        <div class="pos-sub">${esc(d.geography)} · ${d.target_irr}% IRR · Submitted ${esc(p.submitted)}</div>
+        <div class="pos-sub">${esc(d.geography)} · ${d.target_irr}% Target IRR · Submitted ${esc(p.submitted)}</div>
         <div style="margin-top:8px;font-size:11px;color:${isApp ? 'var(--green)' : 'var(--text-3)'}">
           ${isClose ? '✓ Capital commitment confirmed' : isApp ? '🔓 Data room access granted' : '🔒 Data room pending approval'}
         </div>
@@ -3382,7 +3384,7 @@ async function loadNotices() {
     return;
   }
   if(data.error) {
-    container.innerHTML = '<div class="notice-error">Could not load notices. Please try again later.</div>';
+    container.innerHTML = '<div class="notice-error">Notices could not be loaded. Please refresh or contact your relationship manager.</div>';
     return;
   }
   renderNotices(data.notices || []);
@@ -3482,7 +3484,7 @@ async function acknowledgeNotice(noticeId) {
     const ntabBadge = document.querySelector('#notices-ntab .ntab-notice-badge');
     if(ntabBadge) ntabBadge.textContent = pending > 0 ? String(pending) : '';
   } else {
-    toast('Could not acknowledge. Please try again.', 'err');
+    toast('We were unable to record your acknowledgement. Please try again or contact your relationship manager.', 'err');
     if(btn) { btn.disabled = false; btn.textContent = 'Acknowledge Notice'; }
   }
 }

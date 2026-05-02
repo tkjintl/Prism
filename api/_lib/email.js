@@ -1,4 +1,4 @@
-const FROM = 'Aurum Prism <prism@theaurumcc.com>';
+const FROM = 'Aurum Kilo <prism@theaurumcc.com>';
 const SITE = process.env.SITE_URL || 'https://prism.theaurumcc.com';
 
 async function send(to, subject, html, templateType = 'unknown') {
@@ -16,6 +16,7 @@ async function send(to, subject, html, templateType = 'unknown') {
       console.error('[EMAIL] Resend failed:', res.status, errText);
       await sendDeliveryAlert({ recipient: recipients.join(', '), templateType, error: `HTTP ${res.status}: ${errText}` });
     }
+
   } catch (e) {
     console.error('[EMAIL] Send failed:', e.message);
     await sendDeliveryAlert({ recipient: recipients.join(', '), templateType, error: e.message });
@@ -63,22 +64,23 @@ p{font-size:13px;color:#a89f94;line-height:1.7;margin:0 0 12px}
 .ft{padding:16px 28px;border-top:1px solid rgba(255,255,255,.07);font-family:monospace;font-size:8px;color:#3a3530;line-height:1.7}
 </style></head><body>
 <div class="wrap">
-<div class="hdr"><div class="seal" style="font-family:Georgia,serif">P</div><div class="brand">Aurum Prism · Private Deal Platform</div></div>
+<div class="hdr"><div class="seal" style="font-family:Georgia,serif">K</div><div class="brand">Aurum Kilo · Singapore Variable Capital Company</div></div>
 <div class="body">${content}</div>
-<div class="ft">Aurum Prism · prism.theaurumcc.com · TACC Pte Ltd Singapore<br>This is a transactional email. Do not reply to this address.</div>
+<div class="ft">Aurum Kilo · prism.theaurumcc.com · TACC Pte Ltd Singapore<br>This communication is intended solely for the named recipient. Aurum Kilo is a Variable Capital Company registered in Singapore.<br>This is a transactional communication. Do not reply to this address.</div>
 </div></body></html>`;
 }
 
 // ── Investor approved + access code ────────────────────────────
 export async function sendAccessCode(investor) {
-  await send(investor.email, 'Your Aurum Prism access has been approved', base('Access Approved',
-    `<h3>Welcome, ${investor.contact_name}.</h3>
-    <p>Your application from <strong style="color:#ede8df">${investor.firm_name}</strong> has been reviewed and approved by Aurum Prism operators.</p>
-    <p>Use the code below to log in at the marketplace:</p>
+  await send(investor.email, 'Your Aurum Kilo membership application — access confirmed', base('Membership Confirmed',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>Your membership application from <strong style="color:#ede8df">${investor.firm_name}</strong> has been reviewed and admitted to Aurum Kilo.</p>
+    <p>Please use the access code below to log in to your member portal. Enter your registered email address and this code at the link below.</p>
     <div class="code-box">${investor.code}</div>
-    <p class="meta">Code tied to your email — do not share</p>
-    <a href="${SITE}/login" class="btn">Enter Marketplace →</a>
-    <p style="margin-top:16px">Log in at <strong style="color:#C5A572">${SITE}/login</strong> with your registered email and this access code.</p>`
+    <p class="meta">This code is registered to your email address. Do not share it.</p>
+    <a href="${SITE}/login" class="btn">Access Member Portal →</a>
+    <p style="margin-top:16px">Log in at <strong style="color:#C5A572">${SITE}/login</strong></p>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'access-code');
 }
 
@@ -87,8 +89,8 @@ export async function sendDealReceived(deal, advisor) {
   const notifyList = (process.env.NOTIFY_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
   if (notifyList.length) {
     await send(notifyList, `New deal submission: ${deal.name}`,
-      base('Deal Submission', `<h3>New deal submitted.</h3>
-      <p><strong style="color:#ede8df">${deal.name}</strong> has been submitted by ${advisor.firm_name} (${advisor.name}) and is under review.</p>
+      base('Deal Submission', `<h3>New submission received.</h3>
+      <p><strong style="color:#ede8df">${deal.name}</strong> has been submitted by ${advisor.firm_name} (${advisor.name}) and is awaiting review.</p>
       <p>Deal ID: <span style="color:#C5A572;font-family:monospace">${deal.id}</span><br>
       Type: ${deal.asset_class}<br>Allocation: ${deal.target_alloc_usd ? '$'+Number(deal.target_alloc_usd).toLocaleString() : '—'}<br>
       Target IRR: ${deal.target_irr || '—'}%</p>
@@ -96,11 +98,12 @@ export async function sendDealReceived(deal, advisor) {
     'deal-received-operator');
   }
   // Confirm to advisor
-  await send(advisor.email, `Deal received: ${deal.name}`, base('Deal Received',
-    `<h3>We've received your submission.</h3>
-    <p>Your deal <strong style="color:#ede8df">${deal.name}</strong> has been submitted to Aurum Prism for review. You'll receive a notification when the status changes.</p>
+  await send(advisor.email, `Submission received: ${deal.name}`, base('Submission Received',
+    `<h3>Dear ${advisor.name},</h3>
+    <p>Your submission of <strong style="color:#ede8df">${deal.name}</strong> has been received by Aurum Kilo and is under review. You will receive a notification when the status is updated.</p>
     <p>Deal ID: <span style="color:#C5A572;font-family:monospace">${deal.id}</span></p>
-    <a href="${SITE}/advisor" class="btn">View in Advisor Portal →</a>`
+    <a href="${SITE}/advisor" class="btn">View in Advisor Portal →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'deal-received-advisor');
 }
 
@@ -115,23 +118,24 @@ export async function sendStageChange(deal, advisor, newStage) {
     review: { line: 'Your deal has been returned to Review.', detail: 'Operators have questions or require additional information. Check your Messages tab.' },
   };
   const msg = stageMessages[newStage] || { line: `Stage updated to: ${newStage}`, detail: '' };
-  await send(advisor.email, `Deal update: ${deal.name} — ${newStage.toUpperCase()}`, base('Deal Update',
-    `<h3>${deal.name}</h3>
+  await send(advisor.email, `Update: ${deal.name} — ${newStage.toUpperCase()}`, base('Deal Update',
+    `<h3>Dear ${advisor.name},</h3>
     <p style="color:#C5A572;font-family:monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase">Stage: ${newStage}</p>
     <p>${msg.line}</p>
     <p>${msg.detail}</p>
-    <a href="${SITE}/advisor" class="btn">View in Advisor Portal →</a>`
+    <a href="${SITE}/advisor" class="btn">View in Advisor Portal →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'stage-change');
 }
 
 // ── IOI data room access granted ───────────────────────────────
 export async function sendDataRoomAccess(investor, deal) {
-  await send(investor.email, `Data room access granted: ${deal.name}`, base('Data Room Open',
-    `<h3>Data room access granted.</h3>
-    <p>Your indication of interest on <strong style="color:#ede8df">${deal.name}</strong> has been approved.</p>
-    <p>You now have access to the full data room including the CIM, financial model, and all available documentation. All downloads are watermarked with your identity.</p>
+  await send(investor.email, `Data room access granted — ${deal.name}`, base('Data Room Access',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>Your expression of interest in <strong style="color:#ede8df">${deal.name}</strong> has been reviewed and approved. You now have access to the full data room, including the CIM, financial model, and all available documentation.</p>
+    <p>All documents are watermarked with your identity. Please treat all materials as strictly confidential and do not distribute without written consent from the operator.</p>
     <a href="${SITE}/marketplace" class="btn">Access Data Room →</a>
-    <p style="margin-top:12px;font-size:11px;color:#635e58">All documents are confidential. Do not distribute without written consent from the platform operator.</p>`
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'data-room-access');
 }
 
@@ -139,27 +143,27 @@ export async function sendDataRoomAccess(investor, deal) {
 export async function sendAccessApplication(investor) {
   const notifyList = (process.env.NOTIFY_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
   if (!notifyList.length) return;
-  await send(notifyList, `New access application: ${investor.firm_name}`, base('Access Application',
-    `<h3>New institutional access request.</h3>
-    <p><strong style="color:#ede8df">${investor.firm_name}</strong> (${investor.contact_name}) has applied for access.</p>
-    <p>Type: ${investor.institution_type}<br>AUM: ${investor.aum_range}<br>Ticket: ${investor.ticket_range}</p>
+  await send(notifyList, `Membership application received: ${investor.firm_name}`, base('Membership Application',
+    `<h3>New membership application received.</h3>
+    <p><strong style="color:#ede8df">${investor.firm_name}</strong> — ${investor.contact_name} — has submitted a membership application.</p>
+    <p>Institution type: ${investor.institution_type}<br>AUM: ${investor.aum_range}<br>Position size: ${investor.ticket_range}</p>
     <a href="${SITE}/control" class="btn">Review Application →</a>`
   ), 'access-application');
 }
 
 // ── Advisor welcome + credentials ──────────────────────────────
 export async function sendAdvisorWelcome(advisor, tempPassword) {
-  await send(advisor.email, 'Your Aurum Prism advisor account is ready', base('Welcome',
-    `<h3>Welcome to Aurum Prism, ${advisor.name}.</h3>
-    <p>Your advisor account for <strong style="color:#ede8df">${advisor.firm_name}</strong> has been created.</p>
-    <p>Log in at <strong style="color:#C5A572">${SITE}/login</strong> with:</p>
+  await send(advisor.email, 'Your Aurum Kilo advisor account — login credentials', base('Advisor Account',
+    `<h3>Dear ${advisor.name},</h3>
+    <p>Your advisor account for <strong style="color:#ede8df">${advisor.firm_name}</strong> has been created on the Aurum Kilo platform. Please log in using the credentials below and set a new password on first access.</p>
     <div style="background:#09090a;border:1px solid rgba(197,165,114,.2);padding:14px 18px;margin:14px 0;font-family:monospace;font-size:12px">
     <div style="color:#635e58;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">Email</div>
     <div style="color:#ede8df">${advisor.email}</div>
     <div style="color:#635e58;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-top:8px;margin-bottom:6px">Temporary Password</div>
     <div style="color:#C5A572">${tempPassword}</div></div>
-    <p>You will be prompted to set a new password on first login.</p>
-    <a href="${SITE}/login" class="btn">Log In →</a>`
+    <p>You will be prompted to set a new password on first login. If you did not request this account, please contact us immediately at <a href="mailto:prism@theaurumcc.com" style="color:#C5A572">prism@theaurumcc.com</a>.</p>
+    <a href="${SITE}/login" class="btn">Log In →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'advisor-welcome');
 }
 
@@ -202,8 +206,8 @@ export async function sendIoiPackage(data) {
           <table width="100%" cellpadding="0" cellspacing="0" border="0">
             <tr>
               <td>
-                <div style="font-family:Georgia,serif;font-size:16px;font-style:italic;color:#C5A572;letter-spacing:0.04em">AURUM</div>
-                <div style="font-family:monospace;font-size:7px;letter-spacing:0.38em;color:#6b6560;text-transform:uppercase;margin-top:2px">PRISM · PRIVATE DEAL PLATFORM</div>
+                <div style="font-family:Georgia,serif;font-size:16px;font-style:italic;color:#C5A572;letter-spacing:0.04em">AURUM KILO</div>
+                <div style="font-family:monospace;font-size:7px;letter-spacing:0.38em;color:#6b6560;text-transform:uppercase;margin-top:2px">SINGAPORE VARIABLE CAPITAL COMPANY</div>
               </td>
               <td align="right" valign="top">
                 <div style="font-family:monospace;font-size:8px;letter-spacing:0.22em;color:#C5A572;text-transform:uppercase">IOI PACKAGE</div>
@@ -288,7 +292,7 @@ export async function sendIoiPackage(data) {
       <tr>
         <td style="padding:0 28px 20px">
           <div style="padding:14px 16px;border-left:2px solid #C5A572;background:rgba(197,165,114,0.04)">
-            <div style="font-family:monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#C5A572;margin-bottom:6px">NOTE FROM AURUM PRISM</div>
+            <div style="font-family:monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#C5A572;margin-bottom:6px">NOTE FROM AURUM KILO</div>
             <div style="font-size:13px;color:#e8e4dc;line-height:1.6">${data.admin_comment}</div>
           </div>
         </td>
@@ -307,8 +311,8 @@ export async function sendIoiPackage(data) {
         <td style="padding:14px 28px;border-top:1px solid rgba(255,255,255,0.06)">
           <div style="font-family:monospace;font-size:8px;color:#3a3530;line-height:1.7">
             Package ID: ${data.package_id}<br>
-            Aurum Prism &middot; prism.theaurumcc.com &middot; TACC Pte Ltd Singapore<br>
-            This is a transactional email. Do not reply to this address.
+            Aurum Kilo &middot; prism.theaurumcc.com &middot; TACC Pte Ltd Singapore<br>
+            This communication is intended solely for the named recipient. Aurum Kilo is a Variable Capital Company registered in Singapore.
           </div>
         </td>
       </tr>
@@ -324,91 +328,100 @@ export async function sendIoiPackage(data) {
 
 // ── Password reset code ────────────────────────────────────────
 export async function sendPasswordReset(email, code) {
-  await send(email, 'Reset your Aurum Prism password', base('Password Reset',
-    `<h3>Password reset requested.</h3>
-    <p>Use the 6-digit code below to reset your password. The code expires in 30 minutes.</p>
+  await send(email, 'Aurum Kilo — password reset request', base('Password Reset',
+    `<h3>Password reset.</h3>
+    <p>A password reset has been requested for this account. Use the 6-digit code below to proceed. The code expires in 30 minutes.</p>
     <div class="code-box">${code}</div>
-    <p>If you did not request this, you can ignore this email. Your password will not change.</p>`
+    <p>If you did not request a password reset, please disregard this message. No changes have been made to your account.</p>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'password-reset');
 }
 
 // ── IOI confirmation to investor (6a) ─────────────────────────
 export async function sendIoiConfirmation(investor, deal) {
-  await send(investor.email, `Expression of interest received: ${deal.name}`, base('IOI Received',
-    `<h3>Your expression of interest has been received.</h3>
-    <p>Your indication of interest for <strong style="color:#ede8df">${deal.name}</strong> has been received. Our team will review it and be in touch.</p>
-    <a href="${SITE}/investor-portal" class="btn">View in Investor Portal →</a>`
+  await send(investor.email, `Your Aurum Kilo application — expression of interest received`, base('Expression of Interest Received',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>We have received your expression of interest for <strong style="color:#ede8df">${deal.name}</strong>. You will be contacted once the review is complete.</p>
+    <a href="${SITE}/investor-portal" class="btn">View in Member Portal →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'ioi-confirmation');
 }
 
 // ── IOI rejection to investor (6b) ────────────────────────────
 export async function sendIoiRejection(investor, deal) {
-  await send(investor.email, `Update on your expression of interest: ${deal.name}`, base('IOI Update',
-    `<h3>Expression of interest update.</h3>
-    <p>Thank you for your interest in <strong style="color:#ede8df">${deal.name}</strong>. After review, your indication of interest was not progressed at this time.</p>
-    <p>You may be considered for future opportunities. Please contact your relationship manager if you have questions.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Marketplace →</a>`
+  await send(investor.email, `Your Aurum Kilo application — expression of interest update`, base('Expression of Interest Update',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>Following our review, we are unable to progress your expression of interest for <strong style="color:#ede8df">${deal.name}</strong> at this time. We appreciate your interest in Aurum Kilo.</p>
+    <p>Please contact your relationship manager if you have any questions.</p>
+    <a href="${SITE}/investor-portal" class="btn">Return to Member Portal →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'ioi-rejection');
 }
 
 // ── IOI package response — data room access confirmation to investor (6c) ──
 export async function sendDataRoomPackageResponse(investor, deal) {
-  await send(investor.email, `Data room access confirmed: ${deal.name}`, base('Data Room Access',
-    `<h3>Your data room access has been granted.</h3>
-    <p>Your request for full documentation on <strong style="color:#ede8df">${deal.name}</strong> has been processed. You now have access to the complete data room.</p>
-    <p>All documents are confidential and watermarked with your identity. Do not distribute without written consent from the platform operator.</p>
-    <a href="${SITE}/investor-portal" class="btn">Access Data Room →</a>`
+  await send(investor.email, `Data room access confirmed — ${deal.name}`, base('Data Room Access Confirmed',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>Your access to the complete data room for <strong style="color:#ede8df">${deal.name}</strong> has been confirmed. All documentation is now available in your member portal.</p>
+    <p>All documents are strictly confidential and are watermarked with your identity. Do not distribute without written consent from the operator.</p>
+    <a href="${SITE}/investor-portal" class="btn">Access Data Room →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'data-room-package-response');
 }
 
 // ── Q&A question notification to advisor (6d) ─────────────────
 export async function sendQaQuestionToAdvisor(advisor, deal, question) {
   const preview = question.length > 100 ? question.slice(0, 100) + '…' : question;
-  await send(advisor.email, `New question on ${deal.name}`, base('Q&A Question',
-    `<h3>A question has been submitted.</h3>
-    <p>An investor has submitted a question on <strong style="color:#ede8df">${deal.name}</strong>:</p>
+  await send(advisor.email, `Investor enquiry — ${deal.name}`, base('Investor Enquiry',
+    `<h3>Dear ${advisor.name},</h3>
+    <p>An investor has submitted an enquiry regarding <strong style="color:#ede8df">${deal.name}</strong>:</p>
     <blockquote style="border-left:2px solid rgba(197,165,114,.4);padding:10px 16px;margin:16px 0;color:#ede8df;font-style:italic">${preview}</blockquote>
-    <p>Please log in to your advisor portal to respond. Timely responses are expected within 48 hours.</p>
-    <a href="${SITE}/advisor-portal" class="btn">Answer in Advisor Portal →</a>`
+    <p>Please log in to your advisor portal to respond. A timely response is expected within 48 hours.</p>
+    <a href="${SITE}/advisor-portal" class="btn">Respond in Advisor Portal →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'qa-question-to-advisor');
 }
 
 // ── Q&A answer delivery to investor (6e) ──────────────────────
 export async function sendQaAnswerToInvestor(investor, deal) {
-  await send(investor.email, `Your question on ${deal.name} has been answered`, base('Q&A Answer',
-    `<h3>Your question has been answered.</h3>
-    <p>The advisor for <strong style="color:#ede8df">${deal.name}</strong> has responded to your question. Log in to view the full response in the Q&A thread.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Response →</a>`
+  await send(investor.email, `Response to your enquiry — ${deal.name}`, base('Enquiry Response',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>A response to your enquiry regarding <strong style="color:#ede8df">${deal.name}</strong> is now available in your member portal.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Response in Member Portal →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'qa-answer-to-investor');
 }
 
 // ── Capital call notice to investor (6f) ──────────────────────
 export async function sendCapitalCallNotice(investor, deal) {
-  await send(investor.email, `Capital call notice: ${deal.name}`, base('Capital Call',
-    `<h3>Capital call notice issued.</h3>
-    <p>A capital call notice has been issued for <strong style="color:#ede8df">${deal.name}</strong>. Please log in to view full details and wire instructions.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Details →</a>
-    <p style="margin-top:12px;font-size:11px;color:#635e58">Wire instructions and full call documentation are available in your investor portal. Contact your relationship manager if you have questions.</p>`
+  await send(investor.email, `Capital call notice — ${deal.name}`, base('Capital Call Notice',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>A capital call notice has been issued in respect of your position in <strong style="color:#ede8df">${deal.name}</strong>. Please log in to your member portal to review full details and wire instructions.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Capital Call Details →</a>
+    <p>Wire instructions and full call documentation are available in your member portal. Please contact your relationship manager if you have any questions.</p>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'capital-call');
 }
 
 // ── Distribution notice to investor (6g) ──────────────────────
 export async function sendDistributionNotice(investor, deal) {
-  await send(investor.email, `Distribution notice: ${deal.name}`, base('Distribution',
-    `<h3>Distribution processed.</h3>
-    <p>A distribution has been processed for your position in <strong style="color:#ede8df">${deal.name}</strong>. Please log in to view details.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Details →</a>`
+  await send(investor.email, `Distribution notice — ${deal.name}`, base('Distribution Notice',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>A distribution has been processed in respect of your position in <strong style="color:#ede8df">${deal.name}</strong>. Please log in to your member portal to review the details and confirm receipt with your relationship manager.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Distribution Details →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'distribution');
 }
 
 // ── Q&A 48h reminder to advisor (Item 7) ──────────────────────
 // data: { advisor_email, deal_name, question_count }
 export async function sendQaReminder(advisor, dealName, questionCount) {
-  await send(advisor.email, `Unanswered questions on ${dealName}`, base('Q&A Reminder',
-    `<h3>Questions awaiting your response.</h3>
-    <p>You have <strong style="color:#ede8df">${questionCount} unanswered question${questionCount !== 1 ? 's' : ''}</strong> on <strong style="color:#ede8df">${dealName}</strong>.</p>
-    <p>Please respond within 24 hours. Investors expect timely engagement during the due diligence period.</p>
-    <a href="${SITE}/advisor-portal" class="btn">Answer Questions →</a>`
+  await send(advisor.email, `Enquiries awaiting response — ${dealName}`, base('Enquiries Awaiting Response',
+    `<h3>Dear ${advisor.name},</h3>
+    <p>You have <strong style="color:#ede8df">${questionCount} unanswered enquir${questionCount !== 1 ? 'ies' : 'y'}</strong> on <strong style="color:#ede8df">${dealName}</strong>.</p>
+    <p>Please respond within 24 hours. Members expect timely responses during the due diligence period.</p>
+    <a href="${SITE}/advisor-portal" class="btn">Respond in Advisor Portal →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'qa-reminder');
 }
 
@@ -418,9 +431,9 @@ export async function sendNavUpdate(investor, data) {
   const navFormatted = data.navPerUnit != null ? `$${Number(data.navPerUnit).toLocaleString()}` : '—';
   const totalFormatted = data.totalNavUsd != null ? `$${Number(data.totalNavUsd).toLocaleString()}` : '—';
   const dateStr = data.asOfDate ? new Date(data.asOfDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—';
-  await send(investor.email, `NAV Update — ${data.dealName}`, base('NAV Update',
-    `<h3>NAV Update — ${data.dealName}</h3>
-    <p>A new net asset value has been posted for <strong style="color:#ede8df">${data.dealName}</strong>.</p>
+  await send(investor.email, `NAV update — ${data.dealName}`, base('NAV Update',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>A new net asset value has been published for <strong style="color:#ede8df">${data.dealName}</strong>.</p>
     <div style="background:#09090a;border:1px solid rgba(197,165,114,.2);padding:16px 20px;margin:16px 0">
       <div style="font-family:monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(197,165,114,.5);margin-bottom:10px">As of ${dateStr}</div>
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
@@ -432,8 +445,9 @@ export async function sendNavUpdate(investor, data) {
         <span style="font-family:monospace;font-size:14px;color:#ede8df">${totalFormatted}</span>
       </div>
     </div>
-    <p>Log in to your investor portal to view full details and your position statement.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Position →</a>`
+    <p>Please log in to your member portal to view your full position statement.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Position Statement →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'nav-update');
 }
 
@@ -441,10 +455,11 @@ export async function sendNavUpdate(investor, data) {
 // data: { dealName, period }
 export async function sendStatementAvailable(investor, data) {
   await send(investor.email, `Quarterly statement available — ${data.dealName} ${data.period}`, base('Statement Available',
-    `<h3>Your quarterly statement is available.</h3>
-    <p>Your <strong style="color:#ede8df">${data.period}</strong> statement for <strong style="color:#ede8df">${data.dealName}</strong> has been generated and is available in your investor portal.</p>
-    <p>The statement reflects your position NAV and any distributions processed during the period.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Statement →</a>`
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>Your <strong style="color:#ede8df">${data.period}</strong> position statement for <strong style="color:#ede8df">${data.dealName}</strong> has been prepared and is available in your member portal.</p>
+    <p>The statement reflects your position NAV and any distributions processed during the period. Please retain this document for your records.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Statement →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'statement-available');
 }
 
@@ -455,9 +470,9 @@ export async function sendDistributionNoticeWithAmount(investor, data) {
   const typeLabel = typeLabels[data.distributionType] || 'Distribution';
   const amtFormatted = data.investorAmount != null ? `$${Number(data.investorAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
   const dateStr = data.distributionDate ? new Date(data.distributionDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—';
-  await send(investor.email, `Distribution Notice — ${data.dealName}`, base('Distribution Notice',
-    `<h3>Distribution Notice — ${data.dealName}</h3>
-    <p>A <strong style="color:#ede8df">${typeLabel}</strong> has been processed for your position in <strong style="color:#ede8df">${data.dealName}</strong>.</p>
+  await send(investor.email, `Distribution notice — ${data.dealName}`, base('Distribution Notice',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>A <strong style="color:#ede8df">${typeLabel}</strong> has been processed in respect of your position in <strong style="color:#ede8df">${data.dealName}</strong>.</p>
     <div style="background:#09090a;border:1px solid rgba(197,165,114,.2);padding:16px 20px;margin:16px 0">
       <div style="font-family:monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(197,165,114,.5);margin-bottom:10px">${dateStr}</div>
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
@@ -469,32 +484,34 @@ export async function sendDistributionNoticeWithAmount(investor, data) {
         <span style="font-family:monospace;font-size:16px;color:#C5A572">${amtFormatted}</span>
       </div>
     </div>
-    <p>Please log in to view full distribution details and confirm receipt with your relationship manager.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Details →</a>`
+    <p>Please log in to your member portal to review the full distribution details and confirm receipt with your relationship manager.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Distribution Details →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'distribution-with-amount');
 }
 
 // ── Investor welcome sequence Day 2 (Phase 4) ──────────────────
 export async function sendWelcomeDay2(investor) {
-  await send(investor.email, `Getting started on Aurum Prism`, base('Welcome to Prism',
-    `<h3>Welcome to Aurum Prism, ${investor.contact_name}.</h3>
-    <p>Your account is active. Here is a quick guide to getting started:</p>
+  await send(investor.email, `Your Aurum Kilo membership — next steps`, base('Membership Confirmed',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>Your Aurum Kilo membership is confirmed. The fund holds 1kg LBMA-accredited physical gold bars in custody in Singapore, structured as a Variable Capital Company under MAS oversight.</p>
     <div style="background:#09090a;border:1px solid rgba(197,165,114,.15);padding:16px 20px;margin:16px 0">
       <div style="margin-bottom:12px">
-        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">1. Explore the Marketplace</div>
-        <div style="font-size:12px;color:#a89f94;line-height:1.6">Browse current private credit and equity opportunities selected for Aurum Prism members.</div>
+        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">Physical Allocation</div>
+        <div style="font-size:12px;color:#a89f94;line-height:1.6">Your interest is backed by allocated physical gold. Each bar is individually serialised and LBMA-accredited. Quarterly independent audits are published to your member portal.</div>
       </div>
       <div style="margin-bottom:12px">
-        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">2. Submit an Indication of Interest</div>
-        <div style="font-size:12px;color:#a89f94;line-height:1.6">When you find a deal that matches your mandate, submit an IOI to request full data room access. Platform operators review all IOIs within 48 hours.</div>
+        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">Institutional Custody</div>
+        <div style="font-size:12px;color:#a89f94;line-height:1.6">Gold is held with an MAS-licensed custodian in Singapore. You may request a copy of the custodian confirmation through your relationship manager at any time.</div>
       </div>
       <div>
-        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">3. Q&amp;A with Deal Advisors</div>
-        <div style="font-size:12px;color:#a89f94;line-height:1.6">Once your IOI is approved, you can submit questions directly to the deal advisor through the secure Q&amp;A thread.</div>
+        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">Member Portal Access</div>
+        <div style="font-size:12px;color:#a89f94;line-height:1.6">Your member portal provides access to position statements, NAV updates, distribution notices, and the Q&amp;A facility with the fund manager.</div>
       </div>
     </div>
-    <a href="${SITE}/investor-portal" class="btn">Open Investor Portal →</a>
-    <p style="margin-top:16px;font-size:11px;color:#635e58">Questions? Reach your relationship manager at <a href="mailto:prism@theaurumcc.com" style="color:#C5A572">prism@theaurumcc.com</a></p>`
+    <a href="${SITE}/investor-portal" class="btn">Access Member Portal →</a>
+    <p>For any queries regarding your membership, please contact your relationship manager at <a href="mailto:prism@theaurumcc.com" style="color:#C5A572">prism@theaurumcc.com</a>.</p>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'welcome-day2');
 }
 
@@ -508,12 +525,12 @@ export async function sendWelcomeDay7(investor, data) {
       ${d.target_irr ? `<span style="font-size:11px;color:#a89f94;margin-left:6px">· ${d.target_irr}% target IRR</span>` : ''}
     </div>`
   ).join('');
-  await send(investor.email, `Your Aurum Prism account — a quick check-in`, base('Prism Check-In',
-    `<h3>A quick check-in, ${investor.contact_name}.</h3>
-    <p>You have been a member of Aurum Prism for one week. Here is what is currently open on the marketplace:</p>
-    ${dealList ? `<div style="background:#09090a;border:1px solid rgba(197,165,114,.15);padding:12px 16px;margin:16px 0">${dealList}</div>` : '<p style="color:#a89f94">No active deals at this time — new opportunities are added regularly.</p>'}
-    <p>If you have any questions about the platform, deal flow, or your membership, please contact your relationship manager.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Open Deals →</a>
-    <p style="margin-top:16px;font-size:11px;color:#635e58">Reply to this email or contact <a href="mailto:prism@theaurumcc.com" style="color:#C5A572">prism@theaurumcc.com</a> with any questions.</p>`
+  await send(investor.email, `Aurum Kilo — one week in`, base('Member Update',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>It has been one week since your Aurum Kilo membership was confirmed. We wanted to provide a brief update on current fund activity.</p>
+    ${dealList ? `<div style="background:#09090a;border:1px solid rgba(197,165,114,.15);padding:12px 16px;margin:16px 0">${dealList}</div>` : '<p style="color:#a89f94">There are no additional positions open at this time. The founding cohort is limited to 100 members, and allocation is managed to preserve the integrity of the physical gold mandate.</p>'}
+    <p>Your position statement and NAV updates are available at any time through your member portal. Should you wish to discuss your allocation or the fund mandate, please contact your relationship manager directly.</p>
+    <a href="${SITE}/investor-portal" class="btn">Access Member Portal →</a>
+    <p>Yours sincerely,<br>The Aurum Kilo Team</p>`
   ), 'welcome-day7');
 }
