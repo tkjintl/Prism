@@ -621,6 +621,54 @@ async function _handler(req, res, resource, op) {
       return ok(res, { ok: true });
     }
 
+    // ── Advisor earnings — Earnings tab data ──────────────────────
+    // GET ?resource=advisor&op=earnings
+    // Returns { intro: [...], carry: [...], payments: [...] }
+    //   intro: per-deal intro fee record (always present for active deals)
+    //   carry: per-deal projected carry (meaningful for close/realized)
+    //   payments: actual disbursed payments — empty until payment system wired
+    if (op === 'earnings') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const advisorObj = await kvGet(`advisor:${adv.advisor_id}`);
+      const introPct = parseFloat(advisorObj?.intro_fee_pct ?? 1);
+      const carryPct = parseFloat(advisorObj?.carry_pct ?? 0);
+      const myDeals = await listDeals({ advisor_id: adv.advisor_id });
+      const intro = myDeals.map(d => {
+        const dealSize = d.target_alloc_usd || 0;
+        return {
+          deal_id: d.id,
+          deal_name: d.name,
+          stage: d.stage,
+          intro_fee_pct: introPct,
+          deal_size: dealSize,
+          intro_fee_est: Math.round(dealSize * introPct / 100),
+        };
+      });
+      const carry = myDeals
+        .filter(d => ['close', 'realized'].includes(d.stage))
+        .map(d => {
+          // Carry on realized gain — modeled as deployed_usd above target.
+          const deployed = d.deployed_usd || 0;
+          const target = d.target_alloc_usd || 0;
+          const carryGain = Math.max(0, deployed - target);
+          return {
+            deal_id: d.id,
+            deal_name: d.name,
+            stage: d.stage,
+            carry_pct: carryPct,
+            carry_gain: carryGain,
+            carry_est: Math.round(carryGain * carryPct / 100),
+          };
+        });
+      // Payments: per-advisor disbursement records. Stored under
+      // payment:{advisor_id}:{paymentId} when a real payment system writes them.
+      // Empty by default — no payment integration yet.
+      const paymentKeys = await kvKeys(`payment:${adv.advisor_id}:*`);
+      const payments = (await Promise.all(paymentKeys.map(k => kvGet(k)))).filter(Boolean);
+      return ok(res, { intro, carry, payments });
+    }
+
     // ── Advisor notifications ─────────────────────────────────────
     // GET  ?resource=advisor&op=notifications          — all unread notifications across advisor's deals
     // POST ?resource=advisor&op=notifications  { action:'mark-read', ids:[...] | 'all', dealId? }
@@ -1136,6 +1184,59 @@ async function _handler(req, res, resource, op) {
       if (!dealId) return bad(res, 'dealId required');
       await kvSet(`nda_signed:${inst.inst_id}:${dealId}`, { signed_at: new Date().toISOString(), inst_id: inst.inst_id, deal_id: dealId });
       return ok(res, { ok: true });
+    }
+
+    if (op === 'nda-accept') {
+      // Formal NDA acceptance with timestamp + document hash for compliance
+      // audit trail. Companion to record-nda (which only sets the access flag).
+      // Frontend (investor-portal NDA scroll-gate modal) calls both — record-nda
+      // gates access, nda-accept records the legal acceptance event.
+      const inst = await getInst();
+      if (!inst) return unauth(res);
+      const { dealId, timestamp, documentHash, investorId } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      const existing = await kvGet(`nda_signed:${inst.inst_id}:${dealId}`) || {};
+      const record = {
+        ...existing,
+        inst_id: inst.inst_id,
+        deal_id: dealId,
+        signed_at: existing.signed_at || new Date().toISOString(),
+        formally_accepted_at: new Date().toISOString(),
+        timestamp: timestamp || Date.now(),
+        document_hash: documentHash || null,
+        investor_id_claimed: investorId || null,
+        ip: getClientIp(req),
+      };
+      await kvSet(`nda_signed:${inst.inst_id}:${dealId}`, record);
+      return ok(res, { ok: true, record });
+    }
+
+    if (op === 'notices') {
+      // Investor's own pending + acknowledged notices (capital calls,
+      // distributions). Notices are written by capital-call-notify and
+      // distribution-notify per recipient investor.
+      const inst = await getInst();
+      if (!inst) return unauth(res);
+      const keys = await kvKeys(`notice:${inst.inst_id}:*`);
+      const notices = (await Promise.all(keys.map(k => kvGet(k)))).filter(Boolean);
+      notices.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+      return ok(res, { notices });
+    }
+
+    if (op === 'acknowledge-notice') {
+      const inst = await getInst();
+      if (!inst) return unauth(res);
+      const { noticeId } = req.body || {};
+      if (!noticeId) return bad(res, 'noticeId required');
+      const record = await kvGet(`notice:${inst.inst_id}:${noticeId}`);
+      if (!record) return bad(res, 'Notice not found', 404);
+      if (record.status === 'acknowledged') {
+        return ok(res, { ok: true, idempotent: true, notice: record });
+      }
+      record.status = 'acknowledged';
+      record.acknowledged_at = new Date().toISOString();
+      await kvSet(`notice:${inst.inst_id}:${noticeId}`, record);
+      return ok(res, { ok: true, notice: record });
     }
 
     if (op === 'check-nda') {
@@ -2636,9 +2737,33 @@ Return ONLY valid JSON in this exact structure:
       }
 
       let ccSent = 0;
+      const ccNoticeBatchId = Date.now().toString(36);
+      const ccNowIso = new Date().toISOString();
+      const ccDateIssued = ccNowIso.slice(0, 10);
+      // Pre-fetch IOIs once so we can attach per-investor capital-call amount.
+      const ccAllIoisForNotice = await getAllIois();
       for (const invId of (ccTargetIds || [])) {
         const inv = await kvGet(`inst:${invId}`);
-        if (inv) { await sendCapitalCallNotice(inv, ccDeal).catch(console.error); ccSent++; }
+        if (!inv) continue;
+        await sendCapitalCallNotice(inv, ccDeal).catch(console.error);
+        // Persist per-investor notice record for the Notices tab.
+        const investorIoi = ccAllIoisForNotice.find(i => i.deal_id === dealId && i.investor_id === invId && i.status === 'approved');
+        const noticeId = `cc-${dealId}-${invId}-${ccNoticeBatchId}`;
+        await kvSet(`notice:${invId}:${noticeId}`, {
+          id: noticeId,
+          type: 'capital_call',
+          deal_id: dealId,
+          deal_name: ccDeal.name,
+          status: 'pending',
+          date_issued: ccDateIssued,
+          amount: investorIoi?.amount || null,
+          wire_instructions: null,
+          reference: noticeId.toUpperCase(),
+          due_date: null,
+          notes: req.body?.notes || null,
+          created_at: ccNowIso,
+        });
+        ccSent++;
       }
 
       const ccAuditEntry = { at: new Date().toISOString(), actor: admin.email, action: 'capital_call_issued', meta: { dealId, recipientCount: ccSent } };
@@ -2668,9 +2793,38 @@ Return ONLY valid JSON in this exact structure:
       }
 
       let distSent = 0;
+      const distNoticeBatchId = Date.now().toString(36);
+      const distNowIso = new Date().toISOString();
+      const distDateIssued = distNowIso.slice(0, 10);
+      const distAllIoisForNotice = await getAllIois();
+      const distApprovedTotal = distAllIoisForNotice
+        .filter(i => i.deal_id === dealId && i.status === 'approved')
+        .reduce((s, i) => s + (i.amount || 0), 0);
+      const distPoolUsd = parseFloat(req.body?.amount) || distDeal.deployed_usd || 0;
       for (const invId of (distTargetIds || [])) {
         const inv = await kvGet(`inst:${invId}`);
-        if (inv) { await sendDistributionNotice(inv, distDeal).catch(console.error); distSent++; }
+        if (!inv) continue;
+        await sendDistributionNotice(inv, distDeal).catch(console.error);
+        const investorIoi = distAllIoisForNotice.find(i => i.deal_id === dealId && i.investor_id === invId && i.status === 'approved');
+        // Distribution amount = investor's pro-rata share of the distribution pool.
+        const share = (investorIoi && distApprovedTotal > 0) ? (investorIoi.amount / distApprovedTotal) : 0;
+        const investorAmount = distPoolUsd > 0 && share > 0 ? Math.round(distPoolUsd * share) : null;
+        const noticeId = `dist-${dealId}-${invId}-${distNoticeBatchId}`;
+        await kvSet(`notice:${invId}:${noticeId}`, {
+          id: noticeId,
+          type: 'distribution',
+          deal_id: dealId,
+          deal_name: distDeal.name,
+          status: 'pending',
+          date_issued: distDateIssued,
+          amount: investorAmount,
+          wire_instructions: null,
+          reference: noticeId.toUpperCase(),
+          due_date: null,
+          notes: req.body?.notes || null,
+          created_at: distNowIso,
+        });
+        distSent++;
       }
 
       const distAuditEntry = { at: new Date().toISOString(), actor: admin.email, action: 'distribution_issued', meta: { dealId, recipientCount: distSent } };

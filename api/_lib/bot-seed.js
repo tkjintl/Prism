@@ -33,6 +33,8 @@ const WIPE_PATTERNS = [
   'deal_doc:*',
   'pdoc:*',
   'pdoc_meta:*',
+  'notice:*',
+  'payment:*',
 ];
 
 export async function wipeAll() {
