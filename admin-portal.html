@@ -1092,6 +1092,86 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .view-heading{font-size:clamp(20px,6vw,32px)!important}
   .view-sub{font-size:12px}
 }
+
+/* FIX 1 — KPI strip: last odd item spans full width on mobile (Cat H) */
+@media(max-width:640px){
+  .kpi-card:last-child:nth-child(odd){ grid-column: 1 / -1; }
+}
+
+/* FIX 3 — Equal-height deal cards (Cat J) */
+.ov-ac-name {
+  font-size: 12px !important;
+  white-space: normal !important;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 2.4em;
+  line-height: 1.2;
+}
+.ov-action-card {
+  min-height: 80px;
+}
+.ov-ac-meta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px !important;
+}
+.att-card-title {
+  font-size: 12px !important;
+  white-space: normal !important;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 2.4em;
+  line-height: 1.2;
+}
+.att-card {
+  min-height: 80px;
+}
+.att-card-body {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px !important;
+}
+
+/* FIX 4 — Notification panel overflow on mobile (Cat L) */
+@media(max-width:768px){
+  .notif-panel {
+    position: fixed !important;
+    top: var(--nav-h) !important;
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    max-height: 60vh;
+    overflow-y: auto;
+    z-index: 300;
+  }
+}
+
+/* FIX 2 — Collapsible overview sections (Cat I) */
+.ov-collapsible { border-bottom: 1px solid var(--border); }
+.ov-collapsible-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; cursor: pointer; user-select: none;
+  font-family: var(--mono); font-size: 9px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text-2);
+  background: var(--bg-2);
+}
+.ov-collapsible-hd:hover { background: var(--bg-3); }
+.ov-collapsible-arrow { font-size: 10px; transition: transform .2s; }
+.ov-collapsible-body { overflow: hidden; transition: max-height .25s ease; }
+.ov-collapsible-body.closed { max-height: 0 !important; }
+.ov-collapsible-body.open { max-height: 2000px; }
+@media(min-width:769px){
+  .ov-collapsible-hd { display: none; }
+  .ov-collapsible-body { max-height: none !important; overflow: visible; }
+}
 </style>
 <style>
 /* ── CAT A · CTA letter-spacing tighten ── */
@@ -2267,40 +2347,91 @@ function renderOverview(){
 
   document.getElementById('overview-main').innerHTML=`
     ${headerBar}
-    <div class="ov-queue-grid">
-      ${queueCol('ov-dot-amber','New Deals',submissionCards)}
-      ${queueCol('ov-dot-green','Ready to Publish',readyToPublishCards)}
-      ${queueCol('ov-dot-gold','Inbound IOI from Investors',ioiDecisionCards)}
-      ${queueCol('ov-dot-violet','Open Due Diligence',pushCards)}
-    </div>
-    <div class="ov-stage-section">
-      <div class="ov-section-hd">
-        <div class="ov-section-title">Deal Pipeline</div>
-        <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2])">View Full Pipeline →</button>
+    <div class="ov-collapsible">
+      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s1')">
+        <span>Action Queue</span>
+        <span class="ov-collapsible-arrow" id="ov-s1-arrow">&#9660;</span>
       </div>
-      <div class="ov-stage-lanes">${stageLanes.join('')}</div>
-    </div>
-    <div class="ov-signup-grid">
-      <div class="ov-panel">
-        <div class="ov-panel-hd"><span>Advisor Access</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length} advisors</span></div>
-        <div class="ov-panel-body" style="max-height:220px">${advisorRows}</div>
-      </div>
-      <div class="ov-panel">
-        <div class="ov-panel-hd"><span>Investor Access</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length} investors</span></div>
-        <div class="ov-panel-body" style="max-height:220px">${investorRows}</div>
+      <div class="ov-collapsible-body closed" id="ov-s1">
+        <div style="padding:16px 0">
+          <div class="ov-queue-grid">
+            ${queueCol('ov-dot-amber','New Deals',submissionCards)}
+            ${queueCol('ov-dot-green','Ready to Publish',readyToPublishCards)}
+            ${queueCol('ov-dot-gold','Inbound IOI from Investors',ioiDecisionCards)}
+            ${queueCol('ov-dot-violet','Open Due Diligence',pushCards)}
+          </div>
+        </div>
       </div>
     </div>
-    <div class="ov-bottom-grid">
-      <div class="ov-panel">
-        <div class="ov-panel-hd"><span>Platform Activity</span><span class="ov-panel-hd-sub">${activity.length} recent events</span></div>
-        <div class="ov-panel-body">${activityHtml}</div>
+    <div class="ov-collapsible">
+      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s2')">
+        <span>Deal Pipeline</span>
+        <span class="ov-collapsible-arrow" id="ov-s2-arrow">&#9660;</span>
       </div>
-      <div class="ov-panel">
-        <div class="ov-panel-hd"><span>IOI Intelligence</span><span class="ov-panel-hd-sub">by deal</span></div>
-        <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
+      <div class="ov-collapsible-body closed" id="ov-s2">
+        <div style="padding:16px 0">
+          <div class="ov-stage-section" style="margin-bottom:0">
+            <div class="ov-section-hd">
+              <div class="ov-section-title">Deal Pipeline</div>
+              <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2])">View Full Pipeline &#8594;</button>
+            </div>
+            <div class="ov-stage-lanes">${stageLanes.join('')}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ov-collapsible">
+      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s3')">
+        <span>Team Access</span>
+        <span class="ov-collapsible-arrow" id="ov-s3-arrow">&#9660;</span>
+      </div>
+      <div class="ov-collapsible-body closed" id="ov-s3">
+        <div style="padding:16px 0">
+          <div class="ov-signup-grid" style="margin-top:0">
+            <div class="ov-panel">
+              <div class="ov-panel-hd"><span>Advisor Access</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length} advisors</span></div>
+              <div class="ov-panel-body" style="max-height:220px">${advisorRows}</div>
+            </div>
+            <div class="ov-panel">
+              <div class="ov-panel-hd"><span>Investor Access</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length} investors</span></div>
+              <div class="ov-panel-body" style="max-height:220px">${investorRows}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ov-collapsible">
+      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s4')">
+        <span>Activity</span>
+        <span class="ov-collapsible-arrow" id="ov-s4-arrow">&#9660;</span>
+      </div>
+      <div class="ov-collapsible-body closed" id="ov-s4">
+        <div style="padding:16px 0">
+          <div class="ov-bottom-grid">
+            <div class="ov-panel">
+              <div class="ov-panel-hd"><span>Platform Activity</span><span class="ov-panel-hd-sub">${activity.length} recent events</span></div>
+              <div class="ov-panel-body">${activityHtml}</div>
+            </div>
+            <div class="ov-panel">
+              <div class="ov-panel-hd"><span>IOI Intelligence</span><span class="ov-panel-hd-sub">by deal</span></div>
+              <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>`;
   updateNotifBell();
+}
+
+/* ── COLLAPSIBLE OVERVIEW SECTIONS ── */
+function toggleOvSection(id){
+  const body = document.getElementById(id);
+  const arrow = document.getElementById(id+'-arrow');
+  if(!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  body.classList.toggle('closed', isOpen);
+  if(arrow) arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
 }
 
 /* ── NOTIFICATION BELL ── */

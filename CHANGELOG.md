@@ -4,6 +4,40 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: four targeted mobile fixes (Cat H, I, J, L)
+
+### Changes
+- `admin-portal.html`: Four targeted fixes applied — CSS + JS additions only. No auth, nav, or desktop layout touched.
+- **Cat H — KPI strip odd-item full-width**: Added `@media(max-width:640px){ .kpi-card:last-child:nth-child(odd){ grid-column: 1 / -1; } }` so a lone 5th KPI card spans both columns instead of leaving a blank gap.
+- **Cat I — Collapsible overview sections**: Added `.ov-collapsible` CSS, `toggleOvSection()` JS helper, and rewrapped the 4 overview sections (Action Queue, Deal Pipeline, Team Access, Activity) in collapsible containers. On mobile (≤768px) each section header is a tappable row — sections start collapsed. On desktop (≥769px) headers are hidden and all sections are always expanded.
+- **Cat J — Equal-height deal cards**: Added `min-height:80px` on `.ov-action-card`; clamped `.ov-ac-name` to 2 lines with `-webkit-line-clamp:2` and `min-height:2.4em`; set `.ov-ac-meta` to single-line ellipsis at 10px. Same treatment applied to `.att-card-title` / `.att-card-body` for attention cards.
+- **Cat L — Notification panel mobile overflow**: Added `@media(max-width:768px)` rule making `.notif-panel` `position:fixed`, full viewport width, pinned under the nav bar, with `max-height:60vh` and `overflow-y:auto` — prevents the 320px panel overflowing left on 390px screens.
+
+---
+
+## [2026-05-01] — Advisor Portal: Cat K–L + nav badge + deal switcher mobile fixes
+
+### Changes
+- `advisor-portal.html`: Appended a new `<style>` block (Cat K–L + 2 targeted fixes) immediately before `</head>`. No nav HTML, no auth JS touched.
+- **Cat K — Stage journey labels** (≤600px): `.sj-circle` shrunk to 28×28px. `.sj-label` set to `white-space:normal; max-width:56px; font-size:7px; line-height:1.3; word-break:break-word` so stage labels wrap to 2 lines instead of colliding. `.sj-inner` forced to `flex-wrap:nowrap` with `overflow-x:auto` on `.stage-journey` so the whole journey scrolls horizontally. `.sj-line` connector reduced to `width:12px; min-width:6px`.
+- **Cat L — Notification panel full-width sheet** (≤768px): `.notif-bell-wrap` set to `position:static` so it doesn't create a new stacking context. `.notif-panel` converted to `position:fixed; top:var(--nav-h); left:0; right:0; width:100%; border-radius:0 0 8px 8px; max-height:60vh; overflow-y:auto; z-index:400` — slides in as a full-width sheet below the nav instead of a 340px absolute card that clips off-screen.
+- **Nav role badge** (≤480px): `.role-badge` hidden with `display:none` — role is implied by the portal and the badge was squeezing the avatar and Sign out button off-screen.
+- **Deal switcher pills** (≤768px): `.deal-switcher` set to `overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none` with webkit scrollbar hidden. `.ds-pill` gets `flex-shrink:0; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap` — pills scroll horizontally rather than bleeding off the right edge.
+
+---
+
+## [2026-05-01] — Investor portal: Cat G hero void fix (mobile)
+
+### Changes
+- `investor-portal.html`: Appended a new `<style>` block (Cat G) immediately before `</head>` — no nav HTML, no auth JS, no desktop rules touched.
+- **Root cause**: `.hero-content { justify-content:center }` (set in "MOBILE SPACING AUDIT" block) combined with `.lobby-hero { min-height:100svh }` left ~220px of dead space above and below the text content on mobile, because `.hero-visual` is hidden and the single text column is only ~400px tall inside an 844px container.
+- **Fix**: Override `justify-content` to `flex-start` with `padding-top: clamp(28px,6vh,56px)` so content anchors to the top with breathing room instead of floating in the centre.
+- **Also**: `.lobby-hero` set to `min-height:min(100svh,100vh)` (keeps intentional height while the override flow prevents the void). `.hero-dots` forced `position:static` so they flow with content rather than absolute-positioning into the void.
+- **Also**: Added `@media(max-width:480px)` rule to strip all `border-left`/`border-right`/`padding-left` from `.hero-stat` — the 2×2 grid dividers were rendering as phantom lines on very small screens.
+- Confirmed `.lobby-greeting` is `position:static !important` from two prior override blocks and is NOT reset to absolute anywhere after that — no overlap regression.
+
+---
+
 ## [2026-05-01] — Admin portal: 6-category systemic mobile fix (iPhone 15, 390px)
 
 ### Changes

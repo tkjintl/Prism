@@ -1413,6 +1413,85 @@ a{color:inherit;text-decoration:none}
 }
 
 </style>
+
+<!-- ══════════════════════════════════════════
+     CAT G: HERO VOID FIX — 2026-05-01
+     Root cause: justify-content:center on .hero-content
+     with min-height:100svh creates ~220px void above/below
+     content when hero-visual col is hidden on mobile.
+══════════════════════════════════════════ -->
+<style>
+@media(max-width:768px){
+  /* Kill the centering — start from top with proper breathing */
+  .hero-content {
+    justify-content: flex-start !important;
+    padding-top: clamp(28px, 6vh, 56px) !important;
+    padding-bottom: clamp(40px, 8vh, 72px) !important;
+  }
+
+  /* Hero min-height: enough to look intentional but not create void */
+  .lobby-hero {
+    min-height: auto !important;
+    min-height: min(100svh, 100vh) !important;
+  }
+
+  /* Push deal name, tagline, stats and CTAs to fill the space evenly */
+  .hero-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: clamp(12px, 2.5vh, 24px) !important;
+  }
+
+  /* Greeting: sits above hero as static element — ensure no extra top margin */
+  .lobby-greeting {
+    padding-top: clamp(16px, 3vh, 28px) !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Hero eyebrow: tighten margin */
+  .hero-eyebrow { margin-bottom: 12px !important; }
+
+  /* Deal name: tight bottom margin */
+  .hero-deal-name { margin-bottom: 10px !important; }
+
+  /* Tagline: tight */
+  .hero-tagline { margin-bottom: 16px !important; max-width: 100% !important; }
+
+  /* Stats row: margin before CTAs */
+  .hero-stats { margin-bottom: 20px !important; }
+
+  /* CTAs: full-width, stack */
+  .hero-actions {
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+  .btn-primary, .btn-ghost {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* Social proof: no extra top margin */
+  .social-proof { margin-top: 12px !important; }
+
+  /* Hero dots: relative positioning, not absolute, at bottom of content */
+  .hero-dots {
+    position: static !important;
+    margin-top: auto !important;
+    padding-top: 16px !important;
+    left: auto !important;
+    bottom: auto !important;
+    justify-content: center !important;
+  }
+}
+
+@media(max-width:480px){
+  /* Remove all stat divider borders in the 2×2 grid — phantom lines */
+  .hero-stat { border-left: none !important; border-right: none !important; padding-left: 0 !important; margin-left: 0 !important; }
+}
+</style>
 </head>
 <body>
 
