@@ -135,6 +135,7 @@ input:focus{border-color:var(--gold)}
 .persona-auth .swatch{background:#e5a55c}
 .persona-advreview .swatch{background:#5fbabf}
 .persona-concurrency .swatch{background:#d97abc}
+.persona-capevent .swatch{background:#e8d27a}
 
 .control-label{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-right:4px}
 
@@ -157,6 +158,7 @@ input:focus{border-color:var(--gold)}
 .tag-auth{color:#e5a55c;background:rgba(229,165,92,.10);border-color:rgba(229,165,92,.35)}
 .tag-advreview{color:#5fbabf;background:rgba(95,186,191,.10);border-color:rgba(95,186,191,.35)}
 .tag-concurrency{color:#d97abc;background:rgba(217,122,188,.10);border-color:rgba(217,122,188,.35)}
+.tag-capevent{color:#e8d27a;background:rgba(232,210,122,.10);border-color:rgba(232,210,122,.35)}
 .log-row .msg{color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .log-row.err .msg{color:var(--red)}
 .log-row .ok{font-family:var(--mono);font-size:13px;text-align:center}
@@ -265,6 +267,7 @@ input:focus{border-color:var(--gold)}
         <label class="persona-toggle persona-auth on" id="pt-auth" title="Tries unauthorized actions — verifies auth boundaries"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('auth',this.checked)">Auth</label>
         <label class="persona-toggle persona-advreview on" id="pt-advreview" title="Logs in as advisor, confirms pending review deals → auto-publish"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('advreview',this.checked)">Adv Review</label>
         <label class="persona-toggle persona-concurrency on" id="pt-concurrency" title="Bursts parallel calls to stress race conditions"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('concurrency',this.checked)">Concurrency</label>
+        <label class="persona-toggle persona-capevent on" id="pt-capevent" title="Capital calls + distributions + investor notice acknowledgement"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('capevent',this.checked)">Cap Events</label>
       </div>
     </div>
 
@@ -377,7 +380,7 @@ const state={
   running:false,
   paused:false,
   speedKey:'5',
-  personas:{advisor:true,admin:true,investor:true,applicant:true,chaos:true,auth:true,advreview:true,concurrency:true},
+  personas:{advisor:true,admin:true,investor:true,applicant:true,chaos:true,auth:true,advreview:true,concurrency:true,capevent:true},
   loops:{},          // persona -> AbortController
   logEntries:[],
   logFollow:true,
@@ -1001,6 +1004,84 @@ class ConcurrencyBot{
   }
 }
 
+// ─── CapitalEventBot ──────────────────────────────────────────────────
+// Drives the post-close lifecycle that admin and investor bots don't
+// otherwise touch: capital calls, distributions, and investor
+// acknowledgement of those notices. Tests the L-2 / L-3 endpoints
+// (notices, acknowledge-notice) end-to-end, plus the per-investor
+// notice writes inside capital-call-notify and distribution-notify.
+// Tick floor: 15s — these are admin-driven events, not hot-loop traffic.
+class CapitalEventBot{
+  constructor(){this.persona='capevent';this.investorLoggedIn=false;this.lastIssued=new Set();}
+  async investorLogin(){
+    if(this.investorLoggedIn)return;
+    try{
+      await botFetch('/api/v2?resource=inst&op=login',{method:'POST',body:JSON.stringify({email:'bot.investor@aurumprism.test',code:'BOTCODE'})});
+      this.investorLoggedIn=true;
+    }catch(e){/* re-login next tick */}
+  }
+  async tick(){
+    const roll=Math.random();
+    if(roll<0.4)return await this.issueCapitalCall();
+    if(roll<0.7)return await this.issueDistribution();
+    return await this.investorAcknowledge();
+  }
+  async issueCapitalCall(){
+    // Find a close or realized deal with at least one approved IOI.
+    const status=await botFetch('/api/v2?resource=admin&op=sandbox-status');
+    const eligible=(status.recent_deals||[]).filter(d=>['close','realized'].includes(d.stage));
+    if(eligible.length===0)return {persona:this.persona,action:'No close/realized deal for capital call',ok:true};
+    const d=rand(eligible);
+    if(this.lastIssued.has('cc:'+d.id)&&Math.random()<0.7)return {persona:this.persona,action:`Capital call already issued recently for "${d.name}" (skip)`,ok:true};
+    try{
+      const r=await botFetch('/api/v2?resource=admin&op=capital-call-notify',{method:'POST',body:JSON.stringify({dealId:d.id,notes:'Bot-driven capital call'})});
+      this.lastIssued.add('cc:'+d.id);
+      return {persona:this.persona,action:`Capital call issued on "${d.name}" → ${r.sent||0} investor(s)`,ok:true};
+    }catch(e){
+      if(e.status===404)return {persona:this.persona,action:`Capital call skip "${d.name}" (deal moved)`,ok:true};
+      throw e;
+    }
+  }
+  async issueDistribution(){
+    const status=await botFetch('/api/v2?resource=admin&op=sandbox-status');
+    const eligible=(status.recent_deals||[]).filter(d=>['close','realized'].includes(d.stage));
+    if(eligible.length===0)return {persona:this.persona,action:'No close/realized deal for distribution',ok:true};
+    const d=rand(eligible);
+    if(this.lastIssued.has('dist:'+d.id)&&Math.random()<0.7)return {persona:this.persona,action:`Distribution already issued recently for "${d.name}" (skip)`,ok:true};
+    // Random distribution pool $500K-$10M
+    const amount=Math.round((500000+Math.random()*9500000)/1000)*1000;
+    try{
+      const r=await botFetch('/api/v2?resource=admin&op=distribution-notify',{method:'POST',body:JSON.stringify({dealId:d.id,amount,notes:'Bot-driven distribution'})});
+      this.lastIssued.add('dist:'+d.id);
+      return {persona:this.persona,action:`Distribution $${(amount/1e6).toFixed(2)}M on "${d.name}" → ${r.sent||0} investor(s)`,ok:true};
+    }catch(e){
+      if(e.status===404)return {persona:this.persona,action:`Distribution skip "${d.name}" (deal moved)`,ok:true};
+      throw e;
+    }
+  }
+  async investorAcknowledge(){
+    if(!this.investorLoggedIn)await this.investorLogin();
+    if(!this.investorLoggedIn)return {persona:this.persona,action:'Investor login failed (retry next tick)',ok:true};
+    let notices;
+    try{
+      const j=await botFetch('/api/v2?resource=inst&op=notices',{botAs:'investor'});
+      notices=j.notices||[];
+    }catch(e){
+      return {persona:this.persona,action:`Notice fetch failed: ${e.message}`,ok:false};
+    }
+    const pending=notices.filter(n=>n.status!=='acknowledged');
+    if(pending.length===0)return {persona:this.persona,action:`No pending notices to acknowledge (${notices.length} total)`,ok:true};
+    const n=rand(pending);
+    try{
+      await botFetch('/api/v2?resource=inst&op=acknowledge-notice',{method:'POST',botAs:'investor',body:JSON.stringify({noticeId:n.id})});
+      return {persona:this.persona,action:`Acknowledged ${n.type} notice on "${n.deal_name}"`,ok:true};
+    }catch(e){
+      if(e.status===404)return {persona:this.persona,action:`Notice ${n.id} no longer exists (raced)`,ok:true};
+      throw e;
+    }
+  }
+}
+
 const bots={
   advisor:new AdvisorBot(),
   admin:new AdminBot(),
@@ -1010,6 +1091,7 @@ const bots={
   auth:new AuthBoundaryBot(),
   advreview:new AdvisorReviewBot(),
   concurrency:new ConcurrencyBot(),
+  capevent:new CapitalEventBot(),
 };
 
 /* ========== Driver loop ========== */
@@ -1037,7 +1119,7 @@ function startPersonaLoop(persona){
       const base=SPEED_MS[state.speedKey];
       // Per-persona tick floors. Slow personas pressure-test specific flows
       // without burning Redis ops on a hot loop.
-      const FLOORS={applicant:5000,chaos:3000,auth:4000,advreview:5000,concurrency:30000};
+      const FLOORS={applicant:5000,chaos:3000,auth:4000,advreview:5000,concurrency:30000,capevent:15000};
       const personaFloor=FLOORS[persona]||base;
       const interval=Math.max(personaFloor,base);
       if(interval<=50){await sleep(50);}
@@ -1055,7 +1137,7 @@ async function startBots(){
   document.getElementById('btn-pause').disabled=false;
   setStatus();
   refreshCounters();
-  for(const p of ['advisor','admin','investor','applicant','chaos','auth','advreview','concurrency']){
+  for(const p of ['advisor','admin','investor','applicant','chaos','auth','advreview','concurrency','capevent']){
     if(state.personas[p])startPersonaLoop(p);
   }
 }
