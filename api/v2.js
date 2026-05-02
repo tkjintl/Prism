@@ -1,7 +1,7 @@
 import { verifyToken, signToken, signResetCode, verifyResetToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
 import { ok, bad, unauth, getCookie, setCookieHeader } from './_lib/http.js';
 import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, kvZadd, kvZrem, healthCheck, isKvUnavailable } from './_lib/storage.js';
-import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, recalcIoiCounters, bumpIoiCounters, appendAuditEntry, validateDealForPublish } from './_lib/deal-storage.js';
+import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, bumpIoiCounters, appendAuditEntry, validateDealForPublish } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
   sendDataRoomAccess, sendAccessApplication,
@@ -3340,46 +3340,28 @@ Return ONLY valid JSON in this exact structure:
         ioiCountByDeal.set(i.deal_id, (ioiCountByDeal.get(i.deal_id) || 0) + 1);
         ioiAggByDeal.set(i.deal_id, (ioiAggByDeal.get(i.deal_id) || 0) + (i.amount || 0));
       }
-      const counterMismatchInitial = [];
+      // P-6 atomic counters fix means counter drift should be zero in normal
+      // operation. Audit no longer auto-heals — any mismatch is reported
+      // honestly so we can investigate root cause. If transient drift ever
+      // appears (e.g., from a partial bumpIoiCounters failure), operator
+      // can manually run reconcileIoiCounters via the rescore path.
+      const counterMismatch = [];
       for (const d of allDeals) {
         const actualCount = ioiCountByDeal.get(d.id) || 0;
         const actualAgg = ioiAggByDeal.get(d.id) || 0;
         const declaredCount = d.ioi_count || 0;
         const declaredAgg = d.ioi_agg_usd || 0;
         if (actualCount !== declaredCount || actualAgg !== declaredAgg) {
-          counterMismatchInitial.push({
+          counterMismatch.push({
             deal_id: d.id,
             declared_count: declaredCount, actual_count: actualCount,
             declared_agg: declaredAgg, actual_agg: actualAgg,
           });
         }
       }
-      // Self-heal: recalc on each mismatched deal then re-check. Transient
-      // last-write-wins races during high-concurrency IOI creation will
-      // resolve here; only persistent mismatches indicate a real bug.
-      let counterMismatch = counterMismatchInitial;
-      let healed = 0;
-      if (counterMismatchInitial.length > 0) {
-        await Promise.all(counterMismatchInitial.map(m => recalcIoiCounters(m.deal_id).catch(() => null)));
-        // Re-check post-heal
-        const stillBroken = [];
-        for (const m of counterMismatchInitial) {
-          const fresh = await getDeal(m.deal_id);
-          if (!fresh) continue;
-          const declaredCount = fresh.ioi_count || 0;
-          const declaredAgg = fresh.ioi_agg_usd || 0;
-          if (m.actual_count !== declaredCount || m.actual_agg !== declaredAgg) {
-            stillBroken.push({ ...m, declared_count: declaredCount, declared_agg: declaredAgg });
-          } else {
-            healed++;
-          }
-        }
-        counterMismatch = stillBroken;
-      }
       if (counterMismatch.length) issues.push({
         type: 'ioi_counter_mismatch', severity: 'medium', count: counterMismatch.length,
         samples: counterMismatch.slice(0, 5),
-        note: healed > 0 ? `${healed} additional mismatches were auto-healed by recalc` : undefined,
       });
 
       const approvedNoCode = allInvestors.filter(i => i.status === 'approved' && !i.code);
