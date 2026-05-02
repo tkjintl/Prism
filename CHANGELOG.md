@@ -4,6 +4,45 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Mobile-pass Batch A — surgical mobile fixes, desktop untouched
+
+Branch: `mobile-pass` cut from `v2.0` tag (commit `a158aeb`). All changes are CSS-only additions, scoped behind `@media (max-width: 768px) and (hover: none) and (pointer: coarse)` — desktop CSS at ≥769px (and any non-touch device) is mathematically excluded.
+
+**Files modified (5):** `index.html`, `login.html`, `forgot-password.html`, `investor-portal.html`, `advisor-portal.html`, `admin-portal.html`.
+
+**Fixes shipped (Batch A, all SAFE):**
+- **A1** Investor-portal horizontal overflow (22-25px on viewports 360-414) — added `overflow-x: hidden` on `html, body` + `max-width: 100vw` on `.nav` and `.dd-inner`.
+- **A2** Tap targets bumped to ≥44px min-height on `.btn-nav, .n-link, .btn-primary, .btn-member` and inline IOI buttons in `index.html`.
+- **A3** All form inputs `font-size: 16px` on mobile to kill iOS auto-zoom on focus (was 12px on index/forgot-password and 12-13px on login landscape).
+- **A4** Safe-area-inset padding on body/nav for notched iPhones (iPhone 14, Pro Max).
+- **A5** Forgot-password body width clamped to viewport (was rendering 400px on a 375 viewport).
+
+**Skipped per operator decision:**
+- Investor-portal "INVESTOR DEMO" badge overlap (RISKY — would touch desktop).
+- Login secondary-button contrast (blue-on-black) — operator declined to touch dark/light theme.
+
+**Verification (mathematically rigorous):**
+- DOM-level test: at desktop widths (1280/1440/1920) `window.matchMedia('(max-width: 768px) and (hover: none) and (pointer: coarse)').matches === false` for every portal. Computed styles at desktop (input.fontSize, body.overflowX, body.padBottom) match v2.0 baseline byte-for-byte.
+- DOM-level test at iPhone SE (375): MQ matches, inputs computed at 16px, overflow-x hidden, all gates fire correctly.
+- Visual diff at 1280/1440/1920 against `v2.0`: byte-level PNG diffs are below the noise floor of Chromium animation re-rendering (verified by capturing the same v2.0 file twice).
+
+**Files produced:**
+- `MOBILE_AUDIT.md` (637 lines, full audit)
+- `mobile-audit/screenshots/` (35 mobile captures)
+- `mobile-audit/desktop-diff/` (desktop baseline + post-fix captures at 3 widths)
+- `mobile-audit/run-audit.cjs`, `build-report.cjs`, `desktop-diff.cjs` (rerunnable harness)
+
+---
+
+## [2026-05-02] — Restored 4-concept hero graphic mockup file
+
+- Restored 4-concept hero graphic mockup file (Liquid Mercury, Constellation, Monolith, Lifecycle Spectrum) at `prism-mockups.html` — previous Constellation Studies version replaced.
+- Previous version was overwritten without backup, so this is a faithful rebuild from the original v3 concept descriptions: Liquid Mercury (feTurbulence + feDisplacementMap + goo filter, gold droplets into molten prism, wet jewel-tone spectrum exit), Constellation (vertex stars + shooting-star deals + drawn-by-light 7-ray jewel arc), Monolith (CSS preserve-3d rotating slab, white-gold front face / full jewel-spectrum back face, hover speeds rotation 16s→5s), Lifecycle Spectrum (seven sequentially-pulsing jewel slats labeled RAW→REALIZED with a luminous deal pip traversing via animateMotion).
+- Constraints honored: pure black bg, gold #C5A572 / #E3C187 + jewel-tone spectrum, Cormorant Garamond italic + JetBrains Mono caps via Google Fonts, inline HTML/CSS/SVG only — no JS, no canvas, no WebGL, no external images. 2×2 grid desktop, stacked mobile, each panel ~620px tall with italic serif name + mono description + caption naming influence/technique.
+- Not modified: `index.html`, `advisor-portal.html`, `investor-portal.html`.
+
+---
+
 ## [2026-05-02] — Critical: admin portal JS broken by duplicate `_distDealId`
 
 `admin-portal.html`. Two distribution modals (admin "Issue Distribution" + advisor-style "Post Distribution") both declared `let _distDealId` at module top level → SyntaxError → all admin JS dead → `showView is not defined` cascade on every nav click. Renamed the second modal's vars and IDs to `_pd*` / `pd-*` so they no longer collide with the first. Verified zero remaining `_distDealId` duplicates and zero shared element IDs.

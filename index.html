@@ -428,6 +428,23 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   .portal-showcase-outer{padding:56px 0 72px!important}
   .pw-viewport{pointer-events:none;touch-action:pan-y}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE-PASS — additive only, scoped to touch devices ≤768px.
+   Desktop (≥769px) and non-touch screens are mathematically excluded.
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  /* Kill iOS auto-zoom on form focus — bumps below-16px inputs */
+  input, select, textarea { font-size: 16px; }
+  /* Ensure tap targets meet 44×44 minimum without changing visible size */
+  .btn-nav, .n-link, button, .btn-primary, .btn-member { min-height: 44px; }
+  /* IOI inline buttons (37×17 in audit) — bump padding only */
+  button:not([class]) { min-height: 44px; padding: 10px 14px; }
+  /* Safe-area insets for notched iPhones */
+  body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); }
+  /* Belt: prevent any rogue horizontal scroll */
+  html, body { overflow-x: hidden; }
+}
 </style>
 </head>
 <body>
