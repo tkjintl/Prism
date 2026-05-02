@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Mobile landing polish v4 — hero copy + prism position (`index.html`)
+
+Two operator tweaks following v3, mobile-only.
+
+- **Copy fix** — replaced "register" with "platform" in `.hero-sub-mobile`. New line: *"A private platform for institutional investors and the advisors bringing them deals — credit, equity, real estate, infrastructure."* "Register" was reading too transactional; "platform" matches how operator/advisors describe Prism in conversation.
+- **Prism artwork anchored lower** — on ≤768px, added `align-items:flex-end!important` to `.hero-right` and `margin-top:48px` to `.hp-prism-wrap`. Previously the SVG sat high in its pane right under the hero text; now it pushes down toward the bottom of the hero-right pane, anchoring the second screen visually instead of floating mid-air. Existing `padding:24px 24px 56px` keeps a comfortable bottom gap so nothing overflows.
+- Desktop layout untouched — both changes scoped inside `@media (max-width:768px)` blocks (and the copy edit lives only in `.hero-sub-mobile`, which is `display:none` on desktop).
+
+---
+
 ## [2026-05-02] — Mobile landing polish v3 — hero copy (`index.html`)
 
 Operator feedback after v2: the "NOW ACCEPTING APPLICATIONS · EARLY ACCESS OPEN" pill and the long descriptive sub paragraph were too startup-pitch for the first screen. Tightened to a private-bank statement; mobile-only, desktop untouched.

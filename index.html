@@ -473,8 +473,8 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   .hero-sub-mobile{display:block;font-family:var(--serif);font-size:18px;font-weight:300;font-style:italic;color:var(--sub);line-height:1.55;margin-bottom:24px;max-width:34ch;letter-spacing:.005em}
   .hero-ctas{margin-bottom:20px;gap:10px}
   /* Collapse the dead full-viewport second pane — let prism breathe but not own a screen */
-  .hero-right{min-height:auto!important;padding:24px 24px 56px!important}
-  .hp-prism-wrap{width:min(240px,68%)!important}
+  .hero-right{min-height:auto!important;padding:24px 24px 56px!important;align-items:flex-end!important}
+  .hp-prism-wrap{width:min(240px,68%)!important;margin-top:48px}
   /* Toast legibility */
   .toast-box{font-size:12px;padding:12px 22px}
   /* Stack form rows */
@@ -564,7 +564,7 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
       <div class="hero-label"><span class="hero-label-dot"></span>Now Accepting Applications · Early Access Open</div>
       <h1>Where private deals<em>meet qualified capital.</em></h1>
       <p class="hero-sub">Aurum Prism is a private deal platform for qualified institutional investors and deal advisors — curating credit, pre-IPO equity, real estate, and infrastructure across the US and Asia-Pacific. Apply for early access.</p>
-      <p class="hero-sub-mobile">A private register for institutional investors and the advisors bringing them deals — credit, equity, real estate, infrastructure.</p>
+      <p class="hero-sub-mobile">A private platform for institutional investors and the advisors bringing them deals — credit, equity, real estate, infrastructure.</p>
       <div class="hero-ctas">
         <button class="btn-primary" onclick="document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Institutional Access →</button>
         <button class="btn-member" onclick="window.location.href='/login'">Member Login →</button>
