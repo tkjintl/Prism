@@ -146,6 +146,7 @@ input:focus{border-color:var(--gold)}
 .tag-advisor{color:var(--gold);background:var(--gold-bg);border-color:var(--gold-bd)}
 .tag-admin{color:var(--blue);background:var(--blue-bg);border-color:var(--blue-bd)}
 .tag-investor{color:var(--green);background:var(--green-bg);border-color:var(--green-bd)}
+.tag-applicant{color:#bca888;background:rgba(188,168,136,.08);border-color:rgba(188,168,136,.3)}
 .log-row .msg{color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .log-row.err .msg{color:var(--red)}
 .log-row .ok{font-family:var(--mono);font-size:13px;text-align:center}
@@ -249,6 +250,7 @@ input:focus{border-color:var(--gold)}
         <label class="persona-toggle persona-advisor on" id="pt-advisor"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('advisor',this.checked)">Advisor</label>
         <label class="persona-toggle persona-admin on" id="pt-admin"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('admin',this.checked)">Admin</label>
         <label class="persona-toggle persona-investor on" id="pt-investor"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('investor',this.checked)">Investor</label>
+        <label class="persona-toggle persona-applicant on" id="pt-applicant" title="New advisor + investor signups (low-rate)"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('applicant',this.checked)">Applicants</label>
       </div>
     </div>
 
@@ -361,7 +363,7 @@ const state={
   running:false,
   paused:false,
   speedKey:'5',
-  personas:{advisor:true,admin:true,investor:true},
+  personas:{advisor:true,admin:true,investor:true,applicant:true},
   loops:{},          // persona -> AbortController
   logEntries:[],
   logFollow:true,
@@ -563,11 +565,24 @@ class AdminBot{
     const reviewDeals=recent.filter(d=>d.stage==='review');
     const liveOrIoi=recent.filter(d=>d.stage==='live'||d.stage==='ioi');
 
+    // Advance candidates: deals at dd / terms / close that admin can push forward
+    const ddDeals=recent.filter(d=>d.stage==='dd');
+    const termsDeals=recent.filter(d=>d.stage==='terms');
+    const closeDeals=recent.filter(d=>d.stage==='close');
+
+    // Pending advisor signups — fetched lazily, only when nothing else to do
+    let pendingAdvisors=[];
+    try{const aj=await botFetch('/api/v2?resource=admin&op=pending-advisors');pendingAdvisors=aj.advisors||[];}catch(e){}
+
     const choices=[];
     if(reviewDeals.length)choices.push('publish');
     if(pendingIois.length)choices.push('approve_ioi');
     if(pendingInsts.length)choices.push('approve_inst');
+    if(pendingAdvisors.length)choices.push('approve_advisor');
     if(liveOrIoi.length)choices.push('push_package');
+    if(ddDeals.length)choices.push('advance_dd_to_terms');
+    if(termsDeals.length)choices.push('advance_terms_to_close');
+    if(closeDeals.length)choices.push('advance_close_to_realized');
     if(choices.length===0)choices.push('publish');
     const pick=rand(choices);
 
@@ -609,6 +624,34 @@ class AdminBot{
         await botFetch('/api/v2?resource=admin&op=push-package',{method:'POST',body:JSON.stringify({dealId:d.id,comment:'Bot-driven package push'})});
         return {persona:this.persona,action:`Pushed package on "${d.name}" (→ DD)`,ok:true};
       },`Push package skip "${d.name}"`);
+    }
+    if(pick==='approve_advisor'){
+      const a=pendingAdvisors[0];
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=approve-advisor',{method:'POST',body:JSON.stringify({advisor_id:a.id})});
+        return {persona:this.persona,action:`Approved advisor ${a.firm_name||a.email}`,ok:true};
+      },`Approve advisor skip ${a.email}`);
+    }
+    if(pick==='advance_dd_to_terms'){
+      const d=rand(ddDeals);
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=advance-stage',{method:'POST',body:JSON.stringify({dealId:d.id,target:'terms'})});
+        return {persona:this.persona,action:`Advanced "${d.name}" → terms`,ok:true};
+      },`Advance dd→terms skip "${d.name}"`);
+    }
+    if(pick==='advance_terms_to_close'){
+      const d=rand(termsDeals);
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=advance-stage',{method:'POST',body:JSON.stringify({dealId:d.id,target:'close'})});
+        return {persona:this.persona,action:`Advanced "${d.name}" → close`,ok:true};
+      },`Advance terms→close skip "${d.name}"`);
+    }
+    if(pick==='advance_close_to_realized'){
+      const d=rand(closeDeals);
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=advance-stage',{method:'POST',body:JSON.stringify({dealId:d.id,target:'realized'})});
+        return {persona:this.persona,action:`Advanced "${d.name}" → realized`,ok:true};
+      },`Advance close→realized skip "${d.name}"`);
     }
     return {persona:this.persona,action:'No-op',ok:true};
   }
@@ -659,7 +702,68 @@ class InvestorBot{
   }
 }
 
-const bots={advisor:new AdvisorBot(),admin:new AdminBot(),investor:new InvestorBot()};
+// Generates fake advisor + investor signup applications. Deliberately
+// low-rate (one tick = one application) — pressure-tests the signup +
+// admin approval flow without burning Redis ops on hot loops. AdminBot
+// will pick up these pending applications and approve them.
+class ApplicantBot{
+  constructor(){this.persona='applicant';this.seq=0;}
+  async tick(){
+    this.seq++;
+    return Math.random()<0.5 ? await this.applyAdvisor() : await this.applyInvestor();
+  }
+  async applyAdvisor(){
+    const id=Date.now().toString(36)+'-'+this.seq;
+    const firm=rand(['Aurelian','Sterling','Marquette','Whitmore','Ashford','Kingsbridge','Brunswick','Pemberton','Cadogan','Tremont']);
+    const body={
+      email:`applicant-adv-${id}@aurumprism.test`,
+      firm_name:`${firm} ${rand(['Capital','Partners','Advisory','Holdings','Group'])}`,
+      name:`${rand(['Alex','Jordan','Morgan','Casey','Riley','Drew'])} ${rand(['Kim','Tan','Lee','Chen','Wong','Ng'])}`,
+      title:rand(['Managing Partner','Director','CIO','Head of Origination','Principal']),
+      phone:`+65 ${randInt(8000,9999)} ${randInt(1000,9999)}`,
+      firm_website:`https://${firm.toLowerCase()}-${this.seq}.example.com`,
+      jurisdiction:rand(['Singapore','Cayman Islands','Delaware USA','UK','Hong Kong']),
+      year_founded:randInt(1995,2024),
+      regulatory_status:rand(['MAS RFMC','SEC RIA','FCA AIFM','Singapore VCC','Unregulated','HK SFC Type 9']),
+      aum_managed:rand(['<$50M','$50M–$250M','$250M–$1B','$1B–$5B','>$5B']),
+      primary_asset_classes:[rand(['credit','private_equity','real_estate','infrastructure','real_assets'])],
+    };
+    try{
+      await botFetch('/api/v2?resource=advisor&op=register',{method:'POST',body:JSON.stringify(body)});
+      return {persona:this.persona,action:`Advisor signup: ${body.firm_name}`,ok:true};
+    }catch(e){
+      if(e.status===400&&/already registered/i.test(e.message))return {persona:this.persona,action:`Advisor signup skip (dup email)`,ok:true};
+      throw e;
+    }
+  }
+  async applyInvestor(){
+    const id=Date.now().toString(36)+'-'+this.seq;
+    const isInst=Math.random()<0.6;
+    const firm=isInst
+      ? `${rand(['Atlas','Meridian','Sterling','Hargrove','Westbrook','Pinehurst'])} ${rand(['Capital','Asset Management','Endowment','Fund'])}`
+      : `${rand(['Whitmore','Tanaka','Ashford','Stonegate','Sterling'])} Family Office`;
+    const body={
+      email:`applicant-inv-${id}@aurumprism.test`,
+      firm_name:firm,
+      contact_name:`${rand(['Alex','Jordan','Sam','Pat','Drew','Casey'])} ${rand(['K','L','C','M','T','N'])}.`,
+      category:isInst?'institutional':'hnw',
+      institution_type:isInst?rand(['Family Office','Fund of Funds','Endowment / Foundation']):rand(['Single-Family Office','Trust / Private Investment Vehicle','Individual / Private']),
+      aum_range:rand(['Under $250M','$250M – $1B','Over $1B']),
+      ticket_range:rand(['$250K – $1M','$1M – $5M','$5M – $20M']),
+      invest_focus:rand(['Private Credit','Pre-IPO / Growth Equity','Infrastructure','All of the above']),
+      role:'CIO',
+    };
+    try{
+      await botFetch('/api/v2?resource=inst&op=register',{method:'POST',body:JSON.stringify(body)});
+      return {persona:this.persona,action:`Investor signup: ${firm} (${body.category})`,ok:true};
+    }catch(e){
+      if(e.status===400&&/already registered/i.test(e.message))return {persona:this.persona,action:`Investor signup skip (dup email)`,ok:true};
+      throw e;
+    }
+  }
+}
+
+const bots={advisor:new AdvisorBot(),admin:new AdminBot(),investor:new InvestorBot(),applicant:new ApplicantBot()};
 
 /* ========== Driver loop ========== */
 function startPersonaLoop(persona){
@@ -684,8 +788,12 @@ function startPersonaLoop(persona){
         }
       }
       const base=SPEED_MS[state.speedKey];
-      if(base===0){await Promise.resolve();}
-      else{const jitter=0.7+Math.random()*0.6;await sleep(Math.round(base*jitter));}
+      // ApplicantBot deliberately slow: pressure-tests signup flow without
+      // burning Redis ops on a hot loop. Floored at 5s regardless of speed.
+      const personaFloor=persona==='applicant'?5000:base;
+      const interval=Math.max(personaFloor,base);
+      if(interval<=50){await sleep(50);}
+      else{const jitter=0.7+Math.random()*0.6;await sleep(Math.round(interval*jitter));}
     }
     delete state.loops[persona];
   })();
@@ -699,7 +807,7 @@ async function startBots(){
   document.getElementById('btn-pause').disabled=false;
   setStatus();
   refreshCounters();
-  for(const p of ['advisor','admin','investor']){
+  for(const p of ['advisor','admin','investor','applicant']){
     if(state.personas[p])startPersonaLoop(p);
   }
 }

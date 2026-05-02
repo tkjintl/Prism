@@ -334,9 +334,24 @@ B-5 fixed the *symptom* via defensive direct lookup. Root cause not investigated
 - Add a unit test in `api/v2.js` test suite that writes 200 inst:* keys, then immediately calls `kvKeys('inst:*')` 10× concurrently. If any call returns < 200 keys, the issue is real.
 - If real, audit every other `kvKeys(...)` call site (~12 locations in v2.js per `grep -n kvKeys api/v2.js`) and replace with sorted-set-index reads.
 
-## OQ-3 — Deal stage transitions past `dd` not exercised
-**Where in code:** AdminBot in `bot-driver.html` only calls `publish-deal` and `push-package`. There's no admin endpoint to advance from `dd → terms → close → realized`.
-**Action:** Either add a generic admin op `advance-stage` in `api/v2.js`, or wire AdminBot to call whatever specific endpoint exists for each transition. Then code paths in `api/v2.js` for terms/close/realized stages get exercised.
+## OQ-3 — Deal stage transitions past `dd` ✅ DONE
+**Status:** Closed in this session.
+**What was added:**
+- `admin&op=advance-stage` (api/v2.js) — generic stage advancer for `dd→terms`, `terms→close`, `close→realized`, and `*→killed`. Validates transition table, appends audit entry, busts marketplace cache.
+- AdminBot extended to pick `advance_dd_to_terms` / `advance_terms_to_close` / `advance_close_to_realized` from its action choices when matching deals exist.
+**Result:** Bot now drives the full lifecycle `submit → review → live → ioi → dd → terms → close → realized`. Real production endpoints exercised at every stage.
+
+## OQ-7 — Advisor + investor signup approval flow ✅ DONE
+**Status:** New entry, closed in same session.
+**What was added:**
+- `advisor&op=register` (public) — advisor self-signup with required profile (firm_name, name, title, phone, firm_website, jurisdiction, year_founded, regulatory_status, aum_managed, primary_asset_classes). Status='pending'.
+- `admin&op=approve-advisor` — approves a pending advisor; re-validates required profile fields; generates temp password; sends welcome (suppressed under BOT_MODE).
+- `admin&op=pending-advisors` — lists pending advisor applications for the admin queue.
+- `ApplicantBot` persona (bot-driver.html) — generates fake advisor + investor signups at 5s/tick (slow rate to avoid burn). 50/50 split between advisor and investor applications.
+- AdminBot extended to also approve pending advisors (in addition to existing pending investors).
+**Investor signup approval flow** was already wired (existing `inst&op=register` + `admin&op=approve`). ApplicantBot now exercises both halves end-to-end.
+**Email triggers fire** in BOT_MODE — Resend calls suppressed but each notification path is invoked, so any bug in the trigger path surfaces in logs without sending real email.
+**Production fix queue** correspondingly updated below.
 
 ## OQ-4 — Email triggers under bot load not exercised
 **Where in code:** `api/_lib/email.js send()` short-circuits when `BOT_MODE === '1'` (the suppression we want for bot tests).

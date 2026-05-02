@@ -358,6 +358,49 @@ async function _handler(req, res, resource, op) {
       return ok(res, { deals });
     }
 
+    if (op === 'register') {
+      // PUBLIC advisor self-signup. Status='pending'. Admin must approve.
+      // Required fields below mirror what an institutional onboarding form
+      // would ask: company profile + primary contact + regulatory posture.
+      const ip = getClientIp(req);
+      if (!(await shouldBypassRateLimit(req)) && await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+      const data = req.body || {};
+      const required = ['email','firm_name','name','title','phone','firm_website','jurisdiction','year_founded','regulatory_status','aum_managed','primary_asset_classes'];
+      const missing = required.filter(k => {
+        const v = data[k];
+        if (k === 'primary_asset_classes') return !Array.isArray(v) || v.length === 0;
+        return v == null || String(v).trim() === '';
+      });
+      if (missing.length) return bad(res, 'Missing required fields: ' + missing.join(', '), 400);
+      const email = String(data.email).toLowerCase().trim();
+      if (await kvGet(`advisor_email:${email}`)) return bad(res, 'Email already registered');
+      const id = 'adv-' + Date.now().toString(36);
+      const adv = {
+        id, email,
+        firm_name: String(data.firm_name).trim(),
+        name: String(data.name).trim(),
+        title: String(data.title).trim(),
+        phone: String(data.phone).trim(),
+        firm_website: String(data.firm_website).trim(),
+        jurisdiction: String(data.jurisdiction).trim(),
+        year_founded: parseInt(data.year_founded) || null,
+        regulatory_status: String(data.regulatory_status).trim(),
+        aum_managed: String(data.aum_managed).trim(),
+        primary_asset_classes: Array.isArray(data.primary_asset_classes) ? data.primary_asset_classes : [],
+        intro_fee_pct: 1,
+        carry_pct: 10,
+        status: 'pending',
+        requires_setup: true,
+        password_hash: null, // set on approval
+        created_at: new Date().toISOString(),
+      };
+      await kvSet(`advisor:${id}`, adv);
+      await kvSet(`advisor_email:${email}`, id);
+      // Operator alert (suppressed in BOT_MODE) — reuses existing welcome trigger as notification stub
+      await sendAdvisorWelcome(adv, '[pending operator approval]').catch(() => {});
+      return ok(res, { advisor: sanitizeAdvisor(adv), message: 'Application submitted. Operator review within 5 business days.' });
+    }
+
     if (op === 'create') {
       // Admin creates advisor account
       const admin = await getAdmin();
@@ -1397,6 +1440,76 @@ async function _handler(req, res, resource, op) {
   // ADMIN RESOURCE
   // ─────────────────────────────────────────────────────────────
   if (resource === 'admin') {
+
+    if (op === 'approve-advisor') {
+      // Admin approves a pending advisor signup. Re-validates that all
+      // required profile fields are present (admin can't accidentally
+      // approve someone with a partial application). Generates temp
+      // password, sends welcome (suppressed under BOT_MODE).
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { advisor_id } = req.body || {};
+      if (!advisor_id) return bad(res, 'advisor_id required');
+      const adv = await kvGet(`advisor:${advisor_id}`);
+      if (!adv) return bad(res, 'Advisor not found', 404);
+      if (adv.status === 'active') return bad(res, 'Advisor already active');
+      const required = ['email','firm_name','name','title','phone','firm_website','jurisdiction','year_founded','regulatory_status','aum_managed'];
+      const missing = required.filter(k => adv[k] == null || String(adv[k]).trim() === '');
+      if (!Array.isArray(adv.primary_asset_classes) || adv.primary_asset_classes.length === 0) missing.push('primary_asset_classes');
+      if (missing.length) return bad(res, 'Cannot approve — incomplete profile: ' + missing.join(', '), 400);
+      const tempPw = generateTempPassword();
+      adv.status = 'active';
+      adv.password_hash = await bcrypt.hash(tempPw, 12);
+      adv.requires_setup = true;
+      adv.approved_at = new Date().toISOString();
+      adv.approved_by = admin.email;
+      await kvSet(`advisor:${advisor_id}`, adv);
+      await sendAdvisorWelcome(adv, tempPw).catch(console.error);
+      return ok(res, { advisor: sanitizeAdvisor(adv) });
+    }
+
+    if (op === 'pending-advisors') {
+      // List pending advisor applications for admin queue
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const keys = await kvKeys('advisor:adv-*');
+      const advisors = (await Promise.all(keys.map(k => kvGet(k))))
+        .filter(a => a && a.status === 'pending')
+        .map(sanitizeAdvisor);
+      return ok(res, { advisors });
+    }
+
+    if (op === 'advance-stage') {
+      // Generic admin stage advancer for transitions not covered by
+      // publish-deal (review→live) or push-package (live/ioi→dd).
+      // Specifically: dd→terms, terms→close, close→realized, *→killed.
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId, target } = req.body || {};
+      if (!dealId || !target) return bad(res, 'dealId and target required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      const VALID_TRANSITIONS = {
+        dd: ['terms', 'killed'],
+        terms: ['close', 'killed'],
+        close: ['realized', 'killed'],
+      };
+      const allowed = VALID_TRANSITIONS[deal.stage] || [];
+      if (!allowed.includes(target)) {
+        return bad(res, `Cannot advance from ${deal.stage} to ${target}. Allowed: ${allowed.join(', ') || 'none'}`, 400);
+      }
+      const now = new Date().toISOString();
+      const fromStage = deal.stage;
+      deal.stage = target;
+      deal.updated_at = now;
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push({ at: now, actor: admin.email, action: 'stage_changed', meta: { from: fromStage, to: target } });
+      await saveDeal(deal);
+      await appendAuditEntry(dealId, { at: now, actor: admin.email, action: 'stage_changed', meta: { from: fromStage, to: target } });
+      // Bust marketplace cache so investors see stage change within 5s
+      try { await kvDel('cache:marketplace:public'); await kvDel('cache:marketplace:admin'); } catch {}
+      return ok(res, { deal });
+    }
 
     if (op === 'approve') {
       const admin = await getAdmin();
