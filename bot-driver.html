@@ -128,8 +128,9 @@ input:focus{border-color:var(--gold)}
 .persona-toggle input{display:none}
 .persona-toggle .swatch{width:8px;height:8px;border-radius:50%}
 .persona-advisor .swatch{background:var(--gold)}
-.persona-admin .swatch{background:var(--blue)}
-.persona-investor .swatch{background:var(--green)}
+.persona-admin .swatch{background:#5b9cd8}
+.persona-investor .swatch{background:#5fb87f}
+.persona-applicant .swatch{background:#b794e0}
 
 .control-label{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-right:4px}
 
@@ -143,10 +144,11 @@ input:focus{border-color:var(--gold)}
 .log-row.err{background:var(--red-bg)}
 .log-row .ts{font-family:var(--mono);font-size:10px;color:var(--text-3);font-variant-numeric:tabular-nums}
 .log-row .tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:10px;text-align:center;border:1px solid}
+/* Distinct persona colors — gold/blue/green/violet so log rows are scannable at a glance */
 .tag-advisor{color:var(--gold);background:var(--gold-bg);border-color:var(--gold-bd)}
-.tag-admin{color:var(--blue);background:var(--blue-bg);border-color:var(--blue-bd)}
-.tag-investor{color:var(--green);background:var(--green-bg);border-color:var(--green-bd)}
-.tag-applicant{color:#bca888;background:rgba(188,168,136,.08);border-color:rgba(188,168,136,.3)}
+.tag-admin{color:#5b9cd8;background:rgba(91,156,216,.08);border-color:rgba(91,156,216,.3)}
+.tag-investor{color:#5fb87f;background:rgba(95,184,127,.08);border-color:rgba(95,184,127,.3)}
+.tag-applicant{color:#b794e0;background:rgba(183,148,224,.10);border-color:rgba(183,148,224,.35)}
 .log-row .msg{color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .log-row.err .msg{color:var(--red)}
 .log-row .ok{font-family:var(--mono);font-size:13px;text-align:center}
@@ -570,9 +572,9 @@ class AdminBot{
     const termsDeals=recent.filter(d=>d.stage==='terms');
     const closeDeals=recent.filter(d=>d.stage==='close');
 
-    // Pending advisor signups — fetched lazily, only when nothing else to do
-    let pendingAdvisors=[];
-    try{const aj=await botFetch('/api/v2?resource=admin&op=pending-advisors');pendingAdvisors=aj.advisors||[];}catch(e){}
+    // Pending advisor signups — now included in sandbox-status payload
+    // so we don't make a separate fetch (saves a Redis op per tick).
+    const pendingAdvisors=status.pending_advisors||[];
 
     const choices=[];
     if(reviewDeals.length)choices.push('publish');

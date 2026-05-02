@@ -3115,6 +3115,17 @@ Return ONLY valid JSON in this exact structure:
       auditEntries.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
       const audit = auditEntries.slice(0, 50);
 
+      // Pending investor + advisor lists for AdminBot's approval queue.
+      // Computed from data already fetched above — zero extra Redis ops.
+      const pending_investors = investors
+        .filter(i => i.status === 'pending')
+        .slice(0, 25)
+        .map(i => ({ id: i.id, email: i.email, firm_name: i.firm_name, contact_name: i.contact_name, category: i.category }));
+      const pending_advisors = [...advMap.values()]
+        .filter(a => a.status === 'pending')
+        .slice(0, 25)
+        .map(a => ({ id: a.id, email: a.email, firm_name: a.firm_name, name: a.name }));
+
       const payload = {
         counts: {
           deals: allDeals.length,
@@ -3127,6 +3138,8 @@ Return ONLY valid JSON in this exact structure:
         },
         recent_deals,
         recent_iois,
+        pending_investors,
+        pending_advisors,
         audit,
       };
       // Cache for 5s — keeps polling cheap. Reset endpoint should bust this cache.
