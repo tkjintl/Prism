@@ -1540,19 +1540,105 @@ a{color:inherit;text-decoration:none}
   .hero-stat { border-left: none !important; border-right: none !important; padding-left: 0 !important; margin-left: 0 !important; }
 }
 
-/* ── GREETING: large serif headline matching advisor portal ── */
+/* ── MOBILE FULL-PANE HERO: investor portal — prism + greeting fills viewport ── */
 @media(max-width:768px){
+  /* Hero fills available height below nav; 44px left so first deal section peeks */
+  .lobby-hero{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    height:calc(100svh - var(--nav-h) - 44px)!important;
+    height:calc(100vh - var(--nav-h) - 44px)!important;
+    min-height:0!important;
+    overflow:visible!important;
+    grid-template-columns:none!important;
+    padding:0!important;
+    position:relative!important;
+  }
+
+  /* Prism: first, large — ~46% of available height */
+  .hero-visual{
+    order:-1!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    flex:0 0 46vh!important;
+    flex:0 0 46svh!important;
+    min-height:0!important;
+    max-height:none!important;
+    padding:0!important;
+    background:none!important;
+  }
+  .inv-vis-inner{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    width:min(300px,88vw)!important;
+    margin:0 auto!important;
+    gap:0!important;
+  }
+  .prism-svg-wrap{width:100%!important;animation:prismEnter .9s .1s var(--ease) both,prismRotate 6s .9s ease-in-out infinite!important}
+  .prism-svg{display:block!important;width:100%!important;height:auto!important}
+  .inv-deal-ring{display:none!important}
+  .ring-float{display:none!important}
+  .ring-detail-card{display:none!important}
+
+  /* Greeting: second item, large centered, 2 lines (greeting / name) */
   .lobby-greeting{
-    font-family:'Cormorant Garamond',Georgia,serif !important;
-    font-style:italic !important;
-    font-size:clamp(36px,9vw,56px) !important;
-    font-weight:400 !important;
-    line-height:1.05 !important;
-    letter-spacing:-.015em !important;
-    color:var(--text) !important;
-    padding:clamp(20px,4vh,40px) 20px 0 !important;
-    position:static !important;
-    pointer-events:none;
+    order:1!important;
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    text-align:center!important;
+    font-family:'Cormorant Garamond',Georgia,serif!important;
+    font-style:italic!important;
+    font-size:clamp(34px,9.5vw,54px)!important;
+    font-weight:400!important;
+    line-height:1.1!important;
+    letter-spacing:-.015em!important;
+    color:var(--text)!important;
+    padding:0 20px 0!important;
+    pointer-events:none!important;
+    z-index:2!important;
+  }
+  /* Greeting words ("Good evening,") stay inline — white */
+  .lobby-greeting .greet-word{
+    display:inline!important;
+    color:var(--text)!important;
+  }
+  /* Name ("James Walker") breaks to its own line in gold */
+  .lobby-greeting .greet-name{
+    display:block!important;
+    color:var(--gold-b)!important;
+    font-style:italic!important;
+    margin-top:2px!important;
+  }
+
+  /* Deal content: third item, sits just below fold — peeks + scrolls into view */
+  .hero-content{
+    order:2!important;
+    width:100%!important;
+    flex-shrink:0!important;
+    padding:20px 20px 0!important;
+    justify-content:flex-start!important;
+  }
+  /* Scroll chevron at bottom of hero area */
+  .lobby-hero::after{
+    content:''!important;
+    position:absolute!important;
+    bottom:-28px!important;
+    left:50%!important;
+    width:16px!important;
+    height:16px!important;
+    border-right:1.5px solid rgba(197,165,114,.5)!important;
+    border-bottom:1.5px solid rgba(197,165,114,.5)!important;
+    transform:translateX(-50%) rotate(45deg)!important;
+    animation:chevronBounce 2s ease-in-out infinite!important;
+    background:none!important;
+    background-image:none!important;
+    background-size:unset!important;
+    z-index:10!important;
   }
 }
 </style>
