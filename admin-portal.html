@@ -4467,7 +4467,7 @@ function closeAdminDealPanel(){
   panel.classList.remove('adp-open');
   setTimeout(()=>{panel.style.display='none';},320);
 }
-function submitAdminDeal(){
+async function submitAdminDeal(){
   const name=(document.getElementById('adp-name')?.value||'').trim();
   const assetClass=document.getElementById('adp-asset-class')?.value||'';
   const structure=document.getElementById('adp-structure')?.value||'';

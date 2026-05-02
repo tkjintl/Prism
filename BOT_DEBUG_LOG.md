@@ -10,6 +10,66 @@ Each entry includes file path + line numbers + exact diff prescription, so all o
 
 # Open / Pending Fixes (apply in this order)
 
+## P-9 · `marketplace&op=approve-ioi` not idempotent ❌ OPEN — production bug
+
+**File:** `api/v2.js` line ~3196 (approve-ioi handler)
+**Severity:** High — duplicate emails to investors in production
+**Symptom in bot test:** AdminBot reads cached sandbox-status (5s TTL); within one cache window, ~12 ticks at 5× speed all see the same pending IOI and approve it. API happily re-approves on every call. Action log shows "Approved IOI IOI-DL-BOT0008-001" four times in 4 seconds.
+**Production impact:** an operator double-clicking the Approve button, or a network retry, sends `sendDataRoomAccess(...)` email to the investor multiple times.
+
+**Fix prescription (when batching):**
+
+In `api/v2.js`, locate the approve-ioi handler. Right after `const ioi = await kvGet(...)` and the `if (!ioi) return bad('IOI not found', 404)` line, add:
+```js
+if (ioi.status === 'approved') {
+  return ok(res, { ioi, idempotent: true });
+}
+```
+Body unchanged otherwise. The kvSet + counter recalc + email send only runs on the first call; subsequent calls return the existing IOI without side effects.
+
+---
+
+## P-10 · `admin&op=publish-deal` not idempotent ❌ OPEN — production bug
+
+**File:** `api/v2.js` line ~1654 (publish-deal handler)
+**Severity:** Medium — duplicate audit entries + duplicate stage_changed emails
+**Symptom in bot test:** "Published 'Northwind Renewables Fund · 2024-06' to live" appeared 5 times in 5 seconds.
+**Production impact:** if an operator clicks Publish twice (or a retry), the audit log gets duplicate `stage_changed` entries and the email-on-stage-change fires multiple times.
+
+**Fix prescription:**
+
+After `const deal = await getDeal(dealId)` and the `if (!deal) return bad(...)` line:
+```js
+if (deal.stage === 'live') {
+  return ok(res, { deal, idempotent: true });
+}
+```
+Place this BEFORE the `validateDealForPublish(deal)` call so re-publishing doesn't re-validate (the deal is already live, validation passed once).
+
+---
+
+## P-11 · `admin&op=approve` (investor) not idempotent ❌ OPEN — production bug
+
+**File:** `api/v2.js` line ~1444 (admin approve handler)
+**Severity:** High — duplicate access-code emails to investors
+**Symptom in bot test:** "Approved investor Ashford Family Office" appeared 4 times in 6 seconds.
+**Production impact:** a real investor receives multiple "your access code is X" emails, eroding trust. Worse: each call generates a NEW `code` via `'INST-' + generateCode()` and overwrites `inst.code`, so each call also INVALIDATES the previously-emailed code. If they were on the line of receiving codes 1, 2, 3, only code 3 works — codes 1 and 2 are dead.
+
+**Fix prescription:**
+
+After `const inst = await kvGet(...)` and `if (!inst) return bad('Institution not found', 404)`, BEFORE the `reveal_code` branch:
+```js
+// reveal_code is the explicit re-fetch path — leave that flow unchanged.
+if (!reveal_code && inst.status === 'approved') {
+  return ok(res, { inst: sanitizeInst(inst), idempotent: true });
+}
+```
+This preserves the existing `reveal_code` flow (operator can ask to see the code for an already-approved investor) while preventing accidental re-approval from rotating the code or re-firing the email.
+
+**Code rotation as a separate concern:** the access code SHOULD only be generated once. If lost, operator should reset via a deliberate `op=rotate-code` endpoint, not by re-clicking Approve. That's a follow-up.
+
+---
+
 ## P-7 · No required-content gating before deal can be published ✅ FIXED
 
 **Files:** `api/_lib/deal-storage.js`, `api/v2.js`, `advisor-portal.html`, `admin-portal.html`, `bot-driver.html`
