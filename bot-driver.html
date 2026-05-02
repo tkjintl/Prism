@@ -498,13 +498,24 @@ class AdvisorBot{
   }
   async submitDeal(){
     const t=rand(DEAL_TEMPLATES);
+    const tagline=`${t.deal_structure==='senior_secured'?'Senior secured':t.deal_structure==='equity'?'Equity':t.deal_structure==='royalty'?'Royalty':t.deal_structure==='mezzanine'?'Mezzanine':'Preferred equity'} ${t.geography==='US'?'US':t.geography==='APAC'?'Asia-Pacific':t.geography==='EU'?'European':t.geography==='Australia'?'Australian':'global'} ${t.asset_class==='credit'?'credit':t.asset_class==='real_estate'?'real estate':t.asset_class==='infrastructure'?'infrastructure':t.asset_class==='private_equity'?'private equity':'real assets'} opportunity`;
+    const overview=`${t.originator} originates ${t.deal_structure.replace('_',' ')} ${t.asset_class.replace('_',' ')} transactions across ${t.geography}. Underwritten with institutional discipline and reviewed by Aurum Prism advisors before listing. Target IRR ${t.target_irr}% over ${t.term_months} months with a ${t.hurdle_rate}% hurdle.`;
+    const highlights=[
+      `Target IRR ${t.target_irr}% with ${t.hurdle_rate}% hurdle rate`,
+      `${t.term_months}-month term · ${t.deal_structure.replace('_',' ')} structure`,
+      `Originated by ${t.originator} (${t.geography})`,
+    ];
     const body={
       name:`${t.name} · ${randInt(2024,2027)}-${String(randInt(1,12)).padStart(2,'0')}`,
       asset_class:t.asset_class,geography:t.geography,deal_structure:t.deal_structure,
+      originator:t.originator,
+      tagline,
+      company_overview:overview,
+      thesis:t.thesis+' '+overview.slice(0,80),
+      highlights,
       target_alloc_usd:randInt(5,150)*1_000_000,
-      target_irr:t.target_irr+(Math.random()*4-2),
+      target_irr:Math.round((t.target_irr+(Math.random()*4-2))*10)/10,
       term_months:t.term_months,hurdle_rate:t.hurdle_rate,
-      originator:t.originator,thesis:t.thesis,
       min_ticket_usd:[100000,250000,500000,1000000][randInt(0,3)],
       closing_date:new Date(Date.now()+randInt(30,180)*86400000).toISOString().slice(0,10),
     };

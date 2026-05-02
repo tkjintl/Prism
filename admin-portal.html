@@ -1939,12 +1939,20 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
         </div>
       </div>
       <div class="adp-field" style="margin-top:12px">
-        <label class="adp-label">Company Overview</label>
+        <label class="adp-label">Tagline *</label>
+        <input class="adp-input" id="adp-tagline" type="text" maxlength="120" placeholder="One-line headline used on the investor card">
+      </div>
+      <div class="adp-field" style="margin-top:12px">
+        <label class="adp-label">Company Overview * <span style="color:var(--text-3);font-size:10px">(min 50 chars)</span></label>
         <textarea class="adp-textarea" id="adp-overview" rows="2" placeholder="2–3 sentence company description for investor materials…"></textarea>
       </div>
       <div class="adp-field" style="margin-top:12px">
-        <label class="adp-label">Investment Thesis</label>
+        <label class="adp-label">Investment Thesis * <span style="color:var(--text-3);font-size:10px">(min 50 chars)</span></label>
         <textarea class="adp-textarea" id="adp-thesis" rows="3" placeholder="Investor-facing thesis paragraph — why this deal, what makes it compelling…"></textarea>
+      </div>
+      <div class="adp-field" style="margin-top:12px">
+        <label class="adp-label">Investment Highlights * <span style="color:var(--text-3);font-size:10px">(one per line, min 2)</span></label>
+        <textarea class="adp-textarea" id="adp-highlights" rows="4" placeholder="Floating-rate paper · 3-month SOFR + 650bps&#10;Senior secured first lien · 1.5x asset coverage&#10;Sponsor-backed by tier-1 PE, $400M EBITDA portfolio"></textarea>
       </div>
     </div>
     <div class="adp-section">
@@ -4424,34 +4432,66 @@ function closeAdminDealPanel(){
 function submitAdminDeal(){
   const name=(document.getElementById('adp-name')?.value||'').trim();
   const assetClass=document.getElementById('adp-asset-class')?.value||'';
-  if(!name){toast('Company/deal name is required','err');return;}
-  if(!assetClass){toast('Asset class is required','err');return;}
+  const structure=document.getElementById('adp-structure')?.value||'';
+  const geography=(document.getElementById('adp-geography')?.value||'').trim();
+  const source=(document.getElementById('adp-source')?.value||'Aurum Prism Proprietary').trim();
+  const tagline=(document.getElementById('adp-tagline')?.value||'').trim();
+  const overview=(document.getElementById('adp-overview')?.value||'').trim();
+  const thesis=(document.getElementById('adp-thesis')?.value||'').trim();
+  const highlightsRaw=(document.getElementById('adp-highlights')?.value||'');
+  const highlights=highlightsRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+  const targetAlloc=readAmt(document.getElementById('adp-alloc'))||0;
+  const targetIrr=parseFloat(document.getElementById('adp-irr')?.value)||0;
+  const term=parseInt(document.getElementById('adp-term')?.value)||0;
+  const hurdle=parseFloat(document.getElementById('adp-hurdle')?.value);
+  const minTicket=readAmt(document.getElementById('adp-ticket'))||0;
+  const closing=document.getElementById('adp-closing')?.value||'';
+
+  const missing=[];
+  if(!name) missing.push('Company / Deal Name');
+  if(!assetClass) missing.push('Asset Class');
+  if(!structure) missing.push('Deal Structure');
+  if(!geography) missing.push('Geography');
+  if(!source) missing.push('Source / Origin');
+  if(!tagline) missing.push('Tagline');
+  if(!overview||overview.length<50) missing.push('Company Overview (min 50 chars)');
+  if(!thesis||thesis.length<50) missing.push('Investment Thesis (min 50 chars)');
+  if(highlights.length<2) missing.push('Investment Highlights (min 2)');
+  if(!targetIrr||targetIrr<=0) missing.push('Target IRR');
+  if(!term||term<=0) missing.push('Term (months)');
+  if(isNaN(hurdle)||hurdle<0) missing.push('Hurdle Rate');
+  if(!targetAlloc||targetAlloc<1000) missing.push('Target Allocation');
+  if(!minTicket||minTicket<=0) missing.push('Minimum Ticket');
+  if(!closing) missing.push('Target Closing Date');
+  if(missing.length){
+    toast('Missing: '+missing.slice(0,3).join(', ')+(missing.length>3?` (+${missing.length-3} more)`:''),'err');
+    return;
+  }
+
   const id='admin-'+Date.now().toString(36);
   const deal={
-    id,name,asset_class:assetClass,
-    structure:document.getElementById('adp-structure')?.value||'',
-    geography:document.getElementById('adp-geography')?.value||'',
-    company_overview:document.getElementById('adp-overview')?.value||'',
-    thesis:document.getElementById('adp-thesis')?.value||'',
-    target_irr:parseFloat(document.getElementById('adp-irr')?.value)||0,
-    hurdle_rate:parseFloat(document.getElementById('adp-hurdle')?.value)||0,
-    term:parseInt(document.getElementById('adp-term')?.value)||36,
-    target_alloc:readAmt(document.getElementById('adp-alloc'))||0,
-    min_ticket:readAmt(document.getElementById('adp-ticket'))||0,
-    closing:document.getElementById('adp-closing')?.value||'',
-    advisor:'Aurum Prism',advisor_firm:document.getElementById('adp-source')?.value||'Aurum Prism Proprietary',
+    id,name,asset_class:assetClass,structure,geography,
+    tagline,company_overview:overview,thesis,highlights,
+    target_irr:targetIrr,hurdle_rate:hurdle,term,
+    target_alloc:targetAlloc,min_ticket:minTicket,closing,
+    advisor:'Aurum Prism',advisor_firm:source,
     submitted:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
     stage:'review',iois:[],ioi_agg:0,
     docs:[],
     _admin_created:true,
   };
-  // Also POST to API
-  api('POST','/api/advisor/deals',{
-    name:deal.name,asset_class:deal.asset_class,structure:deal.structure,geography:deal.geography,
-    company_overview:deal.company_overview,mk_notes:deal.thesis,
-    target_alloc_usd:deal.target_alloc,target_irr:deal.target_irr,term_months:deal.term,
-    hurdle_rate:deal.hurdle_rate,min_ticket_usd:deal.min_ticket,closing_date:deal.closing,
-  }).catch(()=>{});
+  // Also POST to API — server enforces same gates and returns missing list
+  const apiResp=await api('POST','/api/advisor/deals',{
+    name,asset_class:assetClass,deal_structure:structure,geography,originator:source,
+    tagline,company_overview:overview,thesis,highlights,
+    target_alloc_usd:targetAlloc,target_irr:targetIrr,term_months:term,
+    hurdle_rate:hurdle,min_ticket_usd:minTicket,closing_date:closing,
+  }).catch(e=>e);
+  if(apiResp&&apiResp.ok===false){
+    const apiMissing=apiResp.missing||[];
+    toast('Server rejected — '+(apiMissing.length?apiMissing.slice(0,3).join(', '):apiResp.error||'unknown'),'err');
+    return;
+  }
   NEW_SUBMISSIONS.unshift(deal);
   closeAdminDealPanel();
   renderKPIs();

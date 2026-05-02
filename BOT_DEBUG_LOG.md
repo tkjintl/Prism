@@ -10,7 +10,25 @@ Each entry includes file path + line numbers + exact diff prescription, so all o
 
 # Open / Pending Fixes (apply in this order)
 
-## P-7 · No required-content gating before deal can be published ❌ OPEN — production gap
+## P-7 · No required-content gating before deal can be published ✅ FIXED
+
+**Files:** `api/_lib/deal-storage.js`, `api/v2.js`, `advisor-portal.html`, `admin-portal.html`, `bot-driver.html`
+**Commit:** (this session)
+**Severity:** Was: Medium-High. Now: closed.
+**Fix shipped:**
+1. New `validateDealForSubmission(data)` and `validateDealForPublish(deal)` exported from `deal-storage.js`. Both share the same field list: name, asset_class, deal_structure, geography, originator, tagline, company_overview (≥50ch), thesis (≥50ch), highlights (≥2), target_alloc_usd, target_irr, term_months, hurdle_rate, min_ticket_usd, closing_date.
+2. `createDeal` throws `DEAL_VALIDATION` error with `missing` array when any required field is missing. The `advisor&op=deals` POST handler converts that to a 400 response with the missing field list.
+3. `admin&op=publish-deal` re-validates before transitioning stage to `live` — admin cannot publish an incomplete deal. Returns 400 with missing-field list.
+4. **Advisor wizard** (`advisor-portal.html`): added `originator`, `tagline`, `highlights` (multi-line) inputs. Fixed long-standing bug where `thesis` was being stored as `mk_notes` so investor portal saw empty thesis. Client-side validation gates submit and jumps back to the failing step.
+5. **Admin "Add New Deal" form**: added same fields. Same client-side validation. Server-side rejection surfaces missing fields in toast.
+6. **AdvisorBot** (`bot-driver.html`): submitDeal now constructs tagline + company_overview + highlights from template data so bot deals pass the gate.
+**Verification on next bot run:** AdvisorBot submissions should succeed; if any deal slips through with missing fields, the API now returns 400 + the missing list (visible in action log as a red row).
+
+---
+
+## P-7-OLD-ENTRY — kept for reference
+
+(Original entry below superseded by ✅ FIXED above; kept until next log compaction.)
 
 **Files:** `api/_lib/deal-storage.js` `createDeal` (lines 54–~95) + `api/v2.js` `publish-deal` op
 **Severity:** Medium-High (investor experience / brand integrity)
@@ -462,7 +480,7 @@ New free Upstash database `crisp-kite-113455` created. Vercel env vars updated. 
 
 **Production code fixes (real platform):**
 1. **P-6** atomic IOI counters — `api/_lib/deal-storage.js` lines 14–27, `getDeal` line 33, `api/v2.js` 5 call sites (lines 649, 2364, 3196, 3217, 3240), `api/_lib/bot-seed.js` seed counter keys.
-2. **P-7** required-content gating before publish — Option B (publish-time validation). `api/v2.js` `publish-deal` op + `advisor-portal.html` form required attrs.
+2. ~~P-7 required-content gating~~ ✅ DONE this session.
 3. **P-8** remove / disable AI generation tool — operator preference. Approach 2 (env flag).
 4. **B-12** admin display formatting cleanup — round IRR, format dates, NaNd → `—`, dedup separators. ~5 lines in `admin-portal.html`.
 

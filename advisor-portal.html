@@ -1363,8 +1363,12 @@ function wizSaveStep(){
     wizData.asset_class=document.getElementById('wiz-asset-class')?.value||'';
     wizData.structure=document.getElementById('wiz-structure')?.value||'';
     wizData.geography=(document.getElementById('wiz-geography')?.value||'').trim();
+    wizData.originator=(document.getElementById('wiz-originator')?.value||'').trim();
+    wizData.tagline=(document.getElementById('wiz-tagline')?.value||'').trim();
     wizData.company_overview=(document.getElementById('wiz-company-overview')?.value||'').trim();
     wizData.thesis=(document.getElementById('wiz-thesis')?.value||'').trim();
+    const rawHl=(document.getElementById('wiz-highlights')?.value||'');
+    wizData.highlights=rawHl.split('\n').map(s=>s.trim()).filter(Boolean);
   }else if(wStep===2){
     wizData.irr=document.getElementById('wiz-irr')?.value||'';
     wizData.term=document.getElementById('wiz-term')?.value||'';
@@ -2526,13 +2530,22 @@ function renderWizard(){
       <div><label class="field-label">Structure</label>
         <select class="field-select" id="wiz-structure"><option value="">Select…</option>${stOpts}</select></div>
     </div></div>
-    <div class="field-section"><label class="field-label">Geography</label>
+    <div class="field-section"><label class="field-label">Geography <span class="field-req">*</span></label>
       <input class="field-input" id="wiz-geography" type="text" placeholder="e.g. North America, Asia-Pacific" value="${wizData.geography||''}"></div>
+    <div class="field-section"><label class="field-label">Originator / Sponsor <span class="field-req">*</span></label>
+      <input class="field-input" id="wiz-originator" type="text" placeholder="e.g. Pacific Bridge Capital" value="${wizData.originator||''}">
+      <div class="field-hint">The sponsoring firm or originator behind this deal.</div></div>
+    <div class="field-section"><label class="field-label">Tagline <span class="field-req">*</span></label>
+      <input class="field-input" id="wiz-tagline" type="text" placeholder="One-line summary, e.g. 'Senior secured direct lending to US sponsor-backed credits'" maxlength="120" value="${wizData.tagline||''}">
+      <div class="field-hint">A single sentence used as the headline on the investor card.</div></div>
     <div class="field-section"><label class="field-label">Company Overview <span class="field-req">*</span></label>
       <textarea class="field-ta" id="wiz-company-overview" placeholder="e.g. Pacific Bridge Infrastructure is a Singapore-based infrastructure developer…">${wizData.company_overview||''}</textarea>
-      <div class="field-hint">A 2–4 sentence description of the business, issuer, or asset. Who is the borrower/issuer, what do they do, where do they operate?</div></div>
+      <div class="field-hint">A 2–4 sentence description of the business, issuer, or asset. Min 50 characters. Who is the borrower/issuer, what do they do, where do they operate?</div></div>
     <div class="field-section"><label class="field-label">Deal Thesis <span class="field-req">*</span></label>
-      <textarea class="field-ta" id="wiz-thesis" placeholder="Describe the opportunity and why now…">${wizData.thesis||''}</textarea></div>
+      <textarea class="field-ta" id="wiz-thesis" placeholder="Describe the opportunity and why now… (min 50 characters)">${wizData.thesis||''}</textarea></div>
+    <div class="field-section"><label class="field-label">Investment Highlights <span class="field-req">*</span></label>
+      <textarea class="field-ta" id="wiz-highlights" placeholder="One highlight per line — at least 2.&#10;e.g.&#10;Floating-rate paper · 3-month SOFR + 650bps&#10;Senior secured first lien · 1.5x asset coverage&#10;Sponsor-backed by tier-1 PE, $400M EBITDA portfolio">${(Array.isArray(wizData.highlights)?wizData.highlights.join('\n'):wizData.highlights||'')}</textarea>
+      <div class="field-hint">3–5 short bullet points investors see on the deal card. Min 2.</div></div>
     <div class="wiz-nav"><div></div><button class="wiz-next" onclick="wizNext()">Continue →</button></div>`;
   }else if(wStep===2){
     html=`<div class="field-section"><div class="field-row">
@@ -2621,31 +2634,70 @@ function renderWizard(){
 
 async function wizSubmit(){
   // Read from wizData (persisted across steps) — DOM inputs are gone at step 4
-  const name=wizData.name||'';
-  if(!name){toast('Enter a deal name','err');wStep=1;renderWizard();return;}
+  // Client-side gate: every required field must be present before we hit
+  // the API. The API gates the same set, so server is authoritative; this
+  // just gives a faster + clearer error path for the advisor.
+  const missing=[];
+  if(!wizData.name) missing.push('Deal Name');
+  if(!wizData.asset_class) missing.push('Asset Class');
+  if(!wizData.structure) missing.push('Structure');
+  if(!wizData.geography) missing.push('Geography');
+  if(!wizData.originator) missing.push('Originator / Sponsor');
+  if(!wizData.tagline) missing.push('Tagline');
+  if(!wizData.company_overview||wizData.company_overview.length<50) missing.push('Company Overview (min 50 chars)');
+  if(!wizData.thesis||wizData.thesis.length<50) missing.push('Deal Thesis (min 50 chars)');
+  if(!Array.isArray(wizData.highlights)||wizData.highlights.length<2) missing.push('Investment Highlights (min 2)');
+  if(!wizData.irr||parseFloat(wizData.irr)<=0) missing.push('Target IRR');
+  if(!wizData.term||parseInt(wizData.term)<=0) missing.push('Term (months)');
+  if(!wizData.alloc||readAmt({value:wizData.alloc})<1000) missing.push('Allocation Target');
+  if(!wizData.min_ticket||readAmt({value:wizData.min_ticket})<=0) missing.push('Minimum Ticket');
+  if(wizData.hurdle===''||wizData.hurdle==null||parseFloat(wizData.hurdle)<0) missing.push('Hurdle Rate');
+  if(!wizData.closing) missing.push('Target Closing Date');
+  if(missing.length){
+    toast('Missing: '+missing.slice(0,3).join(', ')+(missing.length>3?` (+${missing.length-3} more)`:''),'err');
+    // Jump back to whichever step has the first missing field
+    const step1Fields=['Deal Name','Asset Class','Structure','Geography','Originator / Sponsor','Tagline','Company Overview (min 50 chars)','Deal Thesis (min 50 chars)','Investment Highlights (min 2)'];
+    wStep = step1Fields.includes(missing[0]) ? 1 : 2;
+    renderWizard();
+    return;
+  }
 
   const assetClassMap={'Infrastructure':'infra','Equity':'pe','Private Credit':'credit','Real Estate':'re'};
 
   const payload={
-    name,
-    asset_class:assetClassMap[wizData.asset_class]||'credit',
-    deal_structure:wizData.structure||'',
-    geography:wizData.geography||'',
-    company_overview:wizData.company_overview||'',
-    mk_notes:wizData.thesis||'',
-    target_alloc_usd:readAmt({value:wizData.alloc})||10000000,
-    target_irr:parseFloat(wizData.irr)||12,
-    term_months:parseInt(wizData.term)||24,
-    hurdle_rate:parseFloat(wizData.hurdle)||8,
-    min_ticket_usd:readAmt({value:wizData.min_ticket})||250000,
-    closing_date:wizData.closing||'',
+    name:wizData.name,
+    asset_class:assetClassMap[wizData.asset_class]||wizData.asset_class.toLowerCase(),
+    deal_structure:wizData.structure,
+    geography:wizData.geography,
+    originator:wizData.originator,
+    tagline:wizData.tagline,
+    company_overview:wizData.company_overview,
+    thesis:wizData.thesis,
+    highlights:wizData.highlights,
+    target_alloc_usd:readAmt({value:wizData.alloc}),
+    target_irr:parseFloat(wizData.irr),
+    term_months:parseInt(wizData.term),
+    hurdle_rate:parseFloat(wizData.hurdle),
+    min_ticket_usd:readAmt({value:wizData.min_ticket}),
+    closing_date:wizData.closing,
     docs:Object.entries(WIZ_DOCS).map(([slot,d])=>({slot,name:d.name,type:d.type})),
   };
 
   const btn=document.querySelector('.wiz-submit');if(btn){btn.disabled=true;btn.textContent='Submitting…';}
   const r=await api('POST','/api/advisor/deals',payload);
   if(btn){btn.disabled=false;btn.textContent='Submit for Review →';}
-  if(r?.ok&&r.deal){toast('Deal submitted — admin will review within 1–2 business days','ok');}else{toast('Submission failed — check required fields','err');return;}
+  if(r?.ok&&r.deal){
+    toast('Deal submitted — admin will review within 1–2 business days','ok');
+  }else{
+    // API rejection: if it returned a missing-fields list, surface them
+    const apiMissing=r?.missing||[];
+    if(apiMissing.length){
+      toast('Server rejected — '+apiMissing.slice(0,3).join(', ')+(apiMissing.length>3?` (+${apiMissing.length-3} more)`:''),'err');
+    }else{
+      toast('Submission failed — '+(r?.error||'check required fields'),'err');
+    }
+    return;
+  }
   wStep=5;renderWizard();
 }
 

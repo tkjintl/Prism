@@ -51,31 +51,75 @@ export async function listDeals(filter = {}) {
   return deals;
 }
 
+// Required fields a deal must carry to be valid for the investor portal.
+// Used by createDeal (gate at submission) and by publish-deal (gate at admin
+// approval). Missing fields abort with a 400 + a list of which are missing,
+// so the form / API caller knows exactly what to fix.
+export function validateDealForSubmission(data) {
+  const missing = [];
+  if (!data.name?.trim()) missing.push('name');
+  if (!data.asset_class?.trim()) missing.push('asset_class');
+  if (!data.deal_structure?.trim()) missing.push('deal_structure');
+  if (!data.geography?.trim()) missing.push('geography');
+  if (!data.tagline?.trim()) missing.push('tagline');
+  if (!data.company_overview?.trim() || data.company_overview.length < 50) missing.push('company_overview (min 50 chars)');
+  if (!data.thesis?.trim() || data.thesis.length < 50) missing.push('thesis (min 50 chars)');
+  if (!Array.isArray(data.highlights) || data.highlights.filter(h => h && String(h).trim()).length < 2) missing.push('highlights (min 2)');
+  if (!data.originator?.trim()) missing.push('originator');
+  const alloc = parseFloat(data.target_alloc_usd);
+  if (!alloc || alloc < 1000) missing.push('target_alloc_usd (min $1,000)');
+  const irr = parseFloat(data.target_irr);
+  if (!irr || irr <= 0) missing.push('target_irr');
+  const term = parseInt(data.term_months);
+  if (!term || term <= 0) missing.push('term_months');
+  const hurdle = parseFloat(data.hurdle_rate);
+  if (isNaN(hurdle) || hurdle < 0) missing.push('hurdle_rate');
+  const minTicket = parseFloat(data.min_ticket_usd);
+  if (!minTicket || minTicket <= 0) missing.push('min_ticket_usd');
+  if (!data.closing_date && !data.closing) missing.push('closing_date');
+  return missing;
+}
+
+// Validates that an existing deal (already in KV) has all required fields.
+// Used by publish-deal as an admin approval gate. Same field list as
+// validateDealForSubmission so the contract is consistent.
+export function validateDealForPublish(deal) {
+  return validateDealForSubmission(deal);
+}
+
 export async function createDeal(data, advisorId, adminId = null) {
   const id = generateDealId();
   const now = new Date().toISOString();
 
-  // Validate required fields
-  if (!data.name?.trim()) throw new Error('Deal name required');
+  // Validate ALL required fields up front — no incomplete deals accepted.
+  // Caller (api/v2.js advisor&op=deals POST) catches the throw and returns
+  // a 400 with the missing-fields message.
+  const missing = validateDealForSubmission(data);
+  if (missing.length) {
+    const err = new Error('Missing required fields: ' + missing.join(', '));
+    err.code = 'DEAL_VALIDATION';
+    err.missing = missing;
+    throw err;
+  }
   const alloc = parseFloat(data.target_alloc_usd);
-  if (!alloc || alloc < 1000) throw new Error('Allocation must be at least $1,000');
   const irr = parseFloat(data.target_irr);
-  if (!irr || irr <= 0) throw new Error('Target IRR required');
 
   const deal = {
     id,
     name: data.name.trim(),
-    asset_class: data.asset_class || 'credit',
-    geography: data.geography || '',
-    deal_structure: data.deal_structure || '',
+    asset_class: data.asset_class.trim(),
+    geography: data.geography.trim(),
+    deal_structure: data.deal_structure.trim(),
     target_alloc_usd: alloc,
     target_irr: irr,
-    term_months: parseInt(data.term_months) || 24,
-    hurdle_rate: parseFloat(data.hurdle_rate) || 8,
-    originator: data.originator || '',
-    company_overview: data.company_overview || '',
-    mk_notes: data.mk_notes || '',
-    highlights: data.highlights || [],
+    term_months: parseInt(data.term_months),
+    hurdle_rate: parseFloat(data.hurdle_rate),
+    originator: data.originator.trim(),
+    tagline: data.tagline.trim(),
+    company_overview: data.company_overview.trim(),
+    thesis: data.thesis.trim(),
+    mk_notes: data.mk_notes || data.thesis.trim(), // keep mk_notes mirror for any legacy reader
+    highlights: (data.highlights || []).filter(h => h && String(h).trim()).map(h => String(h).trim()),
     timeline: data.timeline || [],
     docs: data.docs || [],
     advisor_id: advisorId || adminId || null,
@@ -84,9 +128,9 @@ export async function createDeal(data, advisorId, adminId = null) {
     member_visible: false,
     tacc_platform_fee_pct: parseFloat(data.tacc_platform_fee_pct) || 1,
     tacc_carry_pct: parseFloat(data.tacc_carry_pct) || 12,
-    min_ticket_usd: parseFloat(data.min_ticket_usd) || 50000,
+    min_ticket_usd: parseFloat(data.min_ticket_usd),
     max_ticket_usd: parseFloat(data.max_ticket_usd) || 0,
-    closing_date: data.closing_date || data.closing || null,
+    closing_date: data.closing_date || data.closing,
     platform_alloc_usd: null,
     platform_min_ticket_usd: null,
     ioi_count: 0,

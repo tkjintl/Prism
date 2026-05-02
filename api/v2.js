@@ -1,7 +1,7 @@
 import { verifyToken, signToken, signResetCode, verifyResetToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
 import { ok, bad, unauth, getCookie, setCookieHeader } from './_lib/http.js';
 import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, kvZadd, kvZrem, healthCheck, isKvUnavailable } from './_lib/storage.js';
-import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, recalcIoiCounters, appendAuditEntry } from './_lib/deal-storage.js';
+import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, recalcIoiCounters, appendAuditEntry, validateDealForPublish } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
   sendDataRoomAccess, sendAccessApplication,
@@ -311,9 +311,17 @@ async function _handler(req, res, resource, op) {
           const result = await updateDeal(data.id, data, adv?.advisor_id || admin?.email);
           return ok(res, { deal: result.deal });
         }
-        // Create new deal
+        // Create new deal — surfaces missing-field errors as 400 with the list
         const advisorId = adv ? adv.advisor_id : null;
-        const deal = await createDeal(data, advisorId, admin ? admin.email : null);
+        let deal;
+        try {
+          deal = await createDeal(data, advisorId, admin ? admin.email : null);
+        } catch (e) {
+          if (e?.code === 'DEAL_VALIDATION') {
+            return res.status(400).json({ ok: false, error: e.message, missing: e.missing });
+          }
+          throw e;
+        }
         // Move any pre-uploaded docs from temp keys to deal_doc:{dealId}:{slot}
         if (advisorId) {
           const slots = ['nda', 'mgmt', 'fin', 'term'];
@@ -1674,6 +1682,18 @@ Return ONLY valid JSON in this exact structure:
       if (thesis   !== undefined) deal.thesis     = thesis;
       if (highlights !== undefined) deal.highlights = normHighlights;
       if (stats    !== undefined) deal.stats      = stats;
+
+      // Admin approval gate: deal must have all required investor-portal
+      // content before publish. Same validator as createDeal so the contract
+      // is identical for advisor-submitted deals and admin-edited deals.
+      const missingForPublish = validateDealForPublish(deal);
+      if (missingForPublish.length) {
+        return res.status(400).json({
+          ok: false,
+          error: 'Cannot publish — missing required fields: ' + missingForPublish.join(', '),
+          missing: missingForPublish,
+        });
+      }
 
       // Publish settings
       deal.stage          = 'live';
