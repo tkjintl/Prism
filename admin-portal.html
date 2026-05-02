@@ -2087,26 +2087,26 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 </div>
 
 <!-- ══ DISTRIBUTION MODAL ══ -->
-<div class="modal-overlay hidden" id="dist-modal">
-  <div class="dist-modal-box" role="dialog" aria-modal="true" aria-labelledby="dist-modal-title">
-    <div class="modal-title" id="dist-modal-title" style="margin-bottom:16px">Post Distribution</div>
+<div class="modal-overlay hidden" id="pd-modal">
+  <div class="dist-modal-box" role="dialog" aria-modal="true" aria-labelledby="pd-modal-title">
+    <div class="modal-title" id="pd-modal-title" style="margin-bottom:16px">Post Distribution</div>
     <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div>
           <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Total Amount (USD) <span style="color:var(--red)">*</span></label>
           <div style="display:flex;align-items:center;gap:0">
             <span style="padding:9px 10px;background:var(--border);border:1px solid var(--border-m);border-right:none;border-radius:3px 0 0 3px;font-family:var(--mono);font-size:12px;color:var(--text-2)">$</span>
-            <input type="text" id="dist-amount" inputmode="numeric" placeholder="0" oninput="fmtAmtInput(this);updateDistPreview()" style="flex:1;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:0 3px 3px 0;font-family:var(--mono);font-size:12px;color:var(--text);outline:none">
+            <input type="text" id="pd-amount" inputmode="numeric" placeholder="0" oninput="fmtAmtInput(this);updateDistPreview()" style="flex:1;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:0 3px 3px 0;font-family:var(--mono);font-size:12px;color:var(--text);outline:none">
           </div>
         </div>
         <div>
           <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Distribution Date <span style="color:var(--red)">*</span></label>
-          <input type="date" id="dist-date" style="width:100%;box-sizing:border-box;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none">
+          <input type="date" id="pd-date" style="width:100%;box-sizing:border-box;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none">
         </div>
       </div>
       <div>
         <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Distribution Type</label>
-        <select id="dist-type" onchange="updateDistPreview()" style="width:100%;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;appearance:none;cursor:pointer">
+        <select id="pd-type" onchange="updateDistPreview()" style="width:100%;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;appearance:none;cursor:pointer">
           <option value="Income">Income</option>
           <option value="Capital">Capital</option>
           <option value="Return of Capital">Return of Capital</option>
@@ -2114,21 +2114,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       </div>
       <div>
         <label style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Notes <span style="opacity:.5">(optional)</span></label>
-        <textarea id="dist-notes" rows="2" placeholder="Additional context…" style="width:100%;box-sizing:border-box;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;resize:vertical"></textarea>
+        <textarea id="pd-notes" rows="2" placeholder="Additional context…" style="width:100%;box-sizing:border-box;padding:9px 11px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;resize:vertical"></textarea>
       </div>
-      <div id="dist-preview-section" style="display:none">
+      <div id="pd-preview-section" style="display:none">
         <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Per-Investor Preview</div>
         <div style="background:var(--bg-3);border:1px solid var(--border);border-radius:3px;overflow:hidden;max-height:200px;overflow-y:auto">
           <table class="dist-preview-table">
             <thead><tr><th>Investor</th><th>IOI Amount</th><th>Share %</th><th>Distribution</th></tr></thead>
-            <tbody id="dist-preview-body"></tbody>
+            <tbody id="pd-preview-body"></tbody>
           </table>
         </div>
       </div>
     </div>
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="document.getElementById('dist-modal').classList.add('hidden');if(_modalReleasers['dist-modal']){_modalReleasers['dist-modal']();delete _modalReleasers['dist-modal'];}">Cancel</button>
-      <button class="modal-confirm" onclick="confirmPostDistribution()" id="dist-confirm-btn">Post Distribution</button>
+      <button class="modal-cancel" onclick="document.getElementById('pd-modal').classList.add('hidden');if(_modalReleasers['pd-modal']){_modalReleasers['pd-modal']();delete _modalReleasers['pd-modal'];}">Cancel</button>
+      <button class="modal-confirm" onclick="confirmPostDistribution()" id="pd-confirm-btn">Post Distribution</button>
     </div>
   </div>
 </div>
@@ -4459,34 +4459,34 @@ async function loadInvestorMatches(dealId){
 }
 
 /* ── DISTRIBUTION MODAL ── */
-let _distDealId=null;
-let _distIois=[];
+let _pdDealId=null;
+let _pdIois=[];
 
 async function openDistModal(dealId){
-  _distDealId=dealId;
-  _distIois=[];
-  document.getElementById('dist-amount').value='';
-  document.getElementById('dist-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('dist-type').value='Income';
-  document.getElementById('dist-notes').value='';
-  document.getElementById('dist-preview-body').innerHTML='';
-  document.getElementById('dist-preview-section').style.display='none';
-  document.getElementById('dist-modal').classList.remove('hidden');
-  _modalReleasers['dist-modal']=trapFocus(document.querySelector('#dist-modal .dist-modal-box'));
+  _pdDealId=dealId;
+  _pdIois=[];
+  document.getElementById('pd-amount').value='';
+  document.getElementById('pd-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('pd-type').value='Income';
+  document.getElementById('pd-notes').value='';
+  document.getElementById('pd-preview-body').innerHTML='';
+  document.getElementById('pd-preview-section').style.display='none';
+  document.getElementById('pd-modal').classList.remove('hidden');
+  _modalReleasers['pd-modal']=trapFocus(document.querySelector('#pd-modal .dist-modal-box'));
   // fetch IOIs for preview
   const res=await fetchSilent(`/api/v2?resource=admin&op=deal-iois&dealId=${dealId}`);
-  _distIois=(res?.iois||[]).filter(i=>i.status==='approved');
+  _pdIois=(res?.iois||[]).filter(i=>i.status==='approved');
   updateDistPreview();
 }
 
 function updateDistPreview(){
-  const raw=(document.getElementById('dist-amount')?.value||'').replace(/[^0-9.]/g,'');
+  const raw=(document.getElementById('pd-amount')?.value||'').replace(/[^0-9.]/g,'');
   const total=parseFloat(raw)||0;
-  const tbody=document.getElementById('dist-preview-body');
-  const section=document.getElementById('dist-preview-section');
+  const tbody=document.getElementById('pd-preview-body');
+  const section=document.getElementById('pd-preview-section');
   if(!tbody||!section)return;
   // Use local deal IOIs if API hasn't returned yet
-  const iois=_distIois.length?_distIois:(DEALS.find(d=>d.id===_distDealId)?.iois||[]).filter(i=>i.status==='approved');
+  const iois=_pdIois.length?_pdIois:(DEALS.find(d=>d.id===_pdDealId)?.iois||[]).filter(i=>i.status==='approved');
   if(!iois.length){section.style.display='none';return;}
   const totalIOI=iois.reduce((s,i)=>s+(i.amount||0),0);
   if(totalIOI<=0){section.style.display='none';return;}
@@ -4504,24 +4504,24 @@ function updateDistPreview(){
 }
 
 async function confirmPostDistribution(){
-  const raw=(document.getElementById('dist-amount')?.value||'').replace(/[^0-9.]/g,'');
+  const raw=(document.getElementById('pd-amount')?.value||'').replace(/[^0-9.]/g,'');
   const amount=parseFloat(raw);
-  const date=document.getElementById('dist-date')?.value;
-  const type=document.getElementById('dist-type')?.value;
-  const notes=document.getElementById('dist-notes')?.value||'';
+  const date=document.getElementById('pd-date')?.value;
+  const type=document.getElementById('pd-type')?.value;
+  const notes=document.getElementById('pd-notes')?.value||'';
   if(!amount||amount<=0){toast('Enter a distribution amount','err');return;}
   if(!date){toast('Select a distribution date','err');return;}
-  const btn=document.getElementById('dist-confirm-btn');
+  const btn=document.getElementById('pd-confirm-btn');
   if(btn)btn.disabled=true;
   const res=await api('POST','/api/v2?resource=advisor&op=post-distribution',{
-    dealId:_distDealId,amount,date,type,notes
+    dealId:_pdDealId,amount,date,type,notes
   });
   if(btn)btn.disabled=false;
   if(res?.ok||res?.success){
-    document.getElementById('dist-modal').classList.add('hidden');
-    if(_modalReleasers['dist-modal']){_modalReleasers['dist-modal']();delete _modalReleasers['dist-modal'];}
+    document.getElementById('pd-modal').classList.add('hidden');
+    if(_modalReleasers['pd-modal']){_modalReleasers['pd-modal']();delete _modalReleasers['pd-modal'];}
     toast('Distribution posted','ok');
-    openDealDetail(_distDealId);
+    openDealDetail(_pdDealId);
   } else {
     toast(res?.error||'Failed to post distribution','err');
   }

@@ -4,6 +4,12 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Critical: admin portal JS broken by duplicate `_distDealId`
+
+`admin-portal.html`. Two distribution modals (admin "Issue Distribution" + advisor-style "Post Distribution") both declared `let _distDealId` at module top level → SyntaxError → all admin JS dead → `showView is not defined` cascade on every nav click. Renamed the second modal's vars and IDs to `_pd*` / `pd-*` so they no longer collide with the first. Verified zero remaining `_distDealId` duplicates and zero shared element IDs.
+
+---
+
 ## [2026-05-02] — Stuck-deals false positive on seeded deals
 
 `api/v2.js`. Sandbox audit's `stuck_deals` rule was flagging seed-only deals (DL-BOT0001/2/4/7) as abandoned because the only audit entries were from `system:bot-seed` with backdated timestamps > 30 days. Fix: ignore seed-actor entries when computing `lastTs`; require at least one non-seed audit entry before a deal can be flagged stuck. Now bot runs return zero findings on a fresh seed.
