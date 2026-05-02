@@ -56,7 +56,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:200;display:flex;align-items:center;padding:0 20px;gap:16px;background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
 [data-theme="dark"] .nav{background:rgba(10,9,8,0.92)}
 .nav-wordmark{display:flex;flex-direction:column;justify-content:center;gap:3px;flex-shrink:0}
-.nav-wm-tacc{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--text-3);text-transform:uppercase}
+.nav-wm-tacc{font-family:var(--mono);font-size:6px;letter-spacing:.26em;color:var(--text-3);text-transform:uppercase}
 .nav-wm-name{display:flex;align-items:center;line-height:1}
 .nav-wm-aurum{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
 .nav-wm-rule{display:block;width:1px;height:12px;background:var(--gold-bd);margin:0 10px;flex-shrink:0}
@@ -818,6 +818,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 /* ── COMPREHENSIVE MOBILE ── */
 @media(max-width:768px){
   .modal-box{max-height:80vh;overflow-y:auto}
+  .notif-panel{width:calc(100vw - 32px);right:0}
   .lr-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .lr-tabs::-webkit-scrollbar{display:none}
   .lr-tab{flex-shrink:0;white-space:nowrap}
@@ -1023,7 +1024,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .nav-wm-aurum,.nav-wm-prism{letter-spacing:.14em!important}
 }
 
-/* 9. Notification panel — handled by luxury block */
+/* 9. Notification panel — cap width on 390px */
+@media(max-width:440px){
+  .notif-panel{width:calc(100vw - 32px);right:-8px;left:auto}
+}
 
 /* 10. ntab badge — don't expand tab width */
 .ntab-badge{pointer-events:none;transform:translateX(2px)}
@@ -1206,183 +1210,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .dp-stage-chip,.ioi-raise-status,.iqi-badge{white-space:nowrap;max-width:100%}
 }
 </style>
-<style>
-/* FIX 1 — KPI strip: last odd item spans full width on mobile (Cat H) */
-@media(max-width:640px){
-  .kpi-card:last-child:nth-child(odd){ grid-column: 1 / -1; }
-}
-
-/* FIX 3 — Equal-height deal cards (Cat J) */
-.ov-ac-name {
-  font-size: 12px !important;
-  white-space: normal !important;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  min-height: 2.4em;
-  line-height: 1.2;
-}
-.ov-action-card {
-  min-height: 80px;
-}
-.ov-ac-meta {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 10px !important;
-}
-.att-card-title {
-  font-size: 12px !important;
-  white-space: normal !important;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  min-height: 2.4em;
-  line-height: 1.2;
-}
-.att-card {
-  min-height: 80px;
-}
-.att-card-body {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 10px !important;
-}
-
-/* ── LUXURY MOBILE NAV ── */
-@media(max-width:768px){
-  /* Nav container: two rows, premium feel */
-  .nav{
-    background:linear-gradient(180deg,rgba(10,9,8,1) 0%,rgba(14,13,11,1) 100%)!important;
-    border-bottom:1px solid rgba(197,165,114,.18)!important;
-    box-shadow:0 1px 0 rgba(197,165,114,.06),0 4px 20px rgba(0,0,0,.4)!important;
-  }
-  /* Top row: wordmark left, controls right */
-  .nav-wordmark{
-    flex:1!important;
-    padding:12px 0!important;
-  }
-  .nav-wm-name{
-    font-size:13px!important;
-    letter-spacing:.14em!important;
-  }
-  .nav-wm-aurum{
-    color:var(--gold)!important;
-    font-weight:600!important;
-  }
-  .nav-wm-tacc{
-    font-size:7px!important;
-    letter-spacing:.18em!important;
-    color:rgba(197,165,114,.4)!important;
-  }
-  /* Role badge — more prominent */
-  .role-badge{
-    background:rgba(197,165,114,.1)!important;
-    border:1px solid rgba(197,165,114,.3)!important;
-    color:var(--gold)!important;
-    font-size:7px!important;
-    letter-spacing:.16em!important;
-    padding:4px 8px!important;
-    border-radius:2px!important;
-  }
-  /* Bell button — gold glow when has items */
-  .notif-bell-btn.has-items{
-    background:rgba(197,165,114,.08)!important;
-    box-shadow:0 0 12px rgba(197,165,114,.2)!important;
-  }
-  /* Nav tabs row — gold separator + active state */
-  .nav-tabs{
-    border-top:1px solid rgba(197,165,114,.12)!important;
-    background:rgba(10,9,8,.6)!important;
-    padding:0!important;
-  }
-  .ntab{
-    font-size:10px!important;
-    letter-spacing:.1em!important;
-    padding:12px 14px!important;
-    min-height:42px!important;
-    color:rgba(237,232,223,.4)!important;
-    position:relative!important;
-    transition:color .2s,background .2s!important;
-  }
-  .ntab.on{
-    color:var(--gold)!important;
-    background:rgba(197,165,114,.06)!important;
-    border-bottom:2px solid var(--gold)!important;
-  }
-  .ntab.on::after{
-    content:'';
-    position:absolute;
-    bottom:0;left:0;right:0;
-    height:1px;
-    background:linear-gradient(90deg,transparent,rgba(197,165,114,.4),transparent);
-  }
-  .ntab:active:not(.on){
-    background:rgba(197,165,114,.04)!important;
-    color:rgba(237,232,223,.7)!important;
-  }
-}
-
-/* ── NOTIFICATION PANEL: proper floating popup ── */
-/* Backdrop injected by JS */
-#notif-backdrop{
-  display:none;
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(3px);
-  z-index:999;
-  animation:fadeIn .18s var(--ease);
-}
-#notif-backdrop.open{display:block}
-
-.notif-panel{
-  position:fixed;
-  top:calc(var(--nav-h) + 8px);
-  right:20px;
-  z-index:1000;
-}
-/* Desktop backdrop: invisible click-catcher only — no blur, no dark overlay */
-@media(min-width:769px){
-  #notif-backdrop{
-    background:transparent!important;
-    backdrop-filter:none!important;
-  }
-}
-@media(max-width:768px){
-  .notif-panel{
-    position:fixed!important;
-    top:0!important;
-    left:0!important;right:0!important;
-    width:100%!important;
-    max-height:80vh!important;
-    overflow-y:auto!important;
-    border-radius:0 0 16px 16px!important;
-    border:none!important;
-    border-bottom:1px solid rgba(197,165,114,.2)!important;
-    box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 0 1px rgba(197,165,114,.1)!important;
-    z-index:1000!important;
-    animation:slideDown .28s cubic-bezier(0.22,1,0.36,1)!important;
-  }
-}
-@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── KPI strip — clean mobile display ── */
-@media(max-width:768px){
-  .kpi-strip{padding-top:20px!important;border-top:none}
-}
-@media(max-width:600px){
-  .kpi-val{font-size:clamp(18px,4.5vw,28px)!important}
-  .kpi-lbl{font-size:9px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .kpi-card{padding:14px 10px!important}
-}
-</style>
 </head>
 <body>
 
-<div id="notif-backdrop" onclick="closeNotifPanel()"></div>
 <nav class="nav">
   <div class="nav-wordmark">
     <div class="nav-wm-tacc">A TACC Platform</div>
@@ -1401,23 +1231,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab" onclick="showView('system',this)">System</button>
   </div>
   <div class="nav-r">
-    <div class="role-badge">Operator</div>
+    <div class="role-badge">Admin</div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☾</button>
     <div class="notif-bell-wrap" id="notif-bell-wrap">
       <button class="notif-bell-btn" id="notif-bell" onclick="toggleNotifPanel()" title="Notifications" aria-label="Notifications">
         <span style="font-size:15px">&#x1F514;</span>
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
+      <div class="notif-panel" id="notif-panel" style="display:none">
+        <div class="notif-panel-hd">Pending Actions</div>
+        <div id="notif-panel-body"></div>
+      </div>
     </div>
-    <button onclick="logout()" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:6px 10px;transition:color .15s;min-height:36px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
+    <button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
-
-<!-- Notification panel lives outside nav so z-index works correctly in root stacking context -->
-<div class="notif-panel" id="notif-panel" style="display:none">
-  <div class="notif-panel-hd">Pending Actions</div>
-  <div id="notif-panel-body"></div>
-</div>
 
 <!-- ══ VIEW: OVERVIEW ══ -->
 <div id="view-overview" class="view active">
@@ -1939,7 +1767,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <div class="demo-badge">Admin Demo</div>
 
 <script>
-(function(){const t=localStorage.getItem('prism_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☀':'☾';})();
+(function(){const t=localStorage.getItem('prism_theme');if(t)document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☀':'☾';})();
 /* ── LAUNCH REVIEW state ── */
 let _launchDeal=null,_launchContent=null;
 let _launchMode='featured';
@@ -2243,6 +2071,9 @@ function renderOverview(){
   const dateStr=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const headerBar=`<div class="ov-header-bar">
     <div class="ov-header-date">${dateStr}</div>
+    ${totalActions>0
+      ? `<div class="ov-header-alert"><div class="ov-header-dot"></div>${totalActions} action${totalActions!==1?'s':''} require your attention</div>`
+      : `<div class="ov-header-alert" style="color:var(--green)">All clear — no pending actions</div>`}
   </div>`;
 
   /* ── Action Queue columns ── */
@@ -2500,19 +2331,12 @@ function updateNotifBell(){
   }
 }
 
-function closeNotifPanel(){
-  const panel=document.getElementById('notif-panel');
-  const bd=document.getElementById('notif-backdrop');
-  if(panel)panel.style.display='none';
-  if(bd)bd.classList.remove('open');
-}
 function toggleNotifPanel(){
   const panel=document.getElementById('notif-panel');
-  const bd=document.getElementById('notif-backdrop');
+  const wrap=document.getElementById('notif-bell-wrap');
   if(!panel)return;
   const open=panel.style.display==='none'||panel.style.display==='';
   panel.style.display=open?'block':'none';
-  if(bd)bd.classList.toggle('open',open);
   if(open){
     updateNotifBell();
     // Build items
@@ -2530,18 +2354,28 @@ function toggleNotifPanel(){
     }
     let html='';
     readyDeals.forEach(s=>{
-      html+=`<div class="notif-item" onclick="closeNotifPanel();showView('overview',document.querySelectorAll('.ntab')[0])">
+      html+=`<div class="notif-item" onclick="toggleNotifPanel();showView('overview',document.querySelectorAll('.ntab')[0])">
         <div class="notif-item-dot green"></div>
         <div class="notif-item-body"><strong>${s.name}</strong><br>Advisor approved, ready to publish</div>
       </div>`;
     });
     pendingInvs.forEach(i=>{
-      html+=`<div class="notif-item" onclick="closeNotifPanel();toast('Navigate to Members / Investors view','')">
+      html+=`<div class="notif-item" onclick="toggleNotifPanel();toast('Navigate to Members / Investors view','')">
         <div class="notif-item-dot amber"></div>
         <div class="notif-item-body"><strong>${i.name}</strong><br>Pending approval</div>
       </div>`;
     });
     body.innerHTML=html;
+    // Close panel when clicking outside
+    setTimeout(()=>{
+      function onOutside(e){
+        if(!wrap.contains(e.target)){
+          panel.style.display='none';
+          document.removeEventListener('click',onOutside);
+        }
+      }
+      document.addEventListener('click',onOutside);
+    },0);
   }
 }
 

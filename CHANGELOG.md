@@ -4,14 +4,6 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
-## [2026-05-01] — Restore admin mobile polish + fix investor hero content bleed
-
-### Changes
-- `admin-portal.html`: Restored visual/editorial improvements lost in rollback to b114dc6. Re-applied: luxury mobile nav CSS (gold gradient nav bar, premium tab active states, gold glow on bell), notification panel restructure (panel moved outside nav to root stacking context, `#notif-backdrop` for mobile overlay, `closeNotifPanel()` function, backdrop toggle), FIX 1 KPI odd-item full-width span, FIX 3 equal-height deal cards with webkit-line-clamp, KPI strip mobile padding. Updated `.nav-wm-tacc` to 8px/0.18em. Role badge text "Admin" → "Operator". Sign out button enlarged (11px, min-height 36px). Removed `totalActions` alert from overview header bar. Theme init now defaults to dark. Collapsible accordion code (the desktop-breaking change) intentionally excluded.
-- `investor-portal.html`: Fixed conflicting `.hero-content` rules at `@media(max-width:768px)` — older block (line ~1118) set `flex:1` causing deal content to bleed into the initial viewport. Newer block (line ~1620) now adds `flex:0 0 auto!important` to override and keep deal content below the fold.
-
----
-
 ## [2026-05-01] — Fix theme toggle CSS/localStorage + notif panel desktop positioning
 
 ### Changes
