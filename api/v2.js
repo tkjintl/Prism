@@ -699,7 +699,11 @@ async function _handler(req, res, resource, op) {
       // P-6: package response does not change IOI count or aggregate — only
       // flips a per-deal pushed_ioi_status and may advance stage to dd.
       // No counter bump required. (Was previously a defensive recalc.)
-      try { await kvDel('cache:iois:all'); } catch {}
+      try {
+        await kvDel('cache:iois:all');
+        await kvDel('cache:marketplace:public');
+        await kvDel('cache:marketplace:admin');
+      } catch {}
       // Notify investors in the package that data room access is confirmed
       if (decision === 'accepted' && pkg.iois?.length) {
         for (const pkgIoi of pkg.iois) {
@@ -2589,7 +2593,11 @@ Return ONLY valid JSON in this exact structure:
           await bumpIoiCounters(ioi.deal_id, -1, -(ioi.amount || 0));
         }
       }
-      try { await kvDel('cache:iois:all'); } catch {}
+      try {
+        await kvDel('cache:iois:all');
+        await kvDel('cache:marketplace:public');
+        await kvDel('cache:marketplace:admin');
+      } catch {}
 
       // Delete NDA signature records
       const ndaKeys = await kvKeys(`nda_signed:${investorId}:*`);
@@ -3434,7 +3442,11 @@ Return ONLY valid JSON in this exact structure:
       // P-6: atomic INCR on dedicated counter keys — race-safe under
       // concurrent IOI submissions to the same deal.
       await bumpIoiCounters(deal_id, 1, amt);
-      try { await kvDel('cache:iois:all'); } catch {}
+      try {
+        await kvDel('cache:iois:all');
+        await kvDel('cache:marketplace:public');
+        await kvDel('cache:marketplace:admin');
+      } catch {}
       // Send IOI confirmation email to investor
       const ioiInst = auth.inst_id ? await kvGet(`inst:${auth.inst_id}`) : null;
       if (ioiInst) await sendIoiConfirmation(ioiInst, deal).catch(console.error);
@@ -3452,6 +3464,11 @@ Return ONLY valid JSON in this exact structure:
       if (ioi.status === 'approved') {
         return ok(res, { ioi, idempotent: true });
       }
+      // P-6 un-reject case: if the IOI was previously rejected, the counter
+      // was decremented at reject time. Approving from rejected → approved
+      // must re-increment, otherwise counters drift permanently low.
+      // Pending → approved is a no-op on counters (both already counted).
+      const prevStatus = ioi.status;
       ioi.status = 'approved';
       ioi.data_room_access = true;
       ioi.approved_at = new Date().toISOString();
@@ -3459,9 +3476,14 @@ Return ONLY valid JSON in this exact structure:
       await kvSet(`ioi:${ioi_id}`, ioi);
       // Update dedup to approved (allows future re-consideration)
       await kvSet(`ioi_exists:${ioi.deal_id}:${ioi.investor_id}`, 'approved');
-      // P-6: approve does NOT change ioi_count / ioi_agg_usd — pending and
-      // approved are both included. Status flip only. No counter bump.
-      try { await kvDel('cache:iois:all'); } catch {}
+      if (prevStatus === 'rejected') {
+        await bumpIoiCounters(ioi.deal_id, 1, ioi.amount || 0);
+      }
+      try {
+        await kvDel('cache:iois:all');
+        await kvDel('cache:marketplace:public');
+        await kvDel('cache:marketplace:admin');
+      } catch {}
       // Send data room access email
       const inst = ioi.investor_id.startsWith('inv-') ? await kvGet(`inst:${ioi.investor_id}`) : null;
       const deal = await getDeal(ioi.deal_id);
@@ -3489,7 +3511,11 @@ Return ONLY valid JSON in this exact structure:
       if (prevStatus !== 'rejected') {
         await bumpIoiCounters(ioi.deal_id, -1, -(ioi.amount || 0));
       }
-      try { await kvDel('cache:iois:all'); } catch {}
+      try {
+        await kvDel('cache:iois:all');
+        await kvDel('cache:marketplace:public');
+        await kvDel('cache:marketplace:admin');
+      } catch {}
       // Send rejection email to investor
       const rejInst = ioi.investor_id.startsWith('inv-') ? await kvGet(`inst:${ioi.investor_id}`) : null;
       const rejDeal = await getDeal(ioi.deal_id);
