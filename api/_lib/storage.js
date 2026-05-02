@@ -43,66 +43,114 @@ export async function healthCheck() {
   };
 }
 
-export async function kvGet(key) {
+// ─────────────────────────────────────────────────────────────────────────────
+// Storage primitives.
+//
+// Failure mode contract: if Redis IS configured (`getRedis()` returns non-null),
+// errors from the Redis client are thrown to the caller. Silently falling
+// through to the empty in-memory `_mem` map in production hides outages and
+// returns wrong data (zero deals, missing investors, lost writes).
+//
+// In-memory fallback only applies when Redis is NOT configured at all
+// (local dev with no KV_REST_API_* env vars). One retry on transient errors
+// is performed before throwing — Upstash REST has occasional connection blips.
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function withRedis(op, fallback) {
   const r = getRedis();
-  if (r) { try { return await r.get(key); } catch { /* fall through */ } }
-  return _mem.has(key) ? _mem.get(key) : null;
+  if (!r) return await fallback();
+  try {
+    return await op(r);
+  } catch (e1) {
+    // One retry — Upstash REST has occasional transient failures
+    try {
+      return await op(r);
+    } catch (e2) {
+      console.error('[STORAGE] Redis op failed after 1 retry:', e2?.message || e2);
+      throw e2;
+    }
+  }
+}
+
+export async function kvGet(key) {
+  return await withRedis(
+    r => r.get(key),
+    () => (_mem.has(key) ? _mem.get(key) : null)
+  );
 }
 
 export async function kvSet(key, value, opts = {}) {
-  const r = getRedis();
-  if (r) { try { return opts.ex ? await r.set(key, value, { ex: opts.ex }) : await r.set(key, value); } catch { /* fall through */ } }
-  _mem.set(key, value);
-  if (opts.ex) setTimeout(() => _mem.delete(key), opts.ex * 1000);
-  return 'OK';
+  return await withRedis(
+    r => opts.ex ? r.set(key, value, { ex: opts.ex }) : r.set(key, value),
+    () => {
+      _mem.set(key, value);
+      if (opts.ex) setTimeout(() => _mem.delete(key), opts.ex * 1000);
+      return 'OK';
+    }
+  );
 }
 
 export async function kvDel(key) {
-  const r = getRedis();
-  if (r) { try { return await r.del(key); } catch { /* fall through */ } }
-  _mem.delete(key); return 1;
+  return await withRedis(
+    r => r.del(key),
+    () => { _mem.delete(key); return 1; }
+  );
 }
 
 export async function kvKeys(pattern) {
-  const r = getRedis();
-  if (r) { try { return await r.keys(pattern); } catch { /* fall through */ } }
-  const re = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
-  return [..._mem.keys()].filter(k => re.test(k));
+  return await withRedis(
+    r => r.keys(pattern),
+    () => {
+      const re = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+      return [..._mem.keys()].filter(k => re.test(k));
+    }
+  );
 }
 
 export async function kvSetnx(key, value) {
-  const r = getRedis();
-  if (r) { try { return await r.setnx(key, value); } catch { /* fall through */ } }
-  if (_mem.has(key)) return 0;
-  _mem.set(key, value); return 1;
+  return await withRedis(
+    r => r.setnx(key, value),
+    () => {
+      if (_mem.has(key)) return 0;
+      _mem.set(key, value); return 1;
+    }
+  );
 }
 
 export async function kvIncrby(key, n) {
-  const r = getRedis();
-  if (r) { try { return await r.incrby(key, n); } catch { /* fall through */ } }
-  const cur = parseFloat(_mem.get(key) || '0');
-  const next = cur + n; _mem.set(key, String(next)); return next;
+  return await withRedis(
+    r => r.incrby(key, n),
+    () => {
+      const cur = parseFloat(_mem.get(key) || '0');
+      const next = cur + n; _mem.set(key, String(next)); return next;
+    }
+  );
 }
 
 export async function zAdd(key, score, member) {
-  const r = getRedis();
-  if (r) { try { return await r.zadd(key, { score, member }); } catch { /* fall through */ } }
-  // In-memory fallback: store as JSON array of {score,member}
-  const raw = _mem.get(key);
-  const arr = raw ? JSON.parse(raw) : [];
-  const idx = arr.findIndex(x => x.member === member);
-  if (idx >= 0) arr[idx].score = score; else arr.push({ score, member });
-  _mem.set(key, JSON.stringify(arr));
+  return await withRedis(
+    r => r.zadd(key, { score, member }),
+    () => {
+      const raw = _mem.get(key);
+      const arr = raw ? JSON.parse(raw) : [];
+      const idx = arr.findIndex(x => x.member === member);
+      if (idx >= 0) arr[idx].score = score; else arr.push({ score, member });
+      _mem.set(key, JSON.stringify(arr));
+    }
+  );
 }
 
 export async function zRevRange(key, start, stop) {
-  const r = getRedis();
-  if (r) { try { return await r.zrange(key, start, stop, { rev: true }); } catch { /* fall through */ } }
-  const raw = _mem.get(key);
-  if (!raw) return [];
-  const arr = JSON.parse(raw).sort((a, b) => b.score - a.score);
-  const end = stop === -1 ? arr.length : stop + 1;
-  return arr.slice(start, end).map(x => x.member);
+  return await withRedis(
+    r => r.zrange(key, start, stop, { rev: true }),
+    () => {
+      const raw = _mem.get(key);
+      if (!raw) return [];
+      const arr = JSON.parse(raw).sort((a, b) => b.score - a.score);
+      const end = stop === -1 ? arr.length : stop + 1;
+      return arr.slice(start, end).map(x => x.member);
+    }
+  );
 }
 
 // Append-only sorted set add (alias with explicit naming for audit log usage)
@@ -112,13 +160,16 @@ export async function kvZadd(key, score, member) {
 
 // Remove a member from a sorted set
 export async function kvZrem(key, member) {
-  const r = getRedis();
-  if (r) { try { return await r.zrem(key, member); } catch { /* fall through */ } }
-  const raw = _mem.get(key);
-  if (!raw) return 0;
-  const arr = JSON.parse(raw).filter(x => x.member !== member);
-  _mem.set(key, JSON.stringify(arr));
-  return 1;
+  return await withRedis(
+    r => r.zrem(key, member),
+    () => {
+      const raw = _mem.get(key);
+      if (!raw) return 0;
+      const arr = JSON.parse(raw).filter(x => x.member !== member);
+      _mem.set(key, JSON.stringify(arr));
+      return 1;
+    }
+  );
 }
 
 // SCAN-based key deletion. Iterates with cursor until exhausted, batching DELs.
@@ -128,26 +179,24 @@ export async function kvScanDel(pattern, batchSize = 200) {
   let total = 0;
   if (r) {
     let cursor = '0';
-    try {
-      do {
-        const result = await r.scan(cursor, { match: pattern, count: batchSize });
-        // Upstash returns [nextCursor, keysArray]
-        const next = Array.isArray(result) ? result[0] : result.cursor;
-        const keys = Array.isArray(result) ? result[1] : result.keys;
-        cursor = String(next);
-        if (keys && keys.length) {
-          // Batch DELs in groups of 50 to avoid hitting payload limits
-          for (let i = 0; i < keys.length; i += 50) {
-            const slice = keys.slice(i, i + 50);
-            await Promise.all(slice.map(k => r.del(k).catch(() => 0)));
-            total += slice.length;
-          }
+    do {
+      const result = await r.scan(cursor, { match: pattern, count: batchSize });
+      // Upstash returns [nextCursor, keysArray]
+      const next = Array.isArray(result) ? result[0] : result.cursor;
+      const keys = Array.isArray(result) ? result[1] : result.keys;
+      cursor = String(next);
+      if (keys && keys.length) {
+        // Batch DELs in groups of 50 to avoid hitting payload limits
+        for (let i = 0; i < keys.length; i += 50) {
+          const slice = keys.slice(i, i + 50);
+          await Promise.all(slice.map(k => r.del(k).catch(() => 0)));
+          total += slice.length;
         }
-      } while (cursor !== '0');
-      return total;
-    } catch { /* fall through to in-memory */ }
+      }
+    } while (cursor !== '0');
+    return total;
   }
-  // In-memory fallback
+  // In-memory fallback (Redis not configured)
   const re = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
   for (const k of [..._mem.keys()]) {
     if (re.test(k)) { _mem.delete(k); total++; }
@@ -157,17 +206,16 @@ export async function kvScanDel(pattern, batchSize = 200) {
 
 // Range query for audit sorted set — returns members in score order (ascending by default)
 export async function kvZrange(key, start, stop, opts = {}) {
-  const r = getRedis();
-  if (r) {
-    try {
-      return opts.rev
-        ? await r.zrange(key, start, stop, { rev: true })
-        : await r.zrange(key, start, stop);
-    } catch { /* fall through */ }
-  }
-  const raw = _mem.get(key);
-  if (!raw) return [];
-  const arr = JSON.parse(raw).sort((a, b) => opts.rev ? b.score - a.score : a.score - b.score);
-  const end = stop === -1 ? arr.length : stop + 1;
-  return arr.slice(start, end).map(x => x.member);
+  return await withRedis(
+    r => opts.rev
+      ? r.zrange(key, start, stop, { rev: true })
+      : r.zrange(key, start, stop),
+    () => {
+      const raw = _mem.get(key);
+      if (!raw) return [];
+      const arr = JSON.parse(raw).sort((a, b) => opts.rev ? b.score - a.score : a.score - b.score);
+      const end = stop === -1 ? arr.length : stop + 1;
+      return arr.slice(start, end).map(x => x.member);
+    }
+  );
 }
