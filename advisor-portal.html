@@ -729,23 +729,25 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   }
 }
 
-/* ── CAT L: Notification panel — fixed full-width sheet on mobile ── */
+/* ── Notification panel — full-screen drawer from top:0 on mobile ── */
 @media(max-width:768px){
   .notif-bell-wrap { position: static !important; }
   .notif-panel {
     position: fixed !important;
-    top: var(--nav-h) !important;
+    top: 0 !important;
     right: 0 !important;
     left: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    border-radius: 0 0 8px 8px !important;
-    max-height: 60vh !important;
+    border-radius: 0 0 16px 16px !important;
+    max-height: 80vh !important;
     overflow-y: auto !important;
-    z-index: 400 !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,.4) !important;
+    z-index: 1000 !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,.7) !important;
+    animation: slideDown .28s cubic-bezier(0.22,1,0.36,1) !important;
   }
 }
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── Nav role badge squeezing nav-r on mobile ── */
 @media(max-width:480px){
@@ -812,18 +814,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div class="role-badge">Advisor</div>
     <div class="notif-bell-wrap" id="notif-bell-wrap">
       <button class="notif-bell-btn" id="notif-bell-btn" onclick="toggleNotifPanel()" title="Notifications">🔔</button>
-      <div class="notif-panel" id="notif-panel">
-        <div class="notif-panel-hdr">
-          <span class="notif-panel-title">Notifications</span>
-          <button class="notif-mark-all" onclick="markAllNotifRead()">Mark all read</button>
-        </div>
-        <div class="notif-list" id="notif-list"><div class="notif-empty">No notifications</div></div>
-      </div>
     </div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
     <button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
+
+<!-- Notification panel outside nav for correct stacking context -->
+<div id="notif-backdrop" onclick="toggleNotifPanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);z-index:999;animation:fadeIn .18s ease"></div>
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-panel-hdr">
+    <span class="notif-panel-title">Notifications</span>
+    <button class="notif-mark-all" onclick="markAllNotifRead()">Mark all read</button>
+  </div>
+  <div class="notif-list" id="notif-list"><div class="notif-empty">No notifications</div></div>
+</div>
 
 <!-- ══ REVIEW NOTIFICATION OVERLAY ══ -->
 <div id="review-notify-overlay" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,9,8,.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;animation:fadeIn .3s ease">
@@ -2801,11 +2806,17 @@ function renderNotifBell(count){
 
 function toggleNotifPanel(){
   const panel=document.getElementById('notif-panel');
+  const bd=document.getElementById('notif-backdrop');
   if(!panel)return;
   const isOpen=panel.classList.contains('open');
-  if(isOpen){panel.classList.remove('open');return;}
+  if(isOpen){
+    panel.classList.remove('open');
+    if(bd)bd.style.display='none';
+    return;
+  }
   renderNotifList();
   panel.classList.add('open');
+  if(bd)bd.style.display='block';
 }
 
 function renderNotifList(){
@@ -2841,6 +2852,7 @@ function renderNotifList(){
 function notifClick(notifId,dealId,type,dealIdx){
   // Close panel
   document.getElementById('notif-panel').classList.remove('open');
+  const _bd=document.getElementById('notif-backdrop');if(_bd)_bd.style.display='none';
   // Mark read locally
   const n=NOTIFS.find(x=>x.id===notifId);
   if(n)n.read=true;
@@ -2888,11 +2900,14 @@ async function markAllNotifRead(){
   api('POST','/api/v2?resource=advisor&op=notifications',{action:'mark-read',ids:'all'}).catch(()=>{});
 }
 
-// Close panel on outside click
+// Close panel on outside click (backdrop handles tap-outside on mobile)
 document.addEventListener('click',function(e){
   const wrap=document.getElementById('notif-bell-wrap');
-  if(wrap&&!wrap.contains(e.target)){
-    document.getElementById('notif-panel')?.classList.remove('open');
+  const panel=document.getElementById('notif-panel');
+  const bd=document.getElementById('notif-backdrop');
+  if(wrap&&!wrap.contains(e.target)&&panel&&!panel.contains(e.target)){
+    panel.classList.remove('open');
+    if(bd)bd.style.display='none';
   }
 });
 
