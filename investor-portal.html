@@ -90,6 +90,23 @@ a{color:inherit;text-decoration:none}
 .nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold-bd);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--gold);flex-shrink:0}
 .theme-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-m);border-radius:50%;color:var(--text-2);font-size:16px;transition:all .2s;cursor:pointer;background:none;font-family:inherit}
 .theme-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.notif-bell-wrap{position:relative;flex-shrink:0}
+.notif-bell-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:50%;color:var(--text-2);font-size:16px;transition:all .2s;position:relative;background:none;cursor:pointer}
+.notif-bell-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.notif-bell-btn.has-items{border-color:var(--amber-bd);color:var(--amber)}
+.notif-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:var(--amber);font-family:var(--mono);font-size:8px;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 4px;animation:pulse 2s infinite;border:1.5px solid var(--bg)}
+.notif-panel{position:fixed;top:calc(var(--nav-h) + 8px);right:20px;width:300px;background:var(--surface);border:1px solid var(--border-m);border-radius:var(--r);box-shadow:0 12px 40px rgba(0,0,0,.2);z-index:1000;animation:fadeUp .18s var(--ease);overflow:hidden}
+.notif-panel-hd{padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);background:var(--bg-2)}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.notif-item:last-child{border-bottom:none}
+.notif-item:hover{background:var(--bg-3)}
+.notif-item-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.notif-item-dot.green{background:var(--green)}
+.notif-item-dot.amber{background:var(--amber)}
+.notif-item-dot.blue{background:var(--blue)}
+.notif-item-body{flex:1;font-size:12px;color:var(--text-2);line-height:1.5}
+.notif-item-body strong{color:var(--text);font-weight:500}
+.notif-empty{padding:20px 14px;text-align:center;font-size:12px;color:var(--text-3);font-style:italic}
 
 /* ── VIEWS ── */
 .view{display:none;padding-top:var(--nav-h);min-height:100vh}
@@ -1666,10 +1683,20 @@ a{color:inherit;text-decoration:none}
       <div class="nav-user-type" id="nav-user-type"></div>
     </div>
     <div class="nav-avatar" id="nav-avatar"></div>
+    <div class="notif-bell-wrap" id="notif-bell-wrap">
+      <button class="notif-bell-btn" id="notif-bell" onclick="toggleNotifPanel()" title="Notifications" aria-label="Notifications">🔔
+        <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+      </button>
+    </div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
     <button onclick="logout()" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:6px 10px;transition:color .15s;min-height:36px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
   </div>
 </nav>
+
+<div class="notif-panel" id="notif-panel" style="display:none">
+  <div class="notif-panel-hd">Updates</div>
+  <div id="notif-panel-body"></div>
+</div>
 
 <!-- ══ VIEW: LOBBY ══ -->
 <div id="view-lobby" class="view active">
@@ -2927,6 +2954,69 @@ function toggleTheme(){
   h.dataset.theme=dark?'light':'dark';
   document.getElementById('theme-btn').textContent=dark?'☾':'☀';
 }
+// ── Notification panel ──────────────────────────────────────────────────
+var _invNotifs = [];
+
+function updateNotifBell() {
+  var badge = document.getElementById('notif-badge');
+  var bell  = document.getElementById('notif-bell');
+  var n = _invNotifs.length;
+  if (badge) { badge.textContent = n; badge.style.display = n > 0 ? 'flex' : 'none'; }
+  if (bell)  bell.classList.toggle('has-items', n > 0);
+}
+
+function closeNotifPanel() {
+  var panel = document.getElementById('notif-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+function toggleNotifPanel() {
+  var panel = document.getElementById('notif-panel');
+  var wrap  = document.getElementById('notif-bell-wrap');
+  if (!panel) return;
+  var opening = panel.style.display === 'none' || panel.style.display === '';
+  panel.style.display = opening ? 'block' : 'none';
+  if (opening) {
+    var body = document.getElementById('notif-panel-body');
+    if (!body) return;
+    if (!_invNotifs.length) {
+      body.innerHTML = '<div class="notif-empty">No new updates</div>';
+    } else {
+      body.innerHTML = _invNotifs.map(function(n) {
+        return '<div class="notif-item">' +
+          '<div class="notif-item-dot ' + (n.color || 'green') + '"></div>' +
+          '<div class="notif-item-body"><strong>' + n.title + '</strong><br>' + n.body + '</div>' +
+          '</div>';
+      }).join('');
+    }
+    setTimeout(function() {
+      function onOutside(e) {
+        if (!wrap.contains(e.target) && !panel.contains(e.target)) {
+          panel.style.display = 'none';
+          document.removeEventListener('click', onOutside);
+        }
+      }
+      document.addEventListener('click', onOutside);
+    }, 0);
+  }
+}
+
+function buildInvNotifs(iois, deals) {
+  _invNotifs = [];
+  if (iois) {
+    iois.forEach(function(ioi) {
+      var d = deals ? deals.find(function(x) { return x.id === ioi.deal_id; }) : null;
+      var dealName = d ? d.name : 'your deal';
+      if (ioi.status === 'approved') {
+        _invNotifs.push({ color: 'green', title: dealName, body: 'IOI approved — data room access granted' });
+      } else if (ioi.status === 'pending') {
+        _invNotifs.push({ color: 'amber', title: dealName, body: 'IOI under review' });
+      }
+    });
+  }
+  updateNotifBell();
+}
+
 async function logout(){
   await fetch('/api/inst/logout',{method:'POST',credentials:'include'});
   window.location.href='/login';
@@ -2964,6 +3054,7 @@ async function load(){
     var _ringRow=document.getElementById("inv-ring-row");if(_ringRow)_ringRow.style.display=_invDeals>0?"flex":"none";
     if(dealsR?.deals&&dealsR.deals.length){DEALS=dealsR.deals.map((d,i)=>adaptDeal(d,i));}
     if(ioisR?.iois&&ioisR.iois.length){PORTFOLIO=ioisR.iois.map(i=>({deal_id:i.deal_id,amount:i.amount,status:i.status,submitted:new Date(i.submitted_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}),pipeline_step:i.status==='approved'?3:i.status==='rejected'?2:1}));}
+    buildInvNotifs(ioisR?.iois, DEALS);
     initLobby();
   }
 }
