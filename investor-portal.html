@@ -1872,6 +1872,7 @@ a{color:inherit;text-decoration:none}
 <script>
 (function(){const t=localStorage.getItem('prism_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☾':'☀';})();
 /* ── API + AUTH ── */
+function esc(str){const d=document.createElement('div');d.textContent=str==null?'':String(str);return d.innerHTML;}
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
 function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--surface,#131210);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
@@ -2067,7 +2068,7 @@ function showIoiConfirmation(d, amt) {
   document.getElementById('dd-left').innerHTML = `<div class="ioi-confirm">
     <div class="ioi-confirm-check">✓</div>
     <div class="ioi-confirm-title">Expression of Interest Submitted</div>
-    <div class="ioi-confirm-deal">${d.name}</div>
+    <div class="ioi-confirm-deal">${esc(d.name)}</div>
     <div class="ioi-confirm-amount">${fmFull(amt)}</div>
     <div class="ioi-confirm-amt-lbl">Submitted ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
     <div class="ioi-confirm-steps">
@@ -2148,8 +2149,8 @@ function initLobby() {
           <span class="dc-irr">${d.target_irr}%<span> IRR</span></span>
         </div>
         <div style="margin-bottom:6px"><span class="dc-class-tag ${CLASS_TAG[d.asset_class]}">${CLASS_LABEL[d.asset_class]}</span></div>
-        <div class="dc-name">${d.name}</div>
-        <div class="dc-meta">${d.geography} · ${d.structure} · ${cl > 0 ? cl + ' days' : 'Closing soon'}</div>
+        <div class="dc-name">${esc(d.name)}</div>
+        <div class="dc-meta">${esc(d.geography)} · ${esc(d.structure)} · ${cl > 0 ? cl + ' days' : 'Closing soon'}</div>
       </div>
       <div class="dc-body">
         <div class="dc-bar-track"><div class="dc-bar-fill" data-pct="${p}" style="width:0%;background:${barColor}"></div></div>
@@ -2386,14 +2387,14 @@ async function openDeal(id, action) {
         </div>
       </div>
     </div>
-    <h1 class="dd-name">${d.name}</h1>
-    <p class="dd-thesis">${d.thesis}</p>
+    <h1 class="dd-name">${esc(d.name)}</h1>
+    <p class="dd-thesis">${esc(d.thesis)}</p>
     ${isDd ? `<div class="inv-dr-tabs">
       <button class="inv-dr-tab on" id="inv-tab-btn-overview" onclick="invShowDealTab('overview',this)">Overview</button>
       ${ddTabBtn}
     </div>` : ''}
     <div id="inv-tab-overview">
-      <div class="hl-cards">${d.highlights.map((h, i) => `<div class="hl-card" style="animation-delay:${i * 55}ms"><div class="hl-icon">${h.icon}</div><div class="hl-title">${h.s}</div><div class="hl-body">${h.b}</div></div>`).join('')}</div>
+      <div class="hl-cards">${d.highlights.map((h, i) => `<div class="hl-card" style="animation-delay:${i * 55}ms"><div class="hl-icon">${esc(h.icon)}</div><div class="hl-title">${esc(h.s)}</div><div class="hl-body">${esc(h.b)}</div></div>`).join('')}</div>
       ${buildReturnChart(d)}
       ${tlHtml}
       <div class="docs-section">
@@ -2436,7 +2437,7 @@ async function openDeal(id, action) {
           <div class="nda-gate-body">To access full deal documents and submit an expression of interest, please confirm your agreement to the Non-Disclosure Agreement for this transaction.</div>
           <div class="nda-toggle-row">
             <label class="toggle-sw"><input type="checkbox" id="nda-toggle" onchange="signNda('${d.id}')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
-            <span class="tog-text">I agree to the NDA terms for <strong>${d.name}</strong> and confirm I am a qualified investor.</span>
+            <span class="tog-text">I agree to the NDA terms for <strong>${esc(d.name)}</strong> and confirm I am a qualified investor.</span>
           </div>
         </div>` : ''}
         <div id="ioi-form-inner" style="${!signed ? 'opacity:.35;pointer-events:none' : ''}">
@@ -2665,21 +2666,21 @@ function renderInvestorDataroom() {
       if(q.type === 'advisor_open'){
         // Advisor broadcast — show on left (advisor side)
         chatHtml += `<div class="inv-qa-bubble advisor">
-          <div class="inv-qa-bubble-body">${q.message}</div>
-          <div class="inv-qa-bubble-meta">${q.sentBy || 'Advisor'} &middot; ${q.sentAt || ''}</div>
+          <div class="inv-qa-bubble-body">${esc(q.message)}</div>
+          <div class="inv-qa-bubble-meta">${esc(q.sentBy || 'Advisor')} &middot; ${esc(q.sentAt || '')}</div>
         </div>`;
       } else {
         // Investor question — show on right
         chatHtml += `<div class="inv-qa-bubble investor">
-          <div class="inv-qa-bubble-body">${q.question}</div>
-          <div class="inv-qa-bubble-meta">You &middot; ${q.askedAt || ''}
+          <div class="inv-qa-bubble-body">${esc(q.question)}</div>
+          <div class="inv-qa-bubble-meta">You &middot; ${esc(q.askedAt || '')}
             ${!q.answer ? `<span class="inv-qa-pending">Awaiting reply</span>` : ''}
           </div>
         </div>`;
         if(q.answer){
           chatHtml += `<div class="inv-qa-bubble advisor">
-            <div class="inv-qa-bubble-body">${q.answer}</div>
-            <div class="inv-qa-bubble-meta">${q.answeredBy || 'Advisor'} &middot; ${q.answeredAt || ''}</div>
+            <div class="inv-qa-bubble-body">${esc(q.answer)}</div>
+            <div class="inv-qa-bubble-meta">${esc(q.answeredBy || 'Advisor')} &middot; ${esc(q.answeredAt || '')}</div>
           </div>`;
         }
       }
@@ -2873,8 +2874,8 @@ function renderPortfolio() {
           <span class="dc-class-tag ${CLASS_TAG[d.asset_class]}">${CLASS_LABEL[d.asset_class]}</span>
           ${isClose ? '<span class="closing-stage-chip">Closing</span>' : ''}
         </div>
-        <div class="pos-name">${d.name}</div>
-        <div class="pos-sub">${d.geography} · ${d.target_irr}% IRR · Submitted ${p.submitted}</div>
+        <div class="pos-name">${esc(d.name)}</div>
+        <div class="pos-sub">${esc(d.geography)} · ${d.target_irr}% IRR · Submitted ${esc(p.submitted)}</div>
         <div style="margin-top:8px;font-size:11px;color:${isApp ? 'var(--green)' : 'var(--text-3)'}">
           ${isClose ? '✓ Capital commitment confirmed' : isApp ? '🔓 Data room access granted' : '🔒 Data room pending approval'}
         </div>
@@ -2913,7 +2914,7 @@ function showClosingInstructions(dealId) {
     <button class="closing-back-btn" onclick="document.getElementById('closing-overlay').remove()">← Back to Portfolio</button>
     <div class="ci-header">
       <div class="ci-eyebrow">Capital Commitment</div>
-      <div class="ci-deal-name">${d.name}</div>
+      <div class="ci-deal-name">${esc(d.name)}</div>
       <div class="ci-amount-row">
         <span class="ci-amount-lbl">Your committed amount</span>
         <span class="ci-amount-val">${fmFull(p.amount)}</span>
@@ -2922,7 +2923,7 @@ function showClosingInstructions(dealId) {
     <div class="ci-rule"></div>
     <div class="ci-section-title">Wire Transfer Instructions</div>
     <div class="ci-wire-table">
-      <div class="ci-wire-row"><div class="ci-wire-lbl">Beneficiary Name</div><div class="ci-wire-val">Aurum Capital Partners VCC<br><span style="color:var(--text-3);font-size:12px">Sub-Fund: ${d.name} Opportunities</span></div></div>
+      <div class="ci-wire-row"><div class="ci-wire-lbl">Beneficiary Name</div><div class="ci-wire-val">Aurum Capital Partners VCC<br><span style="color:var(--text-3);font-size:12px">Sub-Fund: ${esc(d.name)} Opportunities</span></div></div>
       <div class="ci-wire-row"><div class="ci-wire-lbl">Beneficiary Bank</div><div class="ci-wire-val">DBS Bank Ltd</div></div>
       <div class="ci-wire-row"><div class="ci-wire-lbl">Bank Address</div><div class="ci-wire-val">12 Marina Boulevard, DBS Asia Hub,<br>Singapore 018982</div></div>
       <div class="ci-wire-row"><div class="ci-wire-lbl">Swift Code</div><div class="ci-wire-val ci-mono">DBSSSGSG</div></div>

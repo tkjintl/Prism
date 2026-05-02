@@ -1070,6 +1070,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <script>
 /* ─── API + AUTH ─── */
+function esc(str){const d=document.createElement('div');d.textContent=str==null?'':String(str);return d.innerHTML;}
 async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
 function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--bg-2,#fff);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again to continue.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
@@ -1380,7 +1381,7 @@ function renderSwitcher(){
       return`<button class="ds-pill ${i===currentDealIdx?'active':''}" onclick="switchDeal(${i})" style="flex-direction:column;align-items:flex-start;height:auto;padding:7px 14px">
         <div style="display:flex;align-items:center;gap:8px">
           <span class="ds-pill-dot ${DOT_CLS[d.stage]||'dot-review'}"></span>
-          ${d.name}
+          ${esc(d.name)}
           <span class="ds-pill-stage">${STAGE_LABEL[d.stage]||d.stage}</span>
           ${needsReview?`<span style="background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:7px;letter-spacing:.08em;padding:2px 6px;border-radius:10px;font-weight:700">REVIEW</span>`:''}
         </div>
@@ -1560,8 +1561,8 @@ function renderOverview(){
   <div class="activity-feed">${d.activity.map((a,i)=>`
     <div class="activity-item" style="animation-delay:${i*50}ms">
       <div class="act-icon-wrap ${actIcons[a.type]}">${actEmoji[a.type]}</div>
-      <div class="act-text">${a.text}</div>
-      <div class="act-time">${a.time}</div>
+      <div class="act-text">${esc(a.text)}</div>
+      <div class="act-time">${esc(a.time)}</div>
     </div>`).join('')}</div>`;
 
   html+=`<div class="section-title" style="margin-top:28px;margin-bottom:16px">Raise Progress</div>
@@ -1959,8 +1960,8 @@ function openPrismDoc(type){
 
       <!-- Deal identity -->
       <div style="padding:18px 22px 14px;border-bottom:1px solid var(--border)">
-        <div style="font-family:var(--serif);font-style:italic;font-size:24px;color:var(--text);line-height:1.2;margin-bottom:6px">${d.name}</div>
-        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:var(--text-3)">PREPARED FOR ${advisorLine.toUpperCase()}</div>
+        <div style="font-family:var(--serif);font-style:italic;font-size:24px;color:var(--text);line-height:1.2;margin-bottom:6px">${esc(d.name)}</div>
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:var(--text-3)">PREPARED FOR ${esc(advisorLine.toUpperCase())}</div>
       </div>
 
       <!-- Capital hero -->
@@ -2005,18 +2006,18 @@ function openPrismDoc(type){
     title='Investor Portal Listing';
     const hls=(d.highlights||[]);
     html=`<div class="pdv-meta">As published on the investor portal</div>
-    <div class="pdv-deal-name">${d.name}</div>
+    <div class="pdv-deal-name">${esc(d.name)}</div>
     <div class="pdv-chips">
-      <span class="pdv-chip">${(d.asset_class||'').toUpperCase()}</span>
-      <span class="pdv-chip">${d.geography||''}</span>
-      <span class="pdv-chip">${d.structure||''}</span>
+      <span class="pdv-chip">${esc((d.asset_class||'').toUpperCase())}</span>
+      <span class="pdv-chip">${esc(d.geography||'')}</span>
+      <span class="pdv-chip">${esc(d.structure||'')}</span>
     </div>
-    <div class="pdv-tagline">${d.tagline||'No tagline set.'}</div>
+    <div class="pdv-tagline">${esc(d.tagline||'No tagline set.')}</div>
     <div class="pdv-divider"></div>
     <div class="pdv-section-lbl">Investment Thesis</div>
-    <div class="pdv-thesis">${d.thesis||'No thesis set.'}</div>
+    <div class="pdv-thesis">${esc(d.thesis||'No thesis set.')}</div>
     ${hls.length?`<div class="pdv-divider"></div><div class="pdv-section-lbl">Key Highlights</div>
-    <div class="pdv-highlights">${hls.map(h=>`<div class="pdv-hl-row"><span class="pdv-hl-icon">${h.icon}</span><div><div class="pdv-hl-title">${h.title||h.s||''}</div><div class="pdv-hl-body">${h.body||h.b||''}</div></div></div>`).join('')}</div>`:''}
+    <div class="pdv-highlights">${hls.map(h=>`<div class="pdv-hl-row"><span class="pdv-hl-icon">${esc(h.icon)}</span><div><div class="pdv-hl-title">${esc(h.title||h.s||'')}</div><div class="pdv-hl-body">${esc(h.body||h.b||'')}</div></div></div>`).join('')}</div>`:''}
     <div class="pdv-divider"></div>
     <div class="pdv-section-lbl">Economics</div>
     <div class="pdv-kv-row"><span class="pdv-k">Target IRR</span><span class="pdv-v gold">${d.target_irr}%</span></div>
@@ -2029,7 +2030,7 @@ function openPrismDoc(type){
     const pct=d.target_alloc>0?Math.round(d.ioi_agg/d.target_alloc*100):0;
     const days=Math.round((new Date(d.closing)-new Date())/86400000);
     html=`<div class="pdv-meta">Prism Analytics Snapshot · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
-    <div class="pdv-deal-name">${d.name}</div>
+    <div class="pdv-deal-name">${esc(d.name)}</div>
     <div class="pdv-divider"></div>
     <div class="pdv-section-lbl">Capital Summary</div>
     <div class="pdv-kv-row"><span class="pdv-k">Total Indicated</span><span class="pdv-v gold">${fmU(d.ioi_agg)}</span></div>
@@ -2108,21 +2109,22 @@ function renderDataroom(){
     qaArr.forEach(q=>{
       if(q.type==='advisor_open'){
         chatHtml+=`<div class="qa-bubble advisor">
-          <div class="qa-bubble-body">${q.message}</div>
-          <div class="qa-bubble-meta">${q.sentBy} &middot; ${q.sentAt}</div>
+          <div class="qa-bubble-body">${esc(q.message)}</div>
+          <div class="qa-bubble-meta">${esc(q.sentBy)} &middot; ${esc(q.sentAt)}</div>
         </div>`;
       } else {
         // Investor question
+        const safeQid=esc(q.id);const safeAskedBy=esc(q.askedBy);
         chatHtml+=`<div class="qa-bubble investor">
-          <div class="qa-bubble-body">${q.question}</div>
-          <div class="qa-bubble-meta">${q.askedBy} &middot; ${q.askedAt}
-            ${!q.answer?`<span class="qa-unanswered-flag" onclick="setQaReplyCtx('${q.id}','${q.askedBy}')">Unanswered — reply</span>`:''}
+          <div class="qa-bubble-body">${esc(q.question)}</div>
+          <div class="qa-bubble-meta">${safeAskedBy} &middot; ${esc(q.askedAt)}
+            ${!q.answer?`<span class="qa-unanswered-flag" onclick="setQaReplyCtx(this)" data-qaid="${safeQid}" data-askedby="${safeAskedBy}">Unanswered — reply</span>`:''}
           </div>
         </div>`;
         if(q.answer){
           chatHtml+=`<div class="qa-bubble advisor">
-            <div class="qa-bubble-body">${q.answer}</div>
-            <div class="qa-bubble-meta">${q.answeredBy||'TACC Singapore'} &middot; ${q.answeredAt||''}</div>
+            <div class="qa-bubble-body">${esc(q.answer)}</div>
+            <div class="qa-bubble-meta">${esc(q.answeredBy||'TACC Singapore')} &middot; ${esc(q.answeredAt||'')}</div>
           </div>`;
         }
       }
@@ -2249,7 +2251,9 @@ function deleteVdrFile(fileId){
 
 let _qaReplyToId = null;
 
-function setQaReplyCtx(qaId, investorName){
+function setQaReplyCtx(el){
+  const qaId = el.dataset.qaid;
+  const investorName = el.dataset.askedby;
   _qaReplyToId = qaId;
   const ctx = document.getElementById('qa-reply-ctx');
   const inp = document.getElementById('qa-reply-input');
@@ -2596,8 +2600,8 @@ function renderReviewEdit(){
           <!-- Deal name — editable -->
           <div style="margin-bottom:16px" class="rev-field-wrap">
             <div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Deal Name <span class="rev-edit-hint">✎ click to edit</span></div>
-            <div class="rev-display rev-name-display" onclick="revToggleEdit('rev-name')" style="font-family:var(--serif);font-style:italic;font-size:clamp(20px,3vw,28px);color:var(--text);line-height:1.2;cursor:pointer;border-bottom:1px dashed var(--border-m);padding-bottom:4px">${d.name||'—'}</div>
-            <input id="rev-name" class="rev-input" style="display:none;width:100%;padding:8px 10px;background:var(--surface);border:1px solid var(--gold-bd);border-radius:3px;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text)" value="${(d.name||'').replace(/"/g,'&quot;')}" onblur="revSaveEdit('rev-name','name')">
+            <div class="rev-display rev-name-display" onclick="revToggleEdit('rev-name')" style="font-family:var(--serif);font-style:italic;font-size:clamp(20px,3vw,28px);color:var(--text);line-height:1.2;cursor:pointer;border-bottom:1px dashed var(--border-m);padding-bottom:4px">${esc(d.name||'—')}</div>
+            <input id="rev-name" class="rev-input" style="display:none;width:100%;padding:8px 10px;background:var(--surface);border:1px solid var(--gold-bd);border-radius:3px;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text)" value="${esc(d.name||'')}" onblur="revSaveEdit('rev-name','name')">
           </div>
 
           <!-- Thesis — editable -->
@@ -3200,8 +3204,8 @@ function renderDashboard() {
               '<div class="ddc-ticker">'+d.ticker+'</div>'+
               '<div class="ddc-stage ddc-s-'+sc+'">'+(stageLabels[d.stage]||d.stage)+'</div>'+
             '</div>'+
-            '<div class="ddc-name">'+d.name+'</div>'+
-            '<div class="ddc-meta">'+d.geography.split('·')[0].trim()+' · '+d.asset_class+'</div>'+
+            '<div class="ddc-name">'+esc(d.name)+'</div>'+
+            '<div class="ddc-meta">'+esc(d.geography.split('·')[0].trim())+' · '+esc(d.asset_class)+'</div>'+
           '</div>'+
           '<div class="ddc-body">'+
             '<div class="ddc-bar-track"><div class="ddc-bar-fill" data-pct="'+pct+'%" style="width:0"></div></div>'+
@@ -3233,10 +3237,10 @@ function renderDashboard() {
           return '<div class="dash-act-item">'+
             '<div class="dash-act-icon dash-ai-'+cc2+'">'+ic+'</div>'+
             '<div class="dash-act-body">'+
-              '<div class="dash-act-text">'+(a.text||'')+'</div>'+
-              '<div class="dash-act-deal">'+a.dealName+'</div>'+
+              '<div class="dash-act-text">'+esc(a.text||'')+'</div>'+
+              '<div class="dash-act-deal">'+esc(a.dealName)+'</div>'+
             '</div>'+
-            '<div class="dash-act-time">'+(a.time||'')+'</div>'+
+            '<div class="dash-act-time">'+esc(a.time||'')+'</div>'+
           '</div>';
         }).join('') : '<div style="color:var(--text-3);font-size:13px;padding:20px 0">No recent activity</div>') +
       '</div>' +

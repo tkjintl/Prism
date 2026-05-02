@@ -4,6 +4,26 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Stored XSS remediation: Q&A thread and deal fields
+
+### Changes
+
+- **`esc()` sanitizer added to both portals** (`advisor-portal.html`, `investor-portal.html`): Added `function esc(str)` that creates a temporary DOM text node, assigns the value via `textContent`, and returns the resulting `innerHTML` — the browser's own HTML encoder. This produces safe output for all five special HTML characters (`&`, `<`, `>`, `"`, `'`).
+
+- **Q&A thread rendering hardened** (`advisor-portal.html`): All six user-data interpolations in the Q&A chat builder are now wrapped in `esc()`: `q.message`, `q.question`, `q.askedBy`, `q.askedAt`, `q.answer`, `q.answeredBy`/`q.answeredAt`. A `<script>` or `<img onerror=...>` payload submitted by an investor now renders as visible literal text in the advisor browser.
+
+- **Q&A onclick attribute injection closed** (`advisor-portal.html`): The `onclick="setQaReplyCtx('${q.id}','${q.askedBy}')"` pattern allowed an investor to break out of the string literal and inject arbitrary JS. Replaced with `onclick="setQaReplyCtx(this)"` and `data-qaid`/`data-askedby` attributes (whose values are HTML-escaped). `setQaReplyCtx` updated to read from `el.dataset` instead of inline string arguments.
+
+- **Q&A thread rendering hardened** (`investor-portal.html`): Same six fields wrapped in `esc()` — `q.message`, `q.sentBy`, `q.sentAt`, `q.question`, `q.askedAt`, `q.answer`, `q.answeredBy`, `q.answeredAt`.
+
+- **Deal name and free-text fields hardened in advisor portal** (`advisor-portal.html`): `d.name` escaped in deal switcher pills, deal detail panel, both PDV preview modals (listing + report), review/edit display, and dashboard deal cards. `d.geography`, `d.structure`, `d.tagline`, `d.thesis`, highlight `icon`/`title`/`body`, activity log `a.text`/`a.time`/`a.dealName` all wrapped in `esc()`.
+
+- **Deal name and free-text fields hardened in investor portal** (`investor-portal.html`): `d.name` escaped in IOI confirmation, deal grid cards, deal detail header, NDA consent text, portfolio list, closing instructions overlay (including sub-fund name). `d.geography`, `d.structure`, `d.thesis`, highlight fields, and `p.submitted` all wrapped in `esc()`.
+
+- **Backend confirmed clean** (`api/v2.js`): Q&A `question`, `answer`, and `message` fields are stored as plain text via `.trim()` only — no pre-encoding at storage time. XSS prevention is applied exclusively at render time in the browser, which is the correct architecture.
+
+---
+
 ## [2026-05-02] — Phase 0 security hardening (8 fixes, api/v2.js)
 
 ### Changes
