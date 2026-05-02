@@ -4,6 +4,18 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Mobile-pass Batch C — investor-portal demo badge (desktop + mobile)
+
+Operator-approved exception to the "no desktop changes" rule for one item: the `.demo-badge` "Investor Demo" pill on `investor-portal.html`. Was at full opacity on desktop and overlapping deal description text in narrower viewports.
+
+**Change:** added `opacity:.55; pointer-events:none; backdrop-filter:blur(4px)` to the desktop base rule. The badge is now translucent with a soft blur behind it in all viewports — legible without obscuring scrolling content underneath. Mobile-only `@media(max-width:480px)` block already had these properties; this pulls them up to the desktop default for consistency.
+
+**Files modified:** `investor-portal.html` (single line, base `.demo-badge` rule).
+
+**Verification:** desktop visual hit at 1280/1440/1920 — badge still visible bottom-right but no longer dominant, deal text underneath remains readable through the blur.
+
+---
+
 ## [2026-05-02] — Mobile-pass Batch B — overflow guards + missed pages
 
 Continued on `mobile-pass` branch. After Batch A, re-audit revealed:
