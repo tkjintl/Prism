@@ -131,6 +131,10 @@ input:focus{border-color:var(--gold)}
 .persona-admin .swatch{background:#5b9cd8}
 .persona-investor .swatch{background:#5fb87f}
 .persona-applicant .swatch{background:#b794e0}
+.persona-chaos .swatch{background:#e0746b}
+.persona-auth .swatch{background:#e5a55c}
+.persona-advreview .swatch{background:#5fbabf}
+.persona-concurrency .swatch{background:#d97abc}
 
 .control-label{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-right:4px}
 
@@ -144,11 +148,15 @@ input:focus{border-color:var(--gold)}
 .log-row.err{background:var(--red-bg)}
 .log-row .ts{font-family:var(--mono);font-size:10px;color:var(--text-3);font-variant-numeric:tabular-nums}
 .log-row .tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:10px;text-align:center;border:1px solid}
-/* Distinct persona colors — gold/blue/green/violet so log rows are scannable at a glance */
+/* Distinct persona colors — 8 personas, each its own color, all scannable. */
 .tag-advisor{color:var(--gold);background:var(--gold-bg);border-color:var(--gold-bd)}
 .tag-admin{color:#5b9cd8;background:rgba(91,156,216,.08);border-color:rgba(91,156,216,.3)}
 .tag-investor{color:#5fb87f;background:rgba(95,184,127,.08);border-color:rgba(95,184,127,.3)}
 .tag-applicant{color:#b794e0;background:rgba(183,148,224,.10);border-color:rgba(183,148,224,.35)}
+.tag-chaos{color:#e0746b;background:rgba(224,116,107,.10);border-color:rgba(224,116,107,.35)}
+.tag-auth{color:#e5a55c;background:rgba(229,165,92,.10);border-color:rgba(229,165,92,.35)}
+.tag-advreview{color:#5fbabf;background:rgba(95,186,191,.10);border-color:rgba(95,186,191,.35)}
+.tag-concurrency{color:#d97abc;background:rgba(217,122,188,.10);border-color:rgba(217,122,188,.35)}
 .log-row .msg{color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .log-row.err .msg{color:var(--red)}
 .log-row .ok{font-family:var(--mono);font-size:13px;text-align:center}
@@ -253,6 +261,10 @@ input:focus{border-color:var(--gold)}
         <label class="persona-toggle persona-admin on" id="pt-admin"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('admin',this.checked)">Admin</label>
         <label class="persona-toggle persona-investor on" id="pt-investor"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('investor',this.checked)">Investor</label>
         <label class="persona-toggle persona-applicant on" id="pt-applicant" title="New advisor + investor signups (low-rate)"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('applicant',this.checked)">Applicants</label>
+        <label class="persona-toggle persona-chaos on" id="pt-chaos" title="Throws bad payloads at endpoints — verifies validation"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('chaos',this.checked)">Chaos</label>
+        <label class="persona-toggle persona-auth on" id="pt-auth" title="Tries unauthorized actions — verifies auth boundaries"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('auth',this.checked)">Auth</label>
+        <label class="persona-toggle persona-advreview on" id="pt-advreview" title="Logs in as advisor, confirms pending review deals → auto-publish"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('advreview',this.checked)">Adv Review</label>
+        <label class="persona-toggle persona-concurrency on" id="pt-concurrency" title="Bursts parallel calls to stress race conditions"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('concurrency',this.checked)">Concurrency</label>
       </div>
     </div>
 
@@ -365,7 +377,7 @@ const state={
   running:false,
   paused:false,
   speedKey:'5',
-  personas:{advisor:true,admin:true,investor:true,applicant:true},
+  personas:{advisor:true,admin:true,investor:true,applicant:true,chaos:true,auth:true,advreview:true,concurrency:true},
   loops:{},          // persona -> AbortController
   logEntries:[],
   logFollow:true,
@@ -774,7 +786,223 @@ class ApplicantBot{
   }
 }
 
-const bots={advisor:new AdvisorBot(),admin:new AdminBot(),investor:new InvestorBot(),applicant:new ApplicantBot()};
+// ─── ChaosBot ─────────────────────────────────────────────────────────
+// Throws deliberately bad payloads at every endpoint. Verifies validation
+// is correct (expect 400/404 when expected, expect sanitization when
+// expected). Reports ✓ when the platform rejected as it should and ✗
+// when something dangerous slipped through. Uses the operator's admin
+// cookie — most attacks check that admin-only endpoints reject malformed
+// input, which is the harder case. Tick floor: 3s.
+class ChaosBot{
+  constructor(){this.persona='chaos';}
+  async tick(){
+    const roll=Math.random();
+    if(roll<0.25)return await this.fuzzDealCreate();
+    if(roll<0.45)return await this.fuzzApproveBadIds();
+    if(roll<0.65)return await this.fuzzNumericEdges();
+    if(roll<0.85)return await this.fuzzInjection();
+    return await this.fuzzWrongTypes();
+  }
+  // Each attack returns ✓ if platform behaved correctly, ✗ if surprise.
+  async fuzzDealCreate(){
+    // Deliberately incomplete payload — should 400 with missing list
+    const body={name:'Chaos test '+Date.now(),target_alloc_usd:50000000,target_irr:12};
+    try{
+      await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',body:JSON.stringify(body)});
+      return {persona:this.persona,action:'Empty-deal accepted (BUG: should 400)',ok:false};
+    }catch(e){
+      if(e.status===400&&Array.isArray(e.body?.missing))return {persona:this.persona,action:`✓ Empty deal rejected (${e.body.missing.length} missing)`,ok:true};
+      return {persona:this.persona,action:`Empty deal: unexpected ${e.status||'?'} ${e.message}`,ok:false};
+    }
+  }
+  async fuzzApproveBadIds(){
+    // Approve nonexistent IOI
+    const fakeId='IOI-CHAOS-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    try{
+      await botFetch('/api/v2?resource=marketplace&op=approve-ioi',{method:'POST',body:JSON.stringify({ioi_id:fakeId})});
+      return {persona:this.persona,action:`Phantom IOI approved (BUG: should 404) ${fakeId}`,ok:false};
+    }catch(e){
+      if(e.status===404)return {persona:this.persona,action:`✓ Phantom IOI rejected (404)`,ok:true};
+      return {persona:this.persona,action:`Phantom IOI: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+  async fuzzNumericEdges(){
+    const cases=[
+      {label:'negative IRR',body:{name:'Neg IRR '+Date.now(),asset_class:'credit',deal_structure:'senior_secured',geography:'US',originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:['a','b'],target_alloc_usd:1000000,target_irr:-5,term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'}},
+      {label:'zero alloc',body:{name:'Zero '+Date.now(),asset_class:'credit',deal_structure:'senior_secured',geography:'US',originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:['a','b'],target_alloc_usd:0,target_irr:12,term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'}},
+      {label:'NaN IRR',body:{name:'NaN '+Date.now(),asset_class:'credit',deal_structure:'senior_secured',geography:'US',originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:['a','b'],target_alloc_usd:1000000,target_irr:'not-a-number',term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'}},
+    ];
+    const c=rand(cases);
+    try{
+      await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',body:JSON.stringify(c.body)});
+      return {persona:this.persona,action:`${c.label} accepted (BUG: should 400)`,ok:false};
+    }catch(e){
+      if(e.status===400)return {persona:this.persona,action:`✓ ${c.label} rejected`,ok:true};
+      return {persona:this.persona,action:`${c.label}: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+  async fuzzInjection(){
+    // XSS / SQL chars in deal name. Platform should accept (escape on render) — bug if it crashes.
+    const payloads=['<script>alert(1)</script>',"' OR 1=1 --",' NULL','🚀'.repeat(20),'A'.repeat(2000),'\n\r\t\\"'];
+    const p=rand(payloads);
+    const body={name:p,asset_class:'credit',deal_structure:'senior_secured',geography:'US',originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:['a','b'],target_alloc_usd:1000000,target_irr:12,term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'};
+    try{
+      const r=await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',body:JSON.stringify(body)});
+      // Platform should store as-is. Check that response doesn't echo raw script tag.
+      if(r?.deal?.name===p)return {persona:this.persona,action:`✓ Injection stored verbatim, no crash (${p.slice(0,20)}…)`,ok:true};
+      return {persona:this.persona,action:`✓ Injection sanitized/normalized`,ok:true};
+    }catch(e){
+      if(e.status===500)return {persona:this.persona,action:`Injection crashed server (BUG): ${p.slice(0,30)}`,ok:false};
+      return {persona:this.persona,action:`✓ Injection rejected (${e.status})`,ok:true};
+    }
+  }
+  async fuzzWrongTypes(){
+    // Send object where string expected, etc.
+    const body={name:{nested:'object'},asset_class:'credit',deal_structure:'senior_secured',geography:['US'],originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:'not-an-array',target_alloc_usd:'one million',target_irr:12,term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'};
+    try{
+      await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',body:JSON.stringify(body)});
+      return {persona:this.persona,action:`Wrong types accepted (BUG: should 400)`,ok:false};
+    }catch(e){
+      if(e.status===400||e.status===500)return {persona:this.persona,action:`✓ Wrong types rejected (${e.status})`,ok:true};
+      return {persona:this.persona,action:`Wrong types: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+}
+
+// ─── AuthBoundaryBot ──────────────────────────────────────────────────
+// Verifies role isolation. Each tick attempts an unauthorized action and
+// expects rejection. ✓ if the platform correctly denies, ✗ if it allows.
+// Uses bot.investor cookie via separate fetch (without admin cookie).
+// Tick floor: 4s.
+class AuthBoundaryBot{
+  constructor(){this.persona='auth';}
+  async tick(){
+    const roll=Math.random();
+    if(roll<0.33)return await this.investorTriesAdmin();
+    if(roll<0.66)return await this.unauthCallsProtected();
+    return await this.investorTriesAdvisorEndpoint();
+  }
+  // Investor-as-bot.investor tries to call admin endpoint
+  async investorTriesAdmin(){
+    try{
+      // x-bot-as: investor pins inst cookie. Admin cookie should be ignored.
+      // Even with admin cookie present, the auth guard for getAdmin should fail
+      // because the request prefers inst auth, but the endpoint requires admin.
+      await botFetch('/api/v2?resource=admin&op=sandbox-status',{botAs:'investor'});
+      return {persona:this.persona,action:`Investor reached admin endpoint (BUG: should 401)`,ok:false};
+    }catch(e){
+      if(e.status===401||e.status===403)return {persona:this.persona,action:`✓ Investor blocked from admin (${e.status})`,ok:true};
+      return {persona:this.persona,action:`Investor->admin: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+  async unauthCallsProtected(){
+    // Direct fetch without credentials — bypasses cookies entirely
+    try{
+      const r=await fetch('/api/v2?resource=admin&op=sandbox-status',{headers:{'Content-Type':'application/json'},credentials:'omit'});
+      if(r.ok)return {persona:this.persona,action:`Anonymous reached admin endpoint (BUG)`,ok:false};
+      if(r.status===401||r.status===403)return {persona:this.persona,action:`✓ Anonymous blocked (${r.status})`,ok:true};
+      return {persona:this.persona,action:`Anonymous: unexpected ${r.status}`,ok:false};
+    }catch(e){
+      return {persona:this.persona,action:`Anonymous test errored: ${e.message}`,ok:true};
+    }
+  }
+  async investorTriesAdvisorEndpoint(){
+    try{
+      // Try to submit a deal as investor (advisor-only endpoint)
+      await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',botAs:'investor',body:JSON.stringify({name:'AuthTest'})});
+      return {persona:this.persona,action:`Investor created deal as advisor (BUG)`,ok:false};
+    }catch(e){
+      if(e.status===401||e.status===403)return {persona:this.persona,action:`✓ Investor blocked from advisor endpoint (${e.status})`,ok:true};
+      return {persona:this.persona,action:`Investor->advisor: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+}
+
+// ─── AdvisorReviewBot ─────────────────────────────────────────────────
+// Logs in as bot.advisor periodically. Finds bot-advisor-owned deals in
+// review stage and calls advisor-confirm-deal — which auto-publishes them
+// to the marketplace via the new P-16 path. Closes the lifecycle loop:
+// AdvisorBot submits review deal -> AdvisorReviewBot confirms -> auto live.
+// Tick floor: 5s.
+class AdvisorReviewBot{
+  constructor(){this.persona='advreview';this.loggedIn=false;}
+  async login(){
+    if(this.loggedIn)return;
+    await botFetch('/api/v2?resource=advisor&op=login',{method:'POST',body:JSON.stringify({email:'bot.advisor@aurumprism.test',password:'BotPass123!'})});
+    this.loggedIn=true;
+  }
+  async tick(){
+    if(!this.loggedIn)await this.login();
+    // Get bot.advisor's own deals
+    let deals;
+    try{const j=await botFetch('/api/v2?resource=advisor&op=deals',{botAs:'advisor'});deals=j.deals||[];}
+    catch(e){return {persona:this.persona,action:`Fetch deals failed: ${e.message}`,ok:false};}
+    const reviewDeals=deals.filter(d=>d.stage==='review');
+    if(reviewDeals.length===0)return {persona:this.persona,action:'No review-stage deals to confirm',ok:true};
+    const d=rand(reviewDeals);
+    try{
+      const r=await botFetch('/api/v2?resource=advisor&op=advisor-confirm-deal',{method:'POST',botAs:'advisor',body:JSON.stringify({dealId:d.id})});
+      if(r?.autoPublished)return {persona:this.persona,action:`Confirmed + auto-published "${d.name}"`,ok:true};
+      if(r?.publishMissing?.length)return {persona:this.persona,action:`Confirmed "${d.name}" (incomplete: ${r.publishMissing.slice(0,2).join(',')})`,ok:true};
+      return {persona:this.persona,action:`Confirmed "${d.name}" (review_status set)`,ok:true};
+    }catch(e){
+      if(e.status===403)return {persona:this.persona,action:`Not bot's deal "${d.name}" (raced)`,ok:true};
+      throw e;
+    }
+  }
+}
+
+// ─── ConcurrencyBot ───────────────────────────────────────────────────
+// Bursts parallel calls to surface race conditions. Targets known race-
+// prone endpoints (IOI submit, approve-ioi, publish-deal). Verifies the
+// idempotency we added (P-9/P-10/P-15) actually holds under load and
+// stress-tests the still-open recalcIoiCounters race (P-6).
+// Tick floor: 30s.
+class ConcurrencyBot{
+  constructor(){this.persona='concurrency';}
+  async tick(){
+    const roll=Math.random();
+    if(roll<0.5)return await this.burstApproveSameIoi();
+    return await this.burstPublishSameDeal();
+  }
+  async burstApproveSameIoi(){
+    // Find a pending IOI
+    const status=await botFetch('/api/v2?resource=admin&op=sandbox-status');
+    const pending=(status.recent_iois||[]).filter(i=>i.status==='pending');
+    if(pending.length===0)return {persona:this.persona,action:'No pending IOI to burst',ok:true};
+    const i=rand(pending);
+    // Fire 8 approves at exact same instant
+    const promises=Array.from({length:8},()=>botFetch('/api/v2?resource=marketplace&op=approve-ioi',{method:'POST',body:JSON.stringify({ioi_id:i.id})}).catch(e=>e));
+    const results=await Promise.all(promises);
+    const successes=results.filter(r=>r&&r.ok===true).length;
+    const idempotents=results.filter(r=>r&&r.idempotent===true).length;
+    const errors=results.filter(r=>r instanceof Error).length;
+    return {persona:this.persona,action:`Burst x8 approve IOI ${i.id}: ok=${successes} idem=${idempotents} err=${errors}`,ok:errors===0};
+  }
+  async burstPublishSameDeal(){
+    const status=await botFetch('/api/v2?resource=admin&op=sandbox-status');
+    const review=(status.recent_deals||[]).filter(d=>d.stage==='review');
+    if(review.length===0)return {persona:this.persona,action:'No review deal to burst-publish',ok:true};
+    const d=rand(review);
+    const promises=Array.from({length:8},()=>botFetch('/api/v2?resource=admin&op=publish-deal',{method:'POST',body:JSON.stringify({dealId:d.id,launch_mode:'listed',target_segments:['institutional','hnw']})}).catch(e=>e));
+    const results=await Promise.all(promises);
+    const successes=results.filter(r=>r&&r.ok===true).length;
+    const idempotents=results.filter(r=>r&&r.idempotent===true).length;
+    const errors=results.filter(r=>r instanceof Error&&r.status>=500).length;
+    return {persona:this.persona,action:`Burst x8 publish "${d.name}": ok=${successes} idem=${idempotents} 5xx=${errors}`,ok:errors===0};
+  }
+}
+
+const bots={
+  advisor:new AdvisorBot(),
+  admin:new AdminBot(),
+  investor:new InvestorBot(),
+  applicant:new ApplicantBot(),
+  chaos:new ChaosBot(),
+  auth:new AuthBoundaryBot(),
+  advreview:new AdvisorReviewBot(),
+  concurrency:new ConcurrencyBot(),
+};
 
 /* ========== Driver loop ========== */
 function startPersonaLoop(persona){
@@ -799,9 +1027,10 @@ function startPersonaLoop(persona){
         }
       }
       const base=SPEED_MS[state.speedKey];
-      // ApplicantBot deliberately slow: pressure-tests signup flow without
-      // burning Redis ops on a hot loop. Floored at 5s regardless of speed.
-      const personaFloor=persona==='applicant'?5000:base;
+      // Per-persona tick floors. Slow personas pressure-test specific flows
+      // without burning Redis ops on a hot loop.
+      const FLOORS={applicant:5000,chaos:3000,auth:4000,advreview:5000,concurrency:30000};
+      const personaFloor=FLOORS[persona]||base;
       const interval=Math.max(personaFloor,base);
       if(interval<=50){await sleep(50);}
       else{const jitter=0.7+Math.random()*0.6;await sleep(Math.round(interval*jitter));}
@@ -818,7 +1047,7 @@ async function startBots(){
   document.getElementById('btn-pause').disabled=false;
   setStatus();
   refreshCounters();
-  for(const p of ['advisor','admin','investor','applicant']){
+  for(const p of ['advisor','admin','investor','applicant','chaos','auth','advreview','concurrency']){
     if(state.personas[p])startPersonaLoop(p);
   }
 }

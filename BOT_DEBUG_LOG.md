@@ -10,6 +10,39 @@ Each entry includes file path + line numbers + exact diff prescription, so all o
 
 # Open / Pending Fixes (apply in this order)
 
+## B-14 · Bot test coverage expansion: ChaosBot + AuthBoundaryBot + AdvisorReviewBot + ConcurrencyBot ✅ ADDED
+
+**Files:** `bot-driver.html`
+**Commit:** (this session)
+**Severity:** Test-only (no production code change)
+**What was added:** four new bot personas, each its own toggle, distinct color, low tick rate, zero token burn:
+
+- **ChaosBot** (red, 3s floor) — input fuzzer. Random attacks per tick:
+  - Empty deal payload (expects 400 + missing-list)
+  - Phantom IOI ID (expects 404)
+  - Numeric edge cases: negative IRR, zero alloc, NaN (expects 400)
+  - Injection: XSS, SQL chars, 2K-char strings, emoji, control chars (expects accepted-and-stored OR rejected, never 500)
+  - Wrong types: object where string, array where scalar (expects 400 or graceful 500)
+  - Reports ✓ when platform behaved correctly, ✗ when surprise.
+- **AuthBoundaryBot** (orange, 4s floor) — role isolation tests:
+  - Investor tries admin endpoint (expects 401/403)
+  - Anonymous calls protected endpoint (expects 401/403)
+  - Investor tries advisor endpoint (expects 401/403)
+- **AdvisorReviewBot** (teal, 5s floor) — closes lifecycle loop:
+  - Logs in as bot.advisor periodically
+  - Finds bot-advisor-owned review-stage deals
+  - Calls advisor-confirm-deal → triggers P-16 auto-publish
+- **ConcurrencyBot** (magenta, 30s floor) — race-condition stress:
+  - Bursts 8 parallel approve-ioi on same IOI (verifies P-9 idempotency)
+  - Bursts 8 parallel publish-deal on same deal (verifies P-10 idempotency)
+  - Reports ok=N idem=N err=N counts per burst.
+
+Tick floors enforced even at MAX speed — none of the new personas hot-loop. Combined estimated burn at 5× with all 8 personas: ~2.1K Redis ops/min. 1-hour run ≈ 125K ops. Fully inside 500K monthly free tier.
+
+Audit modal now shows ✗ rows from these bots in the "Action Log Errors" section. Real bugs surface as red; race-skip soft-fails surface as ✓ with "(raced — …)" message.
+
+---
+
 ## P-16 · Auto-publish on advisor approval (was: separate admin Publish Live step) ✅ FIXED
 
 **Files:** `api/v2.js` (advisor-confirm-deal handler), `admin-portal.html`
