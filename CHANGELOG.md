@@ -4,6 +4,21 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Advisor tier + form de-duplication (`index.html`)
+
+Approved mockup `mockup-tiers-form.html` ported into the live landing page. Adds a third advisor tier card and rebuilds the application form's left column as category-reactive copy.
+
+- **Third tier card added** — sage/teal-tinted "DEAL ADVISORS" card alongside Institutional and HNW. New CSS hooks: `.tier.tier-adv`, `.tier-cta.adv`, plus `--teal`, `--tealBd`, `--tealBdS`, `--tealW` tokens added to `:root`. Desktop grid `.tiers-grid` switched from `1fr 1fr` to `1fr 1fr 1fr`. Mobile carousel extended with `.tiers-grid > .tier.tier-adv:nth-child(3)` tinting (sage gradient, teal border, sage watermark) — pagination dots auto-render from the new third button (existing JS already keyed off `dots.length`).
+- **Section header updated** — "Two ways to access" → "Three ways to access". Sec-sub copy extended to mention "or as a deal advisor."
+- **Duplicate qualification bullets stripped** — removed the four `.crit` rows in the form's left column that repeated tier-card copy. Replaced with reactive `<div class="next-list">` that swaps three short mono lines per category (Operator review · Mandate fit / Membership / Track record · NDA / Admission / Sourcing seat).
+- **Reactive H2 + paragraph** — `#access-label`, `#access-h2`, `#access-p` now swap per category (institutional / private / advisor). The "existing members → /login" line moved to a discreet `.access-foot` row beneath the next-list.
+- **Advisor radio + reactive form fields** — third pill "Advisor" added next to Institutional / HNW. New `#f-adv-block` with Jurisdiction, Firm Website / LinkedIn (single field), Deal Types Sourced, Recent Representative Deal (textarea). When advisor is selected, `#f-cap-block` (institution type / capacity / asset focus) is hidden. Body class `cat-advisor`/`cat-hnw`/`cat-institutional` toggled for any future CSS hooks.
+- **`setApplyCategory()` extended** — now drives label/H2/paragraph/title/firm-label swaps, populates the next-list, and toggles the advisor field block. `APPLY_COPY` constant centralizes all per-category strings.
+- **`submitForm()` extended** — when category is `'advisor'`, posts `category:'advisor'`, `firm_url`, `jurisdiction`, `deal_types`, `recent_deal` to the same `/api/v2?resource=inst&op=register` endpoint (backend extension routes advisor submissions). Validation gates on all advisor fields. Institutional / HNW flows unchanged.
+- **Textarea styling** — extended the existing `input,select` rule to include `textarea` (with `resize:vertical`) so the new Recent Representative Deal field matches the rest of the form visually.
+
+---
+
 ## [2026-05-02] — Mobile landing polish v5 — tier cards swipe carousel (`index.html`)
 
 Two flat black tier cards stacked vertically read as dull and identical on mobile. Operator brief: convert to swipeable carousel with pagination dots, differentiate the two cards visually, restrained tone (private bank, not casino). Mobile only, desktop untouched.
