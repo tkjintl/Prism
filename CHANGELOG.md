@@ -4,6 +4,32 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — AI Gateway migration + deal scoring on submission
+
+### AI Gateway (`api/_lib/ai.js` — new file)
+
+- **Created `api/_lib/ai.js`** — centralised AI call helper. Exports `callAI(messages, opts)` and `scoreDeal(deal)`.
+- **Gateway routing**: when `VERCEL_TEAM_ID` or `AI_GATEWAY_TEAM_ID` env var is present, all Anthropic calls are routed through `https://gateway.ai.vercel.app/v1/{teamId}/prism/anthropic/v1/messages`. Falls back to direct `https://api.anthropic.com/v1/messages` when no team ID is set, so local dev requires no extra config.
+- Auth still uses `ANTHROPIC_API_KEY` in all cases — the gateway accepts the same key.
+
+### AI generate refactor (`api/v2.js`)
+
+- **`resource=admin&op=ai-generate`**: replaced the inline `fetch('https://api.anthropic.com/v1/messages', ...)` block with a call to `callAI(...)`. Behaviour unchanged; now routed through the gateway when configured. Added `extraHeaders` support so the `anthropic-beta: pdfs-2024-09-25` header is forwarded correctly.
+
+### Deal scoring on submission (`api/v2.js`)
+
+- After an advisor submits a new deal (`resource=advisor&op=deals` POST), a background AI scoring job fires via `scoreDeal(deal).then(...)`. The submission response is returned immediately — AI never blocks it.
+- `scoreDeal` calls `claude-haiku-4-5-20251001` with a structured prompt covering: name, asset_class, geography, structure, deal_size, target_irr, target_multiple, hold_period, thesis, highlights, minimum_investment.
+- AI returns: `completeness_score`, `completeness_flags`, `plausibility_score`, `plausibility_flags`, `operator_brief`, `recommended_action` (publish/review/reject), `risk_flags`.
+- Result saved to `deal.aiScore` and `deal.aiScoredAt` on the deal record in Redis.
+- On any AI failure, `deal.aiScore = null` and the error is logged to console — deal submission is never affected.
+
+### Rescore endpoint (`api/v2.js`)
+
+- **New `resource=admin&op=rescore-deal`** (POST, admin-only): re-runs AI scoring on demand for any deal. Accepts `{ dealId }`. Returns `{ ok, dealId, aiScore, aiScoredAt }`. Useful after a deal is edited or when the operator wants a fresh assessment.
+
+---
+
 ## [2026-05-02] — Phase 1 + Phase 2 backend: token revocation, PDPA deletion, audit sorted set, KV alerting, email failure alerting, 7 new email triggers, Q&A routing, IOI counter integrity
 
 ### Phase 1 — Infrastructure

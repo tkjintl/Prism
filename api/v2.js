@@ -14,6 +14,7 @@ import { captureException, captureMessage } from './_lib/sentry.js';
 import { uploadDocument, getDocumentUrl } from './_lib/blob-storage.js';
 import { sendSubscriptionDocument, checkEnvelopeStatus } from './_lib/docusign.js';
 import { initiateKycCheck, getKycStatus } from './_lib/kyc.js';
+import { callAI, scoreDeal } from './_lib/ai.js';
 import bcrypt from 'bcryptjs';
 
 // ── Rate limiting helper (sliding window via Redis INCR+EXPIRE) ─────────────
@@ -230,6 +231,19 @@ async function _handler(req, res, resource, op) {
         // Get advisor object for email
         const advObj = adv ? await kvGet(`advisor:${adv.advisor_id}`) : null;
         if (advObj) await sendDealReceived(deal, advObj);
+        // Async AI scoring — fire-and-forget, never blocks submission response
+        scoreDeal(deal).then(async (score) => {
+          try {
+            const fresh = await getDeal(deal.id);
+            if (fresh) {
+              fresh.aiScore = score;
+              fresh.aiScoredAt = new Date().toISOString();
+              await saveDeal(fresh);
+            }
+          } catch (e) {
+            console.error('[ai] Failed to persist deal score:', e?.message);
+          }
+        }).catch(() => {});
         return ok(res, { deal });
       }
 
@@ -1104,8 +1118,7 @@ async function _handler(req, res, resource, op) {
         }
       }
       if (docContent.length === 0) return bad(res, 'No documents uploaded for this deal');
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) {
+      if (!process.env.ANTHROPIC_API_KEY) {
         // Mock fallback — no API key configured (dev/staging environments)
         const mockGenerated = {
           tagline: `${deal.name} — Institutional-grade opportunity in ${deal.geography || 'global markets'}`,
@@ -1163,27 +1176,15 @@ Return ONLY valid JSON in this exact structure:
   "geography": "e.g. Asia-Pacific"
 }`;
       try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'anthropic-beta': 'pdfs-2024-09-25',
-          },
-          body: JSON.stringify({
+        const result = await callAI(
+          [{ role: 'user', content: [...docBlocks, { type: 'text', text: userPrompt }] }],
+          {
             model: 'claude-sonnet-4-6',
-            max_tokens: 1500,
+            maxTokens: 1500,
             system: systemPrompt,
-            messages: [{ role: 'user', content: [...docBlocks, { type: 'text', text: userPrompt }] }],
-          }),
-        });
-        if (!response.ok) {
-          const err = await response.text();
-          console.error('Claude API error:', err);
-          return bad(res, 'AI generation failed', 500);
-        }
-        const result = await response.json();
+            extraHeaders: { 'anthropic-beta': 'pdfs-2024-09-25' },
+          },
+        );
         const rawText = result.content?.[0]?.text || '';
         let generated;
         try {
@@ -1246,6 +1247,20 @@ Return ONLY valid JSON in this exact structure:
         ok: true,
         deal: { id: deal.id, platform_alloc_usd: deal.platform_alloc_usd, platform_min_ticket_usd: deal.platform_min_ticket_usd },
       });
+    }
+
+    if (op === 'rescore-deal') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      const score = await scoreDeal(deal);
+      deal.aiScore = score;
+      deal.aiScoredAt = new Date().toISOString();
+      await saveDeal(deal);
+      return ok(res, { ok: true, dealId, aiScore: score, aiScoredAt: deal.aiScoredAt });
     }
 
     if (op === 'publish-deal') {
