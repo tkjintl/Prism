@@ -1081,11 +1081,11 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
         <div class="form-group"><label class="form-lbl">Institution Type *</label>
           <select id="f-type"><option value="">Select…</option><option>Family Office</option><option>Fund of Funds</option><option>PE Secondaries</option><option>Endowment / Foundation</option><option>Corporate Treasury</option><option>Asset Manager</option><option>Other Institutional</option></select>
         </div>
-        <div class="form-group"><label class="form-lbl">Deployment Capacity</label>
+        <div class="form-group"><label class="form-lbl">Deployment Capacity *</label>
           <select id="f-aum"><option value="">Per deal range…</option><option>$250K – $1M</option><option>$1M – $5M</option><option>$5M – $20M</option><option>$20M+</option></select>
         </div>
       </div>
-      <div class="form-group"><label class="form-lbl">Asset Focus</label>
+      <div class="form-group"><label class="form-lbl">Asset Focus *</label>
         <select id="f-focus"><option value="">Primary interest…</option><option>Private Credit</option><option>Pre-IPO / Growth Equity</option><option>Real Estate Debt</option><option>Infrastructure</option><option>All of the above</option></select>
       </div>
       <button class="form-submit" onclick="submitForm()">Submit Application →</button>
@@ -1275,9 +1275,20 @@ async function submitForm(){
   const type=document.getElementById('f-type').value;
   const aum=document.getElementById('f-aum')?.value||'';
   const focus=document.getElementById('f-focus')?.value||'';
-  // Firm is required for institutional; for HNW it can fall back to the contact name
-  const firmRequired=cat==='institutional';
-  if(!name||(firmRequired&&!firm)||!email||!type){toast('Please complete all required fields.','err');return;}
+  // For HNW the firm name can fall back to contact name if blank, but contact name itself is mandatory.
+  // Every other field is required for both categories — no half-filled applications accepted.
+  const missing=[];
+  if(!name)missing.push('Your Name');
+  if(!role)missing.push('Role / Title');
+  if(cat==='institutional'&&!firm)missing.push('Institution / Firm');
+  if(!email)missing.push('Email');
+  if(!type)missing.push('Institution Type');
+  if(!aum)missing.push('Deployment Capacity');
+  if(!focus)missing.push('Asset Focus');
+  if(missing.length){
+    toast('Missing: '+missing.slice(0,3).join(', ')+(missing.length>3?` (+${missing.length-3} more)`:''),'err');
+    return;
+  }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('Please enter a valid email address.','err');return;}
   const btn=document.getElementById('f-submit');
   if(btn){btn.disabled=true;btn.textContent='Submitting…';}
