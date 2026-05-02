@@ -10,6 +10,75 @@ Each entry includes file path + line numbers + exact diff prescription, so all o
 
 # Open / Pending Fixes (apply in this order)
 
+## P-7 · No required-content gating before deal can be published ❌ OPEN — production gap
+
+**Files:** `api/_lib/deal-storage.js` `createDeal` (lines 54–~95) + `api/v2.js` `publish-deal` op
+**Severity:** Medium-High (investor experience / brand integrity)
+**Symptom:** A deal can be submitted, advanced through review, and published to live with blank `company_overview`, `highlights`, `tagline`, `closing_date`. Investor portal renders empty sections on the deal detail view. The "Active Deals" table on the admin shows blank fields and dashes mid-flow.
+**Root cause:** `createDeal` only validates `name`, `target_alloc_usd ≥ $1,000`, and `target_irr` non-zero. No required-fields check before stage advance.
+
+**Fix prescription (when batching):**
+
+Two options:
+
+**Option A — required at create time:**
+In `api/_lib/deal-storage.js` `createDeal` (line 54), add field validation:
+```js
+if (!data.tagline?.trim()) throw new Error('Tagline required');
+if (!data.company_overview?.trim() || data.company_overview.length < 50) throw new Error('Company overview required (min 50 chars)');
+if (!data.thesis?.trim() || data.thesis.length < 50) throw new Error('Investment thesis required (min 50 chars)');
+if (!Array.isArray(data.highlights) || data.highlights.length < 2) throw new Error('At least 2 highlights required');
+if (!data.closing_date) throw new Error('Target closing date required');
+```
+
+**Option B — required at publish time** (advisors can save drafts, but can't publish without completeness):
+In `api/v2.js` `publish-deal` op, before stage transition:
+```js
+const missing = [];
+if (!deal.tagline?.trim()) missing.push('tagline');
+if (!deal.company_overview?.trim() || deal.company_overview.length < 50) missing.push('company_overview');
+if (!deal.thesis?.trim() || deal.thesis.length < 50) missing.push('investment_thesis');
+if (!Array.isArray(deal.highlights) || deal.highlights.length < 2) missing.push('highlights');
+if (!deal.closing_date) missing.push('closing_date');
+if (missing.length) return bad(res, `Missing required fields for publish: ${missing.join(', ')}`, 400);
+```
+
+**Recommended:** Option B. Allows advisors to draft incomplete deals and iterate; gates publish only.
+
+**Also check:** advisor portal submit form (`advisor-portal.html`) — verify it has client-side required attributes on the same fields, so the production advisor flow surfaces the requirement up front rather than at publish time.
+
+---
+
+## P-8 · AI generation tool wired into deal flow ❌ OPEN — operator preference
+
+**Files:** `api/_lib/ai.js` `scoreDeal()`, `api/v2.js` `op=ai-generate` and post-submit `scoreDeal` background fire
+**Severity:** Operator preference (user wants AI generation removed)
+**Symptom:** Two AI hooks active in code:
+- `scoreDeal(deal)` runs as background fire-and-forget after every advisor deal submission. Populates `deal.aiScore` and `deal.aiScoredAt`. Visible in admin "AI Analysis" dial. With `BOT_MODE=1` returns synthetic score (no Anthropic call) but still writes to deal.
+- `admin&op=ai-generate` is a manual admin button in Deal Studio that calls Anthropic to generate `tagline / company_overview / thesis / highlights` copy.
+
+**User position:** explicitly does not want AI generation tool used in the live site.
+
+**Fix prescription (when batching):**
+
+Pick one approach:
+
+**Approach 1 — Remove entirely:**
+- Delete `api/_lib/ai.js`
+- Delete the post-submit `scoreDeal(deal).then(...)` call site in `api/v2.js` (search for `scoreDeal(`)
+- Delete `op === 'ai-generate'` and `op === 'rescore-deal'` blocks in `api/v2.js`
+- Remove "AI Analysis" panel and "Run Analysis" button from `admin-portal.html`
+- Remove "Generate with AI →" button from deal detail / IOI queue in admin-portal.html
+
+**Approach 2 — Gate with `DISABLE_AI=1` env flag:**
+- In `api/_lib/ai.js` `scoreDeal()` and `callAI()`, top of function: `if (process.env.DISABLE_AI === '1') return null;`
+- In `api/v2.js` `op === 'ai-generate'`: `if (process.env.DISABLE_AI === '1') return bad(res, 'AI generation is disabled', 403);`
+- In `admin-portal.html`, hide "AI Analysis" panel and "Run Analysis" button when a config flag is set, OR just hide them unconditionally (since user doesn't want them)
+
+**Recommended:** Approach 2 — keeps the code in place for future toggling, simple env-flag flip. Approach 1 is cleaner but harder to reverse.
+
+---
+
 ## B-11 · Audit false positive from `getAllIois` cache ❌ OPEN — bot-only
 
 **File:** `api/v2.js` `sandbox-summary` handler (around line 3058 where `allIois = await getAllIois();`)
@@ -315,6 +384,48 @@ Not in code. User updated `ADMIN_USERS` directly in Vercel.
 
 ---
 
+## B-12 · Admin display formatting issues 🧹 CLEANUP — minor
+
+**File:** `admin-portal.html`
+**Severity:** Low (cosmetic, but real)
+**Symptoms observed in pipeline view:**
+- IRR displayed to 14+ decimal places (`23.9925021734758% IRR`). Should be `23.99%` or `24.0%`.
+- "Submitted —" shown for deals where the date is set on a different field name. Render expects `submitted_at` but field may be `created_at` on bot-created deals.
+- "Close" column shows `NaNd` for deals where `closing_date` is null (admin-portal does `(closing_date - now)/86400000` → NaN). Pre-existing handling for null closing_date is missing.
+- IOI table shows `—` for investor name and type even when investor record exists. Display logic likely reads stale fields not populated on the IOI record.
+- "From {advisor} · ·" shows double bullet separator with empty string between (probably an empty `firm_name` or an unset field interleaved into the join).
+
+**Fix prescription (when batching):**
+
+In `admin-portal.html`, search for the deal-card render template (`renderDealCard` or similar):
+- Round IRR display: replace `${d.target_irr}%` with `${(+d.target_irr).toFixed(1)}%` (or `.toFixed(2)`)
+- Submitted date: use `d.created_at || d.submitted_at` and format via `new Date(...).toLocaleDateString()`
+- Close column: `closing_date ? Math.max(0, Math.round((new Date(closing_date) - Date.now())/86400000)) + 'd' : '—'`
+- IOI table investor cells: ensure render falls back through `i.investor_firm || i.investor_email || i.investor_id || '—'`
+- Double-bullet `· ·`: find the join statement and filter out empty strings before joining
+
+These are all in template literals. Each fix is a one-line edit. Total ~5 lines.
+
+---
+
+## B-13 · AdvisorBot deal submission misses 3 memo fields ❌ OPEN — bot-only
+
+**File:** `bot-driver.html` lines 499–512 (`AdvisorBot.submitDeal`)
+**Severity:** Bot-only (causes test data to look incomplete in admin views)
+**Symptom:** AdvisorBot's submit body omits `company_overview`, `highlights`, `tagline`. Bot-created deals show blank investor-facing memo fields. Compounds with P-7 (no gating) so bot deals look like "real but incomplete" rather than what a real advisor would produce after using the production form.
+
+**Fix prescription:**
+
+In `bot-driver.html` line ~501, after the existing `t = rand(DEAL_TEMPLATES);` line, also pull the rich memo content. The DEAL_TEMPLATES const in bot-driver.html (line 471) is a different list from the api/_lib/deal-templates.js list — driver's list lacks the memo fields. Two options:
+
+**Option a — copy memo content into bot-driver's DEAL_TEMPLATES** (lines 471–479): add `company_overview`, `highlights`, `tagline` to each template entry, then submit them in the body.
+
+**Option b — fetch from the API's deal-templates** (cleaner, avoids duplication): add an admin op `op=deal-template` that returns one randomized template. AdvisorBot calls it before submitting. More plumbing.
+
+**Recommended:** (a). Copy ~8 strings into the bot's template list. ~5 minutes.
+
+---
+
 ## B-1 through B-9 · Bot test harness fixes ✅ FIXED
 
 | ID | File | Commit | Issue |
@@ -349,12 +460,21 @@ New free Upstash database `crisp-kite-113455` created. Vercel env vars updated. 
 
 # Production Fix Queue (apply in this order)
 
-1. **P-6** atomic IOI counters — `api/_lib/deal-storage.js` lines 14–27 (replace recalcIoiCounters), `getDeal` line 33 (merge counter keys), `api/v2.js` 5 call sites (lines 649, 2364, 3196, 3217, 3240), `api/_lib/bot-seed.js` (set counter keys in seed).
-2. **B-10** revert audit auto-heal — `api/v2.js` lines 3095–3132 → restore simpler block per spec above.
-3. **B-11** audit reads must bypass IOI cache — small fix, simple toggle.
-4. **OQ-2** investigate kvKeys consistency — quick stress test, then audit ~12 call sites if real.
-5. **OQ-3** add stage advancement endpoint or extend AdminBot — to exercise `terms / close / realized` paths.
-6. **OQ-4 / OQ-5 / OQ-6** — manual QA passes with `BOT_MODE` off for emails / AI / crons.
+**Production code fixes (real platform):**
+1. **P-6** atomic IOI counters — `api/_lib/deal-storage.js` lines 14–27, `getDeal` line 33, `api/v2.js` 5 call sites (lines 649, 2364, 3196, 3217, 3240), `api/_lib/bot-seed.js` seed counter keys.
+2. **P-7** required-content gating before publish — Option B (publish-time validation). `api/v2.js` `publish-deal` op + `advisor-portal.html` form required attrs.
+3. **P-8** remove / disable AI generation tool — operator preference. Approach 2 (env flag).
+4. **B-12** admin display formatting cleanup — round IRR, format dates, NaNd → `—`, dedup separators. ~5 lines in `admin-portal.html`.
+
+**Bot-test infrastructure (after production fixes):**
+5. **B-10** revert audit auto-heal — `api/v2.js` lines 3095–3132 (after P-6 lands).
+6. **B-11** audit reads must bypass IOI cache — small fix.
+7. **B-13** AdvisorBot send full memo content — `bot-driver.html` DEAL_TEMPLATES.
+
+**Investigation / coverage:**
+8. **OQ-2** kvKeys consistency stress test.
+9. **OQ-3** stage advancement past dd.
+10. **OQ-4 / OQ-5 / OQ-6** — manual QA passes with `BOT_MODE` off for emails / AI / crons.
 
 ---
 
