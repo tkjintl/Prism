@@ -10,6 +10,21 @@ Each entry includes file path + line numbers + exact diff prescription, so all o
 
 # Open / Pending Fixes (apply in this order)
 
+## B-15 · AuthBoundaryBot test design flaw — shared cookie jar 🧹 KNOWN LIMITATION
+
+**File:** `bot-driver.html` AuthBoundaryBot
+**Severity:** Test-only — not a platform bug
+**Symptom:** Bot driver runs in one browser tab → all bots share one cookie jar (`prism_admin` always present, `prism_inst` set after InvestorBot login, `prism_advisor` set after AdvisorReviewBot login). Original AuthBoundaryBot tests like "investor calls advisor endpoint" can't actually isolate cookies — endpoints with `getAdvisor() OR getAdmin()` fallback always pass auth via the operator's admin cookie. The test was getting 400 (validation rejection) instead of 401/403 (auth rejection) and flagging it as a bug.
+**Reality:** the platform behaved correctly — it rejected the malformed request, just for a different reason than the test assumed.
+**Fix:** redesigned AuthBoundaryBot to test what's actually testable in a shared-cookie environment:
+- `unauthCallsProtected` — direct fetch with `credentials:'omit'` (no cookies). Clean test.
+- `phantomOwnershipWrite` — write to a non-existent/unowned deal ID. Should 404 or 403.
+- `malformedAdminCall` — admin endpoint with junk body. Should 400.
+All three accept any 4xx as success ("platform refused").
+**Real role-isolation testing** needs separate browser contexts (Playwright with isolated cookie jars). That's a separate test runner, not the in-page bot driver. Logged for future as OQ-8.
+
+---
+
 ## B-14 · Bot test coverage expansion: ChaosBot + AuthBoundaryBot + AdvisorReviewBot + ConcurrencyBot ✅ ADDED
 
 **Files:** `bot-driver.html`
