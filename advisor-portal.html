@@ -776,6 +776,16 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   }
 }
 </style>
+<style>
+/* ── MOBILE HERO: anchor content top + show prism visual ── */
+@media(max-width:899px){
+  #dash-hero-static{min-height:100svh;min-height:100vh;grid-template-columns:1fr!important;grid-template-rows:auto 1fr}
+  .dhs-left{justify-content:flex-start!important;padding-top:clamp(20px,4vh,40px)!important;order:2}
+  .dhs-visual{display:flex!important;align-items:center;justify-content:center;min-height:180px!important;max-height:220px!important;padding:16px 0 0!important;order:1;background:none!important}
+  .dhs-vis-inner{width:min(220px,72%)!important;gap:8px!important}
+  .dhs-ring-float{display:none!important}
+}
+</style>
 </head>
 <body>
 

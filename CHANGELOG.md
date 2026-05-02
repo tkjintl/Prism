@@ -4,6 +4,14 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Advisor hero top-align + index.html portal showcase spacing
+
+### Changes
+- `advisor-portal.html`: Mobile hero now anchors prism SVG visual at top (order:1) and text content below it (order:2, justify-content:flex-start). Eliminates floating text in empty black hero. Ring float card hidden on mobile to declutter.
+- `index.html`: Portal showcase gap increased to clamp(48px,7vh,80px) on mobile — portals breathe. `.pw-viewport` pointer-events:none + touch-action:pan-y removes scroll trap so page can scroll freely.
+
+---
+
 ## [2026-05-01] — Admin portal: four targeted mobile fixes (Cat H, I, J, L)
 
 ### Changes
