@@ -1,182 +1,305 @@
 # Bot Debug Log
 
-Single source of truth for every bug surfaced during bot testing. Each entry is tagged with whether the bug is in **production code** (real platform issue) or **bot infrastructure** (only affects the test harness). Production bugs are the reason we're running this.
+Single source of truth for every bug surfaced during bot testing. Each entry tagged as **production code** (live platform) or **bot infrastructure** (test harness only). Production bugs are why we run this.
 
-**Statuses:** ✅ FIXED · ⚠️ PARTIAL / WORKAROUND · ❌ OPEN · 🧹 CLEANUP
+**Statuses:** ✅ FIXED · ⚠️ NEEDS REVERT · ❌ OPEN · 🧹 CLEANUP
+
+Each entry includes file path + line numbers + exact diff prescription, so all open items can be applied as a batch later.
 
 ---
 
-## Production Bugs — affect the live platform
+# Open / Pending Fixes (apply in this order)
 
-### P-1 · Storage silent fallback ✅ FIXED
-**Where:** `api/_lib/storage.js` — every read/write helper
-**Severity:** Critical
-**Symptom:** When Redis errored (rate limit, network blip, timeout), every helper silently swallowed the error and fell through to an empty in-memory `_mem` Map. In production `_mem` is always empty. Result: `kvGet` returned `null`, `zrange` returned `[]`, `kvKeys` returned `[]`. Marketplace flickered between `311 live` and `0 live` on identical concurrent requests.
-**Root cause:** Pre-existing pattern `if (r) { try { ... } catch { /* fall through */ } }` masked all Redis errors instead of throwing.
-**Fix:** Commits `99a5b79`, `e088972`, `c250337`. New `withRedis(op, fallback)` wrapper. If Redis IS configured, errors throw to caller (with 2 retries on transient blips, NO retry on quota errors). In-memory fallback only when Redis isn't configured (local dev).
-**Production impact if not fixed:** Real users would have seen ghost behavior — IOIs disappearing, deals returning 404 randomly, lost writes — under any decent load. Worst pre-existing bug we found.
+## P-6 · `recalcIoiCounters` race condition ❌ OPEN — HIGH PRIORITY
 
-### P-2 · `getAnyAuth` admin-cookie bleed ✅ FIXED
-**Where:** `api/v2.js` line 134 (`getAnyAuth()`)
-**Severity:** High
-**Symptom:** When admin cookie + investor cookie both present, admin always won. IOIs submitted by InvestorBot were created with `investor_id: 'tkj@theaurumcc.com'` (admin's email fallback) instead of `bot-inv`. Audit reported them as orphan IOIs.
-**Root cause:** `return await getAdmin() || await getAdvisor() || await getInst();` — admin priority is always first.
-**Fix:** Commit `ee22fef`. `getAnyAuth()` now reads optional `x-bot-as` header to pin which role's cookie to honor. Header-absent path unchanged for production safety.
-**Production impact:** Real-world risk was lower (real users wouldn't normally have both admin + investor cookies set in the same browser), but the bug exists in the auth resolution path. Fix is backwards-compatible.
+**Files:** `api/_lib/deal-storage.js`, `api/v2.js`
+**Severity:** High (money-relevant)
+**Symptom:** When two IOIs are submitted concurrently to the same deal, `deal.ioi_count` and `deal.ioi_agg_usd` drift. Last write wins. Audit reports `declared_count = N+1, actual_count = N` after high-concurrency runs.
 
-### P-3 · `listDeals` / `deals?op=marketplace` fan-out ✅ FIXED
-**Where:** `api/v2.js` lines 859–880 (marketplace endpoint), `api/_lib/deal-storage.js` `listDeals()`
-**Severity:** High
-**Symptom:** Marketplace endpoint did 1 sorted-set read + ~500 individual `kvGet` calls per request. At any decent volume this saturates Redis and burns command quota.
-**Fix:** Commit `eac0995`. 5-second Redis cache keyed by admin/non-admin view (`cache:marketplace:admin` / `cache:marketplace:public`). First call computes, subsequent calls within 5s cost 1 op.
-**Production impact if not fixed:** Real users browsing the marketplace would burn quota and hit rate limits at low traffic levels.
-
-### P-4 · `getAllIois` fan-out ✅ FIXED
-**Where:** `api/v2.js` lines 152–157 (helper used by 15+ endpoints)
-**Severity:** High
-**Symptom:** Every call read the full `ioi_index` sorted set + `Promise.all` over up to 1500 IOI records. Used by `marketplace/my-iois`, `inst/performance`, `marketplace/approve-ioi`, `admin/deal-iois`, NAV updates, distributions, statements, compliance cron, etc. Same call pattern repeated dozens of times per minute.
-**Fix:** Commit `eac0995`. 5-second Redis cache (`cache:iois:all`). All 15+ callers transparently benefit.
-**Production impact if not fixed:** Same as P-3 — quota burn at low traffic.
-
-### P-5 · Storage retries on quota / 429 errors ✅ FIXED
-**Where:** `api/_lib/storage.js` `withRedis()`
-**Severity:** Medium
-**Symptom:** Initial retry implementation retried 3 times on every error including `max requests limit exceeded` (Upstash quota). Each retry burned another billable command against an already-exhausted quota and never recovered. Multiplied damage 4×.
-**Fix:** Commit `c250337`. `isQuotaError(err)` short-circuits retries on quota / 429 / max-requests errors. Other transient errors still get 2 retries with 100/400ms backoff.
-**Production impact:** Without fix, a single quota-exceeded condition would multiply into 4× billable commands.
-
-### P-6 · `recalcIoiCounters` race condition ❌ OPEN
-**Where:** `api/_lib/deal-storage.js` lines 16–27
-**Severity:** High
-**Symptom:** When two IOIs are submitted concurrently to the same deal, `deal.ioi_count` and `deal.ioi_agg_usd` drift. Last-write-wins corrupts the counter. Audit reported deals with `declared_count = N+1` while `actual_count = N` after a high-concurrency bot run.
-**Root cause:** Read-modify-write pattern:
+**Root cause:** `api/_lib/deal-storage.js:16–27`. Read-modify-write pattern with no concurrency control:
 ```
 read deal -> read all IOIs -> compute count -> write deal
 ```
-Tick A reads deal at v0, tick B reads deal at v0, both compute their version of the truth, last write wins.
-**Status:** NOT FIXED in production code. Commit `2cfd326` made the audit auto-heal mismatches by re-running recalc — that's debug-tool sugar, not a production fix. The race is still live.
-**Real fix options:**
-- (a) **Atomic INCR/DECR**: store `deal:{id}:ioi_count` and `deal:{id}:ioi_agg_usd` as separate keys, use `INCRBY` on create/approve, `DECRBY` on rejection/deletion. Read both keys when serving the deal, merge into response. Race-free because Redis INCRBY is atomic.
-- (b) **Per-deal write lock**: `kvSetnx('lock:recalc:{dealId}', 1, ex:5)` before recalc, `kvDel` after. Concurrent IOIs serialize through the lock. Slower, no data-shape change.
-- (c) **Optimistic concurrency**: deal carries a `version` field; recalc reads, increments, CAS-writes; retries on version conflict. Bigger refactor.
-**Recommended:** (a). ~30 lines in deal-storage.js + update IOI create/approve/reject paths in v2.js to call INCR/DECR instead of recalc.
-**Production impact:** Real investors submitting IOIs to the same deal at the same time will corrupt the deal's IOI counter and aggregated commitment. Money-relevant — counter drives "fundraising progress" displays.
+
+**Recommended fix — Option A (atomic counters):**
+
+The cleanest race-free fix. ~30 lines plus 5 call-site updates.
+
+### A.1 — `api/_lib/deal-storage.js`
+
+**Replace lines 14–27** (the entire `recalcIoiCounters` function):
+
+```js
+// Atomic IOI counter delta. Race-safe — uses Redis INCRBY which is atomic.
+// dCount: +1 on IOI create or un-reject, -1 on IOI reject. Approve does not
+// move the counter (already counted from creation).
+// dAggUsd: signed amount delta in dollars. Use parseFloat-able strings.
+export async function bumpIoiCounters(dealId, dCount, dAggUsd) {
+  await Promise.all([
+    kvIncrby(`deal:${dealId}:ioi_count`, dCount),
+    kvIncrby(`deal:${dealId}:ioi_agg_usd`, Math.round(dAggUsd)),
+  ]);
+}
+
+// Manual reconciliation pass — call from admin tool only, NOT from hot paths.
+// Reads live IOI records and overwrites the atomic counters. Last line of
+// defense if drift is somehow ever detected.
+export async function reconcileIoiCounters(dealId) {
+  const ioiIds = await kvZrange('ioi_index', 0, -1);
+  const allIois = (await Promise.all(ioiIds.map(id => kvGet(`ioi:${id}`)))).filter(Boolean);
+  const dealIois = allIois.filter(i => i.deal_id === dealId && i.status !== 'rejected');
+  const count = dealIois.length;
+  const agg = dealIois.reduce((s, i) => s + (i.amount || 0), 0);
+  await Promise.all([
+    kvSet(`deal:${dealId}:ioi_count`, count),
+    kvSet(`deal:${dealId}:ioi_agg_usd`, Math.round(agg)),
+  ]);
+  return { ioi_count: count, ioi_agg_usd: agg };
+}
+
+// Legacy export kept for backwards-compat — delegates to reconcile.
+// Remove once all call sites are migrated to bumpIoiCounters.
+export async function recalcIoiCounters(dealId) {
+  return reconcileIoiCounters(dealId);
+}
+```
+
+**Modify `getDeal` (line 33):**
+```js
+export async function getDeal(id) {
+  const [deal, count, agg] = await Promise.all([
+    kvGet(`deal:${id}`),
+    kvGet(`deal:${id}:ioi_count`),
+    kvGet(`deal:${id}:ioi_agg_usd`),
+  ]);
+  if (!deal) return null;
+  return {
+    ...deal,
+    ioi_count: count == null ? (deal.ioi_count || 0) : Number(count),
+    ioi_agg_usd: agg == null ? (deal.ioi_agg_usd || 0) : Number(agg),
+  };
+}
+```
+
+**Modify `listDeals` (line 44):** wrap each `kvGet(\`deal:${id}\`)` to also fetch + merge counters. Or simpler: have listDeals call `getDeal(id)` for each id. Slightly slower but consistent. **Verify cache invalidation** — the `cache:marketplace:*` keys hold the merged response; bumpIoiCounters should bust them so investors see fresh aggregates within 5s.
+
+### A.2 — `api/v2.js` IOI hot-path call sites
+
+Replace each `recalcIoiCounters(...)` in the hot path with `bumpIoiCounters(...)`:
+
+| Line | Op | Current call | Replacement |
+|---|---|---|---|
+| 649 | `marketplace&op=approve-ioi` (legacy path) | `await recalcIoiCounters(dealId);` | **Delete** (approve doesn't change count, only status) |
+| 2364 | `admin&op=delete-investor` (cleanup) | `await recalcIoiCounters(ioi.deal_id);` | `await bumpIoiCounters(ioi.deal_id, -1, -(ioi.amount \|\| 0));` if IOI was non-rejected |
+| 3196 | `marketplace&op=ioi` (create) | `await recalcIoiCounters(deal_id);` | `await bumpIoiCounters(deal_id, 1, amt);` |
+| 3217 | `marketplace&op=approve-ioi` | `await recalcIoiCounters(ioi.deal_id);` | **Delete** (no count change on approve) |
+| 3240 | `marketplace&op=reject-ioi` | `await recalcIoiCounters(ioi.deal_id);` | `await bumpIoiCounters(ioi.deal_id, -1, -(ioi.amount \|\| 0));` if `wasApproved` or `was-pending` (i.e., previous status !== 'rejected') |
+
+**Also bust `cache:marketplace:*` after each bump:**
+```js
+await kvDel('cache:marketplace:public');
+await kvDel('cache:marketplace:admin');
+```
+
+### A.3 — `api/_lib/bot-seed.js` initial seed
+
+The seed currently writes `deal.ioi_count` directly on the deal object (lines 364–365). Update so it ALSO sets the atomic counter keys:
+```js
+await kvSet(`deal:${dealId}`, deal);
+await kvSet(`deal:${dealId}:ioi_count`, deal.ioi_count);
+await kvSet(`deal:${dealId}:ioi_agg_usd`, deal.ioi_agg_usd);
+```
+
+### A.4 — Migration
+
+For existing deals, atomic counter keys don't exist yet. `getDeal` falls back to the embedded `deal.ioi_count` field (line shown in A.1 above) — so legacy data keeps working until the first `bumpIoiCounters` call. No DB migration needed.
+
+**Estimated effort:** ~45 minutes including testing.
+
+**Alternative — Option B (per-deal lock):** simpler, no data-shape change, slightly slower:
+
+```js
+export async function recalcIoiCounters(dealId) {
+  const lockKey = `lock:recalc:${dealId}`;
+  const acquired = await kvSetnx(lockKey, '1');
+  if (!acquired) {
+    // Another recalc in flight — wait and skip
+    await new Promise(r => setTimeout(r, 50));
+    return null;
+  }
+  try {
+    // existing recalc body
+    ...
+  } finally {
+    await kvDel(lockKey);
+  }
+}
+```
+
+Lock TTL via `kvSet(lockKey, '1', { ex: 5 })` to prevent stuck locks. Recommend Option A — atomic counters scale better and eliminate the read-modify-write entirely.
 
 ---
 
-## Cleanup / Brand / Copy ✅ FIXED
+## B-10 · Audit auto-heal hides P-6 ⚠️ NEEDS REVERT (after P-6 lands)
 
-### C-1 · Failed revert: Aurum Kilo content in production code ✅ FIXED
-**Where:** `index.html`, `investor-portal.html`, `CLAUDE.md`, `.claude/agents/*.md`
-**Severity:** High (brand)
-**Symptom:** Aurum Kilo gold-fund rebrand was applied then `git revert`ed — but the revert missed `index.html` (entire landing page was gold-fund copy), the investor-portal title, the CLAUDE.md project description, and all agent files.
-**Fix:** Commits `df2c98b`, `46accf5`, `0a25ef5`. Landing page restored from pre-rebrand snapshot. Wordmark/title cleanup. CLAUDE.md and 6 agent files rewritten for the actual platform (deal-flow, not gold fund) and the actual stack (vanilla JS + Vercel Functions, not Next.js + Postgres).
+**File:** `api/v2.js` lines 3095–3132 (sandbox-summary)
+**Severity:** Bot-only, but masks production bug
 
-### C-2 · Access Tiers section: header said "Two ways" but only one card ✅ FIXED
-**Where:** `index.html`
+**Current code (commit `2cfd326`):**
+```js
+const counterMismatchInitial = [];   // line 3095
+for (const d of allDeals) { ... }
+// Self-heal: recalc on each mismatched deal then re-check.
+let counterMismatch = counterMismatchInitial;
+let healed = 0;
+if (counterMismatchInitial.length > 0) {
+  await Promise.all(counterMismatchInitial.map(m => recalcIoiCounters(m.deal_id).catch(() => null)));
+  ...
+}
+```
+
+**Revert to:**
+```js
+const counterMismatch = [];          // simpler — no auto-heal
+for (const d of allDeals) {
+  const actualCount = ioiCountByDeal.get(d.id) || 0;
+  const actualAgg = ioiAggByDeal.get(d.id) || 0;
+  const declaredCount = d.ioi_count || 0;
+  const declaredAgg = d.ioi_agg_usd || 0;
+  if (actualCount !== declaredCount || actualAgg !== declaredAgg) {
+    counterMismatch.push({
+      deal_id: d.id,
+      declared_count: declaredCount, actual_count: actualCount,
+      declared_agg: declaredAgg, actual_agg: actualAgg,
+    });
+  }
+}
+if (counterMismatch.length) issues.push({
+  type: 'ioi_counter_mismatch', severity: 'medium', count: counterMismatch.length,
+  samples: counterMismatch.slice(0, 5),
+});
+```
+
+**Order:** apply P-6 first, then revert B-10. After P-6, the audit should report 0 mismatches naturally.
+
+---
+
+## OQ-1 — Confirm P-6 fix with bot run
+After P-6 + B-10 revert: run bots at MAX for 2 min, click Run Audit. Expected: 0 mismatches.
+
+## OQ-2 — `kvKeys('inst:*')` consistency under load
+B-5 fixed the *symptom* via defensive direct lookup. Root cause not investigated. To verify whether real production endpoints (e.g., `admin/list-investors`, `admin/approve` lookup) are vulnerable:
+- Add a unit test in `api/v2.js` test suite that writes 200 inst:* keys, then immediately calls `kvKeys('inst:*')` 10× concurrently. If any call returns < 200 keys, the issue is real.
+- If real, audit every other `kvKeys(...)` call site (~12 locations in v2.js per `grep -n kvKeys api/v2.js`) and replace with sorted-set-index reads.
+
+## OQ-3 — Deal stage transitions past `dd` not exercised
+**Where in code:** AdminBot in `bot-driver.html` only calls `publish-deal` and `push-package`. There's no admin endpoint to advance from `dd → terms → close → realized`.
+**Action:** Either add a generic admin op `advance-stage` in `api/v2.js`, or wire AdminBot to call whatever specific endpoint exists for each transition. Then code paths in `api/v2.js` for terms/close/realized stages get exercised.
+
+## OQ-4 — Email triggers under bot load not exercised
+**Where in code:** `api/_lib/email.js send()` short-circuits when `BOT_MODE === '1'` (the suppression we want for bot tests).
+**Action:** Separate test session with `BOT_MODE` unset and a Resend test API key. Verify each trigger fires at the right point. Not safe to combine with bot test (would blast emails). Defer to manual QA pass before production launch.
+
+## OQ-5 — AI scoring under bot load not exercised
+**Where in code:** `api/_lib/ai.js scoreDeal()` short-circuits with synthetic score when `BOT_MODE === '1'`.
+**Action:** Same as OQ-4 — separate session with `BOT_MODE` unset and `ANTHROPIC_API_KEY` set. Submit a few deals and inspect AI output.
+
+## OQ-6 — Cron jobs not exercised
+**Where in code:** `api/v2.js`: `qa-cron`, `compliance-cron`, `welcome-cron`, `generate-statements-cron`. Schedule defined in `vercel.json`.
+**Action:** Trigger each manually via authenticated admin POST with the right query string and verify they handle the lean seed correctly.
+
+---
+
+# Closed (production fixes shipped)
+
+## P-1 · Storage silent fallback ✅ FIXED
+**File:** `api/_lib/storage.js`
+**Commits:** `99a5b79` (initial fix) → `e088972` (retry/backoff) → `c250337` (no-retry on quota)
+**Severity:** Critical — pre-existing bug affecting every read/write across the platform.
+**Fix shape:** New `withRedis(op, fallback)` wrapper. If Redis IS configured, errors throw to caller (with 2 retries on transient blips, 0 retries on quota errors). In-memory fallback only when Redis unconfigured.
+**Verification after fix:** marketplace endpoint stopped flickering 0/311.
+
+## P-2 · `getAnyAuth` admin-cookie bleed ✅ FIXED
+**File:** `api/v2.js` line 133–143
+**Commit:** `ee22fef`
+**Severity:** High
+**Fix shape:** `getAnyAuth()` now reads optional `x-bot-as` header to pin which role's cookie to honor. Header-absent path unchanged.
+
+## P-3 · `deals?op=marketplace` fan-out ✅ FIXED
+**File:** `api/v2.js` lines 859–880
+**Commit:** `eac0995`
+**Severity:** High — would have killed prod under any decent load.
+**Fix shape:** 5-second Redis cache (`cache:marketplace:public` / `cache:marketplace:admin`). First call computes ~500 ops; cached calls cost 1 op.
+
+## P-4 · `getAllIois` fan-out ✅ FIXED
+**File:** `api/v2.js` lines 152–166
+**Commit:** `eac0995`
+**Severity:** High — used by 15+ endpoints.
+**Fix shape:** 5-second Redis cache (`cache:iois:all`). All 15+ callers transparently benefit.
+
+## P-5 · Storage retries on quota errors ✅ FIXED
+**File:** `api/_lib/storage.js`
+**Commit:** `c250337`
 **Severity:** Medium
-**Fix:** Commit `e2ef1b3`. Added second card (HNW & Private Capital). Required category selection on signup form. Backend `inst/register` now requires `category: 'institutional' | 'hnw'`.
-
-### C-3 · `tkjintl@gmail.com` left in `ADMIN_USERS` env var 🧹 CLEANUP
-**Where:** Vercel env var
-**Status:** User-fixed during session by editing env var directly. Not in code.
+**Fix shape:** `isQuotaError(err)` short-circuits retries on quota / 429 / max-requests errors.
 
 ---
 
-## Bot Infrastructure — not production-relevant
+## C-1 · Failed-revert: Aurum Kilo content ✅ FIXED
+**Files:** `index.html`, `investor-portal.html`, `CLAUDE.md`, `.claude/agents/*.md`
+**Commits:** `df2c98b`, `46accf5`, `0a25ef5`
+**Severity:** High (brand)
 
-These fixes apply to the bot test harness only. They surfaced during testing but live in code paths nobody else uses (`/bot-driver`, `/bot-viewer`, `sandbox-*` endpoints, `bot-seed.js`).
+## C-2 · Access Tiers section: 1 card under "Two ways" header ✅ FIXED
+**Files:** `index.html`, `api/v2.js`
+**Commit:** `e2ef1b3`
+**Fix shape:** Two-card layout (Institutional + HNW). Required `category` selection on signup. Backend `inst/register` validates `category in {institutional, hnw}`.
 
-### B-1 · Sandbox endpoints in wrong resource block ✅ FIXED
-**Where:** `api/v2.js`. Build agent placed `sandbox-reset/status/summary` inside `marketplace` block instead of `admin` block.
-**Symptom:** Calls to `?resource=admin&op=sandbox-reset` returned 404 "Unknown resource or operation."
-**Fix:** Commit `5fba3f5`. Moved handlers into admin block.
-
-### B-2 · `wipeAll` WRONGTYPE on sorted-set keys ✅ FIXED
-**Where:** `api/_lib/bot-seed.js` `wipeAll()`
-**Symptom:** `kvGet('deals:index')` threw WRONGTYPE because `deals:index` is a sorted set, not a string.
-**Fix:** Commit `fb48583`. Use `kvDel` directly (works on any type) instead of `kvGet` for existence check.
-
-### B-3 · Counter shape mismatch in bot-driver ✅ FIXED
-**Where:** `bot-driver.html`, `bot-viewer.html`
-**Symptom:** UI read `c.deals_total / c.iois_total / c.advisors_total / c.investors_total / c.stages` — none of which the API returned. Counters showed `—` and `0`.
-**Fix:** Commit `ee22fef`. UI now reads `c.deals / c.iois / c.advisors / c.investors / c.deals_by_stage`.
-
-### B-4 · Audit `stuck_deals` false positive ✅ FIXED
-**Where:** `api/v2.js` sandbox-summary
-**Symptom:** Audit flagged 252 historical seeded deals as stuck because their backdated audit entries were >60s old.
-**Fix:** Commit `1b49f79`. Stuck-detection now requires recent activity (last audit < 10 min ago) AND > 60s old. Idle deals no longer trip the rule.
-
-### B-5 · `kvKeys('inst:*')` occasional miss → orphan_iois false positive ✅ FIXED
-**Where:** `api/v2.js` sandbox-summary
-**Symptom:** Audit flagged IOIs with `investor_id: 'bot-inv'` as orphan when `kvKeys('inst:*')` under load occasionally returned without the bot-inv key.
-**Fix:** Commit `3103da5`. Defensive direct `kvGet(inst:{id})` confirmation before flagging orphan.
-**Note:** Could indicate a real Upstash consistency issue under high load. Symptom is gone with defensive lookup; root cause not investigated.
-
-### B-6 · Bot race condition log noise ✅ FIXED
-**Where:** `bot-driver.html` AdminBot/InvestorBot
-**Symptom:** Half the action log was "Deal not found" / "IOI not found" — bots racing each other (admin publishes a deal between investor's marketplace fetch and IOI submit).
-**Fix:** Commit `3103da5`. Soft-skip on 404/409 with `(raced — target moved)` message. Real bugs (500, 401, etc.) still surface as red.
-
-### B-7 · sandbox-status fan-out (~2000 ops/call) ✅ FIXED (bot-only)
-**Where:** `api/v2.js` sandbox-status
-**Fix:** Commit `c250337`. 5s Redis cache. Driver polling at 1.5s would have burned ~80K ops/min without it.
-
-### B-8 · Bot-driver poll throttling ✅ FIXED (bot-only)
-**Where:** `bot-driver.html`
-**Fix:** Commit `c250337`. Counter polling 1.5s → 6s, paused entirely while bots idle. One-shot refresh on Reset / Start.
-
-### B-9 · Bot MAX speed unbounded ✅ FIXED (bot-only)
-**Where:** `bot-driver.html` `SPEED_MS`
-**Fix:** Commit `eac0995`. MAX floored at 50ms (~20 ticks/sec/persona) instead of 0ms tight loop.
-
-### B-10 · Audit auto-heal hiding production race ⚠️ NEEDS REVERT
-**Where:** `api/v2.js` sandbox-summary, commit `2cfd326`
-**Issue:** Made audit re-run `recalcIoiCounters` on mismatched deals before reporting. Hides P-6 (real production race) instead of fixing it. Should be reverted in favor of a proper P-6 fix.
+## C-3 · `tkjintl@gmail.com` admin 🧹 USER FIXED (env var)
+Not in code. User updated `ADMIN_USERS` directly in Vercel.
 
 ---
 
-## Infrastructure / Operational
+## B-1 through B-9 · Bot test harness fixes ✅ FIXED
 
-### O-1 · Upstash free-tier quota exhausted (500K commands) ⚠️ WORKAROUND
-**Symptom:** Old database hit 500K/500K monthly limit during bot testing. Every Redis call returned `ERR max requests limit exceeded`.
-**Cause:** Combination of P-3, P-4, P-7, P-5, B-7, and high-velocity bot loops. ~5M ops in ~30 minutes of testing.
-**Workaround:** Created new free Upstash database `crisp-kite-113455`. Updated Vercel env vars `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
-**Permanent prevention:** All P-3/P-4/P-5/P-7/B-7/B-8/B-9 fixes shipped. Burn rate now ~10–20K ops per hour-long bot run, comfortably inside 500K monthly free tier.
+| ID | File | Commit | Issue |
+|---|---|---|---|
+| B-1 | `api/v2.js` | `5fba3f5` | Sandbox endpoints in marketplace block instead of admin block |
+| B-2 | `api/_lib/bot-seed.js` | `fb48583` | wipeAll WRONGTYPE on sorted-set keys (used kvGet instead of kvDel) |
+| B-3 | `bot-driver.html`, `bot-viewer.html` | `ee22fef` | Counter UI read fields API didn't return |
+| B-4 | `api/v2.js` (sandbox-summary) | `1b49f79` | stuck_deals false-positive on idle seeded deals |
+| B-5 | `api/v2.js` (sandbox-summary) | `3103da5` | kvKeys('inst:*') occasional miss → orphan_iois false positive — defensive direct lookup added |
+| B-6 | `bot-driver.html` (AdminBot, InvestorBot) | `3103da5` | Race noise — soft-skip 404/409 with `(raced — target moved)` |
+| B-7 | `api/v2.js` (sandbox-status) | `c250337` | Fan-out caching (5s TTL) |
+| B-8 | `bot-driver.html` | `c250337` | Counter polling 1.5s → 6s, paused while idle |
+| B-9 | `bot-driver.html` (SPEED_MS) | `eac0995` | MAX speed floored at 50ms |
 
-### O-2 · Generic "Internal server error" hid real bugs ✅ FIXED
-**Where:** `api/v2.js` outer try/catch
-**Fix:** Commit `5ab2dee`. When `BOT_MODE=1`, 500 responses include the actual error message prefixed with `[resource/op]`. Production behavior unchanged when `BOT_MODE` unset.
-
-### O-3 · Seed volume reduced for debug efficiency ✅ DONE
-**Original:** 30 advisors / 150 investors / 400 deals / ~1500 IOIs.
-**Current (commit `d99b739`):** 2 advisors / 4 investors / 10 deals / ~12 IOIs.
-**Reset cost:** ~3,500 Redis ops → ~90 Redis ops.
-
----
-
-## Open Questions / Things Not Yet Tested
-
-- **OQ-1 — `recalcIoiCounters` race (P-6):** confirmed by audit. Production fix not yet applied. Bots intentionally still trip this on every high-concurrency run as the canonical reproduction case.
-- **OQ-2 — `kvKeys` consistency under load (B-5 root cause):** unclear if Upstash REST genuinely sometimes misses keys, or if there's a write/read race on our side. Defensive lookup works around it for the audit; impact on production endpoints (e.g., admin/list-investors) unknown.
-- **OQ-3 — Deal stage transitions past `dd`:** AdminBot only advances deals via `publish-deal` (review→live) and `push-package` (live/ioi→dd). No bot path drives deals to `terms / close / realized`. Those code paths in production aren't being exercised by the test.
-- **OQ-4 — Email triggers under bot load:** `BOT_MODE=1` suppresses every email. The triggers themselves are not being exercised. Real email delivery at volume not tested.
-- **OQ-5 — AI scoring under bot load:** `BOT_MODE=1` returns synthetic scores. Real Anthropic call path not exercised by the test.
-- **OQ-6 — Cron jobs:** `qa-cron`, `compliance-cron`, `welcome-cron`, `generate-statements-cron` aren't being invoked by bots. Should verify they handle the lean seed correctly.
+## B-10 · Audit auto-heal — see Open Fixes section above ⚠️ NEEDS REVERT
 
 ---
 
-## Production Fix Queue (priority order)
+## O-1 · Upstash quota exhausted (500K) ⚠️ WORKAROUND
+New free Upstash database `crisp-kite-113455` created. Vercel env vars updated. Permanent prevention via P-3, P-4, P-5, B-7, B-8, B-9 fixes.
 
-When bot testing completes, the production-code fixes to merge in priority order:
+## O-2 · Generic "Internal server error" hid real bugs ✅ FIXED
+**File:** `api/v2.js` outer try/catch
+**Commit:** `5ab2dee`
+**Fix shape:** When `BOT_MODE=1`, 500 responses include actual error message prefixed `[resource/op]`. Production behavior unchanged.
 
-1. **P-6 — `recalcIoiCounters` race** (option a: atomic INCR/DECR). High severity, money-relevant.
-2. **B-10 revert** — remove the audit auto-heal once P-6 is properly fixed.
-3. **B-5 root-cause investigation** — confirm whether `kvKeys` consistency is real before relying on the defensive lookup elsewhere.
-4. **OQ-3 / OQ-4 / OQ-5** — extend bot coverage to exercise the missing code paths.
-
-All other P-* fixes are already merged.
+## O-3 · Seed volume reduced ✅ DONE
+**Commits:** `ae5de11` → `d99b739`
+**Current:** 2 advisors / 4 investors / 10 deals / ~12 IOIs. Reset cost ~90 Redis ops.
 
 ---
 
-*Last updated: 2026-05-02. Append entries to top of relevant section as new bugs surface.*
+# Production Fix Queue (apply in this order)
+
+1. **P-6** atomic IOI counters — `api/_lib/deal-storage.js` lines 14–27 (replace recalcIoiCounters), `getDeal` line 33 (merge counter keys), `api/v2.js` 5 call sites (lines 649, 2364, 3196, 3217, 3240), `api/_lib/bot-seed.js` (set counter keys in seed).
+2. **B-10** revert audit auto-heal — `api/v2.js` lines 3095–3132 → restore simpler block per spec above.
+3. **OQ-2** investigate kvKeys consistency — quick stress test, then audit ~12 call sites if real.
+4. **OQ-3** add stage advancement endpoint or extend AdminBot — to exercise `terms / close / realized` paths.
+5. **OQ-4 / OQ-5 / OQ-6** — manual QA passes with `BOT_MODE` off for emails / AI / crons.
+
+---
+
+*Last updated: 2026-05-02. Append entries to top of relevant section as new bugs surface. Each entry should include file path, line numbers (current at time of entry), and a complete diff prescription so we never have to re-investigate.*
