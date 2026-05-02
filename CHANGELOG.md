@@ -4,6 +4,13 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix mobile hero layout: full-viewport height, remove phantom chevron, black breathing space
+
+### Changes
+- `investor-portal.html` (mobile `@media(max-width:768px)` block): `.lobby-hero` height changed from `calc(100svh/vh - var(--nav-h) - 44px)` to `calc(100svh/vh - var(--nav-h))` so no deal content peeks on first load; `overflow` changed `visible` → `hidden` to clip any overflow. Removed entire `.lobby-hero::after` chevron rule that was conflicting with the existing grid-lines `::after` pseudo-element and producing a visual artifact above the greeting. Removed `order:2` from `.hero-content` (natural flow is sufficient). Added `padding-bottom:clamp(32px,6svh,64px)` to `.lobby-greeting` for blank black breathing room between "James Walker" and the fold.
+
+---
+
 ## [2026-05-01] — Critical bug fixes: setup-password redirect, broadcast Q&A, Indicated labels + TESTING_PLAN.md
 
 ### Changes

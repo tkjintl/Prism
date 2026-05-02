@@ -1542,15 +1542,15 @@ a{color:inherit;text-decoration:none}
 
 /* ── MOBILE FULL-PANE HERO: investor portal — prism + greeting fills viewport ── */
 @media(max-width:768px){
-  /* Hero fills available height below nav; 44px left so first deal section peeks */
+  /* Hero fills full available height below nav — deal content stays below fold */
   .lobby-hero{
     display:flex!important;
     flex-direction:column!important;
     align-items:center!important;
-    height:calc(100svh - var(--nav-h) - 44px)!important;
-    height:calc(100vh - var(--nav-h) - 44px)!important;
+    height:calc(100svh - var(--nav-h))!important;
+    height:calc(100vh - var(--nav-h))!important;
     min-height:0!important;
-    overflow:visible!important;
+    overflow:hidden!important;
     grid-template-columns:none!important;
     padding:0!important;
     position:relative!important;
@@ -1599,6 +1599,7 @@ a{color:inherit;text-decoration:none}
     letter-spacing:-.015em!important;
     color:var(--text)!important;
     padding:0 20px 0!important;
+    padding-bottom:clamp(32px,6svh,64px)!important;
     pointer-events:none!important;
     z-index:2!important;
   }
@@ -1615,32 +1616,15 @@ a{color:inherit;text-decoration:none}
     margin-top:2px!important;
   }
 
-  /* Deal content: third item, sits just below fold — peeks + scrolls into view */
+  /* Deal content: flows after greeting, below fold — scrolls into view */
   .hero-content{
-    order:2!important;
     width:100%!important;
     flex-shrink:0!important;
     padding:20px 20px 0!important;
     justify-content:flex-start!important;
   }
-  /* Scroll chevron at bottom of hero area */
-  .lobby-hero::after{
-    content:''!important;
-    position:absolute!important;
-    bottom:-28px!important;
-    left:50%!important;
-    width:16px!important;
-    height:16px!important;
-    border-right:1.5px solid rgba(197,165,114,.5)!important;
-    border-bottom:1.5px solid rgba(197,165,114,.5)!important;
-    transform:translateX(-50%) rotate(45deg)!important;
-    animation:chevronBounce 2s ease-in-out infinite!important;
-    background:none!important;
-    background-image:none!important;
-    background-size:unset!important;
-    z-index:10!important;
-  }
 }
+
 </style>
 </head>
 <body>
