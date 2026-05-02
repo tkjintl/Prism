@@ -131,6 +131,15 @@ async function _handler(req, res, resource, op) {
     return p;
   }
   async function getAnyAuth() {
+    // Bot-driver runs in an admin tab, so the admin cookie is always set.
+    // When a bot persona logs in (sets prism_inst or prism_advisor) and then
+    // hits a getAnyAuth endpoint, the admin cookie would otherwise win and
+    // overwrite the persona's identity. The x-bot-as header lets the bot
+    // pin which role's cookie to honor.
+    const botAs = req.headers['x-bot-as'];
+    if (botAs === 'investor') return await getInst();
+    if (botAs === 'advisor') return await getAdvisor();
+    if (botAs === 'admin') return await getAdmin();
     return await getAdmin() || await getAdvisor() || await getInst();
   }
 

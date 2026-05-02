@@ -342,8 +342,12 @@ async function signOut(){
 /* ========== HTTP helpers ========== */
 const BOT_HEADERS={'Content-Type':'application/json','x-bot-mode':'1'};
 async function botFetch(url,opts={}){
-  const headers={...BOT_HEADERS,...(opts.headers||{})};
-  const r=await fetch(url,{...opts,headers,credentials:'include'});
+  const extra={};
+  if(opts.botAs)extra['x-bot-as']=opts.botAs;
+  const headers={...BOT_HEADERS,...extra,...(opts.headers||{})};
+  const fetchOpts={...opts,headers,credentials:'include'};
+  delete fetchOpts.botAs;
+  const r=await fetch(url,fetchOpts);
   let body=null;try{body=await r.json();}catch(e){}
   if(!r.ok){
     const msg=(body&&body.error)||('HTTP '+r.status);
@@ -372,15 +376,16 @@ async function refreshCounters(){
   try{
     const j=await botFetch('/api/v2?resource=admin&op=sandbox-status');
     const c=j.counts||{};
-    document.getElementById('kpi-deals').textContent=fmtNum(c.deals_total);
-    document.getElementById('kpi-iois').textContent=fmtNum(c.iois_total);
-    const active=(c.stages?.live||0)+(c.stages?.ioi||0)+(c.stages?.dd||0)+(c.stages?.terms||0);
-    const closed=(c.stages?.close||0)+(c.stages?.realized||0)+(c.stages?.killed||0);
+    const stages=c.deals_by_stage||c.stages||{};
+    document.getElementById('kpi-deals').textContent=fmtNum(c.deals);
+    document.getElementById('kpi-iois').textContent=fmtNum(c.iois);
+    const active=(stages.live||0)+(stages.ioi||0)+(stages.dd||0)+(stages.terms||0);
+    const closed=(stages.close||0)+(stages.realized||0)+(stages.killed||0);
     document.getElementById('kpi-active').textContent=fmtNum(active);
     document.getElementById('kpi-closed').textContent=fmtNum(closed);
-    document.getElementById('kpi-deals-sub').textContent=`${fmtNum(c.advisors_total||0)} advisors`;
-    document.getElementById('kpi-iois-sub').textContent=`${fmtNum(c.investors_total||0)} investors`;
-    renderStageBar(c.stages||{});
+    document.getElementById('kpi-deals-sub').textContent=`${fmtNum(c.advisors||0)} advisors`;
+    document.getElementById('kpi-iois-sub').textContent=`${fmtNum(c.investors||0)} investors`;
+    renderStageBar(stages);
   }catch(e){
     document.getElementById('kpi-deals-sub').textContent='offline';
   }
@@ -583,7 +588,7 @@ class InvestorBot{
     if(this.loggedIn)return;
     await botFetch('/api/v2?resource=inst&op=login',{method:'POST',body:JSON.stringify({email:'bot.investor@aurumprism.test',code:'BOTCODE'})});
     this.loggedIn=true;
-    try{const j=await botFetch('/api/v2?resource=marketplace&op=my-iois');(j.iois||[]).forEach(i=>this.myIoiDeals.add(i.deal_id));}catch(e){}
+    try{const j=await botFetch('/api/v2?resource=marketplace&op=my-iois',{botAs:'investor'});(j.iois||[]).forEach(i=>this.myIoiDeals.add(i.deal_id));}catch(e){}
   }
   async tick(){
     if(!this.loggedIn)await this.login();
@@ -602,7 +607,7 @@ class InvestorBot{
     const minT=Math.max(10000,d.min_ticket_usd||250000);
     const amt=Math.max(minT,Math.round((250000+Math.random()*2750000)/1000)*1000);
     try{
-      await botFetch('/api/v2?resource=marketplace&op=ioi',{method:'POST',body:JSON.stringify({deal_id:d.id,amount:amt,notes:'Bot indication'})});
+      await botFetch('/api/v2?resource=marketplace&op=ioi',{method:'POST',botAs:'investor',body:JSON.stringify({deal_id:d.id,amount:amt,notes:'Bot indication'})});
       this.myIoiDeals.add(d.id);
       return {persona:this.persona,action:`IOI on "${d.name}" @ $${amt.toLocaleString()}`,ok:true};
     }catch(e){
