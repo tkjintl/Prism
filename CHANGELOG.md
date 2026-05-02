@@ -4,6 +4,21 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## ★ [2026-05-02] — **PRISM PLATFORM v2 — Official Release** ★
+
+Tagged `v2.0` (commit `54e9007`). Snapshot saved as `Prism Platform v2.zip`. Baseline state:
+
+- **Bot Driver: 9 personas green** (Advisor, Admin, Investor, Applicant, Chaos, Auth, AdvReview, Concurrency, CapitalEvent) — all run clean against sandbox.
+- **Sandbox audit: 0 issues** across 0 categories. No data anomalies, no log errors.
+- **All 3 portals functional**: admin, advisor, investor — nav working, no JS errors in console.
+- **Bug queue: empty.** Stage 1, 2, 3, 3.4b review fixes all shipped. P-1 through P-16 closed.
+- **Launch documentation complete**: `LIVE_LAUNCH_PLAN.md`, `CUTOVER_ENV_VARS.md`, `PLATFORM_AUDIT.md`, `PLATFORM_RECOVERY.md`, `MANUAL_QA_CHECKLIST.md`, `BOT_DEBUG_LOG.md`, `verify-cutover.sh`.
+- **What v2 delivers vs v1**: full Aurum Kilo scrub → Aurum Prism, two-tier signup gating (Institutional / HNW), atomic IOI counters, idempotent approve/publish, Redis cache layer + lean seed (token-safe), 9-persona bot harness, BOT_MODE for token-free QA, capital-call + distribution flows with per-investor notice records, Send-to-Advisor → advisor sign-off → auto-publish, comprehensive readiness checks on `/api/health`.
+
+Next: Phase A3 manual QA on preview deployment with real keys, then Phase B cutover, then Phase C ops.
+
+---
+
 ## [2026-05-02] — Critical: admin portal JS broken by duplicate `_distDealId`
 
 `admin-portal.html`. Two distribution modals (admin "Issue Distribution" + advisor-style "Post Distribution") both declared `let _distDealId` at module top level → SyntaxError → all admin JS dead → `showView is not defined` cascade on every nav click. Renamed the second modal's vars and IDs to `_pd*` / `pd-*` so they no longer collide with the first. Verified zero remaining `_distDealId` duplicates and zero shared element IDs.
