@@ -144,7 +144,7 @@ Missing `RESEND_API_KEY` → emails logged to console.
 
 ## Test Credentials
 
-Seed test data first: log in as operator → open `/control` → click "Load Test Data".
+Seed test data first: log in as operator → open `/bot-driver` → click "Reset" → confirm. The button calls `admin&op=sandbox-reset` which wipes and reseeds the platform with bot accounts + sample data.
 
 | Role | Email | Credential |
 |---|---|---|
