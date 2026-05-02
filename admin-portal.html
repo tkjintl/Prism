@@ -1093,6 +1093,123 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .view-sub{font-size:12px}
 }
 </style>
+<style>
+/* ── CAT A · CTA letter-spacing tighten ── */
+@media(max-width:768px){
+  .att-btn,.modal-confirm,.modal-cancel,.q-approve,.q-decline,
+  .ioi-action-btn,.ioi-pkg-btn,.ioi-target-set,.dp-btn,.dp-btn.advance,
+  .ddp-ctrl-btn,.adp-submit-btn,.adp-cancel-btn,.ds-param-save-btn,
+  .lr-publish-btn,.lr-back,.lr-tab,.pp-confirm-btn,.pp-cancel-btn,
+  .ov-section-link,
+  button[class*="-btn"],button[class*="-cta"]{
+    letter-spacing:.02em!important;
+  }
+}
+@media(max-width:480px){
+  .att-btn,.modal-confirm,.modal-cancel,.q-approve,.q-decline,
+  .ioi-action-btn,.ioi-pkg-btn,.dp-btn,.ddp-ctrl-btn,
+  .adp-submit-btn,.adp-cancel-btn,.pp-confirm-btn,.pp-cancel-btn,
+  button[class*="-btn"]{
+    display:inline-flex;align-items:center;justify-content:center;
+    gap:6px;white-space:nowrap;
+  }
+}
+
+/* ── CAT B · Multi-column grids collapsing ── */
+/* Return Profile 3-col inline grid inside lr-section */
+@media(max-width:480px){
+  /* lr-rp inline 1fr 1fr 1fr grid — targeted by its container */
+  #lr-rp-chart-preview ~ * .lr-stat-chip,
+  .lr-section [style*="grid-template-columns:1fr 1fr 1fr"]{
+    grid-template-columns:1fr!important;
+  }
+  /* Catch the inline style grid for return profile row */
+  [style*="grid-template-columns:1fr 1fr 1fr"]{
+    grid-template-columns:1fr 1fr!important;
+  }
+  /* Pkg preview body inline 2-col stat grid */
+  #pkg-preview-body [style*="grid-template-columns:1fr 1fr"],
+  #idp-body [style*="grid-template-columns:1fr 1fr"]{
+    grid-template-columns:1fr!important;
+  }
+  /* adp-grid-3 already collapses at 640px, belt-and-suspenders */
+  .adp-grid-3{grid-template-columns:1fr!important}
+}
+
+/* ── CAT C · Eyebrow / label letter-spacing overflow ── */
+@media(max-width:480px){
+  .role-badge,
+  [class*="-badge"]:not(.ntab-badge):not(.notif-badge):not(.ov-col-badge),
+  [class*="-eyebrow"],[class*="-eye"],[class*="-lbl"]:not(.lr-stat-chip-lbl),
+  [class*="-label"]:not(.ai-slot-label):not(.lr-date-label):not(.adp-label),
+  .kpi-lbl,.kpi-label,.section-label,
+  .ob-label,.fp-title,.mono,
+  .att-card-tag,.dp-stage-chip,.iqi-badge,.ioi-raise-status,
+  .ds-param-label,.ov-col-title,.adp-section-title,.ddp-section-title,
+  .lr-section-title,.at-time{
+    letter-spacing:.06em!important;
+  }
+  .nav-wm-aurum,.nav-wm-prism{letter-spacing:.1em!important}
+}
+
+/* ── CAT D · Centered text orphaning ── */
+@media(max-width:480px){
+  [class*="-sub"]:not(.pp-capital-sub):not(.ov-intel-meta),
+  [class*="-note"],[class*="-desc"],
+  [class*="-body-text"],
+  .view-sub,.kpi-sub,.at-body,.ds-overview,
+  .ai-tool-sub,.lr-cb-note,.adp-hint,.modal-body{
+    text-align:left!important;
+  }
+  /* Restore centred capital block in push-preview */
+  .pp-capital-block{text-align:center!important}
+}
+
+/* ── CAT E · Fixed heights clipping content ── */
+@media(max-width:768px){
+  .att-btn,.modal-confirm,.modal-cancel,.q-approve,.q-decline,
+  .ioi-action-btn,.ioi-pkg-btn,.dp-btn,.ddp-ctrl-btn,
+  .adp-submit-btn,.adp-cancel-btn,.pp-confirm-btn,.pp-cancel-btn,
+  button:not([aria-label]):not([class*="-icon"]):not([class*="-close"]):not([class*="-bell"]):not(.theme-btn):not(.notif-bell-btn):not(.ntab):not(.lr-back):not(.ov-section-link){
+    height:auto!important;
+    min-height:44px;
+  }
+  /* Cards must grow with content */
+  [class*="-card"]:not([class*="-avatar"]):not([class*="-icon"]):not(.kpi-card):not(.lr-mode-card):not(.lr-stat-chip){
+    height:auto!important;
+  }
+  /* KPI strip lets cards grow */
+  .kpi-card{min-height:72px;height:auto!important}
+}
+
+/* ── CAT F · overflow:hidden / white-space:nowrap traps ── */
+@media(max-width:480px){
+  /* Badges that may clip */
+  [class*="-badge"]:not(.ntab-badge):not(.notif-badge):not(.role-badge):not(.ov-col-badge):not(.dp-stage-chip):not(.ioi-raise-status){
+    white-space:normal!important;
+    max-width:100%;
+  }
+  /* Pipeline deal names — ellipsis, not wrap (already set, reinforce) */
+  .dp-name{
+    overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;max-width:100%;
+  }
+  /* IOI investor names */
+  .ioi-row-name{
+    overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;max-width:200px;
+  }
+  /* Overview action card names */
+  .ov-ac-name{
+    overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;max-width:100%;
+  }
+  /* Operator bar sub text — already no .ob-sub class; catch .view-sub */
+  .view-sub,.ov-header-alert{white-space:normal!important}
+  /* Deal stage chips — allow wrap if somehow forced nowrap */
+  .dp-stage-chip,.ioi-raise-status,.iqi-badge{white-space:nowrap;max-width:100%}
+}
+</style>
 </head>
 <body>
 

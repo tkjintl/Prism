@@ -517,6 +517,173 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .nav-wm-tacc{display:none!important}
 }
 </style>
+
+<style>
+/* ══════════════════════════════════════════════════════
+   CAT A–F MOBILE FIXES  2026-05-01
+   Six systemic patterns — 390px iPhone baseline
+   ══════════════════════════════════════════════════════ */
+
+/* ── CAT A: CTA letter-spacing — prevent button text wrap / arrow orphan ── */
+@media(max-width:768px){
+  .btn, .btn-primary, .btn-ghost,
+  .dhs-btn-primary, .dhs-btn-ghost,
+  .wiz-next, .wiz-back, .wiz-submit,
+  .ipc-accept, .ipc-decline,
+  .banking-save-btn, .doc-btn,
+  button:not(.theme-btn):not(.notif-bell-btn):not(.notif-mark-all) {
+    letter-spacing: .02em !important;
+  }
+}
+@media(max-width:480px){
+  .btn, .dhs-btn-primary, .dhs-btn-ghost,
+  .wiz-next, .wiz-submit,
+  .ipc-accept, .banking-save-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+}
+
+/* ── CAT B: Multi-column grids not collapsing ── */
+/* rev-two-col inline grid (1fr 280px → 1fr at ≤480px) */
+@media(max-width:480px){
+  .rev-two-col {
+    grid-template-columns: 1fr !important;
+  }
+}
+/* dash-kpi-grid: already 2-col mobile-first; force 1-col at 360px only */
+@media(max-width:360px){
+  .dash-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+/* prism-docs-grid: 2-col at ≤480px is acceptable but force 1-col at 360px */
+@media(max-width:360px){
+  .prism-docs-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── CAT C: Eyebrow / label letter-spacing overflow ── */
+@media(max-width:480px){
+  /* Nav wordmark — was .22em */
+  .nav-wm-aurum,
+  .nav-wm-prism {
+    letter-spacing: .1em !important;
+  }
+  /* Hero eyebrow — was .24em (partially handled; reinforce) */
+  .dhs-eyebrow,
+  .dash-hero-eyebrow {
+    letter-spacing: .1em !important;
+  }
+  /* All eyebrow / label / badge / chip text elements */
+  .ipc-tag,
+  .doc-type-label,
+  .ds-label,
+  .vdr-section-hd,
+  .vdr-folder-label,
+  .vdr-upload-btn,
+  .banking-section-lbl,
+  .cs-status,
+  .dhs-action-badge,
+  .notif-panel-title,
+  .role-badge,
+  .class-chip, .stage-chip,
+  .action-required-tag,
+  .pdc-btn,
+  .qa-send-btn,
+  .qa-open-stmt-btn,
+  .qa-unanswered-flag,
+  .qa-reply-btn,
+  [class*="-eyebrow"],
+  [class*="-lbl"]:not(label),
+  [class*="-label"]:not(label),
+  [class*="-badge"]:not(.ntab-badge):not(.notif-badge),
+  [class*="-chip"],
+  [class*="-tag"] {
+    letter-spacing: .06em !important;
+  }
+  /* Mono overrides for inline-style letter-spacing in JS-rendered content */
+  .rc-row span[style*="letter-spacing"] {
+    letter-spacing: .06em !important;
+  }
+}
+
+/* ── CAT D: Centered text orphaning paragraphs ── */
+@media(max-width:480px){
+  .dhs-tagline,
+  .submit-sub,
+  .closing-note,
+  .banking-note,
+  .banking-note-sub,
+  .cb-text-sub,
+  .ipc-note,
+  .ring-card-detail,
+  .cs-desc,
+  .success-body,
+  .doc-req-note,
+  [class*="-tagline"],
+  [class*="-sub"]:not(.mini-ring-sub):not(.dhs-ring-sub):not(.pr-sub):not(.ov-sub):not(.ps-sub):not(.dash-kpi-sub):not(.ntab),
+  [class*="-note"],
+  [class*="-desc"],
+  p {
+    text-align: left !important;
+  }
+}
+
+/* ── CAT E: Fixed heights clipping content ── */
+@media(max-width:768px){
+  /* CTA buttons — auto height, min tap target */
+  .dhs-btn-primary, .dhs-btn-ghost,
+  .ctab,
+  button:not(.theme-btn):not(.notif-bell-btn):not([class*="-ring"]):not([class*="-circle"]) {
+    height: auto !important;
+    min-height: 44px;
+  }
+  /* Cards — never clip content on mobile */
+  .ov-card, .ps-card, .ring-card,
+  .dash-kpi-card, .prism-doc-card,
+  .doc-card, .closing-slot {
+    height: auto !important;
+  }
+}
+
+/* ── CAT F: overflow:hidden / white-space:nowrap traps ── */
+@media(max-width:480px){
+  /* Allow action badge and banners to wrap */
+  .dhs-action-badge,
+  .ds-ioi-banner,
+  [class*="-banner"],
+  [class*="-badge"]:not(.ntab-badge):not(.notif-badge) {
+    white-space: normal !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+  /* But deal name / ioi push title must stay single-line with ellipsis */
+  .deal-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+  .ipc-note {
+    overflow: visible;
+    white-space: normal;
+    word-break: break-word;
+  }
+  /* Closing slot overflow — was hidden, needs to allow content */
+  .closing-slot {
+    overflow: visible !important;
+  }
+  /* DS pill stage label — already nowrap for scroll, keep but cap */
+  .ds-pill {
+    max-width: calc(100vw - 80px);
+  }
+}
+</style>
 </head>
 <body>
 

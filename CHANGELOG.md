@@ -4,6 +4,45 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Admin portal: 6-category systemic mobile fix (iPhone 15, 390px)
+
+### Changes
+- `admin-portal.html`: Appended a new `<style>` block immediately before `</head>` covering all 6 systemic mobile categories. No nav HTML, no auth JS, no desktop rules touched.
+- **Cat A** (letter-spacing on CTAs): All button classes tightened to `.02em` at ≤768px; `inline-flex + white-space:nowrap` applied at ≤480px.
+- **Cat B** (multi-column grid collapse): Inline `1fr 1fr 1fr` grids forced to `1fr 1fr` at ≤480px; JS-rendered inline 2-col grids in `#pkg-preview-body` and `#idp-body` forced to 1-col; `.adp-grid-3` belt-and-suspenders override.
+- **Cat C** (eyebrow/label letter-spacing overflow): `.role-badge`, all non-nav `[class*="-badge"]`, tag/lbl/label classes, `.kpi-lbl`, `.att-card-tag`, `.dp-stage-chip`, `.iqi-badge`, `.ioi-raise-status` capped at `.06em`; wordmark tracking to `.1em`.
+- **Cat D** (centered text orphaning): All sub/note/desc/body-text classes and `.view-sub`, `.kpi-sub`, `.modal-body`, `.adp-hint`, `.lr-cb-note` forced `text-align:left` at ≤480px; `.pp-capital-block` explicitly re-centred.
+- **Cat E** (fixed heights clipping): All action buttons `height:auto; min-height:44px` at ≤768px; `[class*="-card"]` set `height:auto`; `.kpi-card` gets `min-height:72px`.
+- **Cat F** (overflow/nowrap traps): Non-nav badges `white-space:normal; max-width:100%`; `.dp-name`, `.ioi-row-name`, `.ov-ac-name` get ellipsis; `.view-sub` and `.ov-header-alert` forced `white-space:normal`.
+
+---
+
+## [2026-05-01] — Advisor Portal: six-category categorical mobile fixes (390px iPhone)
+
+### Changes
+- `advisor-portal.html`: Appended a new `<style>` block immediately before `</head>` with all six systemic mobile fix categories. No nav HTML, no auth JS, no desktop rules changed.
+- **Cat A — CTA letter-spacing**: All button classes tightened to `.02em` at ≤768px. Primary CTAs (`.dhs-btn-primary`, `.wiz-next`, `.wiz-submit`, `.ipc-accept`, `.banking-save-btn`) set to `inline-flex + gap:6px + white-space:nowrap` at ≤480px so arrow glyphs never orphan.
+- **Cat B — Grid collapse**: `.rev-two-col` inline `1fr 280px` grid forced to `1fr` at ≤480px. `.dash-kpi-grid` and `.prism-docs-grid` forced to `1fr` at ≤360px. `materials-grid`, `closing-grid`, `banking-field-row`, `field-row`, `vdr-layout` were already covered by prior audit blocks.
+- **Cat C — Eyebrow / label letter-spacing**: `.nav-wm-aurum` and `.nav-wm-prism` (was `.22em`) reduced to `.1em` at ≤480px. Full selector list including `.ipc-tag`, `.doc-type-label`, `.dhs-eyebrow`, `.dhs-action-badge`, `.role-badge`, `.class-chip`, `.stage-chip`, `.vdr-section-hd`, `.banking-section-lbl`, `.cs-status`, and all `[class*="-badge"]`, `[class*="-chip"]`, `[class*="-tag"]` brought to `.06em`.
+- **Cat D — Centered text orphaning**: `.dhs-tagline`, `.submit-sub`, `.closing-note`, `.banking-note`, `.cb-text-sub`, `.ipc-note`, `.ring-card-detail`, `.cs-desc`, `.success-body`, `.doc-req-note`, and all `[class*="-sub"]`, `[class*="-note"]`, `[class*="-desc"]`, `p` switched to `text-align:left` at ≤480px.
+- **Cat E — Fixed heights clipping**: `.dhs-btn-primary`, `.dhs-btn-ghost`, `.ctab`, and all non-icon buttons set to `height:auto; min-height:44px` at ≤768px. Card containers (`.ov-card`, `.ps-card`, `.ring-card`, `.dash-kpi-card`, `.prism-doc-card`, `.doc-card`, `.closing-slot`) set to `height:auto`.
+- **Cat F — overflow / white-space traps**: `.dhs-action-badge`, `.ds-ioi-banner`, `[class*="-banner"]`, `[class*="-badge"]` set to `white-space:normal; max-width:100%; overflow:visible` at ≤480px. `.deal-name` kept `nowrap + ellipsis`. `.ipc-note` flipped to `overflow:visible; white-space:normal; word-break:break-word`. `.closing-slot` overflow un-trapped. `.ds-pill` capped at `calc(100vw - 80px)`.
+
+---
+
+## [2026-05-01] — Investor portal: 6-category systemic mobile fix (iPhone 15, 390px)
+
+### Changes
+- `investor-portal.html`: Appended a new `<style>` block immediately before `</head>` with 6 categorical fixes. No nav HTML, no auth JS, no desktop rules touched.
+- **Cat A (CTA letter-spacing):** All `.btn-primary`, `.btn-ghost`, `.ioi-cta`, `.wiring-cta`, `.ci-*-btn`, and `button` reset to `letter-spacing:.02em` at ≤768px. At ≤480px, `.btn-primary`/`.btn-ghost` become `display:flex` with `gap:6px` and `white-space:nowrap` so arrow glyphs never orphan.
+- **Cat B (grid collapse):** `.ci-wire-row`, `.ph-stats`, `.pos-grid`, `.docs-grid`, `.stat-grid` all forced to `1fr` at ≤480px. `.alloc-section` forced to `1fr` at ≤640px (was `auto 1fr`, too narrow for 390px).
+- **Cat C (eyebrow letter-spacing):** `.hero-eyebrow`, `.urgency-badge`, `.dc-class-tag`, `.chart-lbl`, `.ci-eyebrow`, `.ci-section-title`, `.ci-ref-lbl`, `.tl-lbl`, `.ps-lbl`, `.dd-tag`, `.pos-badge`, `.eq-sc-name`, `.vp-table th`, `.ioi-lbl`, `.ring-sub`, `.section-count`, `.dc-oversubscribed`, `.nav-wm-tacc`, `.nav-user-type` all capped at `letter-spacing:.08em` at ≤480px. Inline `[style*="letter-spacing:.2x"]` attribute selectors catch hardcoded values. Nav wordmark capped at `.14em`.
+- **Cat D (centered text orphans):** `.hero-tagline`, `.dd-thesis`, `.hl-body`, `.nda-gate-body`, `.tog-text`, `.ioi-s-body`, `.ioi-confirm-step-text`, `.inv-dr-empty`, `.ring-detail-card`, `.pri-detail`, `.ci-imp-list li`, `.ci-ref-note` all switch to `text-align:left` at ≤480px.
+- **Cat E (fixed heights clipping):** All content cards (`.deal-card`, `.pos-card`, `.hl-card`, `.doc-card`, `.stat-cell`, `.eq-sc`, `.inv-ring-row`, `.inv-deal-ring`, `.ioi-form`, `.panel-ring-row`, `.nda-gate`, `.ci-*`) set to `height:auto; min-height:0` at ≤768px. All buttons set to `height:auto; min-height:44px`. Icon-only elements (`.theme-btn`, `.nav-avatar`) exempt. `.return-chart` converted to `clamp(100px,30vw,140px)`.
+- **Cat F (overflow:hidden traps):** `.deal-card`, `.pos-card`, `.hl-card`, `.ioi-form`, `.ioi-pipeline`, `.inv-dr-section`, `.ci-wire-table`, `.action-panel` set to `overflow:visible` at ≤480px. `.urgency-badge`, `.dc-class-tag`, `.pos-badge`, `.closing-stage-chip`, `.dc-oversubscribed`, `.inv-dr-view-btn` get `white-space:normal; max-width:100%`. Generic `[class*="-row"]` overflow released (with specific nav/functional exclusions). `.stat-grid` overflow restored; each `.stat-cell` gets its own border+radius.
+
+---
+
 ## [2026-05-01] — Admin portal: mobile spacing audit (iPhone 15, 390px)
 
 ### Changes

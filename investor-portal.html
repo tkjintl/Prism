@@ -1175,6 +1175,244 @@ a{color:inherit;text-decoration:none}
   }
 }
 </style>
+
+<!-- ══════════════════════════════════════════
+     6-CATEGORY MOBILE FIX — 2026-05-01
+     Targets: 390px iPhone 15 baseline
+     Cat A: letter-spacing button overflow
+     Cat B: multi-column grids not collapsing
+     Cat C: eyebrow/label letter-spacing overflow
+     Cat D: centered text orphans
+     Cat E: fixed heights clipping content
+     Cat F: overflow:hidden / nowrap traps
+══════════════════════════════════════════ -->
+<style>
+
+/* ── CAT A: CTA letter-spacing → tighten on mobile ── */
+@media(max-width:768px){
+  .btn-primary, .btn-ghost, .ioi-cta,
+  .wiring-cta, .ci-pdf-btn, .ci-back-btn,
+  button, [class*="-btn"] {
+    letter-spacing: .02em !important;
+  }
+}
+/* Arrow CTAs: flex so arrow never orphans */
+@media(max-width:480px){
+  .btn-primary, .btn-ghost {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+  }
+  /* IOI CTA + wiring CTA: same treatment */
+  .ioi-cta, .wiring-cta {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* ── CAT B: multi-column grids → collapse at ≤480px ── */
+/* eq-scenarios: already 1-col at ≤480px (Cat F rule F above) — guard */
+@media(max-width:480px){
+  /* ci-wire-row: already handled at ≤520px — reinforce */
+  .ci-wire-row {
+    grid-template-columns: 1fr !important;
+  }
+  /* ph-stats: 1×N on very small screens */
+  .ph-stats {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 16px !important;
+  }
+  /* pos-grid: guaranteed 1-col */
+  .pos-grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* docs-grid: already 1-col at ≤480px — reinforce */
+  .docs-grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* stat-grid: already 1-col at ≤480px — reinforce */
+  .stat-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+/* alloc-section: collapse at ≤640px (it's auto 1fr, which can stay narrow) */
+@media(max-width:640px){
+  .alloc-section {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── CAT C: eyebrow / label letter-spacing → reduce on mobile ── */
+@media(max-width:480px){
+  .hero-eyebrow,
+  [class*="-eyebrow"],
+  .section-label, [class*="-label"],
+  .urgency-badge,
+  .dc-class-tag,
+  .chart-lbl, .pipeline-title,
+  .ci-eyebrow, .ci-section-title,
+  .ci-ref-lbl, .ci-imp-title,
+  .inv-dr-folder-label,
+  .doc-card-type,
+  .closing-stage-chip,
+  .tl-lbl, .ps-lbl,
+  .dd-tag,
+  .pos-badge,
+  .eq-sc-name,
+  .vp-table th,
+  .ioi-lbl,
+  .ring-sub,
+  .nav-wm-tacc,
+  .nav-user-type,
+  .section-count,
+  .dc-oversubscribed {
+    letter-spacing: .08em !important;
+  }
+  /* Extra-wide inline letter-spacing (.2em+) caught by attribute selector */
+  [style*="letter-spacing:.2"],
+  [style*="letter-spacing: .2"],
+  [style*="letter-spacing:.22"],
+  [style*="letter-spacing: .22"],
+  [style*="letter-spacing:.24"],
+  [style*="letter-spacing: .24"],
+  [style*="letter-spacing:.26"],
+  [style*="letter-spacing: .26"],
+  [style*="letter-spacing:.3"],
+  [style*="letter-spacing: .3"] {
+    letter-spacing: .08em !important;
+  }
+  /* Wordmark monogram: allow slightly wider but cap */
+  .nav-wm-aurum, .nav-wm-prism {
+    letter-spacing: .14em !important;
+  }
+}
+
+/* ── CAT D: centered text → left-align prose on mobile ── */
+@media(max-width:480px){
+  /* Tagline and body copy */
+  .hero-tagline,
+  .hero-tagline p,
+  .dd-thesis,
+  .hl-body,
+  .nda-gate-body,
+  .tog-text,
+  .ioi-s-body,
+  .ioi-confirm-step-text,
+  .inv-dr-empty,
+  .ring-detail-card,
+  .pri-detail,
+  .ci-imp-list li,
+  .ci-ref-note {
+    text-align: left !important;
+  }
+  /* IOI submitted state center-aligns title/amount — keep those centered,
+     but body text left */
+  .ioi-s-body { text-align: left !important; }
+  /* Closing instructions: left-align all prose */
+  .closing-instr-wrap p { text-align: left !important; }
+}
+
+/* ── CAT E: fixed heights → auto on mobile ── */
+@media(max-width:768px){
+  /* Content cards: never clip wrapped text */
+  .deal-card,
+  .pos-card,
+  .hl-card,
+  .doc-card,
+  .stat-cell,
+  .eq-sc,
+  .inv-ring-row,
+  .inv-deal-ring,
+  .ioi-form,
+  .panel-ring-row,
+  .ring-detail-card,
+  .nda-gate,
+  .ci-amount-row,
+  .ci-ref-block,
+  .ci-important-block {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  /* return-chart: fixed height is intentional for bar chart — leave at 130px, set via clamp */
+  .return-chart {
+    height: clamp(100px, 30vw, 140px) !important;
+  }
+  /* All buttons: min-height 44px touch target, never fixed height */
+  button, .btn-primary, .btn-ghost, .ioi-cta,
+  .wiring-cta, .ci-pdf-btn, .ci-back-btn,
+  .inv-dr-view-btn, .closing-back-btn,
+  [class*="-btn"] {
+    height: auto !important;
+    min-height: 44px !important;
+  }
+  /* Exceptions: icon-only buttons keep their square shape */
+  .theme-btn, .nav-avatar {
+    height: 36px !important;
+    min-height: 36px !important;
+    width: 36px !important;
+  }
+  /* QA send button: compact by design */
+  .inv-qa-send-btn {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+}
+/* hero-stat: fixed heights already absent, but guard any ancestor */
+@media(max-width:768px){
+  .hero-stat { height: auto !important; min-height: 0 !important; }
+}
+
+/* ── CAT F: overflow:hidden / white-space:nowrap traps ── */
+@media(max-width:480px){
+  /* Containers that might clip reflowing text (exclude nav, bars, known scroll containers) */
+  .deal-card,
+  .pos-card,
+  .hl-card,
+  .ioi-form,
+  .ioi-pipeline,
+  .inv-dr-section,
+  .ci-wire-table,
+  .action-panel {
+    overflow: visible !important;
+  }
+  /* Urgency badge and similar chips: allow wrap */
+  .urgency-badge,
+  .dc-class-tag,
+  .pos-badge,
+  .closing-stage-chip,
+  .dc-oversubscribed,
+  .inv-dr-view-btn {
+    white-space: normal !important;
+    max-width: 100% !important;
+  }
+  /* Row containers that can clip: exclude nav-tabs and ioi/notif rows */
+  [class*="-row"]:not(.nav-tabs):not(.ioi-row):not(.notif-row):not(.toggle-row):not(.nda-toggle-row):not(.ci-wire-row):not(.dc-bar-row):not(.dc-top-row):not(.pos-class-row):not(.pos-card-btm):not(.inv-dr-file-row) {
+    overflow: visible !important;
+  }
+  /* The lobby-hero has overflow:hidden for the prism animation — keep that hidden
+     only at ≤480px we can safely show it since hero-visual is hidden anyway */
+  .lobby-hero { overflow: visible !important; }
+}
+/* stat-grid uses overflow:hidden for border-radius effect — restore at mobile */
+@media(max-width:480px){
+  .stat-grid {
+    overflow: visible !important;
+    border-radius: var(--r) !important;
+    /* Cells get individual borders instead */
+  }
+  .stat-cell {
+    border: 1px solid var(--border) !important;
+    border-radius: var(--r) !important;
+    margin-bottom: 1px !important;
+  }
+}
+
+</style>
 </head>
 <body>
 

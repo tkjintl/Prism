@@ -104,6 +104,69 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 .fp-title{font-family:var(--cond);font-size:18px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
 .fp-sub{font-family:var(--mono);font-size:7.5px;color:#635e58;line-height:1.7;margin-bottom:16px}
 .fp-close{position:absolute;top:12px;right:12px;font-family:var(--mono);font-size:7.5px;color:#635e58;cursor:pointer;padding:4px 8px;border:1px solid var(--wire)}
+
+/* ── MOBILE: 6-CATEGORY FIX ── */
+
+/* Cat F: allow body scroll when stacked content exceeds viewport */
+@media(max-width:768px){
+  html,body{height:auto;overflow:visible}
+  main{align-items:flex-start;padding:16px}
+}
+
+/* Cat B: stack 2-col layout to 1-col */
+@media(max-width:640px){
+  .l-two-col{grid-template-columns:1fr;gap:0}
+  .l-two-col .l-col{padding:24px 20px}
+  .l-col[style*="border-left"]{border-left:none!important;border-top:1px solid var(--wire)}
+  .login-wrap{max-width:100%}
+  main{padding:12px 12px 40px}
+}
+
+/* Cat A: button letter-spacing + arrow handling */
+@media(max-width:768px){
+  .l-btn{
+    letter-spacing:.04em!important;
+    font-size:13px;
+    padding:14px 20px;
+    height:auto!important;
+    min-height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+}
+@media(max-width:480px){
+  .l-btn{font-size:12px;letter-spacing:.02em!important;padding:13px 16px}
+}
+
+/* Cat C: reduce ALL wide letter-spacing labels/eyebrows */
+@media(max-width:480px){
+  .l-panel-eye{letter-spacing:.1em!important}
+  .l-lbl{letter-spacing:.1em!important}
+  .ob-label{letter-spacing:.1em!important}
+  .ts-wm-aurum,.ts-wm-prism{letter-spacing:.14em!important}
+  .ts-wm-tacc{letter-spacing:.12em!important}
+  .fp-title{letter-spacing:.06em!important}
+  .l-tab{letter-spacing:.06em!important}
+}
+
+/* Cat D: left-align note text to kill orphaned words */
+@media(max-width:480px){
+  .l-note{text-align:left!important}
+  .l-panel-sub{text-align:left}
+  .fp-sub{text-align:left}
+}
+
+/* Cat E: inputs proper height, touch targets */
+@media(max-width:640px){
+  input{padding:12px 14px;font-size:16px!important;min-height:48px}
+  .top-strip{height:auto;padding:10px 16px}
+  .ts-back{font-size:8px;padding:6px 10px;white-space:nowrap}
+  .operator-bar{padding:12px 16px}
+  .fp-box{width:calc(100vw - 32px);padding:24px 20px}
+}
 </style>
 </head>
 <body>
