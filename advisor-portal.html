@@ -3820,5 +3820,102 @@ load();
   .content-tabs{padding:0!important}
   .ctab{flex:1!important;text-align:center!important;padding:13px 8px!important;justify-content:center!important;display:flex!important;align-items:center!important}
 }
+
+/* ── MOBILE FULL-PANE HERO: prism + greeting fills viewport on startup ── */
+@media(max-width:768px){
+  /* Hero fills the full viewport */
+  #dash-hero-static{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    height:100svh!important;
+    height:100vh!important;
+    min-height:100svh!important;
+    min-height:100vh!important;
+    padding:0!important;
+    gap:0!important;
+  }
+
+  /* Prism: large, centered, takes ~52% of viewport */
+  .dhs-visual{
+    order:-1!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    flex:0 0 52svh!important;
+    flex:0 0 52vh!important;
+    min-height:0!important;
+    max-height:none!important;
+    padding:0!important;
+    background:none!important;
+  }
+  .dhs-vis-inner{
+    width:min(260px,76vw)!important;
+    gap:0!important;
+  }
+  .dhs-prism-wrap{
+    width:100%!important;
+  }
+  .dhs-ring-float{display:none!important}
+  .dhs-action-badge{display:none!important}
+
+  /* Left: centered text block, only greeting visible */
+  .dhs-left{
+    flex:0 0 auto!important;
+    width:100%!important;
+    padding:0 24px clamp(32px,6svh,64px)!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    text-align:center!important;
+  }
+  .dhs-eyebrow{
+    justify-content:center!important;
+    margin-bottom:18px!important;
+  }
+  .dhs-headline{
+    font-size:clamp(34px,9.5vw,56px)!important;
+    text-align:center!important;
+    margin-bottom:8px!important;
+    max-width:none!important;
+  }
+  .dhs-firm{
+    text-align:center!important;
+    margin-bottom:0!important;
+  }
+
+  /* Hide everything below greeting in the hero — visible in scrolled dashboard */
+  #dhs-tagline,
+  #dhs-stats,
+  .dhs-actions,
+  #dhs-social,
+  .dhs-sub-bar-wrap{
+    display:none!important;
+  }
+
+  /* Scroll indicator — subtle chevron at bottom of hero */
+  #dash-hero-static::after{
+    content:'';
+    position:absolute!important;
+    bottom:22px!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    width:18px!important;
+    height:18px!important;
+    border-right:1.5px solid rgba(197,165,114,.45)!important;
+    border-bottom:1.5px solid rgba(197,165,114,.45)!important;
+    transform:translateX(-50%) rotate(45deg)!important;
+    animation:chevronBounce 2s ease-in-out infinite!important;
+    background:none!important;
+    background-image:none!important;
+  }
+}
+@keyframes chevronBounce{
+  0%,100%{opacity:.35;transform:translateX(-50%) rotate(45deg) translateY(0)}
+  50%{opacity:.75;transform:translateX(-50%) rotate(45deg) translateY(5px)}
+}
 </style>
 </body>
