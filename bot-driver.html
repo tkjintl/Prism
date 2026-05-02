@@ -586,12 +586,21 @@ class AdminBot{
     if(choices.length===0)choices.push('publish');
     const pick=rand(choices);
 
-    // Soft-skip race: when another tick already moved the target, the API returns
-    // 404 ("Deal not found" / "IOI not found") or 400 ("already approved"). Treat as
-    // benign progress, not a bug. Real bugs (500, 401, etc.) still surface.
+    // Soft-skip race: when another tick already moved the target, the API
+    // returns 404, 409, or 400 with a recognizable race message. Treat as
+    // benign progress, not a bug. Real bugs (500, 401, validation errors
+    // unrelated to races) still surface.
+    const RACE_400_PATTERNS=[
+      /Cannot advance from \w+ to \w+/i,
+      /already approved/i,
+      /already published/i,
+      /already in/i,
+      /Not in.*stage/i,
+    ];
     const softSkip=async (fn,label)=>{
       try{return await fn();}catch(e){
         if(e.status===404||e.status===409)return {persona:this.persona,action:`${label} (raced — target moved)`,ok:true};
+        if(e.status===400&&RACE_400_PATTERNS.some(p=>p.test(e.message||'')))return {persona:this.persona,action:`${label} (raced — already advanced)`,ok:true};
         throw e;
       }
     };
@@ -874,24 +883,59 @@ async function runAudit(){
   try{
     const j=await botFetch('/api/v2?resource=admin&op=sandbox-summary');
     const issues=j.issues||[];
+    // Pull session log errors — anything bots flagged as ✗ in the action log.
+    // The data audit (sandbox-summary) only inspects KV state; log errors
+    // surface bugs that don't leave a permanent trace (race conditions,
+    // 400s from bad bot calls, missing fields, etc.).
+    const logErrors=(state.logEntries||[]).filter(r=>r.ok===false);
+    const logErrorCount=logErrors.length;
+    // Group by message for readability
+    const errorGroups={};
+    for(const r of logErrors){
+      const msg=r.msg||'unknown';
+      const key=msg.replace(/IOI-[A-Z0-9-]+/g,'IOI-…').replace(/DL-[A-Z0-9-]+/g,'DL-…').replace(/"[^"]+"/g,'"…"').slice(0,140);
+      if(!errorGroups[key])errorGroups[key]={count:0,persona:r.persona,sample:msg};
+      errorGroups[key].count++;
+    }
+    const groupedErrors=Object.entries(errorGroups).sort((a,b)=>b[1].count-a[1].count);
+
+    const totalIssues=issues.length+(logErrorCount>0?1:0);
     let html='';
-    if(issues.length===0){
-      html=`<div class="audit-banner pass">All clear — no issues detected</div>`;
-      if(j.summary)html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:8px 12px;background:var(--bg-3);border-radius:4px">${esc(JSON.stringify(j.summary,null,2))}</div>`;
+    if(totalIssues===0){
+      html=`<div class="audit-banner pass">All clear — no data issues, no log errors</div>`;
+      if(j.summary)html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:8px 12px;background:var(--bg-3);border-radius:4px">${esc(typeof j.summary==='string'?j.summary:JSON.stringify(j.summary,null,2))}</div>`;
     }else{
-      html=`<div class="audit-banner fail">${issues.length} issue${issues.length===1?'':'s'} detected</div>`;
-      html+=`<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden">`;
-      html+=`<div class="audit-row" style="background:var(--bg-3);font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);cursor:default"><div>Issue</div><div>Severity</div><div>Count</div><div></div></div>`;
-      issues.forEach((iss,idx)=>{
-        const sev=(iss.severity||'med').toLowerCase();
-        const sevClass=sev==='high'?'sev-high':(sev==='low'?'sev-low':'sev-med');
-        const samples=iss.samples||iss.examples||[];
-        html+=`<div class="audit-row" onclick="document.getElementById('aud-s-${idx}').classList.toggle('hidden')"><div>${esc(iss.type||iss.name||'issue')}<div style="font-size:11px;color:var(--text-3);margin-top:2px">${esc(iss.message||'')}</div></div><div><span class="audit-sev ${sevClass}">${esc(sev)}</span></div><div style="font-family:var(--mono);font-size:13px;color:var(--text)">${iss.count||samples.length||1}</div><div style="color:var(--text-3);font-family:var(--mono)">▾</div></div>`;
-        if(samples.length){
-          html+=`<div id="aud-s-${idx}" class="audit-samples hidden">${samples.slice(0,10).map(s=>`<div>· ${esc(typeof s==='string'?s:JSON.stringify(s))}</div>`).join('')}</div>`;
-        }
-      });
-      html+=`</div>`;
+      const summaryParts=[];
+      if(issues.length)summaryParts.push(`${issues.length} data issue${issues.length===1?'':'s'}`);
+      if(logErrorCount)summaryParts.push(`${logErrorCount} log error${logErrorCount===1?'':'s'} (${groupedErrors.length} unique)`);
+      html=`<div class="audit-banner fail">${summaryParts.join(' · ')}</div>`;
+
+      if(issues.length){
+        html+=`<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin:14px 0 6px">Data Audit</div>`;
+        html+=`<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden">`;
+        html+=`<div class="audit-row" style="background:var(--bg-3);font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);cursor:default"><div>Issue</div><div>Severity</div><div>Count</div><div></div></div>`;
+        issues.forEach((iss,idx)=>{
+          const sev=(iss.severity||'med').toLowerCase();
+          const sevClass=sev==='high'?'sev-high':(sev==='low'?'sev-low':'sev-med');
+          const samples=iss.samples||iss.examples||[];
+          html+=`<div class="audit-row" onclick="document.getElementById('aud-s-${idx}').classList.toggle('hidden')"><div>${esc(iss.type||iss.name||'issue')}<div style="font-size:11px;color:var(--text-3);margin-top:2px">${esc(iss.message||'')}</div></div><div><span class="audit-sev ${sevClass}">${esc(sev)}</span></div><div style="font-family:var(--mono);font-size:13px;color:var(--text)">${iss.count||samples.length||1}</div><div style="color:var(--text-3);font-family:var(--mono)">▾</div></div>`;
+          if(samples.length){
+            html+=`<div id="aud-s-${idx}" class="audit-samples hidden">${samples.slice(0,10).map(s=>`<div>· ${esc(typeof s==='string'?s:JSON.stringify(s))}</div>`).join('')}</div>`;
+          }
+        });
+        html+=`</div>`;
+      }
+
+      if(logErrorCount){
+        html+=`<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin:14px 0 6px">Action Log Errors (${logErrorCount} total · ${groupedErrors.length} unique)</div>`;
+        html+=`<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden">`;
+        html+=`<div class="audit-row" style="background:var(--bg-3);font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);cursor:default"><div>Persona</div><div>Pattern</div><div>Count</div><div></div></div>`;
+        groupedErrors.forEach(([key,grp],idx)=>{
+          html+=`<div class="audit-row" style="cursor:default"><div><span class="tag tag-${esc(grp.persona||'admin')}" style="font-family:var(--mono);font-size:9px;padding:2px 8px;border:1px solid;border-radius:3px">${esc(grp.persona||'?')}</span></div><div style="font-size:11px;color:var(--red);font-family:var(--mono);word-break:break-word">${esc(key)}</div><div style="font-family:var(--mono);font-size:13px;color:var(--red)">${grp.count}</div><div></div></div>`;
+        });
+        html+=`</div>`;
+        html+=`<div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:8px;line-height:1.5">Patterns are normalized — IOI/deal IDs and quoted names replaced with placeholders so identical errors group together. Top of the list = most frequent.</div>`;
+      }
     }
     openAuditModal(html);
   }catch(e){

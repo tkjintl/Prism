@@ -255,9 +255,12 @@ export async function seedHighVolume() {
       tacc_carry_pct: 12,
       min_ticket_usd: randomized.min_ticket_usd,
       max_ticket_usd: 0,
-      closing_date: ['live','ioi','dd','terms','close'].includes(stage)
-        ? new Date(Date.now() + randInt(15, 180) * 86400000).toISOString()
-        : null,
+      // Always set a closing_date — required by publish-deal gate (P-7).
+      // Future date for active stages, retroactive for realized to match
+      // a sensible audit trail.
+      closing_date: stage === 'realized'
+        ? new Date(Date.now() - randInt(30, 365) * 86400000).toISOString()
+        : new Date(Date.now() + randInt(15, 180) * 86400000).toISOString(),
       platform_alloc_usd: null,
       platform_min_ticket_usd: null,
       ioi_count: 0,
