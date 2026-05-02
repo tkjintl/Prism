@@ -1,8 +1,30 @@
-import { kvGet, kvSet, kvDel, kvKeys, zAdd, zRevRange } from './storage.js';
+import { kvGet, kvSet, kvDel, kvKeys, zAdd, zRevRange, kvZadd } from './storage.js';
 import { nanoid } from 'nanoid';
 
 const VALID_STAGES = new Set(['review','live','ioi','dd','terms','close','realized','killed']);
 const DEAL_IDX = 'deals:index';
+
+// Append a log entry to the immutable sorted set audit:{dealId} in addition to
+// writing to the deal object's mutable audit_log array.
+// score = epoch ms so entries are ordered chronologically.
+export async function appendAuditEntry(dealId, entry) {
+  await kvZadd(`audit:${dealId}`, entry.at ? new Date(entry.at).getTime() : Date.now(), JSON.stringify(entry));
+}
+
+// Recalculate ioi_count and ioi_agg_usd on the deal object from live IOI records.
+// Single source of truth — replaces divergent counter keys.
+export async function recalcIoiCounters(dealId) {
+  const deal = await kvGet(`deal:${dealId}`);
+  if (!deal) return null;
+  const ioiKeys = await kvKeys('ioi:IOI-*');
+  const allIois = (await Promise.all(ioiKeys.map(k => kvGet(k)))).filter(Boolean);
+  const dealIois = allIois.filter(i => i.deal_id === dealId && i.status !== 'rejected');
+  deal.ioi_count = dealIois.length;
+  deal.ioi_agg_usd = dealIois.reduce((s, i) => s + (i.amount || 0), 0);
+  deal.updated_at = new Date().toISOString();
+  await kvSet(`deal:${dealId}`, deal);
+  return { ioi_count: deal.ioi_count, ioi_agg_usd: deal.ioi_agg_usd };
+}
 
 export function generateDealId() {
   return 'DL-' + nanoid(6).toUpperCase();
@@ -77,6 +99,7 @@ export async function createDeal(data, advisorId, adminId = null) {
   };
 
   await saveDeal(deal);
+  await appendAuditEntry(id, { at: now, actor: advisorId || adminId || 'system', action: 'created', meta: {} });
 
   // Migrate any pending docs uploaded before dealId was known
   if (advisorId) {
@@ -133,10 +156,12 @@ export async function updateDeal(id, updates, actorId) {
 
   // Audit log
   deal.audit_log = deal.audit_log || [];
-  deal.audit_log.push({ at: now, actor: actorId, action: 'updated', meta: changed });
+  const auditEntry = { at: now, actor: actorId, action: 'updated', meta: changed };
+  deal.audit_log.push(auditEntry);
   deal.updated_at = now;
 
   await saveDeal(deal);
+  await appendAuditEntry(deal.id, auditEntry);
   return { deal, prev_stage, new_stage: deal.stage, stage_changed: prev_stage !== deal.stage };
 }
 

@@ -1946,6 +1946,160 @@ Return ONLY valid JSON in this exact structure:
 
       return ok(res, { ok: true, kycCheckId: inst.kycCheckId, ...statusResult });
     }
+
+    // ── delete-investor (PDPA deletion) ──────────────────────────
+    if (op === 'delete-investor') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { investorId } = req.body || {};
+      if (!investorId) return bad(res, 'investorId required');
+      const inst = await kvGet(`inst:${investorId}`);
+      if (!inst) return bad(res, 'Investor not found', 404);
+
+      let keysRemoved = 0;
+
+      // Delete main record and email/code lookups
+      await kvDel(`inst:${investorId}`); keysRemoved++;
+      if (inst.email) { await kvDel(`inst_email:${inst.email.toLowerCase()}`); keysRemoved++; }
+      if (inst.code) { await kvDel(`inst_code:${inst.code}`); keysRemoved++; }
+
+      // Delete all IOI records belonging to this investor
+      const delIoiKeys = await kvKeys('ioi:IOI-*');
+      const delAllIois = (await Promise.all(delIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+      const investorIois = delAllIois.filter(i => i.investor_id === investorId);
+      for (const ioi of investorIois) {
+        await kvDel(`ioi:${ioi.id}`); keysRemoved++;
+        await kvDel(`ioi_exists:${ioi.deal_id}:${investorId}`); keysRemoved++;
+        await recalcIoiCounters(ioi.deal_id);
+      }
+
+      // Delete NDA signature records
+      const ndaKeys = await kvKeys(`nda_signed:${investorId}:*`);
+      for (const k of ndaKeys) { await kvDel(k); keysRemoved++; }
+
+      console.log(`[PDPA] Investor ${investorId} deleted by ${admin.email} — ${keysRemoved} keys removed`);
+      return ok(res, { deleted: true, keysRemoved });
+    }
+
+    // ── audit-log (append-only sorted set read) ───────────────────
+    if (op === 'audit-log') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId } = req.query;
+      if (!dealId) return bad(res, 'dealId required');
+      const entries = await kvZrange(`audit:${dealId}`, 0, -1, { rev: false });
+      const parsed = entries.map(e => { try { return JSON.parse(e); } catch { return e; } });
+      return ok(res, { dealId, log: parsed });
+    }
+
+    // ── capital-call-notify ───────────────────────────────────────
+    if (op === 'capital-call-notify') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId, investorIds } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      const ccDeal = await getDeal(dealId);
+      if (!ccDeal) return bad(res, 'Deal not found', 404);
+
+      let ccTargetIds = investorIds;
+      if (!ccTargetIds?.length) {
+        const ccIoiKeys = await kvKeys('ioi:IOI-*');
+        const ccAllIois = (await Promise.all(ccIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+        ccTargetIds = ccAllIois
+          .filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'))
+          .map(i => i.investor_id);
+      }
+
+      let ccSent = 0;
+      for (const invId of (ccTargetIds || [])) {
+        const inv = await kvGet(`inst:${invId}`);
+        if (inv) { await sendCapitalCallNotice(inv, ccDeal).catch(console.error); ccSent++; }
+      }
+
+      const ccAuditEntry = { at: new Date().toISOString(), actor: admin.email, action: 'capital_call_issued', meta: { dealId, recipientCount: ccSent } };
+      ccDeal.audit_log = ccDeal.audit_log || [];
+      ccDeal.audit_log.push(ccAuditEntry);
+      ccDeal.updated_at = new Date().toISOString();
+      await saveDeal(ccDeal);
+      await appendAuditEntry(dealId, ccAuditEntry);
+      return ok(res, { ok: true, sent: ccSent });
+    }
+
+    // ── distribution-notify ───────────────────────────────────────
+    if (op === 'distribution-notify') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId, investorIds } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      const distDeal = await getDeal(dealId);
+      if (!distDeal) return bad(res, 'Deal not found', 404);
+
+      let distTargetIds = investorIds;
+      if (!distTargetIds?.length) {
+        const distIoiKeys = await kvKeys('ioi:IOI-*');
+        const distAllIois = (await Promise.all(distIoiKeys.map(k => kvGet(k)))).filter(Boolean);
+        distTargetIds = distAllIois
+          .filter(i => i.deal_id === dealId && i.status === 'approved' && i.investor_id.startsWith('inv-'))
+          .map(i => i.investor_id);
+      }
+
+      let distSent = 0;
+      for (const invId of (distTargetIds || [])) {
+        const inv = await kvGet(`inst:${invId}`);
+        if (inv) { await sendDistributionNotice(inv, distDeal).catch(console.error); distSent++; }
+      }
+
+      const distAuditEntry = { at: new Date().toISOString(), actor: admin.email, action: 'distribution_issued', meta: { dealId, recipientCount: distSent } };
+      distDeal.audit_log = distDeal.audit_log || [];
+      distDeal.audit_log.push(distAuditEntry);
+      distDeal.updated_at = new Date().toISOString();
+      await saveDeal(distDeal);
+      await appendAuditEntry(dealId, distAuditEntry);
+      return ok(res, { ok: true, sent: distSent });
+    }
+
+    // ── qa-cron (daily 9am UTC — Vercel cron or admin-triggered) ──
+    if (op === 'qa-cron') {
+      const cronSecret = process.env.CRON_SECRET;
+      const cronHeader = req.headers['authorization'];
+      const isCronCall = cronSecret && cronHeader === `Bearer ${cronSecret}`;
+      const cronAdmin = await getAdmin();
+      if (!cronAdmin && !isCronCall) return unauth(res);
+
+      const pendingKeys = await kvKeys('qa_pending:*');
+      const nowMs = Date.now();
+      const TWENTY_FOUR_H = 24 * 60 * 60 * 1000;
+
+      // Group by deal so we send one batched reminder per deal
+      const dealMap = {};
+      for (const key of pendingKeys) {
+        const raw = await kvGet(key);
+        if (!raw) continue;
+        let pending;
+        try { pending = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { continue; }
+        if (pending.reminderSent) continue;
+        if (nowMs - new Date(pending.submittedAt).getTime() < TWENTY_FOUR_H) continue;
+        if (!dealMap[pending.dealId]) dealMap[pending.dealId] = [];
+        dealMap[pending.dealId].push({ key, pending });
+      }
+
+      let remindersSent = 0;
+      for (const [cronDealId, items] of Object.entries(dealMap)) {
+        const cronDeal = await getDeal(cronDealId);
+        if (!cronDeal?.advisor_id?.startsWith('adv-')) continue;
+        const cronAdvisor = await kvGet(`advisor:${cronDeal.advisor_id}`);
+        if (!cronAdvisor?.email) continue;
+        await sendQaReminder(cronAdvisor, cronDeal.name, items.length).catch(console.error);
+        remindersSent++;
+        for (const { key, pending } of items) {
+          pending.reminderSent = true;
+          await kvSet(key, JSON.stringify(pending), { ex: 86400 });
+        }
+      }
+
+      return ok(res, { ok: true, remindersSent, dealsChecked: Object.keys(dealMap).length });
+    }
+
   }
 
   // ─────────────────────────────────────────────────────────────

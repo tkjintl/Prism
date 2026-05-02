@@ -1,17 +1,50 @@
 const FROM = 'Aurum Prism <prism@theaurumcc.com>';
 const SITE = process.env.SITE_URL || 'https://prism.theaurumcc.com';
 
-async function send(to, subject, html) {
+async function send(to, subject, html, templateType = 'unknown') {
   const key = process.env.RESEND_API_KEY;
   if (!key) { console.warn('[Prism Email] No RESEND_API_KEY — email not sent:', subject, 'to', to); return; }
+  const recipients = Array.isArray(to) ? to : [to];
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ from: FROM, to: Array.isArray(to) ? to : [to], subject, html }),
+      body: JSON.stringify({ from: FROM, to: recipients, subject, html }),
     });
-    if (!res.ok) console.error('[Prism Email] Resend error:', res.status, await res.text());
-  } catch (e) { console.error('[Prism Email] Send failed:', e.message); }
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('[EMAIL] Resend failed:', res.status, errText);
+      await sendDeliveryAlert({ recipient: recipients.join(', '), templateType, error: `HTTP ${res.status}: ${errText}` });
+    }
+  } catch (e) {
+    console.error('[EMAIL] Send failed:', e.message);
+    await sendDeliveryAlert({ recipient: recipients.join(', '), templateType, error: e.message });
+  }
+}
+
+// Internal — fire alert to operator list on delivery failure. Never throws.
+async function sendDeliveryAlert({ recipient, templateType, error }) {
+  const notifyList = (process.env.NOTIFY_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+  if (!notifyList.length) return;
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        from: FROM,
+        to: notifyList,
+        subject: '[Prism Alert] Email delivery failure',
+        html: `<p><strong>Recipient:</strong> ${recipient}<br>
+<strong>Template:</strong> ${templateType}<br>
+<strong>Timestamp:</strong> ${new Date().toISOString()}<br>
+<strong>Error:</strong> ${error}</p>`,
+      }),
+    });
+  } catch (alertErr) {
+    console.error('[EMAIL] Alert send also failed:', alertErr.message);
+  }
 }
 
 function base(title, content) {
@@ -46,7 +79,7 @@ export async function sendAccessCode(investor) {
     <p class="meta">Code tied to your email — do not share</p>
     <a href="${SITE}/login" class="btn">Enter Marketplace →</a>
     <p style="margin-top:16px">Log in at <strong style="color:#C5A572">${SITE}/login</strong> with your registered email and this access code.</p>`
-  ));
+  ), 'access-code');
 }
 
 // ── Deal submission received ────────────────────────────────────
@@ -59,7 +92,8 @@ export async function sendDealReceived(deal, advisor) {
       <p>Deal ID: <span style="color:#C5A572;font-family:monospace">${deal.id}</span><br>
       Type: ${deal.asset_class}<br>Allocation: ${deal.target_alloc_usd ? '$'+Number(deal.target_alloc_usd).toLocaleString() : '—'}<br>
       Target IRR: ${deal.target_irr || '—'}%</p>
-      <a href="${SITE}/control" class="btn">Review in Control Panel →</a>`));
+      <a href="${SITE}/control" class="btn">Review in Control Panel →</a>`),
+    'deal-received-operator');
   }
   // Confirm to advisor
   await send(advisor.email, `Deal received: ${deal.name}`, base('Deal Received',
@@ -67,7 +101,7 @@ export async function sendDealReceived(deal, advisor) {
     <p>Your deal <strong style="color:#ede8df">${deal.name}</strong> has been submitted to Aurum Prism for review. You'll receive a notification when the status changes.</p>
     <p>Deal ID: <span style="color:#C5A572;font-family:monospace">${deal.id}</span></p>
     <a href="${SITE}/advisor" class="btn">View in Advisor Portal →</a>`
-  ));
+  ), 'deal-received-advisor');
 }
 
 // ── Stage change notification to advisor ───────────────────────
@@ -87,7 +121,7 @@ export async function sendStageChange(deal, advisor, newStage) {
     <p>${msg.line}</p>
     <p>${msg.detail}</p>
     <a href="${SITE}/advisor" class="btn">View in Advisor Portal →</a>`
-  ));
+  ), 'stage-change');
 }
 
 // ── IOI data room access granted ───────────────────────────────
@@ -98,7 +132,7 @@ export async function sendDataRoomAccess(investor, deal) {
     <p>You now have access to the full data room including the CIM, financial model, and all available documentation. All downloads are watermarked with your identity.</p>
     <a href="${SITE}/marketplace" class="btn">Access Data Room →</a>
     <p style="margin-top:12px;font-size:11px;color:#635e58">All documents are confidential. Do not distribute without written consent from the platform operator.</p>`
-  ));
+  ), 'data-room-access');
 }
 
 // ── New investor access application ────────────────────────────
@@ -110,7 +144,7 @@ export async function sendAccessApplication(investor) {
     <p><strong style="color:#ede8df">${investor.firm_name}</strong> (${investor.contact_name}) has applied for access.</p>
     <p>Type: ${investor.institution_type}<br>AUM: ${investor.aum_range}<br>Ticket: ${investor.ticket_range}</p>
     <a href="${SITE}/control" class="btn">Review Application →</a>`
-  ));
+  ), 'access-application');
 }
 
 // ── Advisor welcome + credentials ──────────────────────────────
@@ -126,7 +160,7 @@ export async function sendAdvisorWelcome(advisor, tempPassword) {
     <div style="color:#C5A572">${tempPassword}</div></div>
     <p>You will be prompted to set a new password on first login.</p>
     <a href="${SITE}/login" class="btn">Log In →</a>`
-  ));
+  ), 'advisor-welcome');
 }
 
 // ── IOI push package notification to advisor ──────────────────
@@ -285,7 +319,7 @@ export async function sendIoiPackage(data) {
 </body>
 </html>`;
 
-  await send(data.to, `IOI Package — ${data.deal_name}`, html);
+  await send(data.to, `IOI Package — ${data.deal_name}`, html, 'ioi-package');
 }
 
 // ── Password reset code ────────────────────────────────────────
@@ -295,5 +329,85 @@ export async function sendPasswordReset(email, code) {
     <p>Use the 6-digit code below to reset your password. The code expires in 30 minutes.</p>
     <div class="code-box">${code}</div>
     <p>If you did not request this, you can ignore this email. Your password will not change.</p>`
-  ));
+  ), 'password-reset');
+}
+
+// ── IOI confirmation to investor (6a) ─────────────────────────
+export async function sendIoiConfirmation(investor, deal) {
+  await send(investor.email, `Expression of interest received: ${deal.name}`, base('IOI Received',
+    `<h3>Your expression of interest has been received.</h3>
+    <p>Your indication of interest for <strong style="color:#ede8df">${deal.name}</strong> has been received. Our team will review it and be in touch.</p>
+    <a href="${SITE}/investor-portal" class="btn">View in Investor Portal →</a>`
+  ), 'ioi-confirmation');
+}
+
+// ── IOI rejection to investor (6b) ────────────────────────────
+export async function sendIoiRejection(investor, deal) {
+  await send(investor.email, `Update on your expression of interest: ${deal.name}`, base('IOI Update',
+    `<h3>Expression of interest update.</h3>
+    <p>Thank you for your interest in <strong style="color:#ede8df">${deal.name}</strong>. After review, your indication of interest was not progressed at this time.</p>
+    <p>You may be considered for future opportunities. Please contact your relationship manager if you have questions.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Marketplace →</a>`
+  ), 'ioi-rejection');
+}
+
+// ── IOI package response — data room access confirmation to investor (6c) ──
+export async function sendDataRoomPackageResponse(investor, deal) {
+  await send(investor.email, `Data room access confirmed: ${deal.name}`, base('Data Room Access',
+    `<h3>Your data room access has been granted.</h3>
+    <p>Your request for full documentation on <strong style="color:#ede8df">${deal.name}</strong> has been processed. You now have access to the complete data room.</p>
+    <p>All documents are confidential and watermarked with your identity. Do not distribute without written consent from the platform operator.</p>
+    <a href="${SITE}/investor-portal" class="btn">Access Data Room →</a>`
+  ), 'data-room-package-response');
+}
+
+// ── Q&A question notification to advisor (6d) ─────────────────
+export async function sendQaQuestionToAdvisor(advisor, deal, question) {
+  const preview = question.length > 100 ? question.slice(0, 100) + '…' : question;
+  await send(advisor.email, `New question on ${deal.name}`, base('Q&A Question',
+    `<h3>A question has been submitted.</h3>
+    <p>An investor has submitted a question on <strong style="color:#ede8df">${deal.name}</strong>:</p>
+    <blockquote style="border-left:2px solid rgba(197,165,114,.4);padding:10px 16px;margin:16px 0;color:#ede8df;font-style:italic">${preview}</blockquote>
+    <p>Please log in to your advisor portal to respond. Timely responses are expected within 48 hours.</p>
+    <a href="${SITE}/advisor-portal" class="btn">Answer in Advisor Portal →</a>`
+  ), 'qa-question-to-advisor');
+}
+
+// ── Q&A answer delivery to investor (6e) ──────────────────────
+export async function sendQaAnswerToInvestor(investor, deal) {
+  await send(investor.email, `Your question on ${deal.name} has been answered`, base('Q&A Answer',
+    `<h3>Your question has been answered.</h3>
+    <p>The advisor for <strong style="color:#ede8df">${deal.name}</strong> has responded to your question. Log in to view the full response in the Q&A thread.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Response →</a>`
+  ), 'qa-answer-to-investor');
+}
+
+// ── Capital call notice to investor (6f) ──────────────────────
+export async function sendCapitalCallNotice(investor, deal) {
+  await send(investor.email, `Capital call notice: ${deal.name}`, base('Capital Call',
+    `<h3>Capital call notice issued.</h3>
+    <p>A capital call notice has been issued for <strong style="color:#ede8df">${deal.name}</strong>. Please log in to view full details and wire instructions.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Details →</a>
+    <p style="margin-top:12px;font-size:11px;color:#635e58">Wire instructions and full call documentation are available in your investor portal. Contact your relationship manager if you have questions.</p>`
+  ), 'capital-call');
+}
+
+// ── Distribution notice to investor (6g) ──────────────────────
+export async function sendDistributionNotice(investor, deal) {
+  await send(investor.email, `Distribution notice: ${deal.name}`, base('Distribution',
+    `<h3>Distribution processed.</h3>
+    <p>A distribution has been processed for your position in <strong style="color:#ede8df">${deal.name}</strong>. Please log in to view details.</p>
+    <a href="${SITE}/investor-portal" class="btn">View Details →</a>`
+  ), 'distribution');
+}
+
+// ── Q&A 48h reminder to advisor (Item 7) ──────────────────────
+// data: { advisor_email, deal_name, question_count }
+export async function sendQaReminder(advisor, dealName, questionCount) {
+  await send(advisor.email, `Unanswered questions on ${dealName}`, base('Q&A Reminder',
+    `<h3>Questions awaiting your response.</h3>
+    <p>You have <strong style="color:#ede8df">${questionCount} unanswered question${questionCount !== 1 ? 's' : ''}</strong> on <strong style="color:#ede8df">${dealName}</strong>.</p>
+    <p>Please respond within 24 hours. Investors expect timely engagement during the due diligence period.</p>
+    <a href="${SITE}/advisor-portal" class="btn">Answer Questions →</a>`
+  ), 'qa-reminder');
 }

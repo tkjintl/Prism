@@ -4,6 +4,37 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Phase 1 + Phase 2 backend: token revocation, PDPA deletion, audit sorted set, KV alerting, email failure alerting, 7 new email triggers, Q&A routing, IOI counter integrity
+
+### Phase 1 — Infrastructure
+
+- **Token revocation denylist** (`api/_lib/auth.js`, `api/v2.js`): `signToken` now injects `jti: randomUUID()` into every JWT payload. On advisor logout (`op=logout`), the jti is written to `revoked:{jti}` with a 7-day TTL. On investor logout, same with 30-day TTL. All three `getAdmin`/`getAdvisor`/`getInst` auth helpers check `kvGet('revoked:' + payload.jti)` after signature verification — if the key exists, the request is treated as unauthenticated and the cookie is cleared. Replaying a stolen token after logout now returns 401.
+
+- **PDPA investor deletion endpoint** (`api/v2.js`): New `resource=admin&op=delete-investor` (admin-only, POST). Accepts `investorId`. Deletes: `inst:{id}`, `inst_email:{email}`, `inst_code:{code}`, all `ioi:IOI-*` records where `investor_id` matches, all `ioi_exists:{dealId}:{investorId}` dedup keys, and all `nda_signed:{investorId}:*` records. Calls `recalcIoiCounters` on each affected deal. Returns `{ deleted: true, keysRemoved: N }`. Logs PDPA deletion to console for compliance trail.
+
+- **Append-only audit sorted set** (`api/_lib/deal-storage.js`, `api/v2.js`): New `appendAuditEntry(dealId, entry)` helper writes each audit event to `audit:{dealId}` sorted set with `score = Date.now()`. Called from `createDeal`, `updateDeal`, `respond-package`, `capital-call-notify`, `distribution-notify`. New `resource=admin&op=audit-log&dealId=X` endpoint returns the full chronological log via `kvZrange`. Added `kvZadd` and `kvZrange` exports to `storage.js`.
+
+- **KV fallback alerting** (`api/_lib/storage.js`): On first cold start without KV env vars, logs `[STORAGE] KV unavailable — using in-memory fallback. DATA WILL BE LOST ON RESTART.` via `console.error`. Module-level `kvUnavailable` flag exposed via `isKvUnavailable()`. Health check endpoint now returns `{ kv: "unavailable" }` instead of `"memory-fallback"` when KV is absent.
+
+- **Resend failure alerting** (`api/_lib/email.js`): `send()` now checks response status. On non-2xx, fires a secondary alert to `NOTIFY_EMAILS` with subject `[Prism Alert] Email delivery failure` including recipient, template type, timestamp, and error message. Alert send is catch-safe — never throws. All existing `send()` calls updated to pass `templateType` as fourth argument for alert context.
+
+### Phase 2 — Core Missing Features
+
+- **7 new email triggers** (`api/_lib/email.js`, `api/v2.js`):
+  - `sendIoiConfirmation` — sent to investor after IOI submission
+  - `sendIoiRejection` — sent to investor when admin rejects IOI
+  - `sendDataRoomPackageResponse` — sent to investors when advisor accepts pushed IOI package
+  - `sendQaQuestionToAdvisor` — sent to deal advisor when investor submits Q&A question
+  - `sendQaAnswerToInvestor` — sent to investor when advisor answers their question
+  - `sendCapitalCallNotice` + `resource=admin&op=capital-call-notify` — admin triggers capital call email to all approved IOI holders for a deal (or specific `investorIds[]`)
+  - `sendDistributionNotice` + `resource=admin&op=distribution-notify` — same pattern for distribution notices
+
+- **Q&A 48h reminder system** (`api/v2.js`, `vercel.json`): On question submission, `qa_pending:{dealId}:{qaId}` is written to Redis with 48h TTL and `{ reminderSent: false }`. On answer, key is deleted immediately. New `resource=admin&op=qa-cron` handler scans pending keys >= 24h old, batches by deal, sends one `sendQaReminder` per deal (never more than one per question), then sets `reminderSent: true`. Wired to Vercel cron `0 9 * * *` (9am UTC daily) in `vercel.json`. Also callable directly by admin. Accepts `CRON_SECRET` bearer token for Vercel-initiated calls.
+
+- **IOI counter integrity** (`api/_lib/deal-storage.js`, `api/v2.js`): Removed `kvIncrby(deal_ioi_count:*, 1)` and the manual deal object counter increments. Added `recalcIoiCounters(dealId)` which scans all `ioi:IOI-*` for the deal, counts and sums only non-rejected IOIs, and writes back to the deal object. Called after: IOI creation, IOI approval, IOI rejection, advisor package response. Single source of truth; no divergence possible.
+
+---
+
 ## [2026-05-02] — External service integrations: four stubs (STUBBED — activate via env var)
 
 ### Changes

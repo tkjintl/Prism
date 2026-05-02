@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
+import { randomUUID } from 'crypto';
 
 const RAW = process.env.PRISM_SECRET;
 
@@ -16,7 +17,9 @@ if (!RAW) console.warn('[Prism] WARNING: running with dev secret — set PRISM_S
 const key = new TextEncoder().encode(WARN_KEY);
 
 export async function signToken(payload, expiresIn = '12h') {
-  return new SignJWT(payload)
+  // Inject jti for token revocation denylist support unless caller already provides one
+  const payloadWithJti = payload.jti ? payload : { ...payload, jti: randomUUID() };
+  return new SignJWT(payloadWithJti)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(expiresIn)

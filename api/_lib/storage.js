@@ -3,15 +3,28 @@ import { Redis } from '@upstash/redis';
 let _redis = null;
 let _kvHealthy = null;
 let _mem = new Map();
+let kvUnavailable = false;
 
 function getRedis() {
   if (_redis) return _redis;
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
+  if (!url || !token) {
+    if (!kvUnavailable) {
+      kvUnavailable = true;
+      console.error('[STORAGE] KV unavailable — using in-memory fallback. DATA WILL BE LOST ON RESTART.');
+    }
+    return null;
+  }
   try { _redis = new Redis({ url, token }); return _redis; }
-  catch { return null; }
+  catch {
+    kvUnavailable = true;
+    console.error('[STORAGE] KV unavailable — using in-memory fallback. DATA WILL BE LOST ON RESTART.');
+    return null;
+  }
 }
+
+export function isKvUnavailable() { return kvUnavailable; }
 
 async function pingKv() {
   const r = getRedis();
@@ -88,6 +101,28 @@ export async function zRevRange(key, start, stop) {
   const raw = _mem.get(key);
   if (!raw) return [];
   const arr = JSON.parse(raw).sort((a, b) => b.score - a.score);
+  const end = stop === -1 ? arr.length : stop + 1;
+  return arr.slice(start, end).map(x => x.member);
+}
+
+// Append-only sorted set add (alias with explicit naming for audit log usage)
+export async function kvZadd(key, score, member) {
+  return zAdd(key, score, member);
+}
+
+// Range query for audit sorted set — returns members in score order (ascending by default)
+export async function kvZrange(key, start, stop, opts = {}) {
+  const r = getRedis();
+  if (r) {
+    try {
+      return opts.rev
+        ? await r.zrange(key, start, stop, { rev: true })
+        : await r.zrange(key, start, stop);
+    } catch { /* fall through */ }
+  }
+  const raw = _mem.get(key);
+  if (!raw) return [];
+  const arr = JSON.parse(raw).sort((a, b) => opts.rev ? b.score - a.score : a.score - b.score);
   const end = stop === -1 ? arr.length : stop + 1;
   return arr.slice(start, end).map(x => x.member);
 }
