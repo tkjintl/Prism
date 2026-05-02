@@ -4,6 +4,38 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Phase 0 security hardening (8 fixes, api/v2.js)
+
+### Changes
+
+- **Rate limiting on auth endpoints** (`api/v2.js`): Added `checkRateLimit(ip)` helper using Redis INCR + EXPIRE pattern (key `ratelimit:auth:{ip}`, 15-minute window, 10-attempt cap). Applied to advisor login, investor login, and advisor forgot-password. Returns HTTP 429 `{ error: "Too many attempts. Try again later." }` when limit exceeded. IP extracted from `x-forwarded-for` (Vercel standard).
+
+- **TACC feed hard-fail when secret absent** (`api/v2.js`): `op=tacc-feed` now returns HTTP 503 `{ error: "Feed not configured" }` immediately if `PRISM_TACC_BRIDGE_SECRET` env var is missing or empty. Previously served live deal data to any caller when the env var was unset.
+
+- **deal-docs and ai-generate admin-only enforcement** (`api/v2.js`): Both `op=deal-docs` and `op=ai-generate` previously called `verifyToken(getCookie(req, 'prism_admin'))` which would pass for any valid JWT regardless of role. Replaced with `getAdmin()` which additionally checks `payload.role === 'admin'`. Returns HTTP 403 if caller is not an admin.
+
+- **advisor-confirm-deal ownership check** (`api/v2.js`): `op=advisor-confirm-deal` now verifies `deal.advisor_id === adv.advisor_id` after fetching the deal. Returns HTTP 403 if the authenticated advisor does not own the deal. Previously any advisor JWT could edit any deal's financial terms.
+
+- **IOI dedup race condition fixed** (`api/v2.js`): Replaced check-then-set pattern with atomic `kvSetnx` (SET NX). If `kvSetnx` returns 0 (key already existed), returns HTTP 409 `{ error: "IOI already submitted" }`. The redundant `kvSet(dedupKey, 'pending')` after IOI record creation removed. Existing approved-IOI check retained as a fast-path for the common case.
+
+- **Auto-seed removed from all production code paths** (`api/v2.js`): Removed four auto-seed call sites: `advisor/me`, `advisor/deals` GET, `deals/marketplace`, and `deals` admin GET (the `deals.length < 8` auto-heal). Seed data (`sarah@capitalgroup.sg`, `jwc@theaurumcc.com`, etc.) can now only be loaded via the explicit admin `op=seed` endpoint. Cold starts return empty state rather than seeding production credentials automatically.
+
+- **Password minimum length 12 characters** (`api/v2.js`): `op=setup-password` and `op=reset-password` now reject passwords shorter than 12 characters with HTTP 400 `{ error: "Password must be at least 12 characters." }`. Previous minimum was 1 character.
+
+- **CORS origin restriction** (`api/v2.js`): `Access-Control-Allow-Origin` now set to `process.env.SITE_URL` instead of being absent (which defaulted to wildcard in some configurations). Added `Access-Control-Allow-Methods` and `Access-Control-Allow-Headers` headers. Preflight OPTIONS handling preserved. Falls back to no ACAO header if `SITE_URL` is unset (safe — browser will block cross-origin requests).
+
+---
+
+## [2026-05-02] — Security headers: HSTS, CSP, X-Frame-Options DENY, Permissions-Policy
+
+### Changes
+- `vercel.json`: Added `Strict-Transport-Security: max-age=31536000; includeSubDomains` to all routes — enforces HTTPS for 1 year including subdomains
+- `vercel.json`: Added `Content-Security-Policy` to all routes — restricts resource loading to same-origin plus Google Fonts (style/font only), permits `unsafe-inline` for scripts and styles (required by vanilla JS/CSS inline architecture), blocks framing via `frame-ancestors 'none'`, locks `base-uri` and `form-action` to same origin
+- `vercel.json`: Changed `X-Frame-Options` from `SAMEORIGIN` to `DENY` — investment platform has no legitimate same-origin iframe use case; DENY is the stricter correct value
+- `vercel.json`: Retained existing `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy: camera=(), microphone=(), geolocation=()` — all carried forward from prior config, no changes
+
+---
+
 ## [2026-05-01] — Landing page mobile: Deals + Capital corner labels on prism
 
 ### Changes

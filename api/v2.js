@@ -9,11 +9,42 @@ import {
 } from './_lib/email.js';
 import bcrypt from 'bcryptjs';
 
+// ── Rate limiting helper (sliding window via Redis INCR+EXPIRE) ─────────────
+// Returns the current attempt count for this IP within the 15-minute window.
+// On the first hit (count === 1) we write the key with a 900-second TTL, which
+// also anchors the window. Subsequent hits just INCRBY against the existing key
+// (Redis preserves the TTL on INCRBY). When count > 10 the caller returns 429.
+async function checkRateLimit(ip) {
+  const key = `ratelimit:auth:${ip}`;
+  // Check current value before incrementing so we can set TTL only on first hit
+  const existing = await kvGet(key);
+  if (!existing) {
+    // First request in this window — write with TTL to anchor the 15-min window
+    await kvSet(key, '1', { ex: 900 });
+    return 1;
+  }
+  const count = await kvIncrby(key, 1);
+  return count;
+}
+
+// Extract client IP from Vercel's forwarded header
+function getClientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  if (fwd) return fwd.split(',')[0].trim();
+  return req.socket?.remoteAddress || 'unknown';
+}
+
 export default async function handler(req, res) {
   const { resource, op } = req.query;
 
-  // ── CORS for dev ────────────────────────────────────────────
+  // ── CORS ────────────────────────────────────────────────────
+  const allowedOrigin = process.env.SITE_URL || '';
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  }
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
   // ── Health check ────────────────────────────────────────────
@@ -51,6 +82,8 @@ export default async function handler(req, res) {
   if (resource === 'advisor') {
 
     if (op === 'login') {
+      const ip = getClientIp(req);
+      if (await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const { email, password } = req.body || {};
       if (!email || !password) return bad(res, 'Email and password required');
       const stored = await kvGet(`advisor_email:${email.toLowerCase()}`);
@@ -75,7 +108,7 @@ export default async function handler(req, res) {
       if (!setup_token || !password) return bad(res, 'Token and password required');
       const p = await verifyToken(setup_token);
       if (!p?.setup) return bad(res, 'Invalid or expired setup token', 401);
-      if (password.length < 1) return bad(res, 'Password required');
+      if (password.length < 12) return bad(res, 'Password must be at least 12 characters.');
       const adv = await kvGet(`advisor:${p.advisor_id}`);
       if (!adv) return bad(res, 'Advisor not found', 404);
       adv.password_hash = await bcrypt.hash(password, 12);
@@ -96,12 +129,7 @@ export default async function handler(req, res) {
       if (!adv) return unauth(res);
       const full = await kvGet(`advisor:${adv.advisor_id}`);
       if (!full) return unauth(res);
-      let deals = await listDeals({ advisor_id: adv.advisor_id });
-      // Auto-seed on fresh deploy so advisor always sees their deals
-      if (deals.length === 0) {
-        try { await seedAdvisors(); await seedDeals(); deals = await listDeals({ advisor_id: adv.advisor_id }); }
-        catch (e) { /* seed unavailable */ }
-      }
+      const deals = await listDeals({ advisor_id: adv.advisor_id });
       // Hydrate pushed_ioi from the latest package for each deal
       const enrichedDeals = await Promise.all(deals.map(async deal => {
         const pkgListKey = `packages:deal:${deal.id}`;
@@ -163,16 +191,7 @@ export default async function handler(req, res) {
       }
 
       // GET: list advisor's deals
-      let deals = adv ? await listDeals({ advisor_id: adv.advisor_id }) : await listDeals();
-      // Auto-seed if empty — fresh deploy or KV not yet populated
-      if (deals.length === 0) {
-        try {
-          await seedAdvisors();
-          await seedInvestors();
-          await seedDeals();
-          deals = adv ? await listDeals({ advisor_id: adv.advisor_id }) : await listDeals();
-        } catch (e) { /* seed unavailable — return empty */ }
-      }
+      const deals = adv ? await listDeals({ advisor_id: adv.advisor_id }) : await listDeals();
       return ok(res, { deals });
     }
 
@@ -203,6 +222,8 @@ export default async function handler(req, res) {
     }
 
     if (op === 'forgot-password') {
+      const ip = getClientIp(req);
+      if (await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const { email } = req.body || {};
       if (!email) return bad(res, 'Email required');
       const stored = await kvGet(`advisor_email:${email.toLowerCase()}`);
@@ -218,7 +239,7 @@ export default async function handler(req, res) {
     if (op === 'reset-password') {
       const { email, code, password } = req.body || {};
       if (!email || !code || !password) return bad(res, 'Email, code, and password required');
-      if (password.length < 1) return bad(res, 'Password required');
+      if (password.length < 12) return bad(res, 'Password must be at least 12 characters.');
       const storedToken = await kvGet(`reset_token:advisor:${email.toLowerCase()}`);
       if (!storedToken) return bad(res, 'Reset code invalid or expired', 400);
       const p = await verifyResetToken(storedToken);
@@ -461,6 +482,8 @@ export default async function handler(req, res) {
       if (!dealId) return bad(res, 'dealId required');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
+      // Ownership check — advisors can only confirm their own deals
+      if (deal.advisor_id !== adv.advisor_id) return res.status(403).json({ error: 'Not your deal' });
 
       if (edits) {
         if (edits.name) deal.name = edits.name;
@@ -515,19 +538,7 @@ export default async function handler(req, res) {
       // Public (authenticated) marketplace endpoint
       const auth = await getAnyAuth();
       if (!auth) return unauth(res);
-      let deals = await listDeals({ live: true });
-      // Auto-seed on fresh deploy — if KV has no live deals, seed silently so the
-      // marketplace is never empty without manual "Load Test Data" action
-      if (deals.length === 0) {
-        try {
-          await seedAdvisors();
-          await seedInvestors();
-          await seedDeals();
-          deals = await listDeals({ live: true });
-        } catch (e) {
-          // Seed failed (e.g. no KV configured) — proceed with empty array
-        }
-      }
+      const deals = await listDeals({ live: true });
       // Strip internal fields for non-admin; also exclude preview deals from investor view
       const admin = await getAdmin();
       const visibleDeals = admin
@@ -541,9 +552,10 @@ export default async function handler(req, res) {
 
     if (op === 'tacc-feed') {
       // TACC integration endpoint — HMAC-signed read-only
-      const sig = req.headers['x-tacc-signature'];
       const bridgeSecret = process.env.PRISM_TACC_BRIDGE_SECRET;
-      if (bridgeSecret && sig !== bridgeSecret) return unauth(res, 'Invalid bridge signature');
+      if (!bridgeSecret) return res.status(503).json({ error: 'Feed not configured' });
+      const sig = req.headers['x-tacc-signature'];
+      if (sig !== bridgeSecret) return unauth(res, 'Invalid bridge signature');
       const deals = await listDeals({ live: true });
       const feed = deals.map(d => ({
         id: d.id, name: d.name, asset_class: d.asset_class,
@@ -612,17 +624,7 @@ export default async function handler(req, res) {
       return ok(res, { deal });
     }
 
-    let deals = await listDeals();
-    // Auto-heal: if KV has stale/partial data, force reseed before returning
-    if (deals.length < 8) {
-      try {
-        await seedAdvisors();
-        await seedInvestors();
-        await seedDeals(true);
-        await seedIois(true);
-        deals = await listDeals();
-      } catch (e) { /* seed unavailable — return what we have */ }
-    }
+    const deals = await listDeals();
     return ok(res, { deals });
   }
 
@@ -652,6 +654,8 @@ export default async function handler(req, res) {
     }
 
     if (op === 'login') {
+      const ip = getClientIp(req);
+      if (await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const { email, code } = req.body || {};
       if (!email || !code) return bad(res, 'Email and access code required');
       const instId = await kvGet(`inst_email:${email.toLowerCase().trim()}`);
@@ -944,8 +948,8 @@ export default async function handler(req, res) {
     }
 
     if (op === 'deal-docs') {
-      const adminPayload = await verifyToken(getCookie(req, 'prism_admin'));
-      if (!adminPayload) return unauth(res);
+      const adminPayload = await getAdmin();
+      if (!adminPayload) return res.status(403).json({ error: 'Admin access required' });
       const dealId = req.query.dealId;
       if (!dealId) return bad(res, 'dealId required');
       const slots = ['nda', 'mgmt', 'fin', 'term'];
@@ -958,8 +962,8 @@ export default async function handler(req, res) {
     }
 
     if (op === 'ai-generate') {
-      const adminPayload = await verifyToken(getCookie(req, 'prism_admin'));
-      if (!adminPayload) return unauth(res);
+      const adminPayload = await getAdmin();
+      if (!adminPayload) return res.status(403).json({ error: 'Admin access required' });
       const { dealId } = req.body || {};
       if (!dealId) return bad(res, 'dealId required');
       const deal = await getDeal(dealId);
@@ -1718,11 +1722,15 @@ Return ONLY valid JSON in this exact structure:
       // Platform minimum
       const minT = Math.max(10000, deal.min_ticket_usd || 0);
       if (amt < minT) return bad(res, `Minimum ticket is $${minT.toLocaleString()}`);
-      // Dedup check
+      // Atomic dedup — SET NX prevents race condition between concurrent requests
       const investorId = auth.inst_id || auth.advisor_id || auth.email;
       const dedupKey = `ioi_exists:${deal_id}:${investorId}`;
-      const alreadyExists = await kvGet(dedupKey);
-      if (alreadyExists && alreadyExists !== 'rejected') return bad(res, 'You have already submitted an IOI for this deal');
+      // Check existing value first to give a meaningful error for already-approved IOIs
+      const existingDedup = await kvGet(dedupKey);
+      if (existingDedup && existingDedup !== 'rejected') return res.status(409).json({ error: 'IOI already submitted' });
+      // Atomic SET NX — only one concurrent request will succeed; the other gets null back
+      const claimed = await kvSetnx(dedupKey, 'pending');
+      if (!claimed) return res.status(409).json({ error: 'IOI already submitted' });
       const ioiId = 'IOI-' + Date.now().toString(36).toUpperCase();
       const instObj = auth.inst_id ? await kvGet(`inst:${auth.inst_id}`) : null;
       const ioi = {
@@ -1735,7 +1743,7 @@ Return ONLY valid JSON in this exact structure:
         submitted_at: new Date().toISOString(),
       };
       await kvSet(`ioi:${ioiId}`, ioi);
-      await kvSet(dedupKey, 'pending');
+      // dedupKey was already set to 'pending' atomically above via kvSetnx
       // Increment deal counters
       await kvIncrby(`deal_ioi_count:${deal_id}`, 1);
       await kvIncrby(`deal_ioi_agg:${deal_id}`, amt);
