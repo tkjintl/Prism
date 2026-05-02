@@ -4,6 +4,20 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Fix notifications across all portals + investor light mode
+
+### Changes
+- `admin-portal.html`: Fixed notification panel `position:absolute` → `position:fixed;top:calc(var(--nav-h)+8px);right:20px;z-index:1000` — panel was rendering off-screen (100vh below fold) because it lives outside the nav with no positioned ancestor
+- `advisor-portal.html`: Same notification panel position fix
+- `investor-portal.html`: Added missing `#notif-backdrop` div — clicking outside panel now closes it
+- `investor-portal.html`: Updated `closeNotifPanel`/`toggleNotifPanel` to show/hide backdrop
+- `investor-portal.html`: Added mobile notif panel override (`left:12px;right:12px;width:auto` at <480px)
+- `investor-portal.html`: Fixed light mode — nav was hardcoded `rgba(10,9,8,.92)`, now `var(--bg)` with `[data-theme="dark"]` override matching admin pattern
+- `investor-portal.html`: Fixed `.inv-ring-row`, `.ring-detail-card`, `.inv-deal-ring` — converted from hardcoded dark `rgba(13,12,10,.85)` to CSS vars with dark theme overrides
+- `investor-portal.html`: Added `transition:background .3s,color .3s` to body for smooth theme switching
+
+---
+
 ## [2026-05-01] — Fix admin dashboard IOI + DD column card overlap
 
 ### Changes

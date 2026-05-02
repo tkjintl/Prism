@@ -327,7 +327,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .notif-bell-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
 .notif-bell-btn.has-items{border-color:var(--amber-bd);color:var(--amber)}
 .notif-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:var(--amber);font-family:var(--mono);font-size:8px;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 4px;animation:pulse 2s infinite;border:1.5px solid var(--bg)}
-.notif-panel{position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:1px solid var(--border-m);border-radius:var(--r);box-shadow:0 12px 40px rgba(0,0,0,.2);z-index:500;animation:fadeUp .18s var(--ease);overflow:hidden}
+.notif-panel{position:fixed;top:calc(var(--nav-h) + 8px);right:20px;width:320px;background:var(--surface);border:1px solid var(--border-m);border-radius:var(--r);box-shadow:0 12px 40px rgba(0,0,0,.2);z-index:1000;animation:fadeUp .18s var(--ease);overflow:hidden}
 .notif-panel-hd{padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);background:var(--bg-2)}
 .notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
 .notif-item:last-child{border-bottom:none}
@@ -1350,9 +1350,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 }
 #notif-backdrop.open{display:block}
 
-.notif-panel{
-  /* Override any previous mobile positioning */
-}
+/* notif-panel mobile override below */
 @media(max-width:768px){
   .notif-panel{
     position:fixed!important;

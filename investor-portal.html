@@ -39,7 +39,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{height:100%;scroll-behavior:smooth}
-body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
 input,select,textarea{font-family:inherit;color:inherit;background:var(--surface);border:1px solid var(--border-m);outline:none;transition:border-color .15s}
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
@@ -71,7 +71,8 @@ a{color:inherit;text-decoration:none}
 @keyframes statReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
 /* ── NAV ── */
-.nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:200;display:flex;align-items:center;padding:0 24px;gap:16px;background:rgba(10,9,8,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(20px)}
+.nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:200;display:flex;align-items:center;padding:0 24px;gap:16px;background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(20px)}
+[data-theme="dark"] .nav{background:rgba(10,9,8,.92)}
 .nav-wordmark{display:flex;flex-direction:column;justify-content:center;gap:3px;flex-shrink:0}
 .nav-wm-tacc{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--text-3);text-transform:uppercase}
 .nav-wm-name{display:flex;align-items:center;line-height:1}
@@ -96,6 +97,7 @@ a{color:inherit;text-decoration:none}
 .notif-bell-btn.has-items{border-color:var(--amber-bd);color:var(--amber)}
 .notif-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:var(--amber);font-family:var(--mono);font-size:8px;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 4px;animation:pulse 2s infinite;border:1.5px solid var(--bg)}
 .notif-panel{position:fixed;top:calc(var(--nav-h) + 8px);right:20px;width:300px;background:var(--surface);border:1px solid var(--border-m);border-radius:var(--r);box-shadow:0 12px 40px rgba(0,0,0,.2);z-index:1000;animation:fadeUp .18s var(--ease);overflow:hidden}
+@media(max-width:480px){.notif-panel{left:12px;right:12px;width:auto}}
 .notif-panel-hd{padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);background:var(--bg-2)}
 .notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
 .notif-item:last-child{border-bottom:none}
@@ -192,7 +194,8 @@ a{color:inherit;text-decoration:none}
 
 /* ── HERO VISUAL (prism side) ── */
 .inv-vis-inner{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(440px,92%)}
-.inv-ring-row{display:flex;align-items:center;justify-content:center;gap:16px;width:100%;background:rgba(13,12,10,.85);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px;backdrop-filter:blur(10px)}
+.inv-ring-row{display:flex;align-items:center;justify-content:center;gap:16px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;backdrop-filter:blur(10px)}
+[data-theme="dark"] .inv-ring-row{background:rgba(13,12,10,.85);border-color:rgba(255,255,255,0.06)}
 .inv-ring-detail{text-align:left}
 .hero-visual{
   display:flex;align-items:center;justify-content:flex-start;
@@ -216,7 +219,8 @@ a{color:inherit;text-decoration:none}
 .ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .ring-pct{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--text);line-height:1}
 .ring-sub{font-size:9px;color:var(--text-3);letter-spacing:.08em;margin-top:2px;font-family:var(--sans)}
-.ring-detail-card{padding:11px 15px;background:rgba(13,12,10,.85);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--text-2);margin-top:10px;backdrop-filter:blur(10px);animation:fadeUp .6s .8s both;font-family:var(--sans)}
+.ring-detail-card{padding:11px 15px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--text-2);margin-top:10px;backdrop-filter:blur(10px);animation:fadeUp .6s .8s both;font-family:var(--sans)}
+[data-theme="dark"] .ring-detail-card{background:rgba(13,12,10,.85)}
 .ring-detail-card strong{color:var(--text);font-weight:500}
 .inv-row{display:flex;align-items:center;gap:5px;margin-top:6px;flex-wrap:wrap}
 .inv-tag{padding:2px 7px;border-radius:20px;font-family:var(--mono);font-size:8px;border:1px solid var(--border);color:var(--text-3);background:var(--bg-3)}
@@ -615,7 +619,8 @@ a{color:inherit;text-decoration:none}
   .ci-wire-lbl{border-right:none;border-bottom:1px solid var(--border);padding:8px 12px}
   .ci-wire-val{padding:8px 12px}
 }
-.inv-deal-ring{display:flex;align-items:center;justify-content:center;gap:20px;width:100%;background:rgba(13,12,10,.85);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:18px 20px;backdrop-filter:blur(10px)}
+.inv-deal-ring{display:flex;align-items:center;justify-content:center;gap:20px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;backdrop-filter:blur(10px)}
+[data-theme="dark"] .inv-deal-ring{background:rgba(13,12,10,.85);border-color:rgba(255,255,255,0.06)}
 
 /* ══════════════════════════════════════════
    MOBILE OVERRIDES — INVESTOR PORTAL
@@ -1662,6 +1667,8 @@ a{color:inherit;text-decoration:none}
 </style>
 </head>
 <body>
+
+<div id="notif-backdrop" onclick="closeNotifPanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;animation:fadeIn .18s ease"></div>
 
 <nav class="nav">
   <div class="nav-wordmark">
@@ -2970,15 +2977,18 @@ function updateNotifBell() {
 
 function closeNotifPanel() {
   var panel = document.getElementById('notif-panel');
+  var bd = document.getElementById('notif-backdrop');
   if (panel) panel.style.display = 'none';
+  if (bd) bd.style.display = 'none';
 }
 
 function toggleNotifPanel() {
   var panel = document.getElementById('notif-panel');
-  var wrap  = document.getElementById('notif-bell-wrap');
+  var bd    = document.getElementById('notif-backdrop');
   if (!panel) return;
   var opening = panel.style.display === 'none' || panel.style.display === '';
   panel.style.display = opening ? 'block' : 'none';
+  if (bd) bd.style.display = opening ? 'block' : 'none';
   if (opening) {
     var body = document.getElementById('notif-panel-body');
     if (!body) return;
@@ -2993,14 +3003,8 @@ function toggleNotifPanel() {
       }).join('');
     }
     setTimeout(function() {
-      function onOutside(e) {
-        if (!wrap.contains(e.target) && !panel.contains(e.target)) {
-          panel.style.display = 'none';
-          document.removeEventListener('click', onOutside);
-        }
-      }
+      function onOutside(e) { /* handled by backdrop */ }
       document.addEventListener('click', onOutside);
-    }, 0);
   }
 }
 
