@@ -337,6 +337,57 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   h1{font-size:clamp(42px,10vw,64px)}
   .feat-num{font-size:90px}
 }
+
+/* ── MOBILE NAV FIX ── */
+@media(max-width:640px){
+  nav{
+    height:auto!important;
+    flex-wrap:wrap;
+    padding:0 16px!important;
+    gap:0;
+    align-items:stretch;
+  }
+  /* Row 1: wordmark left, buttons right */
+  .n-wordmark{
+    padding:10px 0;
+    flex-shrink:0;
+    margin-right:auto;
+  }
+  .n-wm-tacc{display:none}
+  /* Nav links (Platform, Access Tiers) move to row 2 */
+  .n-links{
+    order:99;
+    width:100%;
+    border-top:1px solid var(--border);
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    flex-wrap:nowrap;
+    gap:0;
+  }
+  .n-links::-webkit-scrollbar{display:none}
+  .n-link{
+    flex-shrink:0;
+    height:40px;
+    font-size:8px;
+    letter-spacing:.08em;
+    padding:0 14px;
+    border-left:none;
+    border-right:1px solid var(--border);
+  }
+  .n-link:first-child{border-left:none}
+  /* Buttons: compress */
+  .btn-nav{
+    font-size:7px!important;
+    letter-spacing:.06em!important;
+    padding:7px 10px!important;
+    margin-left:6px!important;
+    white-space:nowrap;
+    align-self:center;
+  }
+  /* Hide "Member Login" ghost on very small — keep only Request Access */
+  .btn-nav.ghost{display:none}
+}
 </style>
 </head>
 <body>
