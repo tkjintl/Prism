@@ -105,6 +105,10 @@ h1 em{color:var(--goldB);font-style:italic;display:block}
 @keyframes breatheGlow {0%,100%{opacity:.04;transform:scaleX(1)}50%{opacity:.09;transform:scaleX(1.06)}}
 @keyframes sceneFloat  {0%,100%{transform:translateY(0)}45%{transform:translateY(-18px)}55%{transform:translateY(-18px)}}
 @keyframes prism3D     {0%,100%{filter:drop-shadow(0 0 28px rgba(197,165,114,.10))}45%{filter:drop-shadow(0 0 56px rgba(197,165,114,.22))}}
+@keyframes labelBreath {0%,100%{opacity:.82}50%{opacity:.48}}
+/* Corner labels inside prism SVG — mobile only */
+.hp-corner-label{display:none}
+@media(max-width:900px){.hp-corner-label{display:block}}
 
 /* STATS BAR — enhanced */
 .stats{background:var(--bg3);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:40px 48px;position:relative;overflow:hidden}
@@ -483,7 +487,7 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
 
         <!-- Prism SVG (lp- prefix on filter IDs) -->
         <div class="hp-prism-wrap">
-          <svg class="hp-prism-svg" viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <svg class="hp-prism-svg" viewBox="0 0 400 342" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <linearGradient id="lp-prismInner" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stop-color="#C5A572" stop-opacity="0"/>
@@ -533,6 +537,47 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
               <animate attributeName="fill-opacity" values="0;0.85;0.85;0" keyTimes="0;0.08;0.88;1" dur="2.8s" begin="0.6s" repeatCount="indefinite"/>
               <animate attributeName="r" values="2;3.5;2" keyTimes="0;0.5;1" dur="2.8s" begin="0.6s" repeatCount="indefinite"/>
             </circle>
+
+            <!-- Corner labels: Deals (left) · Capital (right) — mobile only -->
+            <g class="hp-corner-label">
+
+              <!-- ── DEALS — bottom-left vertex (52, 264) ── -->
+              <g style="animation:labelBreath 4.2s 1.4s ease-in-out infinite">
+                <line x1="52" y1="267" x2="28" y2="289" stroke="#7B9BC8" stroke-opacity=".28" stroke-width=".9" stroke-dasharray="2.5 3.5"/>
+                <circle cx="28" cy="290" r="1.8" fill="#7B9BC8" fill-opacity=".5">
+                  <animate attributeName="r" values="1.8;2.6;1.8" dur="2.8s" begin="0.5s" repeatCount="indefinite"/>
+                  <animate attributeName="fill-opacity" values=".5;.9;.5" dur="2.8s" begin="0.5s" repeatCount="indefinite"/>
+                </circle>
+                <text x="4" y="311"
+                  font-family="'Cormorant Garamond',Georgia,serif"
+                  font-style="italic" font-size="17" font-weight="400"
+                  fill="#7B9BC8" fill-opacity=".9"
+                  letter-spacing="1">Deals</text>
+                <text x="5" y="326"
+                  font-family="'JetBrains Mono',monospace"
+                  font-size="6.5" fill="#7B9BC8" fill-opacity=".38"
+                  letter-spacing="2.8">INFLOW</text>
+              </g>
+
+              <!-- ── CAPITAL — bottom-right vertex (348, 264) ── -->
+              <g style="animation:labelBreath 4.2s 1.9s ease-in-out infinite">
+                <line x1="348" y1="267" x2="372" y2="289" stroke="#C5A572" stroke-opacity=".28" stroke-width=".9" stroke-dasharray="2.5 3.5"/>
+                <circle cx="372" cy="290" r="1.8" fill="#C5A572" fill-opacity=".5">
+                  <animate attributeName="r" values="1.8;2.6;1.8" dur="2.8s" begin="1s" repeatCount="indefinite"/>
+                  <animate attributeName="fill-opacity" values=".5;.9;.5" dur="2.8s" begin="1s" repeatCount="indefinite"/>
+                </circle>
+                <text x="396" y="311"
+                  font-family="'Cormorant Garamond',Georgia,serif"
+                  font-style="italic" font-size="17" font-weight="400"
+                  fill="#C5A572" fill-opacity=".9"
+                  letter-spacing="1" text-anchor="end">Capital</text>
+                <text x="395" y="326"
+                  font-family="'JetBrains Mono',monospace"
+                  font-size="6.5" fill="#C5A572" fill-opacity=".38"
+                  letter-spacing="2.8" text-anchor="end">MATCHED</text>
+              </g>
+
+            </g>
           </svg>
         </div>
 

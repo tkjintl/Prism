@@ -4,6 +4,13 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-01] — Landing page mobile: Deals + Capital corner labels on prism
+
+### Changes
+- `index.html`: Added "Deals" (bottom-left vertex, blue) and "Capital" (bottom-right vertex, gold) labels inside the prism SVG. Labels use Cormorant Garamond italic for the word + JetBrains Mono for sub-label (INFLOW / MATCHED). Each has a dashed connector line from the triangle vertex and a pulsing animated dot. Hidden on desktop via `.hp-corner-label{display:none}`, shown on mobile (`≤900px`). SVG viewBox extended from 320→342 to accommodate label rows.
+
+---
+
 ## [2026-05-01] — Landing page: show prism diagram on mobile hero
 
 ### Changes
