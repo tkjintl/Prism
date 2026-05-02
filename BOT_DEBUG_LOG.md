@@ -10,6 +10,32 @@ Each entry includes file path + line numbers + exact diff prescription, so all o
 
 # Open / Pending Fixes (apply in this order)
 
+## P-16 · Auto-publish on advisor approval (was: separate admin Publish Live step) ✅ FIXED
+
+**Files:** `api/v2.js` (advisor-confirm-deal handler), `admin-portal.html`
+**Commit:** (this session, after correction)
+**Severity:** Workflow simplification — operator wanted to remove the redundant admin Publish Live step.
+
+**Original flow:** advisor submits → admin Generate AI → admin Send to Advisor → advisor Approves → admin Publish Live → live to investors. Two admin gates.
+
+**My first attempt** (wrong): collapsed steps 3+4+5 into one admin click "Approve & Publish" — this also removed the advisor's approval, which was the wrong cut.
+
+**Correct fix:** advisor's approval IS the gate. When advisor calls `advisor&op=advisor-confirm-deal`, the handler now:
+1. Sets `advisor_review_status='approved'` (existing)
+2. Validates the deal has all investor-portal required fields via `validateDealForPublish(deal)`
+3. If valid AND stage is `review`: auto-transitions to `live`, sets `member_visible=true`, appends audit entry, busts marketplace cache
+4. Returns `{ ok: true, deal, autoPublished, publishMissing }` so the advisor portal can show "Approved & Live" or "Approved · pending fields" if validation failed
+
+Admin portal restored to the original flow:
+- Card → Generate AI → Send to Advisor → preview modal (P-12, kept)
+- Modal confirm → calls `op=send-to-advisor-review` (existing endpoint, preserved)
+- After advisor approves in their portal → server auto-publishes
+- No separate admin "Publish Live" button needed for new deals
+
+**Legacy "Ready to Publish" card** (deals where `advisor_review_status='approved'` but `stage='review'` — e.g., a deal that was approved before this fix shipped) keeps its `previewBeforePublish` button so operator can manually publish. After this commit, no new deals reach that state.
+
+---
+
 ## P-12 · Send-to-Advisor had no preview screen ✅ FIXED
 
 **File:** `admin-portal.html`

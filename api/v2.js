@@ -737,8 +737,9 @@ async function _handler(req, res, resource, op) {
 
       deal.advisor_review_status = 'approved';
       deal.advisor_confirmed_at = new Date().toISOString();
+      const nowIso = new Date().toISOString();
       deal.audit_log = deal.audit_log || [];
-      deal.audit_log.push({ at: new Date().toISOString(), actor: adv.email, action: 'advisor_confirmed_deal', meta: { edits: Object.keys(edits || {}) } });
+      deal.audit_log.push({ at: nowIso, actor: adv.email, action: 'advisor_confirmed_deal', meta: { edits: Object.keys(edits || {}) } });
 
       deal.notifications = deal.notifications || [];
       deal.notifications.push({
@@ -746,13 +747,35 @@ async function _handler(req, res, resource, op) {
         type: 'advisor_confirmed_deal',
         deal_name: deal.name,
         advisor_name: adv.name || adv.email,
-        confirmed_at: new Date().toISOString(),
+        confirmed_at: nowIso,
         read: false,
       });
 
-      deal.updated_at = new Date().toISOString();
+      // ── AUTO-PUBLISH on advisor approval ──────────────────────────
+      // Advisor's confirmation IS the gate. No separate admin publish step.
+      // Validate required investor-portal fields, transition stage to live,
+      // mark visible in marketplace, append audit entry, bust cache.
+      let autoPublished = false;
+      let publishMissing = [];
+      if (deal.stage === 'review') {
+        publishMissing = validateDealForPublish(deal);
+        if (publishMissing.length === 0) {
+          deal.stage = 'live';
+          deal.member_visible = true;
+          deal.published_at = nowIso;
+          deal.published_by = `auto:advisor-confirm:${adv.advisor_id}`;
+          deal.audit_log.push({ at: nowIso, actor: adv.email, action: 'stage_changed', meta: { from: 'review', to: 'live', auto: true, trigger: 'advisor_approval' } });
+          autoPublished = true;
+        }
+      }
+
+      deal.updated_at = nowIso;
       await saveDeal(deal);
-      return ok(res, { ok: true, deal });
+      if (autoPublished) {
+        await appendAuditEntry(dealId, { at: nowIso, actor: adv.email, action: 'auto_published_on_approval', meta: { from: 'review', to: 'live' } });
+        try { await kvDel('cache:marketplace:public'); await kvDel('cache:marketplace:admin'); } catch {}
+      }
+      return ok(res, { ok: true, deal, autoPublished, publishMissing });
     }
 
     // ── post-nav-update ───────────────────────────────────────────

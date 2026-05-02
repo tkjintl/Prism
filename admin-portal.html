@@ -1669,14 +1669,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <div class="modal-overlay hidden" id="send-advisor-modal">
   <div class="pp-modal-box" role="dialog" aria-modal="true" aria-labelledby="sa-modal-title" style="max-width:780px">
     <div style="padding:24px 28px 20px;border-bottom:1px solid var(--border)">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Review &amp; Publish</div>
-      <div id="sa-modal-title" style="font-family:var(--serif);font-style:italic;font-size:24px;color:var(--text)">Approve &amp; publish to marketplace</div>
-      <div style="font-family:var(--sans);font-size:13px;color:var(--text-2);margin-top:8px;line-height:1.55">This is exactly what investors will see on the deal card and detail page. Edit anything below before confirming. Once you approve, the deal goes live to the investor marketplace immediately.</div>
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Review &amp; Send</div>
+      <div id="sa-modal-title" style="font-family:var(--serif);font-style:italic;font-size:24px;color:var(--text)">Preview before sending to advisor</div>
+      <div style="font-family:var(--sans);font-size:13px;color:var(--text-2);margin-top:8px;line-height:1.55">The advisor will see this exact content in their portal, can edit anything, and approves it. <strong>On the advisor's approval, the deal auto-publishes to the investor marketplace</strong> — there is no separate publish step.</div>
     </div>
     <div id="sa-modal-body" style="padding:20px 28px;max-height:60vh;overflow-y:auto"></div>
     <div style="padding:16px 28px;border-top:1px solid var(--border);display:flex;gap:12px;justify-content:flex-end;background:var(--bg-3)">
       <button class="modal-cancel" onclick="closeSendAdvisorModal()" style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 20px;background:transparent;color:var(--text-2);border:1px solid var(--border);border-radius:2px;cursor:pointer">Cancel</button>
-      <button class="modal-confirm" id="sa-confirm-btn" onclick="confirmApproveAndPublish()" style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 24px;background:var(--gold);color:#1A1410;border:none;border-radius:2px;cursor:pointer;font-weight:600">Approve &amp; Publish to Marketplace →</button>
+      <button class="modal-confirm" id="sa-confirm-btn" onclick="confirmSendToAdvisor()" style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 24px;background:var(--gold);color:#1A1410;border:none;border-radius:2px;cursor:pointer;font-weight:600">Confirm &amp; Send to Advisor →</button>
     </div>
   </div>
 </div>
@@ -2442,7 +2442,9 @@ function renderOverview(){
       <div class="ov-ac-actions">
         ${!generated ?
           `<button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])">✦ Generate with AI →</button>` :
-            `<button class="att-btn att-approve" onclick="approveAndPublish('${s.id}',this)">Approve &amp; Publish →</button>`
+          s.advisor_review_status === 'pending' ?
+            `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.08em;padding:4px 0">&#x23F3; Awaiting Advisor Review</span>` :
+            `<button class="att-btn att-review" onclick="sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
         }
         <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
       </div>
@@ -3263,48 +3265,35 @@ function closeSendAdvisorModal(){
   _saPendingDealId=null;_saPendingBtn=null;
 }
 
-// Approve & Publish — admin's review of AI-generated copy IS the gate.
-// Skipping the advisor sign-off handshake. Once admin confirms, deal goes
-// live to the investor marketplace immediately.
-const approveAndPublish = sendToAdvisorReview; // same modal opener, different confirm action
-
-async function confirmApproveAndPublish(){
+async function confirmSendToAdvisor(){
   const dealId=_saPendingDealId;
   if(!dealId){closeSendAdvisorModal();return;}
   const confirmBtn=document.getElementById('sa-confirm-btn');
-  confirmBtn.disabled=true;confirmBtn.textContent='Publishing…';
+  confirmBtn.disabled=true;confirmBtn.textContent='Sending…';
   const payload={
     dealId,
     tagline:(document.getElementById('sa-tagline')?.value||'').trim(),
     thesis:(document.getElementById('sa-thesis')?.value||'').trim(),
     company_overview:(document.getElementById('sa-overview')?.value||'').trim(),
     highlights:(document.getElementById('sa-highlights')?.value||'').split('\n').map(s=>s.trim()).filter(Boolean),
-    launch_mode:'listed',
-    target_segments:['institutional','hnw'],
   };
-  // Single call — publish-deal merges the edited content fields, validates
-  // required fields, transitions stage to live, and busts marketplace cache.
-  const res=await api('POST','/api/v2?resource=admin&op=publish-deal',payload);
-  confirmBtn.disabled=false;confirmBtn.textContent='Approve & Publish to Marketplace →';
+  const res=await api('POST','/api/v2?resource=admin&op=send-to-advisor-review',payload);
+  confirmBtn.disabled=false;confirmBtn.textContent='Confirm & Send to Advisor →';
   if(res?.ok){
-    // Move from NEW_SUBMISSIONS to live DEALS list
     const s=NEW_SUBMISSIONS.find(x=>x.id===dealId);
     if(s){
+      s.advisor_review_status='pending';
+      s.generated=true;
       s.tagline=payload.tagline;
       s.thesis=payload.thesis;
       s.company_overview=payload.company_overview;
       s.highlights=payload.highlights;
-      s.stage='live';
-      s.member_visible=true;
     }
-    NEW_SUBMISSIONS=NEW_SUBMISSIONS.filter(x=>x.id!==dealId);
-    if(res.deal && typeof adaptDeal==='function')DEALS.unshift(adaptDeal(res.deal,[]));
     closeSendAdvisorModal();
-    renderOverview();renderKPIs();renderPipeline&&renderPipeline();
-    toast('Deal published — live to investor marketplace','ok');
+    renderOverview();renderKPIs();
+    toast('Sent to advisor for review · auto-publishes on their approval','ok');
   }else{
-    const apiMissing=res?.missing||[];
-    toast(apiMissing.length ? 'Cannot publish — missing: '+apiMissing.slice(0,3).join(', ') : (res?.error||'Publish failed'),'err');
+    toast(res?.error||'Failed to send','err');
   }
 }
 
@@ -3849,7 +3838,7 @@ function showAIOutput(deal,generated){
     </div>
     <div class="ai-out-section" style="animation-delay:.45s">
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="ai-apply-btn" id="ai-send-advisor-btn" onclick="(()=>{const d=_launchDeal;if(d){const s=NEW_SUBMISSIONS.find(x=>x.id===d.id);if(s){s.thesis=document.querySelector('.ai-out-thesis')?.textContent||s.thesis||'';s.generated=true;}approveAndPublish(d?.id,document.getElementById('ai-send-advisor-btn'));}})()">Approve &amp; Publish →</button>
+        <button class="ai-apply-btn" id="ai-send-advisor-btn" onclick="(()=>{const d=_launchDeal;if(d){const s=NEW_SUBMISSIONS.find(x=>x.id===d.id);if(s){s.thesis=document.querySelector('.ai-out-thesis')?.textContent||s.thesis||'';s.generated=true;}sendToAdvisorReview(d?.id,document.getElementById('ai-send-advisor-btn'));}})()">Send to Advisor →</button>
         <button style="padding:12px 20px;border:1px solid var(--border-m);color:var(--text-2);font-size:12px;border-radius:2px;background:none;cursor:pointer" onclick="openLaunchReview(_launchDeal,_launchContent)">Review &amp; Launch →</button>
       </div>
     </div>
