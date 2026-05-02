@@ -3003,8 +3003,14 @@ function toggleNotifPanel() {
       }).join('');
     }
     setTimeout(function() {
-      function onOutside(e) { /* handled by backdrop */ }
-      document.addEventListener('click', onOutside);
+      document.addEventListener('click', function onOutside(e) {
+        var wrap = document.getElementById('notif-bell-wrap');
+        if (wrap && !wrap.contains(e.target) && panel && !panel.contains(e.target)) {
+          closeNotifPanel();
+          document.removeEventListener('click', onOutside);
+        }
+      });
+    }, 0);
   }
 }
 
