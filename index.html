@@ -220,7 +220,7 @@ h2 em{color:var(--goldB);font-style:italic}
 /* ACCESS TIERS — enhanced contrast */
 .tiers-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:48px}
 /* Base tier */
-.tier{border:1px solid var(--border);padding:32px;background:var(--card);position:relative;overflow:hidden;transition:border-color .22s,box-shadow .22s}
+.tier{border:1px solid var(--border);padding:32px;background:var(--card);position:relative;overflow:hidden;transition:border-color .22s,box-shadow .22s;display:flex;flex-direction:column}
 .tier:hover{border-color:var(--goldBdS)}
 /* "Existing Investors" tier — premium inner glow */
 .tier.tier-premium{border:1px solid var(--goldBd);background:linear-gradient(145deg,var(--card) 0%,rgba(197,165,114,.03) 100%)}
@@ -237,7 +237,7 @@ h2 em{color:var(--goldB);font-style:italic}
 .tier-items{display:flex;flex-direction:column;gap:6px;margin-bottom:28px}
 .tier-item{display:flex;align-items:flex-start;gap:7px;font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.55}
 .tier-item-dot{width:4px;height:4px;border-radius:50%;background:var(--goldD);flex-shrink:0;margin-top:5px}
-.tier-cta{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:12px 22px;border:1px solid;display:inline-block;transition:all .16s}
+.tier-cta{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:14px 22px;border:1px solid;display:block;width:100%;text-align:center;margin-top:auto;cursor:pointer;transition:all .16s}
 .tier-cta.member{color:var(--green);border-color:var(--greenBd);background:var(--greenW)}
 .tier-cta.member:hover{background:rgba(90,158,114,.14)}
 .tier-cta.inst{color:var(--bg);background:var(--gold);border-color:var(--gold);box-shadow:0 4px 20px rgba(197,165,114,.22)}
