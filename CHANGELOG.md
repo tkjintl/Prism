@@ -4,6 +4,12 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Investor lobby mobile spacing (`investor-portal.html`)
+
+Bumped `.hero-content` top padding on mobile (≤768px) from `20px` to `64px` so the "Featured Opportunity" eyebrow + deal name no longer sit right under the "Good evening, JWC" greeting. Cleaner separation between the personalized greeting block and the first deal card on phones.
+
+---
+
 ## [2026-05-02] — Advisor application backend (`api/v2.js`, `api/_lib/email.js`)
 
 Companion to the @ui advisor tier on the landing page. The shared `?resource=inst&op=register` endpoint now accepts `category: 'advisor'` and routes those submissions to a dedicated KV bucket so the operator can review them as a distinct queue without polluting the institutional investor pipeline.
