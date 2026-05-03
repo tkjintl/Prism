@@ -4,6 +4,124 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-03] — Landing access tiers — three distinct color schemes (`index.html`)
+
+Operator flagged that on desktop the Institutional and HNW & Private cards looked identical (both used the gold `tier-cta-card` + `inst` styling). Reworked so each of the three cards has its own scheme, both desktop and mobile.
+
+- **Card 1 — Institutional** → all gold. `.tier-badge.inst` color switched from `#5a98ec` (blue) to `var(--gold)` so badge, item dots, and the solid-gold CTA are unified. Card border/bg unchanged (`.tier-cta-card`).
+- **Card 2 — HNW & Private Capital** → sapphire/violet. New CSS palette `--sapph #8da4d8` + `--sapphBd / --sapphBdS / --sapphW`. New card class `.tier.tier-hnw` (border, gradient bg, hover glow) and CTA variant `.tier-cta.hnw` (outline button, hover lift). Card 2 markup switched from `tier-cta-card` + `inst` classes → `tier-hnw` + `hnw`. Badge inherits the sapphire scope from `.tier.tier-hnw .tier-badge`.
+- **Card 3 — Deal Advisors** → teal. Unchanged (already used `.tier-adv`).
+- **Mobile carousel** — the existing `:nth-child(2)` mobile rule used `.tier-badge.inst` as a scoping selector, which no longer applies (card 2 dropped `inst`). Replaced with `.tier.tier-hnw:nth-child(2)` selectors so the sapphire tint and watermark color carry through cleanly. Card border on mobile now uses `var(--sapphBd)` for consistency.
+
+Net effect: on desktop the three cards now read as gold / sapphire / teal at a glance; on mobile the swipeable carousel keeps the same three-tone treatment with matching badge/CTA colors per card.
+
+---
+
+## [2026-05-03] — Investor deck vF — domain switched to www.aurumprism.com
+
+Updated `Aurum Prism Investor Deck vF.pdf.html`: slide 10 banner CTA `href` repointed from `theaurumcc.com/interest` → `www.aurumprism.com`. Visible domain line on the banner and the slide-10 footer ("TACC Pte Ltd · Singapore · …") both updated to `www.aurumprism.com`. PDF regenerated (363 KB).
+
+---
+
+## [2026-05-03] — Investor deck v1-classic — vF (final) (`prism-presentation/investor/v1-classic/index-vF.html`, `aurum-prism-investor-v1-classic-vF.pdf`)
+
+Promoted v4 to vF. HTML copied verbatim to `index-vF.html`. PDF rendered via headless Chrome (`--print-to-pdf-no-header --no-margins`) using the deck's built-in `@page 16in 9in` print rules. Output: 363 KB, 10 slides, native 16:9 sizing. Banner CTA on slide 10 remains live and clickable in HTML viewer; in the PDF the link is preserved as a hyperlink to `theaurumcc.com/interest`.
+
+---
+
+## [2026-05-03] — Investor deck v1-classic — v4 review pass (`prism-presentation/investor/v1-classic/index-v4classic.html`)
+
+Second-round operator review of v3. Saved as v4 for review (v3 preserved). HTML-only.
+
+- **Slide 7** — Hex labels still bled at 11pt. Diagram scaled up further (`width 82% → 94%`, `max-height 66vh → 74vh`, stage gap 3vh → 2.4vh). All 6 outer hex labels dropped 11 → 10pt with letter-spacing 2 → 1.8 and tightened second-line offsets (KYC&/ACCREDITATION 34/50 → 34/48; SUBSCRIPTION/DOCS 30/46 → 30/44; CAPITAL/CALLS 26/42 → 26/40; STATEMENTS 32 → 30; TAX/REPORTING & AUDIT/TRAIL 26/42 → 26/40). Slide-3 boardroom labels left at 11 (operator only flagged hex bleed).
+- **Slide 8** — Card grid shrunk: width 100% → 86% (centered), gap 2vh → 1.8vh, card padding 2.2vh/1.4vw → 1.9vh/1.2vw. Added `margin-bottom:5vh` between grid and disclaimer; disclaimer `bottom 2.85vh → 1.6vh` so footnote sits cleanly between cards and pagenum with proper breathing room.
+- **Slide 10** — Reservation card and CTA button merged into a single sophisticated clickable banner (`<a class="seat-banner">`):
+  - One bordered panel with subtle gold gradient top/bottom hairlines (linear-gradient with center brightness).
+  - Eyebrow "By Invitation" → italic Cormorant headline "A seat on the register." → soft gold-divider hairline → "Request Introduction →" CTA → fine "theaurumcc.com / interest" domain line.
+  - Hover: 2px lift, soft gold inner-glow + outer shadow, arrow translates right 0.6vw (350ms ease).
+  - Whole banner is a single `<a href="https://www.theaurumcc.com/interest" target="_blank">` — clickable surface area is the entire panel, opens in new tab.
+  - Slide section-level eyebrow/headline reworded ("The next step" / "Admission is by invitation.") to avoid duplicating the banner copy.
+  - Removed the separate `.reservation`, `.res-name`, `.res-lbl`, and `.cta` styles; replaced with `.seat-banner`, `.seat-eyebrow`, `.seat-title`, `.seat-divider`, `.seat-cta`, `.seat-domain`. Prism SVG sized down 22vh → 20vh and now sits independently above the banner (no longer wrapped in the `<a>`).
+
+Files: `index-v4classic.html` (~52 KB). PDF not regenerated. URL still points at `theaurumcc.com/interest` — confirm if it should switch to `aurumprism.com/...` sign-up.
+
+---
+
+## [2026-05-03] — Investor deck v1-classic — v3 review pass (`prism-presentation/investor/v1-classic/index-v3classic.html`)
+
+Operator review of `index-v2classic.html`. Saved as v3 for review (v2 preserved). HTML-only fixes; no PDF regen yet.
+
+- **Slide 4** — "ONE SUBSCRIPTION · MASTER FUND" was hanging across the drop-line below the master-fund circle. Moved label above the circle (y=26, font-size 9 → 13, letter-spacing 2.6 → 3.2). Circle shifted down to cy=78 so the drop-line connects cleanly into the deal rail at y=148.
+- **Slide 7** — Honeycomb scaled up: `.s7 svg width 64% → 82%`, `max-height 54vh → 66vh`. Center hex Aurum/PRISM bumped (Cormorant 20 → 26, Mono 10 → 12). All 6 outer hex labels enlarged (Mono 8 → 11, letter-spacing 1.6 → 2) with second-line y-offsets widened by 2px on each pair so two-line labels (KYC & ACCREDITATION, SUBSCRIPTION DOCS, CAPITAL CALLS, TAX REPORTING, AUDIT TRAIL) don't run together. Note: the same font-size bump cascaded to Slide 3 boardroom seat labels (PENSION, SOVEREIGN, etc.) — reads cleaner there too.
+- **Slide 9** — YOU and OTHER MEMBERS labels were below their circles at y=95, intersecting the connector lines down to the master-fund rectangle. Moved labels above each circle (y=22). Circles shifted down to cy=62. Connector lines re-anchored to circle bottoms (y=84 / y=80). YOU label bumped Mono 10 → 12.
+- **Slide 10** — Replaced the small flat-triangle prism with the slide-1 prism SVG (full prism + inbound beam + 3 diverging gold rays + halo) for visual consistency with the cover. Container resized `8vw/8vw → 22vh/22vh`, opacity `.8 → .92`. New IDs (s10prismInner, s10faceL, s10faceR, s10ray, s10soft) to avoid collision with slide-1 defs.
+
+Files: `index-v3classic.html` (~50 KB). PDF not regenerated — awaiting operator sign-off on HTML.
+
+---
+
+## [2026-05-02] — Investor deck v3-cinematic — formatting fix pass (`prism-presentation/investor/v3-cinematic/index-v2.html`)
+
+Operator flagged v3-cinematic as "a mess." Audit found content invisible on most slides plus collision/overflow defects across all 10. Fixed in `index-v2.html` (original `index.html` preserved). New PDF: `aurum-prism-investor-v3-cinematic-v2.pdf` (1.96 MB). v2 HTML 45 KB.
+
+Root cause of universal blank slides: the entry `fadeIn` animation used `animation-fill-mode:both`, which holds the `from{opacity:0}` state when the animation hasn't completed before render (PDF export, headless capture). Removed the entry-fade rule entirely — decorative looping animations (prismRotate, pulseSoft, lightDrift, shimmer) retained because they don't gate visibility.
+
+Defects fixed per slide:
+- **Global** — `.slide` padding bumped from `4.5vh 6vw` to `7vh 6vw 6vh` so wordmark (top) and pagenum (bottom) clear content. Wordmark moved up to `top:2.6vh`. Headline `clamp(56px,7.6vw,140px)` reduced to `clamp(48px,6vw,110px)` and `line-height:.98 → 1.02` to prevent oversized italics from breaking and clipping.
+- **Slide I** — cover-prism shrunk (`38vw/680px → 28vw/480px`) and stage `gap:5vh → 2.5vh` so prism, headline, gold-rule and TACC footer all fit; pagenum no longer clipped.
+- **Slide III** — boardroom SVG `max-height:62vh → 58vh` and `max-width:1100px;margin:0 auto`; YOU seat no longer overlaps the III/X pagenum.
+- **Slide VI** — `.tick-day` got `white-space:nowrap`; "DAY 14" no longer wraps and overlaps the active gold tick.
+- **Slide VII** — honeycomb sized `width:min(56vw,700px); height:min(70vh,640px)` with proper aspect; bottom hex (Statements) no longer overlaps the central pulsing pill, all 6 outer hexes clearly spaced. `.launch-pill` `bottom:5.5vh → 8vh` to clear pagenum below.
+- **Slide VIII** — `.deal-pict` shrunk (`13vw/220px → 11vw/170px`) and moved inward (`right:-1vw → right:1vw`) so background pictograms no longer bleed past card borders. Added `pointer-events:none`. Illustrative-foot got `margin-bottom:2vh` to clear pagenum.
+- **Slide IX** — struct SVG `viewBox` widened from `0 0 540 640` to `0 0 700 640` so the right-side mono labels ("ADMIN & COMPLIANCE") aren't truncated past the SVG canvas.
+- **Slide X** — `.reservation` background opacity raised `rgba(10,9,8,.6) → .96` so the dark prism shape behind no longer bleeds through and reads as a smudge in the card.
+- **QA tooling** — added `?only=N` query-param script that hides all but slide N; lets headless captures verify each slide individually without `vh` units exploding under tall full-page screenshots.
+
+---
+
+## [2026-05-02] — Investor deck v2-editorial — formatting fix pass (`prism-presentation/investor/v2-editorial/index-v2.html`)
+
+Operator flagged v2-editorial as "a mess." Audit found visible layout defects across all 10 slides; fixed in `index-v2.html` (original `index.html` preserved for compare). New PDF: `aurum-prism-investor-v2-editorial-v2.pdf` (574 KB). v2 HTML 43 KB.
+
+Defects fixed:
+- **Global `.inner`** — added `padding-bottom:3vw` and `min-height:0` so SVG content cannot bleed under the absolutely-positioned foot rule (root cause of slide-7 badge collision and slide-10 pill collision).
+- **Slide 2** — marg "The investor receives the press release..." was anchored at `top:30vh` and overflowed the right edge; repositioned to sit cleanly below the institution doc stack (`left:50%;margin-left:18vw;top:60%;max-width:14vw`).
+- **Slide 3** — boardroom seat label "FUND OF FUNDS" was clipped to "ND OF FUNDS" because text-anchor=end at x=74 went off the SVG canvas. Widened viewBox from `0 0 900 420` to `-50 0 1000 420`; full label now visible.
+- **Slide 4** — "ONE SUBSCRIPTION / MASTER FUND" text overflowed the master-fund circle (r=38 too small). Enlarged radius to 55 and re-centered text; vertical drop line shortened accordingly.
+- **Slide 6** — italic "Hesitation is a pass" footline collided with the gold foot rule. Added `margin-bottom:3vw` to `.speed .footline`.
+- **Slide 7** — honeycomb completely broken: side hexagons rendered as wedges/triangles because polygon coordinates were wrong (LEFT hex was a degenerate quad, neighbours misaligned). Rebuilt all 6 surrounding hexes with correct pointy-top geometry around center (450,200) r=70, neighbours at proper √3·r horizontal and 1.5·r vertical offsets. Connector dashed lines removed (the new tessellation makes them redundant). Badge `Deals Active · Platform Launching Soon` given `margin-bottom:3vw`.
+- **Slide 8** — card `.countdown` ("IOI · 6 DAYS") was bottom-right absolute and overlapped the `CLOSE` stage label. Moved to top-right (`top:1.1vw;right:1.1vw`). Disclaimer `margin-bottom:2vw` so it clears foot rule.
+- **Slide 9** — right-margin labels "ADMIN & COMPLIANCE" and "ASSET ISOLATION" were clipped to "ADMIN & COMP" / "ASSET ISOLAT" because text at x=812 + 2.5em letter-spacing overran the 900-wide viewBox. Moved gold rule to x=745, labels to x=755, reduced letter-spacing to 2 and font-size to 8. All three labels now render in full.
+- **Slide 10** — CTA pill "REQUEST INTRODUCTION → theaurumcc.com/interest" bled into the gold foot rule because `.next .inner` had no padding-bottom. Added `padding-bottom:3vw` to `.next .inner` (in addition to global inner padding).
+
+Verified with full-deck PDF re-render at 16in×9in print mode and 110-dpi page screenshots; all 10 slides clean. Original `index.html` and `aurum-prism-investor-v2-editorial.pdf` left intact for diff.
+
+---
+
+## [2026-05-02] — Investor deck v1-classic — formatting fix pass (`prism-presentation/investor/v1-classic/index-v2.html`)
+
+Operator flagged v1-classic as "a mess." Audit found six visible defects across the 10 slides; fixed in `index-v2.html` (original `index.html` preserved for compare). New PDF: `aurum-prism-investor-v1-classic-v2.pdf`.
+
+Defects fixed:
+- **All slides 2-9** — `AURUM | PRISM` watermark (top:3.2vh) collided with the gold eyebrow (which started at slide padding 4.2vh). Increased slide top padding to 7vh; eyebrow now sits cleanly below the watermark.
+- **Slide 2** — `you-card` used `margin:auto 0` which centered it vertically while the institution stack started at top, leaving them visually unrelated. Changed to `margin-top:1vh` so the card aligns with the top of the stack.
+- **Slide 8** — `.disc` disclaimer ran the full slide width and overlapped the `08 / 10` page number on the right. Narrowed to `left:18vw / right:18vw` and lifted by ~0.25vh.
+- **Slide 9** — three issues: (1) `YOU` connector started at x=395 but the YOU circle was at x=380, leaving a visible 15px detachment; realigned both YOU circle and connector to x=360. (2) `OTHER MEMBERS` text-anchor middle at x=450 overlapped the `YOU` label cluster; moved its circle/label to x=500 and its dashed connector to match. (3) Right-margin gold rule + labels at x=820/836 with text "ADMIN & COMPLIANCE" / "ASSET ISOLATION" ran past the SVG viewBox edge, getting clipped at "ADMIN & COMP" / "ASSET ISOLAT"; pulled rule to x=770 and labels to x=784, tightened letter-spacing to 2.
+
+S1 padding override added (`padding-top:4.2vh`) so the cover hero spacing isn't disturbed by the new global top padding.
+
+
+
+10-slide HNW investor presentation built in three parallel design treatments so the operator can pick. All three share locked copy (cover hook: *"The room you were never shown."*) and the same 10-slide content (cover · access gap · introducing · how it works · deal room · speed · institutional rails · 4 sample pre-IPO growth-equity cards · fund structure · CTA). Slide 8 features 4 illustrative deal cards inspired by Figure AI / SpaceX / Anthropic / Shield AI (Helios / Aurora / Lighthouse / Sentinel) — categorical fields only, no $/IRR/MOIC. Slide 7 carries pre-launch posture ("DEALS ACTIVE · PLATFORM LAUNCHING SOON"). Slide 10 CTA links to `theaurumcc.com/interest`.
+
+- `v1-classic/` — black + gold, boardroom restraint, crisp diagrams. (47 KB HTML, 526 KB PDF)
+- `v2-editorial/` — parchment + ink, FT weekend / Coutts memorandum feel, prospectus-style typesetting. (44 KB HTML, 582 KB PDF)
+- `v3-cinematic/` — luxury brand film, oversized italic Cormorant, single-image storytelling, subtle web animations killed in print. (46 KB HTML, 2.4 MB PDF)
+
+PDFs generated via headless Chrome at native 16×9 (`@page size: 16in 9in`). All HTMLs are self-contained — single file, inline SVG, only Google Fonts external.
+
+---
+
 ## [2026-05-02] — Favicon on portal pages (`investor-portal.html`, `admin-portal.html`, `advisor-portal.html`)
 
 The three portal HTMLs were missing a `<link rel="icon">`, so browser tabs showed the default globe instead of the gold "Au" mark. Added the same inline-SVG favicon used by the TACC site (`aurum-website/index.html`) and the existing Prism `index.html`/`login.html` so every page in the platform has the consistent gold-on-black `Au` favicon.

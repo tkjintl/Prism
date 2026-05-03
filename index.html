@@ -23,6 +23,7 @@
   --amber:#b8833a;--amberW:rgba(184,131,58,0.07);--amberBd:rgba(184,131,58,0.28);
   --red:#b05e56;
   --teal:#78b4a0;--tealBd:rgba(120,180,160,0.32);--tealBdS:rgba(120,180,160,0.5);--tealW:rgba(120,180,160,0.05);
+  --sapph:#8da4d8;--sapphBd:rgba(141,164,216,0.32);--sapphBdS:rgba(141,164,216,0.55);--sapphW:rgba(141,164,216,0.06);
   --serif:'Cormorant Garamond',Georgia,serif;
   --mono:'JetBrains Mono',monospace;
   --sans:'Outfit',system-ui,sans-serif;
@@ -230,7 +231,7 @@ h2 em{color:var(--goldB);font-style:italic}
 .tier.tier-cta-card:hover{border-color:var(--goldBdS);box-shadow:0 8px 40px rgba(197,165,114,.10)}
 .tier-badge{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:3px 10px;border:1px solid;display:inline-block;margin-bottom:18px}
 .tier-badge.member{color:var(--green);border-color:var(--greenBd);background:var(--greenW)}
-.tier-badge.inst{color:#5a98ec;border-color:rgba(90,152,236,.28);background:rgba(90,152,236,.06)}
+.tier-badge.inst{color:var(--gold);border-color:var(--goldBd);background:var(--goldW)}
 .tier-title{font-family:var(--serif);font-style:italic;font-size:26px;color:var(--text);margin-bottom:10px;line-height:1.1}
 .tier-desc{font-family:var(--serif);font-size:14px;font-weight:300;color:var(--sub);line-height:1.72;margin-bottom:22px}
 .tier-items{display:flex;flex-direction:column;gap:6px;margin-bottom:28px}
@@ -243,6 +244,13 @@ h2 em{color:var(--goldB);font-style:italic}
 .tier-cta.inst:hover{background:var(--goldB);box-shadow:0 6px 28px rgba(197,165,114,.32);transform:translateY(-1px)}
 .tier-watermark{position:absolute;right:-20px;bottom:-20px;font-family:var(--serif);font-style:italic;font-size:80px;color:rgba(197,165,114,.04);line-height:1;pointer-events:none}
 /* Advisor tier — sage/teal tint */
+.tier.tier-hnw{border:1px solid var(--sapphBd);background:linear-gradient(145deg,var(--card2) 0%,rgba(141,164,216,.022) 100%)}
+.tier.tier-hnw:hover{border-color:var(--sapphBdS);box-shadow:0 8px 40px rgba(141,164,216,.10)}
+.tier.tier-hnw .tier-badge{color:var(--sapph);border-color:var(--sapphBd);background:var(--sapphW)}
+.tier.tier-hnw .tier-item-dot{background:var(--sapph)}
+.tier.tier-hnw .tier-watermark{color:rgba(141,164,216,.05)}
+.tier-cta.hnw{color:var(--sapph);background:var(--sapphW);border-color:var(--sapphBd)}
+.tier-cta.hnw:hover{color:#b3c4e8;background:rgba(141,164,216,.12);border-color:var(--sapphBdS);transform:translateY(-1px)}
 .tier.tier-adv{border:1px solid var(--tealBd);background:linear-gradient(145deg,var(--card2) 0%,rgba(120,180,160,.022) 100%)}
 .tier.tier-adv:hover{border-color:var(--tealBdS);box-shadow:0 8px 40px rgba(120,180,160,.10)}
 .tier.tier-adv .tier-badge{color:var(--teal);border-color:var(--tealBd);background:var(--tealW)}
@@ -533,15 +541,12 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
     border:1px solid rgba(197,165,114,.42)!important;
   }
   .tiers-grid > .tier:nth-child(1) .tier-watermark{color:rgba(197,165,114,.07)}
-  /* Card 2 — HNW & Private: subtle blue-violet tint */
-  .tiers-grid > .tier:nth-child(2){
-    background:linear-gradient(180deg,rgba(120,140,200,.07) 0%,rgba(0,0,0,.42) 100%)!important;
-    border:1px solid rgba(120,140,200,.32)!important;
+  /* Card 2 — HNW & Private: sapphire/violet tint */
+  .tiers-grid > .tier.tier-hnw:nth-child(2){
+    background:linear-gradient(180deg,rgba(141,164,216,.08) 0%,rgba(0,0,0,.42) 100%)!important;
+    border:1px solid var(--sapphBd)!important;
   }
-  .tiers-grid > .tier:nth-child(2) .tier-badge.inst{
-    color:#8da4d8;border-color:rgba(141,164,216,.34);background:rgba(141,164,216,.07);
-  }
-  .tiers-grid > .tier:nth-child(2) .tier-watermark{color:rgba(141,164,216,.07)}
+  .tiers-grid > .tier.tier-hnw:nth-child(2) .tier-watermark{color:rgba(141,164,216,.07)}
   /* Card 3 — Advisor: sage/teal tint */
   .tiers-grid > .tier.tier-adv:nth-child(3){
     background:linear-gradient(180deg,rgba(120,180,160,.07) 0%,rgba(0,0,0,.42) 100%)!important;
@@ -1210,8 +1215,8 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
       <button class="tier-cta inst" onclick="setApplyCategory('institutional');document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Institutional Access →</button>
       <div class="tier-watermark">§</div>
     </div>
-    <div class="tier tier-cta-card reveal-scale reveal-d1">
-      <span class="tier-badge inst">HNW &amp; Private Capital</span>
+    <div class="tier tier-hnw reveal-scale reveal-d1">
+      <span class="tier-badge">HNW &amp; Private Capital</span>
       <div class="tier-title">Apply for private access</div>
       <div class="tier-desc">High-net-worth individuals and single-family principals deploying personal or family capital. Curated private market access — same deal flow our institutional members see, sized to private capacity. Membership is invitation-only and capped; admission is at operator discretion.</div>
       <div class="tier-items">
@@ -1220,7 +1225,7 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
         <div class="tier-item"><div class="tier-item-dot"></div><span>Prism operator review within 5 business days</span></div>
         <div class="tier-item"><div class="tier-item-dot"></div><span>Platform NDA signed on credentialing · All USD</span></div>
       </div>
-      <button class="tier-cta inst" onclick="setApplyCategory('hnw');document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Private Access →</button>
+      <button class="tier-cta hnw" onclick="setApplyCategory('hnw');document.getElementById('request').scrollIntoView({behavior:'smooth'})">Request Private Access →</button>
       <div class="tier-watermark">§</div>
     </div>
     <div class="tier tier-adv reveal-scale reveal-d2">
