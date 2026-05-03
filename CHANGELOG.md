@@ -4,6 +4,12 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-03] — Hero side label — shortened (`index.html`)
+
+`Capital flows / out of platform` → `Capital / flows out`. Matches the two-line rhythm of the left-side `Deals / flow in` label and reads cleaner.
+
+---
+
 ## [2026-05-03] — Landing access tiers — CTA alignment fix (`index.html`)
 
 Three CTAs sat at different vertical positions and widths across the row (card 1 wide gold-fill at top, card 2 narrow centered, card 3 narrow upper-right) because `.tier-cta` was `display:inline-block` and `.tier` was a block, so each button sized to its text and floated at the natural end of the content. Fixed by making `.tier` a flex column and `.tier-cta` a full-width block with `margin-top:auto`, so all three CTAs span their card width and snap to the bottom edge regardless of content length. Padding bumped 12px → 14px for a touch more presence; `cursor:pointer` added since `<button>` already had it but the rule now applies uniformly.
