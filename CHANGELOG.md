@@ -4,6 +4,12 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Favicon on portal pages (`investor-portal.html`, `admin-portal.html`, `advisor-portal.html`)
+
+The three portal HTMLs were missing a `<link rel="icon">`, so browser tabs showed the default globe instead of the gold "Au" mark. Added the same inline-SVG favicon used by the TACC site (`aurum-website/index.html`) and the existing Prism `index.html`/`login.html` so every page in the platform has the consistent gold-on-black `Au` favicon.
+
+---
+
 ## [2026-05-02] — Investor lobby mobile spacing (`investor-portal.html`)
 
 Bumped `.hero-content` top padding on mobile (≤768px) from `20px` to `64px` so the "Featured Opportunity" eyebrow + deal name no longer sit right under the "Good evening, JWC" greeting. Cleaner separation between the personalized greeting block and the first deal card on phones.
