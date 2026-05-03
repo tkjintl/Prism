@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a0a'/><rect x='4' y='4' width='24' height='24' fill='none' stroke='%23C5A572' stroke-width='1.2'/><text x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='15' font-style='italic' fill='%23C5A572'>Au</text></svg>">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Terms of Service · Aurum Prism</title>
+<meta name="description" content="Platform user agreement for Aurum Prism — invitation-only deal-flow platform operated by TACC Pte Ltd, Singapore.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070706;--bg2:#0a0908;--bg3:#0c0b09;--bg4:#0f0e0b;
+  --card:#111009;
+  --text:#ece6da;--sub:#a89f94;--muted:#655f58;--dim:#2a2725;
+  --gold:#C5A572;--goldB:#DEB97A;--goldD:#8a7c68;
+  --goldBd:rgba(197,165,114,0.22);--goldBdS:rgba(197,165,114,0.45);
+  --goldW:rgba(197,165,114,0.04);
+  --border:rgba(255,255,255,0.065);
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Outfit',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--goldD);text-decoration:none;border-bottom:1px solid var(--goldBd)}
+a:hover{color:var(--gold);border-bottom-color:var(--goldBdS)}
+nav{position:sticky;top:0;z-index:100;height:58px;background:rgba(7,7,6,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);display:flex;align-items:center;padding:0 48px}
+.n-wm{display:flex;align-items:center;line-height:1}
+.n-wm-aurum{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
+.n-wm-rule{display:block;width:1px;height:12px;background:var(--goldBd);margin:0 10px}
+.n-wm-prism{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.n-back{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;border:none}
+.n-back:hover{color:var(--gold)}
+main{max-width:780px;margin:0 auto;padding:80px 48px 100px}
+.eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--goldD);text-transform:uppercase;margin-bottom:18px}
+.eyebrow-rule{width:48px;height:1px;background:var(--goldBd);margin:14px 0 22px}
+h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(40px,5vw,58px);color:var(--text);line-height:1.05;letter-spacing:-.02em;margin-bottom:20px}
+h1 em{color:var(--goldB);font-style:italic}
+.meta{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:48px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.meta span{color:var(--goldD)}
+.short{background:var(--card);border-left:2px solid var(--gold);padding:24px 28px;margin-bottom:56px}
+.short-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.20em;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+.short p{font-family:var(--serif);font-size:17px;font-weight:300;color:var(--text);line-height:1.7}
+h2{font-family:var(--serif);font-style:italic;font-weight:400;font-size:32px;color:var(--text);line-height:1.15;margin:56px 0 8px;letter-spacing:-.01em}
+h2 em{color:var(--goldB)}
+.h2-num{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--goldD);text-transform:uppercase;margin-bottom:6px;display:block}
+h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin:28px 0 12px}
+p{font-family:var(--sans);font-size:15px;font-weight:400;color:var(--sub);line-height:1.75;margin-bottom:16px}
+p strong{color:var(--text);font-weight:500}
+ul{margin:8px 0 18px 0;padding-left:0;list-style:none}
+li{font-family:var(--sans);font-size:15px;color:var(--sub);line-height:1.7;padding:6px 0 6px 22px;position:relative}
+li::before{content:'—';position:absolute;left:0;color:var(--goldD)}
+.placeholder{font-family:var(--mono);font-size:11px;color:var(--goldB);background:var(--goldW);padding:1px 6px;border:1px dashed var(--goldBd);letter-spacing:.04em}
+.callout{font-family:var(--sans);font-size:14px;color:var(--text);background:var(--bg3);border:1px solid var(--goldBd);padding:18px 22px;margin:20px 0;line-height:1.7}
+.callout strong{color:var(--goldB)}
+footer{border-top:1px solid var(--border);background:var(--bg2);padding:40px 48px;text-align:center}
+footer .foot-name{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--goldD);text-transform:uppercase;margin-bottom:8px}
+footer .foot-line{font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.85}
+footer .foot-links{margin-top:16px}
+footer .foot-links a{font-family:var(--mono);font-size:10px;color:var(--muted);margin:0 10px;border:none;letter-spacing:.10em;text-transform:uppercase}
+footer .foot-links a:hover{color:var(--gold)}
+@media(max-width:680px){
+  nav{padding:0 20px}
+  main{padding:48px 22px 60px}
+  h1{font-size:36px}
+  h2{font-size:26px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="n-wm">
+    <span class="n-wm-aurum">Aurum</span>
+    <span class="n-wm-rule"></span>
+    <span class="n-wm-prism">Prism</span>
+  </div>
+  <a class="n-back" href="/">← Return</a>
+</nav>
+
+<main>
+  <div class="eyebrow">Compliance · Document 02</div>
+  <div class="eyebrow-rule"></div>
+  <h1>Terms of <em>Service</em></h1>
+  <div class="meta">Effective <span>[PLACEHOLDER — EFFECTIVE DATE]</span> · Platform User Agreement</div>
+
+  <div class="short">
+    <div class="short-lbl">In short</div>
+    <p>Aurum Prism is a private register, not a public marketplace. Access is by invitation. You agree to keep what you see confidential, you confirm you're an accredited or institutional investor, and you accept that Prism is an information conduit — not a broker-dealer, not your advisor. Singapore law governs. Disputes go to SIAC arbitration. Liability is capped at fees paid or SGD 10,000, whichever is greater.</p>
+  </div>
+
+  <span class="h2-num">§ 01</span>
+  <h2>Parties and acceptance</h2>
+  <p>This agreement is between you (the <strong>"Member"</strong>) and <strong>TACC Pte Ltd</strong>, a Singapore private limited company (UEN <span class="placeholder">[PLACEHOLDER — UEN]</span>) operating the Aurum Prism platform (the <strong>"Platform"</strong>). By logging into the Platform, submitting an indication of interest, executing an NDA on the Platform, or otherwise using any Platform service, you accept these terms.</p>
+  <p>If you do not accept, do not use the Platform. Continued use after a posted revision constitutes acceptance of the revised terms.</p>
+
+  <span class="h2-num">§ 02</span>
+  <h2>Invitation only · No public offer</h2>
+  <p>The Platform is private and operates by invitation. Admission to the register is at the sole discretion of TACC. Nothing on the Platform constitutes an offer or solicitation to buy or sell securities to the general public, in any jurisdiction where such an offer would be unlawful, or to any person not admitted as a Member.</p>
+  <p>Deal information, screenshots, and marketing materials accessible to non-Members are illustrative only.</p>
+
+  <span class="h2-num">§ 03</span>
+  <h2>Eligibility</h2>
+  <p>To be admitted and to remain a Member in good standing, you must qualify as one or more of the following at the time of admission and at the time of each transaction:</p>
+  <ul>
+    <li>An <strong>accredited investor</strong> as defined in section 4A of the Singapore Securities and Futures Act (Cap. 289);</li>
+    <li>An <strong>institutional investor</strong> as defined in the same statute;</li>
+    <li>For US persons or US-targeted offerings, an <strong>accredited investor</strong> within the meaning of Rule 501(a) and able to participate in offerings made under <strong>Rule 506(c)</strong> of Regulation D under the US Securities Act of 1933;</li>
+    <li>A registered <strong>deal advisor</strong> acting in a professional capacity, where applicable.</li>
+  </ul>
+  <p>You represent that the information you provide on admission and on each IOI is accurate, complete, and current. TACC may verify any representation at any time and may suspend or terminate access if eligibility cannot be confirmed.</p>
+
+  <span class="h2-num">§ 04</span>
+  <h2>Account, credentials, and view-as access</h2>
+  <p>You are responsible for keeping your password and access codes secure. Sessions are logged. Sharing credentials with anyone — including colleagues at the same firm — is prohibited; each user must be individually credentialed. The platform operator may impersonate any account ("view-as") for support and audit purposes; this is logged.</p>
+
+  <span class="h2-num">§ 05</span>
+  <h2>Member obligations</h2>
+  <ul>
+    <li><strong>Confidentiality.</strong> All deal information, sponsor materials, dataroom contents, IOIs, and Member identities are confidential. The standalone NDA you execute on credentialing governs deal-specific information; these terms govern everything else.</li>
+    <li><strong>No scraping.</strong> Automated harvesting, crawling, indexing, or systematic extraction of Platform content is prohibited.</li>
+    <li><strong>No redistribution.</strong> You may not download, copy, screenshot, forward, or otherwise share dataroom contents — which are watermarked — outside your firm without written consent.</li>
+    <li><strong>No reverse-engineering.</strong> You may not decompile, disassemble, or attempt to derive source code or proprietary methods from the Platform.</li>
+    <li><strong>No interference.</strong> You may not probe, penetration-test, overload, or otherwise compromise Platform infrastructure or other Members' use of it.</li>
+    <li><strong>Lawful use.</strong> You will comply with applicable securities, sanctions, anti-money-laundering, and tax law in every jurisdiction relevant to your activity.</li>
+  </ul>
+
+  <span class="h2-num">§ 06</span>
+  <h2>Information only · No advice</h2>
+  <div class="callout"><strong>The Platform is an information conduit.</strong> TACC, when operating the Platform, is not acting as a broker-dealer, fund manager, financial adviser, tax adviser, or legal adviser to any Member. Nothing on the Platform constitutes investment, tax, legal, or accounting advice. Each Member must conduct independent due diligence and engage its own professional advisors before committing capital.</div>
+  <p>Where TACC or an affiliate acts as sponsor, fund manager, or principal in a transaction, that role is separately disclosed in the deal materials and governed by the relevant offering documents — not by these terms.</p>
+
+  <span class="h2-num">§ 07</span>
+  <h2>Intellectual property</h2>
+  <p>TACC retains all right, title, and interest in the Platform — including code, design, brand marks, screening methodology, audit-log structure, and aggregated data. Members are granted a revocable, non-exclusive, non-transferable licence to use the Platform during their period of admission.</p>
+  <p>Deal documents, financial models, and transaction-specific materials remain the intellectual property of the relevant sponsor or advisor. Member-supplied content (firm profile, mandate) remains yours; you grant TACC a licence to use it solely to operate the Platform for you.</p>
+
+  <span class="h2-num">§ 08</span>
+  <h2>Suspension and termination</h2>
+  <p>TACC may suspend or terminate any Member's access at its sole discretion, with or without cause, with or without notice, including where eligibility lapses, where there is a credible suspicion of breach, or where required by law or regulator. Termination does not refund fees paid for the current period and does not release you from confidentiality, IP, or surviving obligations.</p>
+  <p>You may terminate by written notice to <a href="mailto:prism@theaurumcc.com">prism@theaurumcc.com</a>. Termination is effective on confirmation.</p>
+
+  <span class="h2-num">§ 09</span>
+  <h2>Limitation of liability</h2>
+  <p>To the maximum extent permitted by law, TACC's aggregate liability to any Member arising out of or relating to the Platform — whether in contract, tort, statute, or otherwise — is capped at the <strong>greater of (a) fees paid by that Member to TACC in the twelve months preceding the claim, or (b) SGD 10,000</strong>.</p>
+  <p>TACC is not liable for indirect, consequential, special, exemplary, or punitive damages, lost profits, lost opportunity, or loss of data, even if advised of the possibility. Nothing in this clause limits liability for fraud, wilful misconduct, or any liability that cannot be limited under Singapore law.</p>
+
+  <span class="h2-num">§ 10</span>
+  <h2>Indemnity</h2>
+  <p>You will indemnify and hold harmless TACC, its directors, officers, employees, advisors, and sub-processors from any claim, loss, or expense (including reasonable legal fees) arising from your breach of these terms, your breach of any deal-specific NDA, your unauthorised use of Platform content, or your breach of applicable law.</p>
+
+  <span class="h2-num">§ 11</span>
+  <h2>Governing law and dispute resolution</h2>
+  <p>This agreement is governed by the laws of <strong>Singapore</strong>, without regard to conflict-of-laws principles.</p>
+  <p>Any dispute arising out of or in connection with this agreement, including any question regarding its existence, validity, or termination, will be referred to and finally resolved by arbitration administered by the <strong>Singapore International Arbitration Centre (SIAC)</strong> in accordance with the SIAC Rules in force at the time. The seat of arbitration is Singapore. The tribunal will consist of one (1) arbitrator. The language of arbitration is English. The award is final and binding.</p>
+
+  <span class="h2-num">§ 12</span>
+  <h2>Survival</h2>
+  <p>The following clauses survive termination: § 05 (confidentiality and no-scrape), § 06 (no-advice disclaimer), § 07 (IP), § 09 (limitation of liability), § 10 (indemnity), § 11 (governing law and arbitration), and any provision that by its nature is intended to survive.</p>
+
+  <span class="h2-num">§ 13</span>
+  <h2>Miscellaneous</h2>
+  <ul>
+    <li><strong>Entire agreement.</strong> These terms, together with the Privacy Policy, the deal-specific NDA, and any executed subscription documents, are the entire agreement between the parties on this subject.</li>
+    <li><strong>Severability.</strong> If any provision is held unenforceable, the remainder continues in force.</li>
+    <li><strong>No waiver.</strong> A failure to enforce is not a waiver.</li>
+    <li><strong>Assignment.</strong> You may not assign without TACC's written consent. TACC may assign to a successor entity.</li>
+    <li><strong>Notices.</strong> Notice to TACC: <a href="mailto:prism@theaurumcc.com">prism@theaurumcc.com</a>. Notice to you: the email address registered on your Member profile.</li>
+  </ul>
+</main>
+
+<footer>
+  <div class="foot-name">Aurum · Prism</div>
+  <div class="foot-line">Operated by TACC Pte Ltd · Singapore · © 2026 All Rights Reserved</div>
+  <div class="foot-links">
+    <a href="/">Home</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/risk">Risk</a>
+    <a href="/disclosures">Disclosures</a>
+  </div>
+</footer>
+
+</body>
+</html>

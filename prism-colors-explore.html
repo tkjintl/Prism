@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prism Colors — Exploration (Operator Review)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   PRISM COLORS — EXPLORATION SHEET
+   Three palettes presented side-by-side. Not deployed.
+   ========================================================================= */
+
+/* CURRENT (live) palette — gold on near-black */
+.theme-current{
+  --bg:#0A0908; --bg-2:#0F0E0C; --bg-3:#161412; --surface:#131210;
+  --border:#1F1C18; --border-m:#2A2620;
+  --text:#EDE8DF; --text-2:#A09A91; --text-3:#6B665E;
+  --gold:#C5A572; --gold-b:#E3C187; --gold-bg:rgba(197,165,114,.07); --gold-bd:rgba(197,165,114,.22);
+  --accent:#C5A572; --accent-bg:rgba(197,165,114,.10); --accent-bd:rgba(197,165,114,.28);
+  --green:#7BB069; --amber:#D4A85A; --red:#C76B5C;
+}
+
+/* OPTION A — Prism Colors / Electric Cyan accent */
+.theme-a{
+  --bg:#0A1228;             /* dark navy — primary background */
+  --bg-2:#0F1A38;           /* surface raised */
+  --bg-3:#15224A;           /* surface 2 */
+  --surface:#121C3D;        /* card surface */
+  --purple:#3D2E66;         /* royal purple — secondary accent / chrome */
+  --purple-deep:#2A1F4A;
+  --purple-bg:rgba(74,46,127,.18);
+  --purple-bd:rgba(125,95,196,.32);
+  --border:#1A2548;
+  --border-m:#28346A;
+  --text:#ECE6DA;
+  --text-2:#A8AECB;
+  --text-3:#6B7299;
+  --gold:#C5A572;           /* brand-continuity gold */
+  --gold-b:#E3C187;
+  --gold-bg:rgba(197,165,114,.09);
+  --gold-bd:rgba(197,165,114,.28);
+  --accent:#5FD9E5;         /* electric cyan — bright accent */
+  --accent-2:#9BE9F0;
+  --accent-bg:rgba(95,217,229,.10);
+  --accent-bd:rgba(95,217,229,.32);
+  --green:#7BFFB3; --amber:#E3C187; --red:#FF8A7A;
+}
+
+/* OPTION B — Prism Colors / Champagne Ivory accent */
+.theme-b{
+  --bg:#0E1A36;
+  --bg-2:#13213F;
+  --bg-3:#192A52;
+  --surface:#142244;
+  --purple:#4A2E7F;
+  --purple-deep:#321F58;
+  --purple-bg:rgba(74,46,127,.22);
+  --purple-bd:rgba(140,108,212,.36);
+  --border:#1E2C50;
+  --border-m:#2C3D70;
+  --text:#F2EBDD;
+  --text-2:#B6B8D0;
+  --text-3:#7079A0;
+  --gold:#C5A572;
+  --gold-b:#E3C187;
+  --gold-bg:rgba(197,165,114,.10);
+  --gold-bd:rgba(197,165,114,.30);
+  --accent:#F0E4C9;        /* champagne ivory — soft bright */
+  --accent-2:#F8EFD8;
+  --accent-bg:rgba(240,228,201,.08);
+  --accent-bd:rgba(240,228,201,.30);
+  --green:#9FE3B8; --amber:#E3C187; --red:#FF9A8A;
+}
+
+/* ---------- page chrome ---------- */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#050810;color:#ECE6DA;font-family:'DM Sans',system-ui,sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{padding:48px 32px 80px;max-width:1480px;margin:0 auto}
+
+.sheet-hd{border:1px solid #1F2640;background:linear-gradient(180deg,#0A1228 0%,#070B1A 100%);border-radius:6px;padding:28px 32px;margin-bottom:40px;position:relative;overflow:hidden}
+.sheet-hd::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 80% 50%,rgba(95,217,229,.08) 0%,transparent 60%)}
+.sheet-hd > *{position:relative}
+.sheet-eb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;color:#5FD9E5;text-transform:uppercase;margin-bottom:10px}
+.sheet-h1{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:42px;font-weight:400;letter-spacing:-.01em;color:#F2EBDD;margin-bottom:8px}
+.sheet-h1 em{color:#C5A572;font-style:italic}
+.sheet-sub{font-size:13px;color:#A8AECB;max-width:780px;line-height:1.7}
+.sheet-meta{display:flex;gap:24px;margin-top:18px;padding-top:18px;border-top:1px solid #1A2548;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6B7299}
+.sheet-meta b{color:#ECE6DA;font-weight:500}
+
+.section{margin-bottom:56px}
+.section-hd{display:flex;align-items:baseline;gap:16px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid #1F2640}
+.section-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:#C5A572;letter-spacing:.2em}
+.section-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;font-weight:400;color:#F2EBDD}
+.section-note{margin-left:auto;font-size:12px;color:#7079A0;font-style:italic}
+
+/* ---------- palette block ---------- */
+.palette-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.palette-col{border:1px solid #1F2640;border-radius:6px;overflow:hidden}
+.palette-col-hd{padding:18px 22px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #1F2640}
+.palette-col.a .palette-col-hd{background:linear-gradient(135deg,#0A1228 0%,#3D2E66 180%)}
+.palette-col.b .palette-col-hd{background:linear-gradient(135deg,#0E1A36 0%,#4A2E7F 180%)}
+.opt-tag{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;padding:4px 10px;border-radius:2px;text-transform:uppercase}
+.palette-col.a .opt-tag{background:rgba(95,217,229,.16);color:#9BE9F0;border:1px solid rgba(95,217,229,.32)}
+.palette-col.b .opt-tag{background:rgba(240,228,201,.14);color:#F0E4C9;border:1px solid rgba(240,228,201,.32)}
+.palette-col-name{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#F2EBDD}
+.palette-swatches{padding:18px 22px;display:grid;grid-template-columns:1fr;gap:10px}
+.swatch{display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center;padding:10px;border:1px solid #1A2548;border-radius:4px;background:#080C1C}
+.sw-chip{width:56px;height:42px;border-radius:3px;border:1px solid rgba(255,255,255,.06)}
+.sw-meta{display:flex;flex-direction:column;gap:2px}
+.sw-name{font-size:13px;color:#ECE6DA;font-weight:500}
+.sw-use{font-size:11px;color:#7079A0}
+.sw-hex{font-family:'JetBrains Mono',monospace;font-size:11px;color:#A8AECB;letter-spacing:.06em}
+
+/* ---------- mockup frame ---------- */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.compare-grid.three{grid-template-columns:1fr 1fr 1fr}
+.frame{border:1px solid #1F2640;border-radius:6px;overflow:hidden;background:#000;box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.frame-cap{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#0A0F22;border-bottom:1px solid #1F2640}
+.frame-dot{width:8px;height:8px;border-radius:50%;background:#28346A}
+.frame-dot.live{background:#5FD9E5}
+.frame-cap-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:#A8AECB;text-transform:uppercase}
+.frame-cap-tag{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;padding:2px 8px;border-radius:2px;text-transform:uppercase}
+.frame-cap-tag.a{background:rgba(95,217,229,.16);color:#9BE9F0}
+.frame-cap-tag.b{background:rgba(240,228,201,.14);color:#F0E4C9}
+.frame-cap-tag.cur{background:rgba(197,165,114,.14);color:#E3C187}
+
+/* =========================================================================
+   THEMED MOCKUP — shared structure, swappable variables
+   ========================================================================= */
+.mock{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;font-size:13px;line-height:1.55;min-height:560px;position:relative;overflow:hidden}
+.mock *{box-sizing:border-box}
+
+/* nav */
+.mock-nav{height:52px;display:flex;align-items:center;padding:0 18px;gap:14px;background:var(--bg);border-bottom:1px solid var(--border);position:relative;z-index:5}
+.mock-wm-tacc{font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:.18em;color:var(--text-3);text-transform:uppercase}
+.mock-wm-aurum{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
+.mock-wm-rule{width:1px;height:11px;background:var(--gold-bd)}
+.mock-wm-prism{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.mock-tabs{display:flex;gap:2px;margin-left:14px}
+.mock-tab{padding:6px 11px;font-size:11px;color:var(--text-3);border-bottom:2px solid transparent;font-weight:500}
+.mock-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.mock-nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.mock-bell{width:28px;height:28px;border:1px solid var(--border-m);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-2);position:relative}
+.mock-bell-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:1.5px solid var(--bg)}
+.mock-avatar{width:28px;height:28px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold-bd);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold)}
+
+/* INVESTOR — header band */
+.mock-band{padding:24px 22px 18px;background:linear-gradient(180deg,var(--bg-2) 0%,var(--bg) 100%);border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.mock-band::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 80% at 78% 50%,var(--accent-bg) 0%,transparent 65%);pointer-events:none}
+.mock-band > *{position:relative}
+.mock-eb{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.24em;color:var(--accent);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.mock-eb::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.mock-band-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;font-weight:400;color:var(--text);letter-spacing:-.015em;line-height:1.1;margin-bottom:6px}
+.mock-band-title em{color:var(--gold-b);font-style:italic}
+.mock-band-sub{font-size:12px;color:var(--text-2);max-width:520px}
+
+/* INVESTOR — filters */
+.mock-filters{padding:14px 22px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);background:var(--bg)}
+.mock-search{flex:1;max-width:260px;padding:7px 12px;background:var(--surface);border:1px solid var(--border-m);border-radius:3px;font-size:11px;color:var(--text-2);font-family:inherit}
+.mock-chip{padding:6px 11px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2);border:1px solid var(--border-m);border-radius:2px;background:var(--surface)}
+.mock-chip.on{color:var(--accent);border-color:var(--accent-bd);background:var(--accent-bg)}
+.mock-sort{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-3);letter-spacing:.14em;text-transform:uppercase}
+
+/* INVESTOR — deal cards grid */
+.mock-grid{padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mock-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;position:relative;transition:transform .2s}
+.mock-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.mock-card.gold::before{background:var(--gold)}
+.mock-card.purple::before{background:var(--purple,var(--gold))}
+.mock-card-hd{padding:12px 14px 8px;border-bottom:1px solid var(--border)}
+.mock-card-eb{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.18em;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.mock-card-stage{padding:2px 6px;border-radius:2px;background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-bd)}
+.mock-card-stage.gold{background:var(--gold-bg);color:var(--gold);border-color:var(--gold-bd)}
+.mock-card-name{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--text);font-weight:400;letter-spacing:-.01em}
+.mock-card-body{padding:10px 14px}
+.mock-card-meta{font-size:11px;color:var(--text-2);margin-bottom:10px;line-height:1.5}
+.mock-card-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:10px;border-top:1px solid var(--border)}
+.mock-stat-v{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text);font-weight:500;line-height:1}
+.mock-stat-v.accent{color:var(--accent)}
+.mock-stat-v.gold{color:var(--gold-b)}
+.mock-stat-l{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.14em;color:var(--text-3);text-transform:uppercase;margin-top:3px}
+.mock-card-ft{padding:9px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-2)}
+.mock-card-cta{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--accent);text-transform:uppercase}
+
+/* ADMIN — sidebar + record */
+.admin-shell{display:grid;grid-template-columns:200px 1fr;min-height:540px}
+.admin-side{background:var(--bg-2);border-right:1px solid var(--border);padding:18px 14px}
+.admin-side-eb{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.2em;color:var(--text-3);text-transform:uppercase;margin:14px 6px 6px}
+.admin-side-eb:first-child{margin-top:0}
+.admin-side-link{display:flex;align-items:center;gap:8px;padding:7px 8px;font-size:12px;color:var(--text-2);border-radius:3px;margin-bottom:1px}
+.admin-side-link.on{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-bd)}
+.admin-side-link .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.6}
+.admin-side-count{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-3)}
+.admin-side-link.on .admin-side-count{color:var(--accent)}
+
+.admin-main{padding:18px 22px;overflow:hidden}
+.admin-crumb{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;color:var(--text-3);text-transform:uppercase;margin-bottom:8px}
+.admin-crumb b{color:var(--gold)}
+.admin-h1{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;color:var(--text);font-weight:400;letter-spacing:-.015em;margin-bottom:4px}
+.admin-h1 em{color:var(--gold-b)}
+.admin-sub{font-size:11px;color:var(--text-2);margin-bottom:16px;display:flex;gap:14px}
+.admin-sub b{color:var(--text);font-weight:500}
+.admin-stage-row{display:flex;gap:0;margin-bottom:18px;border:1px solid var(--border);border-radius:3px;overflow:hidden;background:var(--bg-2)}
+.admin-stage{flex:1;padding:8px 6px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.14em;color:var(--text-3);text-transform:uppercase;border-right:1px solid var(--border);position:relative}
+.admin-stage:last-child{border-right:none}
+.admin-stage.done{color:var(--gold);background:var(--gold-bg)}
+.admin-stage.on{color:var(--accent);background:var(--accent-bg);font-weight:500}
+.admin-stage.on::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent)}
+
+.admin-cols{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}
+.admin-panel{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.admin-panel-hd{padding:10px 14px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--text-3);text-transform:uppercase;background:var(--bg-2);display:flex;align-items:center;gap:8px}
+.admin-panel-hd b{color:var(--text)}
+.admin-panel-hd .accent-pill{margin-left:auto;padding:2px 7px;font-size:8px;border-radius:2px;background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-bd);letter-spacing:.14em}
+.admin-panel-body{padding:12px 14px}
+
+/* IOI list */
+.ioi-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);align-items:center}
+.ioi-row:last-child{border-bottom:none}
+.ioi-name{font-size:12px;color:var(--text)}
+.ioi-meta{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-3);letter-spacing:.08em}
+.ioi-amt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold-b);font-weight:500}
+.ioi-status{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;letter-spacing:.14em;text-transform:uppercase;border-radius:2px}
+.ioi-status.appr{background:rgba(123,176,105,.14);color:var(--green);border:1px solid rgba(123,176,105,.3)}
+.ioi-status.pend{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-bd)}
+
+/* AI panel */
+.ai-score{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.ai-score-v{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:42px;color:var(--accent);line-height:1;font-weight:400}
+.ai-score-l{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-3);letter-spacing:.16em;text-transform:uppercase}
+.ai-bar{height:4px;background:var(--bg-3);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.ai-bar-fill{height:100%;width:78%;background:linear-gradient(90deg,var(--accent) 0%,var(--gold) 100%)}
+.ai-line{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;color:var(--text-2)}
+.ai-line span:last-child{font-family:'JetBrains Mono',monospace;color:var(--text)}
+
+/* audit log */
+.audit-row{padding:7px 0;border-bottom:1px dashed var(--border);font-size:11px;color:var(--text-2);display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.audit-row:last-child{border-bottom:none}
+.audit-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.audit-dot.gold{background:var(--gold)}
+.audit-time{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-3)}
+.audit-row b{color:var(--text);font-weight:500}
+
+/* CTA */
+.btn-row{margin-top:14px;display:flex;gap:8px}
+.btn{padding:8px 14px;font-size:11px;border-radius:2px;font-family:inherit;letter-spacing:.04em;font-weight:500}
+.btn-pri{background:var(--accent);color:var(--bg)}
+.theme-b .btn-pri{color:var(--purple-deep)}
+.btn-sec{background:transparent;border:1px solid var(--gold-bd);color:var(--gold)}
+
+/* decision block */
+.decision{border:1px solid #C5A572;border-radius:6px;padding:24px 28px;background:linear-gradient(135deg,rgba(197,165,114,.06) 0%,rgba(95,217,229,.04) 100%);margin-top:48px}
+.decision-eb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;color:#C5A572;text-transform:uppercase;margin-bottom:10px}
+.decision-h{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:#F2EBDD;margin-bottom:14px}
+.decision-q{display:flex;gap:14px;padding:12px 0;border-top:1px solid #1F2640;align-items:flex-start}
+.decision-q:first-of-type{border-top:none}
+.decision-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:#5FD9E5;flex-shrink:0;width:28px}
+.decision-body{flex:1}
+.decision-body b{color:#F2EBDD;display:block;margin-bottom:3px;font-weight:500}
+.decision-body span{font-size:12px;color:#A8AECB}
+
+.recommend{background:#0A1228;border:1px solid #5FD9E5;border-radius:4px;padding:18px 22px;margin-top:24px}
+.recommend-eb{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.22em;color:#5FD9E5;text-transform:uppercase;margin-bottom:8px}
+.recommend p{font-size:13px;color:#ECE6DA;line-height:1.7}
+.recommend p b{color:#5FD9E5}
+
+@media (max-width:1100px){
+  .compare-grid,.compare-grid.three,.palette-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ HEADER STRIP ============================ -->
+<div class="sheet-hd">
+  <div class="sheet-eb">Render &middot; Review &middot; Decide</div>
+  <h1 class="sheet-h1"><em>Prism Colors</em> — exploration sheet</h1>
+  <p class="sheet-sub">
+    Two candidate palettes anchored on dark navy, royal purple, and Aurum gold — each paired with a different bright accent.
+    This file is a render-and-review artifact only. No live portal has been changed. The four mocked screens below replicate
+    the existing investor and admin layouts pixel-for-pixel and re-skin them with the proposed tokens. Compare, then decide.
+  </p>
+  <div class="sheet-meta">
+    <div>File &middot; <b>prism-colors-explore.html</b></div>
+    <div>Status &middot; <b>Not deployed</b></div>
+    <div>Date &middot; <b>2026-05-03</b></div>
+    <div>Live portals &middot; <b>untouched</b></div>
+  </div>
+</div>
+
+<!-- ============================ 1. PALETTE BLOCK ============================ -->
+<section class="section">
+  <div class="section-hd">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Palette — side by side</h2>
+    <span class="section-note">Same navy + purple + gold core. Different bright accents.</span>
+  </div>
+
+  <div class="palette-grid">
+
+    <!-- Option A -->
+    <div class="palette-col a">
+      <div class="palette-col-hd">
+        <span class="opt-tag">Option A</span>
+        <span class="palette-col-name">Electric Cyan</span>
+      </div>
+      <div class="palette-swatches">
+        <div class="swatch"><span class="sw-chip" style="background:#0A1228"></span><div class="sw-meta"><span class="sw-name">Dark Navy</span><span class="sw-use">--bg &middot; primary background</span></div><span class="sw-hex">#0A1228</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#0F1A38"></span><div class="sw-meta"><span class="sw-name">Navy Raised</span><span class="sw-use">--bg-2 &middot; nav, hero band</span></div><span class="sw-hex">#0F1A38</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#121C3D"></span><div class="sw-meta"><span class="sw-name">Card Surface</span><span class="sw-use">--surface &middot; deal card body</span></div><span class="sw-hex">#121C3D</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#3D2E66"></span><div class="sw-meta"><span class="sw-name">Royal Purple</span><span class="sw-use">--purple &middot; chrome accent &amp; left rail</span></div><span class="sw-hex">#3D2E66</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#C5A572"></span><div class="sw-meta"><span class="sw-name">Aurum Gold</span><span class="sw-use">--gold &middot; brand continuity, financial values</span></div><span class="sw-hex">#C5A572</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#5FD9E5"></span><div class="sw-meta"><span class="sw-name">Electric Cyan</span><span class="sw-use">--accent &middot; CTAs, active state, "prism" refraction</span></div><span class="sw-hex">#5FD9E5</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#ECE6DA"></span><div class="sw-meta"><span class="sw-name">Bone</span><span class="sw-use">--text &middot; primary copy</span></div><span class="sw-hex">#ECE6DA</span></div>
+      </div>
+    </div>
+
+    <!-- Option B -->
+    <div class="palette-col b">
+      <div class="palette-col-hd">
+        <span class="opt-tag">Option B</span>
+        <span class="palette-col-name">Champagne Ivory</span>
+      </div>
+      <div class="palette-swatches">
+        <div class="swatch"><span class="sw-chip" style="background:#0E1A36"></span><div class="sw-meta"><span class="sw-name">Dark Navy</span><span class="sw-use">--bg &middot; slightly warmer navy</span></div><span class="sw-hex">#0E1A36</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#13213F"></span><div class="sw-meta"><span class="sw-name">Navy Raised</span><span class="sw-use">--bg-2 &middot; nav, hero band</span></div><span class="sw-hex">#13213F</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#142244"></span><div class="sw-meta"><span class="sw-name">Card Surface</span><span class="sw-use">--surface &middot; deal card body</span></div><span class="sw-hex">#142244</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#4A2E7F"></span><div class="sw-meta"><span class="sw-name">Royal Purple (deeper)</span><span class="sw-use">--purple &middot; surface 2, hero glow</span></div><span class="sw-hex">#4A2E7F</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#C5A572"></span><div class="sw-meta"><span class="sw-name">Aurum Gold</span><span class="sw-use">--gold &middot; brand, financial values</span></div><span class="sw-hex">#C5A572</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#F0E4C9"></span><div class="sw-meta"><span class="sw-name">Champagne Ivory</span><span class="sw-use">--accent &middot; soft highlight, paired with gold</span></div><span class="sw-hex">#F0E4C9</span></div>
+        <div class="swatch"><span class="sw-chip" style="background:#F2EBDD"></span><div class="sw-meta"><span class="sw-name">Cream</span><span class="sw-use">--text &middot; primary copy</span></div><span class="sw-hex">#F2EBDD</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================ 2. INVESTOR PORTAL — A vs B ============================ -->
+<section class="section">
+  <div class="section-hd">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Investor portal — marketplace</h2>
+    <span class="section-note">Same layout. Two palettes. Same dummy data.</span>
+  </div>
+
+  <div class="compare-grid">
+
+    <!-- INVESTOR / OPTION A -->
+    <div class="frame">
+      <div class="frame-cap"><span class="frame-dot live"></span><span class="frame-cap-label">investor-portal &middot; marketplace</span><span class="frame-cap-tag a">Option A &middot; Cyan</span></div>
+      <div class="mock theme-a">
+        <div class="mock-nav">
+          <span class="mock-wm-tacc">TACC</span>
+          <span class="mock-wm-aurum">AURUM</span>
+          <span class="mock-wm-rule"></span>
+          <span class="mock-wm-prism">PRISM</span>
+          <div class="mock-tabs">
+            <span class="mock-tab">Lobby</span>
+            <span class="mock-tab on">Marketplace</span>
+            <span class="mock-tab">Portfolio</span>
+            <span class="mock-tab">Settings</span>
+          </div>
+          <div class="mock-nav-right">
+            <div class="mock-bell">&#9788;<span class="mock-bell-dot"></span></div>
+            <div class="mock-avatar">JW</div>
+          </div>
+        </div>
+        <div class="mock-band">
+          <div class="mock-eb">Live opportunities &middot; 12 open</div>
+          <h3 class="mock-band-title">Curated for <em>Jonathan</em></h3>
+          <p class="mock-band-sub">Six new mandates entered diligence this week. Three close to subscription-cap. Filter by asset class to surface deals that match your portfolio mandate.</p>
+        </div>
+        <div class="mock-filters">
+          <input class="mock-search" placeholder="Search by name, sector, sponsor..."/>
+          <span class="mock-chip on">All</span>
+          <span class="mock-chip">Private Credit</span>
+          <span class="mock-chip">Real Assets</span>
+          <span class="mock-chip">Venture</span>
+          <span class="mock-sort">Sort &middot; IRR &darr;</span>
+        </div>
+        <div class="mock-grid">
+          <div class="mock-card">
+            <div class="mock-card-hd">
+              <div class="mock-card-eb">Private Credit &middot; Asia <span class="mock-card-stage">Live IOI</span></div>
+              <div class="mock-card-name">Project Helios</div>
+            </div>
+            <div class="mock-card-body">
+              <div class="mock-card-meta">Senior secured tranche, Singapore-domiciled SPV. Subscription open through 31 May.</div>
+              <div class="mock-card-stats">
+                <div><div class="mock-stat-v accent">14.2%</div><div class="mock-stat-l">Tgt IRR</div></div>
+                <div><div class="mock-stat-v gold">1.8x</div><div class="mock-stat-l">MOIC</div></div>
+                <div><div class="mock-stat-v">USD 45M</div><div class="mock-stat-l">Size</div></div>
+              </div>
+            </div>
+            <div class="mock-card-ft"><span class="mock-card-cta">View &rarr; submit IOI</span></div>
+          </div>
+          <div class="mock-card gold">
+            <div class="mock-card-hd">
+              <div class="mock-card-eb">Real Assets &middot; APAC <span class="mock-card-stage gold">DD</span></div>
+              <div class="mock-card-name">Project Aurora</div>
+            </div>
+            <div class="mock-card-body">
+              <div class="mock-card-meta">Hospitality real estate, Tier-1 city anchor. Data room access on approval.</div>
+              <div class="mock-card-stats">
+                <div><div class="mock-stat-v accent">11.5%</div><div class="mock-stat-l">Tgt IRR</div></div>
+                <div><div class="mock-stat-v gold">2.1x</div><div class="mock-stat-l">MOIC</div></div>
+                <div><div class="mock-stat-v">USD 120M</div><div class="mock-stat-l">Size</div></div>
+              </div>
+            </div>
+            <div class="mock-card-ft"><span class="mock-card-cta">Request data room &rarr;</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-hd">
+              <div class="mock-card-eb">Venture &middot; Series B <span class="mock-card-stage">Live IOI</span></div>
+              <div class="mock-card-name">Project Lumen</div>
+            </div>
+            <div class="mock-card-body">
+              <div class="mock-card-meta">B2B SaaS, USD 18M ARR, 142% NDR. Co-invest alongside lead.</div>
+              <div class="mock-card-stats">
+                <div><div class="mock-stat-v accent">22.0%</div><div class="mock-stat-l">Tgt IRR</div></div>
+                <div><div class="mock-stat-v gold">3.4x</div><div class="mock-stat-l">MOIC</div></div>
+                <div><div class="mock-stat-v">USD 35M</div><div class="mock-stat-l">Round</div></div>
+              </div>
+            </div>
+            <div class="mock-card-ft"><span class="mock-card-cta">View &rarr; submit IOI</span></div>
+          </div>
+          <div class="mock-card gold">
+            <div class="mock-card-hd">
+              <div class="mock-card-eb">Private Credit &middot; EMEA <span class="mock-card-stage gold">Terms</span></div>
+              <div class="mock-card-name">Project Meridian</div>
+            </div>
+            <div class="mock-card-body">
+              <div class="mock-card-meta">Mezzanine facility, infrastructure operator. Final terms circulating to LPs.</div>
+              <div class="mock-card-stats">
+                <div><div class="mock-stat-v accent">13.8%</div><div class="mock-stat-l">Tgt IRR</div></div>
+                <div><div class="mock-stat-v gold">1.6x</div><div class="mock-stat-l">MOIC</div></div>
+                <div><div class="mock-stat-v">USD 80M</div><div class="mock-stat-l">Size</div></div>
+              </div>
+            </div>
+            <div class="mock-card-ft"><span class="mock-card-cta">Review terms &rarr;</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVESTOR / OPTION B -->
+    <div class="frame">
+      <div class="frame-cap"><span class="frame-dot live"></span><span class="frame-cap-label">investor-portal &middot; marketplace</span><span class="frame-cap-tag b">Option B &middot; Champagne</span></div>
+      <div class="mock theme-b">
+        <div class="mock-nav">
+          <span class="mock-wm-tacc">TACC</span>
+          <span class="mock-wm-aurum">AURUM</span>
+          <span class="mock-wm-rule"></span>
+          <span class="mock-wm-prism">PRISM</span>
+          <div class="mock-tabs">
+            <span class="mock-tab">Lobby</span>
+            <span class="mock-tab on">Marketplace</span>
+            <span class="mock-tab">Portfolio</span>
+            <span class="mock-tab">Settings</span>
+          </div>
+          <div class="mock-nav-right">
+            <div class="mock-bell">&#9788;<span class="mock-bell-dot"></span></div>
+            <div class="mock-avatar">JW</div>
+          </div>
+        </div>
+        <div class="mock-band">
+          <div class="mock-eb">Live opportunities &middot; 12 open</div>
+          <h3 class="mock-band-title">Curated for <em>Jonathan</em></h3>
+          <p class="mock-band-sub">Six new mandates entered diligence this week. Three close to subscription-cap. Filter by asset class to surface deals that match your portfolio mandate.</p>
+        </div>
+        <div class="mock-filters">
+          <input class="mock-search" placeholder="Search by name, sector, sponsor..."/>
+          <span class="mock-chip on">All</span>
+          <span class="mock-chip">Private Credit</span>
+          <span class="mock-chip">Real Assets</span>
+          <span class="mock-chip">Venture</span>
+          <span class="mock-sort">Sort &middot; IRR &darr;</span>
+        </div>
+        <div class="mock-grid">
+          <div class="mock-card">
+            <div class="mock-card-hd">
+              <div class="mock-card-eb">Private Credit &middot; Asia <span class="mock-card-stage">Live IOI</span></div>
+              <div class="mock-card-name">Project Helios</div>
+            </div>
+            <div class="mock-card-body">
+              <div class="mock-card-meta">Senior secured tranche, Singapore-domiciled SPV. Subscription open through 31 May.</div>
+              <div class="mock-card-stats">
+                <div><div class="mock-stat-v accent">14.2%</div><div class="mock-stat-l">Tgt IRR</div></div>
+                <div><div class="mock-stat-v gold">1.8x</div><div class="mock-stat-l">MOIC</div></div>
+                <div><div class="mock-stat-v">USD 45M</div><div class="mock-stat-l">Size</div></div>
+              </div>
+            </div>
+            <div class="mock-card-ft"><span class="mock-card-cta">View &rarr; submit IOI</span></div>
+          </div>
+          <div class="mock-card gold">
+            <div class="mock-card-hd">
+              <div class="mock-card-eb">Real Assets &middot; APAC <span class="mock-card-stage gold">DD</span></div>
+              <div class="mock-card-name">Project Aurora</div>
+            </div>
+            <div class="mock-card-body">
+              <div class="mock-card-meta">Hospitality real estate, Tier-1 city anchor. Data room access on approval.</div>
+              <div class="mock-card-stats">
+                <div><div class="mock-stat-v accent">11.5%</div><div class="mock-stat-l">Tgt IRR</div></div>
+                <div><div class="mock-stat-v gold">2.1x</div><div class="mock-stat-l">MOIC</div></div>
+                <div><div class="mock-stat-v">USD 120M</div><div class="mock-stat-l">Size</div></div>
+              </div>
+            </div>
+            <div class="mock-card-ft"><span class="mock-card-cta">Request data room &rarr;</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-hd">
+              <div class="mock-card-eb">Venture &middot; Series B <span class="mock-card-stage">Live IOI</span></div>
+              <div class="mock-card-name">Project Lumen</div>
+            </div>
+            <div class="mock-card-body">
+              <div class="mock-card-meta">B2B SaaS, USD 18M ARR, 142% NDR. Co-invest alongside lead.</div>
+              <div class="mock-card-stats">
+                <div><div class="mock-stat-v accent">22.0%</div><div class="mock-stat-l">Tgt IRR</div></div>
+                <div><div class="mock-stat-v gold">3.4x</div><div class="mock-stat-l">MOIC</div></div>
+                <div><div class="mock-stat-v">USD 35M</div><div class="mock-stat-l">Round</div></div>
+              </div>
+            </div>
+            <div class="mock-card-ft"><span class="mock-card-cta">View &rarr; submit IOI</span></div>
+          </div>
+          <div class="mock-card gold">
+            <div class="mock-card-hd">
+              <div class="mock-card-eb">Private Credit &middot; EMEA <span class="mock-card-stage gold">Terms</span></div>
+              <div class="mock-card-name">Project Meridian</div>
+            </div>
+            <div class="mock-card-body">
+              <div class="mock-card-meta">Mezzanine facility, infrastructure operator. Final terms circulating to LPs.</div>
+              <div class="mock-card-stats">
+                <div><div class="mock-stat-v accent">13.8%</div><div class="mock-stat-l">Tgt IRR</div></div>
+                <div><div class="mock-stat-v gold">1.6x</div><div class="mock-stat-l">MOIC</div></div>
+                <div><div class="mock-stat-v">USD 80M</div><div class="mock-stat-l">Size</div></div>
+              </div>
+            </div>
+            <div class="mock-card-ft"><span class="mock-card-cta">Review terms &rarr;</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================ 3. ADMIN — DEAL DETAIL — A vs B ============================ -->
+<section class="section">
+  <div class="section-hd">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Admin portal — deal detail</h2>
+    <span class="section-note">Sidebar &middot; stage rail &middot; IOI list &middot; AI scoring &middot; audit log.</span>
+  </div>
+
+  <div class="compare-grid">
+
+    <!-- ADMIN / OPTION A -->
+    <div class="frame">
+      <div class="frame-cap"><span class="frame-dot live"></span><span class="frame-cap-label">admin-portal &middot; deal:helios-001</span><span class="frame-cap-tag a">Option A &middot; Cyan</span></div>
+      <div class="mock theme-a">
+        <div class="mock-nav">
+          <span class="mock-wm-tacc">TACC</span>
+          <span class="mock-wm-aurum">AURUM</span>
+          <span class="mock-wm-rule"></span>
+          <span class="mock-wm-prism">PRISM &middot; OPS</span>
+          <div class="mock-tabs">
+            <span class="mock-tab on">Deals</span>
+            <span class="mock-tab">Advisors</span>
+            <span class="mock-tab">Investors</span>
+            <span class="mock-tab">Audit</span>
+          </div>
+          <div class="mock-nav-right"><div class="mock-avatar">TK</div></div>
+        </div>
+        <div class="admin-shell">
+          <aside class="admin-side">
+            <div class="admin-side-eb">Pipeline</div>
+            <div class="admin-side-link"><span class="dot"></span>Review<span class="admin-side-count">04</span></div>
+            <div class="admin-side-link on"><span class="dot"></span>Live / IOI<span class="admin-side-count">12</span></div>
+            <div class="admin-side-link"><span class="dot"></span>Diligence<span class="admin-side-count">06</span></div>
+            <div class="admin-side-link"><span class="dot"></span>Terms<span class="admin-side-count">03</span></div>
+            <div class="admin-side-link"><span class="dot"></span>Closed<span class="admin-side-count">28</span></div>
+            <div class="admin-side-eb">Filter</div>
+            <div class="admin-side-link"><span class="dot"></span>Private Credit</div>
+            <div class="admin-side-link"><span class="dot"></span>Real Assets</div>
+            <div class="admin-side-link"><span class="dot"></span>Venture</div>
+          </aside>
+          <main class="admin-main">
+            <div class="admin-crumb">Deals &nbsp;/&nbsp; Live &nbsp;/&nbsp; <b>Project Helios</b></div>
+            <h3 class="admin-h1">Project <em>Helios</em></h3>
+            <div class="admin-sub">
+              <span>Sponsor &middot; <b>Capital Group SG</b></span>
+              <span>Advisor &middot; <b>Sarah Lim</b></span>
+              <span>Submitted &middot; <b>2026-04-22</b></span>
+              <span>USD <b>45M</b></span>
+            </div>
+            <div class="admin-stage-row">
+              <div class="admin-stage done">Review</div>
+              <div class="admin-stage on">Live / IOI</div>
+              <div class="admin-stage">DD</div>
+              <div class="admin-stage">Terms</div>
+              <div class="admin-stage">Close</div>
+            </div>
+            <div class="admin-cols">
+              <div class="admin-panel">
+                <div class="admin-panel-hd"><b>IOIs received</b><span class="accent-pill">7 active</span></div>
+                <div class="admin-panel-body">
+                  <div class="ioi-row"><div><div class="ioi-name">Meridian Family Office</div><div class="ioi-meta">Singapore &middot; 2d ago</div></div><div class="ioi-amt">USD 8M</div><span class="ioi-status appr">Approved</span></div>
+                  <div class="ioi-row"><div><div class="ioi-name">Northwind Capital</div><div class="ioi-meta">Hong Kong &middot; 3d ago</div></div><div class="ioi-amt">USD 12M</div><span class="ioi-status appr">Approved</span></div>
+                  <div class="ioi-row"><div><div class="ioi-name">Brightline Partners</div><div class="ioi-meta">Tokyo &middot; 4d ago</div></div><div class="ioi-amt">USD 5M</div><span class="ioi-status pend">Pending</span></div>
+                  <div class="ioi-row"><div><div class="ioi-name">Halcyon Wealth</div><div class="ioi-meta">Sydney &middot; 5d ago</div></div><div class="ioi-amt">USD 3M</div><span class="ioi-status pend">Pending</span></div>
+                  <div class="ioi-row"><div><div class="ioi-name">Tessera FO</div><div class="ioi-meta">Zurich &middot; 6d ago</div></div><div class="ioi-amt">USD 6M</div><span class="ioi-status appr">Approved</span></div>
+                </div>
+              </div>
+              <div class="admin-panel">
+                <div class="admin-panel-hd"><b>AI scoring</b><span class="accent-pill">v3.1</span></div>
+                <div class="admin-panel-body">
+                  <div class="ai-score"><div class="ai-score-v">78</div><div class="ai-score-l">Composite<br>/ 100</div></div>
+                  <div class="ai-bar"><div class="ai-bar-fill"></div></div>
+                  <div class="ai-line"><span>Sponsor track record</span><span>9.1</span></div>
+                  <div class="ai-line"><span>Structure quality</span><span>7.8</span></div>
+                  <div class="ai-line"><span>Yield vs benchmark</span><span>8.4</span></div>
+                  <div class="ai-line"><span>Doc completeness</span><span>6.5</span></div>
+                  <div class="btn-row"><button class="btn btn-pri">Advance to DD</button><button class="btn btn-sec">Add note</button></div>
+                </div>
+              </div>
+            </div>
+            <div class="admin-panel" style="margin-top:14px">
+              <div class="admin-panel-hd"><b>Audit log</b><span class="accent-pill">14 events</span></div>
+              <div class="admin-panel-body">
+                <div class="audit-row"><span class="audit-dot"></span><span><b>tkj@theaurumcc.com</b> approved IOI from Tessera FO</span><span class="audit-time">2h ago</span></div>
+                <div class="audit-row"><span class="audit-dot gold"></span><span><b>Sarah Lim</b> uploaded Q1 financials to data room</span><span class="audit-time">5h ago</span></div>
+                <div class="audit-row"><span class="audit-dot"></span><span><b>System</b> auto-tagged deal &mdash; Asia, Senior Secured</span><span class="audit-time">1d ago</span></div>
+                <div class="audit-row"><span class="audit-dot gold"></span><span><b>tkj@theaurumcc.com</b> moved deal to Live / IOI</span><span class="audit-time">2d ago</span></div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN / OPTION B -->
+    <div class="frame">
+      <div class="frame-cap"><span class="frame-dot live"></span><span class="frame-cap-label">admin-portal &middot; deal:helios-001</span><span class="frame-cap-tag b">Option B &middot; Champagne</span></div>
+      <div class="mock theme-b">
+        <div class="mock-nav">
+          <span class="mock-wm-tacc">TACC</span>
+          <span class="mock-wm-aurum">AURUM</span>
+          <span class="mock-wm-rule"></span>
+          <span class="mock-wm-prism">PRISM &middot; OPS</span>
+          <div class="mock-tabs">
+            <span class="mock-tab on">Deals</span>
+            <span class="mock-tab">Advisors</span>
+            <span class="mock-tab">Investors</span>
+            <span class="mock-tab">Audit</span>
+          </div>
+          <div class="mock-nav-right"><div class="mock-avatar">TK</div></div>
+        </div>
+        <div class="admin-shell">
+          <aside class="admin-side">
+            <div class="admin-side-eb">Pipeline</div>
+            <div class="admin-side-link"><span class="dot"></span>Review<span class="admin-side-count">04</span></div>
+            <div class="admin-side-link on"><span class="dot"></span>Live / IOI<span class="admin-side-count">12</span></div>
+            <div class="admin-side-link"><span class="dot"></span>Diligence<span class="admin-side-count">06</span></div>
+            <div class="admin-side-link"><span class="dot"></span>Terms<span class="admin-side-count">03</span></div>
+            <div class="admin-side-link"><span class="dot"></span>Closed<span class="admin-side-count">28</span></div>
+            <div class="admin-side-eb">Filter</div>
+            <div class="admin-side-link"><span class="dot"></span>Private Credit</div>
+            <div class="admin-side-link"><span class="dot"></span>Real Assets</div>
+            <div class="admin-side-link"><span class="dot"></span>Venture</div>
+          </aside>
+          <main class="admin-main">
+            <div class="admin-crumb">Deals &nbsp;/&nbsp; Live &nbsp;/&nbsp; <b>Project Helios</b></div>
+            <h3 class="admin-h1">Project <em>Helios</em></h3>
+            <div class="admin-sub">
+              <span>Sponsor &middot; <b>Capital Group SG</b></span>
+              <span>Advisor &middot; <b>Sarah Lim</b></span>
+              <span>Submitted &middot; <b>2026-04-22</b></span>
+              <span>USD <b>45M</b></span>
+            </div>
+            <div class="admin-stage-row">
+              <div class="admin-stage done">Review</div>
+              <div class="admin-stage on">Live / IOI</div>
+              <div class="admin-stage">DD</div>
+              <div class="admin-stage">Terms</div>
+              <div class="admin-stage">Close</div>
+            </div>
+            <div class="admin-cols">
+              <div class="admin-panel">
+                <div class="admin-panel-hd"><b>IOIs received</b><span class="accent-pill">7 active</span></div>
+                <div class="admin-panel-body">
+                  <div class="ioi-row"><div><div class="ioi-name">Meridian Family Office</div><div class="ioi-meta">Singapore &middot; 2d ago</div></div><div class="ioi-amt">USD 8M</div><span class="ioi-status appr">Approved</span></div>
+                  <div class="ioi-row"><div><div class="ioi-name">Northwind Capital</div><div class="ioi-meta">Hong Kong &middot; 3d ago</div></div><div class="ioi-amt">USD 12M</div><span class="ioi-status appr">Approved</span></div>
+                  <div class="ioi-row"><div><div class="ioi-name">Brightline Partners</div><div class="ioi-meta">Tokyo &middot; 4d ago</div></div><div class="ioi-amt">USD 5M</div><span class="ioi-status pend">Pending</span></div>
+                  <div class="ioi-row"><div><div class="ioi-name">Halcyon Wealth</div><div class="ioi-meta">Sydney &middot; 5d ago</div></div><div class="ioi-amt">USD 3M</div><span class="ioi-status pend">Pending</span></div>
+                  <div class="ioi-row"><div><div class="ioi-name">Tessera FO</div><div class="ioi-meta">Zurich &middot; 6d ago</div></div><div class="ioi-amt">USD 6M</div><span class="ioi-status appr">Approved</span></div>
+                </div>
+              </div>
+              <div class="admin-panel">
+                <div class="admin-panel-hd"><b>AI scoring</b><span class="accent-pill">v3.1</span></div>
+                <div class="admin-panel-body">
+                  <div class="ai-score"><div class="ai-score-v">78</div><div class="ai-score-l">Composite<br>/ 100</div></div>
+                  <div class="ai-bar"><div class="ai-bar-fill"></div></div>
+                  <div class="ai-line"><span>Sponsor track record</span><span>9.1</span></div>
+                  <div class="ai-line"><span>Structure quality</span><span>7.8</span></div>
+                  <div class="ai-line"><span>Yield vs benchmark</span><span>8.4</span></div>
+                  <div class="ai-line"><span>Doc completeness</span><span>6.5</span></div>
+                  <div class="btn-row"><button class="btn btn-pri">Advance to DD</button><button class="btn btn-sec">Add note</button></div>
+                </div>
+              </div>
+            </div>
+            <div class="admin-panel" style="margin-top:14px">
+              <div class="admin-panel-hd"><b>Audit log</b><span class="accent-pill">14 events</span></div>
+              <div class="admin-panel-body">
+                <div class="audit-row"><span class="audit-dot"></span><span><b>tkj@theaurumcc.com</b> approved IOI from Tessera FO</span><span class="audit-time">2h ago</span></div>
+                <div class="audit-row"><span class="audit-dot gold"></span><span><b>Sarah Lim</b> uploaded Q1 financials to data room</span><span class="audit-time">5h ago</span></div>
+                <div class="audit-row"><span class="audit-dot"></span><span><b>System</b> auto-tagged deal &mdash; Asia, Senior Secured</span><span class="audit-time">1d ago</span></div>
+                <div class="audit-row"><span class="audit-dot gold"></span><span><b>tkj@theaurumcc.com</b> moved deal to Live / IOI</span><span class="audit-time">2d ago</span></div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================ 4. THREE-WAY COMPARE: CURRENT vs A vs B ============================ -->
+<section class="section">
+  <div class="section-hd">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Delta from today &middot; investor marketplace</h2>
+    <span class="section-note">Live theme on the left. Proposed on the right.</span>
+  </div>
+
+  <div class="compare-grid three">
+
+    <!-- CURRENT -->
+    <div class="frame">
+      <div class="frame-cap"><span class="frame-dot"></span><span class="frame-cap-label">CURRENT live theme</span><span class="frame-cap-tag cur">Today</span></div>
+      <div class="mock theme-current">
+        <div class="mock-nav">
+          <span class="mock-wm-tacc">TACC</span><span class="mock-wm-aurum">AURUM</span>
+          <span class="mock-wm-rule"></span><span class="mock-wm-prism">PRISM</span>
+          <div class="mock-tabs"><span class="mock-tab">Lobby</span><span class="mock-tab on">Marketplace</span><span class="mock-tab">Portfolio</span></div>
+          <div class="mock-nav-right"><div class="mock-bell">&#9788;</div><div class="mock-avatar">JW</div></div>
+        </div>
+        <div class="mock-band"><div class="mock-eb">Live opportunities &middot; 12 open</div><h3 class="mock-band-title">Curated for <em>Jonathan</em></h3><p class="mock-band-sub">Six new mandates entered diligence this week.</p></div>
+        <div class="mock-grid">
+          <div class="mock-card gold"><div class="mock-card-hd"><div class="mock-card-eb">Private Credit <span class="mock-card-stage gold">Live IOI</span></div><div class="mock-card-name">Project Helios</div></div><div class="mock-card-body"><div class="mock-card-meta">Senior secured tranche, Singapore SPV.</div><div class="mock-card-stats"><div><div class="mock-stat-v gold">14.2%</div><div class="mock-stat-l">IRR</div></div><div><div class="mock-stat-v gold">1.8x</div><div class="mock-stat-l">MOIC</div></div><div><div class="mock-stat-v">$45M</div><div class="mock-stat-l">Size</div></div></div></div></div>
+          <div class="mock-card gold"><div class="mock-card-hd"><div class="mock-card-eb">Real Assets <span class="mock-card-stage gold">DD</span></div><div class="mock-card-name">Project Aurora</div></div><div class="mock-card-body"><div class="mock-card-meta">Hospitality real estate.</div><div class="mock-card-stats"><div><div class="mock-stat-v gold">11.5%</div><div class="mock-stat-l">IRR</div></div><div><div class="mock-stat-v gold">2.1x</div><div class="mock-stat-l">MOIC</div></div><div><div class="mock-stat-v">$120M</div><div class="mock-stat-l">Size</div></div></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- A -->
+    <div class="frame">
+      <div class="frame-cap"><span class="frame-dot live"></span><span class="frame-cap-label">PROPOSED &middot; cyan</span><span class="frame-cap-tag a">Option A</span></div>
+      <div class="mock theme-a">
+        <div class="mock-nav">
+          <span class="mock-wm-tacc">TACC</span><span class="mock-wm-aurum">AURUM</span>
+          <span class="mock-wm-rule"></span><span class="mock-wm-prism">PRISM</span>
+          <div class="mock-tabs"><span class="mock-tab">Lobby</span><span class="mock-tab on">Marketplace</span><span class="mock-tab">Portfolio</span></div>
+          <div class="mock-nav-right"><div class="mock-bell">&#9788;</div><div class="mock-avatar">JW</div></div>
+        </div>
+        <div class="mock-band"><div class="mock-eb">Live opportunities &middot; 12 open</div><h3 class="mock-band-title">Curated for <em>Jonathan</em></h3><p class="mock-band-sub">Six new mandates entered diligence this week.</p></div>
+        <div class="mock-grid">
+          <div class="mock-card"><div class="mock-card-hd"><div class="mock-card-eb">Private Credit <span class="mock-card-stage">Live IOI</span></div><div class="mock-card-name">Project Helios</div></div><div class="mock-card-body"><div class="mock-card-meta">Senior secured tranche, Singapore SPV.</div><div class="mock-card-stats"><div><div class="mock-stat-v accent">14.2%</div><div class="mock-stat-l">IRR</div></div><div><div class="mock-stat-v gold">1.8x</div><div class="mock-stat-l">MOIC</div></div><div><div class="mock-stat-v">$45M</div><div class="mock-stat-l">Size</div></div></div></div></div>
+          <div class="mock-card gold"><div class="mock-card-hd"><div class="mock-card-eb">Real Assets <span class="mock-card-stage gold">DD</span></div><div class="mock-card-name">Project Aurora</div></div><div class="mock-card-body"><div class="mock-card-meta">Hospitality real estate.</div><div class="mock-card-stats"><div><div class="mock-stat-v accent">11.5%</div><div class="mock-stat-l">IRR</div></div><div><div class="mock-stat-v gold">2.1x</div><div class="mock-stat-l">MOIC</div></div><div><div class="mock-stat-v">$120M</div><div class="mock-stat-l">Size</div></div></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="frame">
+      <div class="frame-cap"><span class="frame-dot live"></span><span class="frame-cap-label">PROPOSED &middot; champagne</span><span class="frame-cap-tag b">Option B</span></div>
+      <div class="mock theme-b">
+        <div class="mock-nav">
+          <span class="mock-wm-tacc">TACC</span><span class="mock-wm-aurum">AURUM</span>
+          <span class="mock-wm-rule"></span><span class="mock-wm-prism">PRISM</span>
+          <div class="mock-tabs"><span class="mock-tab">Lobby</span><span class="mock-tab on">Marketplace</span><span class="mock-tab">Portfolio</span></div>
+          <div class="mock-nav-right"><div class="mock-bell">&#9788;</div><div class="mock-avatar">JW</div></div>
+        </div>
+        <div class="mock-band"><div class="mock-eb">Live opportunities &middot; 12 open</div><h3 class="mock-band-title">Curated for <em>Jonathan</em></h3><p class="mock-band-sub">Six new mandates entered diligence this week.</p></div>
+        <div class="mock-grid">
+          <div class="mock-card"><div class="mock-card-hd"><div class="mock-card-eb">Private Credit <span class="mock-card-stage">Live IOI</span></div><div class="mock-card-name">Project Helios</div></div><div class="mock-card-body"><div class="mock-card-meta">Senior secured tranche, Singapore SPV.</div><div class="mock-card-stats"><div><div class="mock-stat-v accent">14.2%</div><div class="mock-stat-l">IRR</div></div><div><div class="mock-stat-v gold">1.8x</div><div class="mock-stat-l">MOIC</div></div><div><div class="mock-stat-v">$45M</div><div class="mock-stat-l">Size</div></div></div></div></div>
+          <div class="mock-card gold"><div class="mock-card-hd"><div class="mock-card-eb">Real Assets <span class="mock-card-stage gold">DD</span></div><div class="mock-card-name">Project Aurora</div></div><div class="mock-card-body"><div class="mock-card-meta">Hospitality real estate.</div><div class="mock-card-stats"><div><div class="mock-stat-v accent">11.5%</div><div class="mock-stat-l">IRR</div></div><div><div class="mock-stat-v gold">2.1x</div><div class="mock-stat-l">MOIC</div></div><div><div class="mock-stat-v">$120M</div><div class="mock-stat-l">Size</div></div></div></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================ RECOMMENDATION ============================ -->
+<div class="recommend">
+  <div class="recommend-eb">Recommendation</div>
+  <p>
+    Lead with <b>Option A &middot; Electric Cyan</b>. The cyan ties directly to the "prism / refraction" brand metaphor &mdash; a beam of light passing through a prism produces cyan as one of its primary refractions, which gives the accent a built-in narrative.
+    Cyan also reads as <b>distinct from gold</b>, so the platform can use cyan for "active state / progression / system" and gold for "value / brand / financial figures" without the two ever competing for the same job.
+    Champagne ivory (Option B) is beautiful but it sits too close to gold &mdash; the eye reads them as one warm family, which weakens the visual hierarchy on data-dense screens like the admin deal record.
+  </p>
+</div>
+
+<!-- ============================ DECISION POINTS ============================ -->
+<div class="decision">
+  <div class="decision-eb">Operator decision points</div>
+  <h3 class="decision-h">Five questions before we touch a live portal</h3>
+  <div class="decision-q"><span class="decision-num">01</span><div class="decision-body"><b>Pick A or B?</b><span>Electric cyan (refraction narrative, strong contrast vs gold) or champagne ivory (warmer, more harmonious with gold but less differentiated)?</span></div></div>
+  <div class="decision-q"><span class="decision-num">02</span><div class="decision-body"><b>Gold &mdash; primary accent, or demoted to "financial values only"?</b><span>Today gold does everything: nav active, CTA, IRR figures, brand mark. In Prism Colors, the bright accent (cyan/champagne) takes over CTAs and active state, gold becomes reserved for monetary figures and the brand mark. Confirm this split.</span></div></div>
+  <div class="decision-q"><span class="decision-num">03</span><div class="decision-body"><b>Navy depth &mdash; #0A1228 (cooler) or #0E1A36 (warmer)?</b><span>The two options use slightly different navies. The cooler navy feels more "cinematic / institutional"; the warmer one feels more "old-world private bank". Pick one regardless of accent choice.</span></div></div>
+  <div class="decision-q"><span class="decision-num">04</span><div class="decision-body"><b>Royal purple &mdash; surface 2 or accent only?</b><span>Currently used as a chrome/surface element (left rails, hero glow). Alternative: pull purple into the accent role (e.g. badges, status pills) and drop the bright accent entirely. Three-color scheme is calmer; four-color is more "prism".</span></div></div>
+  <div class="decision-q"><span class="decision-num">05</span><div class="decision-body"><b>Rollout order if approved &mdash; investor first, or all three at once?</b><span>Investor portal is most visible to the customer. Advisor + admin can lag by a week. Or we can ship all three together to avoid mid-flight inconsistency. Pick one.</span></div></div>
+</div>
+
+</body>
+</html>

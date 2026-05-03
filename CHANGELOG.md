@@ -4,6 +4,94 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-03] — Transactional email templates audited and rewritten (`api/_lib/email.js`)
+
+Brought every transactional email up to a single private-bank register voice. No call-site changes — function names and existing parameters preserved; new templates added with consistent naming so wiring can follow in the next pass.
+
+**Voice principles applied across all templates.**
+- Subject lines: `Aurum Prism — <noun phrase>: <deal/firm>` format. 6–9 words, em-dash separator. No emoji, no exclamation, no `[ACTION REQUIRED]` brackets.
+- Greeting: `Dear <First name>,` for member-facing mail; bare body for operator alerts.
+- Opening: states the fact in one sentence — not "We're writing to inform you…".
+- Body: 2–4 short paragraphs, plain English. Numbers, dates, IDs in monospace.
+- One CTA per email: "Open the data room", "Sign in", "View distribution". No stacked buttons.
+- Sign-off: `— The Operator, Aurum Prism` on member mail.
+- Forward-looking IRR figures explicitly framed as illustrative (welcome Day 7, deal-received operator alert).
+
+**Templates rewritten (existing functions, signatures preserved).**
+1. `sendAccessCode` — admission-confirmed register, KYC/NDA prompt added on first session.
+2. `sendDealReceived` — both operator alert and advisor confirmation; advisor side now greets and closes properly, target IRR explicitly marked illustrative.
+3. `sendStageChange` — added entries for `realized` and `killed` stages; reworded `live`, `ioi`, `dd`, `terms`, `close`, `review` to operator-voice.
+4. `sendDataRoomAccess` — proper greeting, single CTA, watermark/confidentiality reminder retained.
+5. `sendAccessApplication` — operator alert tightened.
+6. `sendAdvisorApplication` — applicant ack rewritten in private-bank register.
+7. `sendAdvisorWelcome` — "account active" tone, no "Welcome to Aurum Prism!" hype.
+8. `sendPasswordReset` — six-digit / thirty-minute spelled out.
+9. `sendIoiConfirmation` — now accepts optional `ioi` arg to surface IOI amount; sets explicit five-business-day SLA.
+10. `sendIoiRejection` — gracious, brief, preserves register standing.
+11. `sendDataRoomPackageResponse` — voice match.
+12. `sendQaQuestionToAdvisor` — accepts optional `threadId` for deep link; investor identity explicitly noted as masked.
+13. `sendQaAnswerToInvestor` — accepts optional `threadId` for deep link.
+14. `sendCapitalCallNotice` — accepts new `data = { amount_usd, due_date, call_number }`; renders amount and settlement date in mono table; account numbers explicitly kept off email.
+15. `sendDistributionNotice` — voice polish (legacy, no-amount path).
+16. `sendDistributionNoticeWithAmount` — proper greeting, allocation type and amount in mono table, tax-form reference.
+17. `sendQaReminder` — references advisor scorecard.
+18. `sendNavUpdate` — proper greeting, mono table layout (replaced flexbox which Outlook ignores).
+19. `sendStatementAvailable` — voice polish, tax-form reference.
+20. `sendWelcomeDay2` — rewritten as orientation note (marketplace / IOI / Q&A); preferences link added.
+21. `sendWelcomeDay7` — rewritten as marketplace snapshot; explicit "target IRR is illustrative" line.
+
+**Templates added (new exports — no call sites yet, wiring is a separate task).**
+- `sendAccessApplicationAck` — investor application receipt; sets five-business-day expectation, no "you're in" language.
+- `sendAccessApplicationDeclined` — investor application declined; gracious, no reasoning, twelve-month re-apply window.
+- `sendAdvisorApplicationDeclined` — advisor application declined; same posture.
+- `sendIoiSubmittedToAdvisor` — advisor notification when an investor submits an IOI; investor identity noted as held by operator.
+- `sendComplianceFlag` — KYC / NDA renewal due; sends to investor and to `NOTIFY_EMAILS`. Accepts `data = { type, daysRemaining, expiresOn }`.
+
+**Templates flagged for operator copy approval before deploy.**
+- `sendAccessApplicationDeclined` (rejection copy is sensitive — operator should sign off before any auto-trigger).
+- `sendAdvisorApplicationDeclined` (same — sensitive).
+- `sendComplianceFlag` (mentions possible suspension of new IOI submissions during renewal — operator should confirm this is the policy before sending).
+
+No new dependencies. CSS remains inline. Email visual identity (gold `#C5A572`, ivory `#ece6da`, near-black `#0e0d0c`, mono eyebrows, italic serif headlines) preserved.
+
+---
+
+## [2026-05-03] — Legal & compliance pages added (new files: `privacy.html`, `terms.html`, `risk.html`, `disclosures.html`)
+
+Four standalone legal/compliance pages required for production launch, styled to match the landing page (Cormorant Garamond italic headlines, JetBrains Mono eyebrows, DM Sans/Outfit body, Aurum gold on near-black). Each page opens with an "In short" plain-English summary followed by numbered legal sections.
+
+- **`privacy.html`** — PDPA + GDPR privacy policy. Data categories, lawful bases (contract, legal obligation, legitimate interest, consent), retention windows (KYC 5y per MAS Notice SFA04-N02, deal records 7y post-close), sub-processor list (Vercel, Upstash, Resend, DocuSign, KYC vendor TBD), international transfers note, essential-cookies-only disclosure, full PDPA/GDPR rights enumeration, DPO contact `privacy@theaurumcc.com`.
+- **`terms.html`** — Platform user agreement. Invitation-only / no public offer, eligibility (SG SFA accredited/institutional + US Reg D 506(c)), Member obligations (NDA, no-scrape, no-redistribute watermarked dataroom, no reverse-engineer), IP allocation (TACC retains platform IP / sponsor retains deal IP), suspension at operator discretion, no-advice disclaimer (Prism is not a broker-dealer), liability cap (greater of fees paid or SGD 10,000), Singapore law + SIAC arbitration, survival clauses.
+- **`risk.html`** — Risk disclosure. Headline-risk total-loss warning, twelve specific risk categories (illiquidity, lock-up, no public market, sponsor concentration, FX, jurisdictional, valuation subjectivity, conflicts, leverage, operational, tax), illustrative-returns-not-promises language, suitability test, self-attestation block.
+- **`disclosures.html`** — Regulatory + conflicts. Operating entity register, MAS regulatory status block, service-provider table (fund admin, custodian, auditor, counsel, KYC), fee schedule (platform / management / carry / placement / expenses), conflicts policy (TACC-sponsored deal flagging, affiliated advisors, carry-share disclosure, allocation methodology, personal-account dealing), marketing restrictions, complaints procedure.
+- **Footer linked.** `index.html` footer grid updated from 4 columns (`2fr 1fr 1fr 1fr`) to 5 columns (`2fr 1fr 1fr 1fr 1fr`); new "Legal" column links to all four pages. `cleanUrls: true` in `vercel.json` means files at root resolve at `/privacy`, `/terms`, `/risk`, `/disclosures` — no rewrite rules required.
+
+**Operator must fill before publishing.** All factual gaps are marked with `[PLACEHOLDER — ...]` styled with a dashed gold border so they're impossible to miss in review:
+1. Effective date (appears on all four pages — set to publication date)
+2. TACC Pte Ltd UEN (privacy + terms + disclosures)
+3. TACC registered office address in Singapore (privacy + disclosures)
+4. KYC/AML vendor name + data location (privacy + disclosures)
+5. MAS regulatory classification (RFMC / LFMC / exemption claimed)
+6. MAS licence or registration number
+7. Description of permitted regulated activities
+8. Fund administrator
+9. Custodian
+10. Auditor
+11. Singapore legal counsel
+12. US legal counsel
+13. Compliance contact email (if different from `privacy@theaurumcc.com`)
+14. Fee schedule rates: platform access fee, management fee %, carry % + hurdle + catch-up, placement fee structure
+
+No regulator references, licence numbers, AUM figures, or fee percentages were invented. All forward-looking return language reads "illustrative" / "targeted" / "not a forecast" per house style.
+
+---
+
+## [2026-05-03] — Prism Colors exploration sheet (new file: `prism-colors-explore.html`)
+
+Created a standalone exploration mockup at the repo root for operator review BEFORE any change to live portals. Renders two candidate palettes side-by-side (Option A: dark navy + royal purple + Aurum gold + electric cyan #5FD9E5; Option B: same trio + champagne ivory #F0E4C9) across two highest-impact screens: investor marketplace and admin deal detail. Includes a three-way comparison strip (current live theme vs A vs B), palette swatches with hex codes and CSS variable names, a recommendation block leading with Option A (cyan ties to prism/refraction narrative, stays distinct from gold), and a five-question operator decision block. NO live portal files modified — `index.html`, `admin-portal.html`, `advisor-portal.html`, `investor-portal.html` untouched. Not deployed. Awaiting operator review.
+
+---
+
 ## [2026-05-03] — Hero side label — shortened (`index.html`)
 
 `Capital flows / out of platform` → `Capital / flows out`. Matches the two-line rhythm of the left-side `Deals / flow in` label and reads cleaner.

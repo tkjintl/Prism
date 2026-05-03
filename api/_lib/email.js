@@ -77,79 +77,106 @@ p{font-size:13px;color:#a89f94;line-height:1.7;margin:0 0 12px}
 
 // ── Investor approved + access code ────────────────────────────
 export async function sendAccessCode(investor) {
-  await send(investor.email, 'Your Aurum Prism access has been approved', base('Access Approved',
-    `<h3>Welcome, ${investor.contact_name}.</h3>
-    <p>Your application from <strong style="color:#ede8df">${investor.firm_name}</strong> has been reviewed and approved by Aurum Prism operators.</p>
-    <p>Use the code below to log in at the marketplace:</p>
+  await send(investor.email, 'Aurum Prism — admission confirmed', base('Admission Confirmed',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>The application submitted on behalf of <strong style="color:#ede8df">${investor.firm_name}</strong> has been admitted to the Aurum Prism register.</p>
+    <p>Your access code is below. It is bound to this email address and should not be shared.</p>
     <div class="code-box">${investor.code}</div>
-    <p class="meta">Code tied to your email — do not share</p>
-    <a href="${SITE}/login" class="btn">Enter Marketplace →</a>
-    <p style="margin-top:16px">Log in at <strong style="color:#C5A572">${SITE}/login</strong> with your registered email and this access code.</p>`
+    <p>Sign in at <strong style="color:#C5A572">${SITE}/login</strong> and complete password setup, NDA acknowledgement, and KYC on first session.</p>
+    <a href="${SITE}/login" class="btn">Sign in</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'access-code');
+}
+
+// ── Investor application — applicant confirmation ──────────────
+export async function sendAccessApplicationAck(investor) {
+  await send(investor.email, 'Aurum Prism — application received', base('Application Received',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>Your application on behalf of <strong style="color:#ede8df">${investor.firm_name}</strong> has been received. Admission is by operator review and is not automatic.</p>
+    <p>The review will conclude within five business days. Should we require any further information, we will write to you at this address.</p>
+    <p class="meta">Reference: ${investor.id || investor.email}</p>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
+  ), 'access-application-ack');
+}
+
+// ── Investor application — declined ────────────────────────────
+// Sensitive copy: review with operator before enabling trigger.
+export async function sendAccessApplicationDeclined(investor) {
+  await send(investor.email, 'Aurum Prism — application outcome', base('Application Outcome',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>Thank you for your interest in the Aurum Prism register. We are unable to admit your application at this time.</p>
+    <p>Admission decisions are not accompanied by detailed reasoning. You are welcome to re-apply after twelve months.</p>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
+  ), 'access-application-declined');
 }
 
 // ── Deal submission received ────────────────────────────────────
 export async function sendDealReceived(deal, advisor) {
   const notifyList = (process.env.NOTIFY_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
   if (notifyList.length) {
-    await send(notifyList, `New deal submission: ${deal.name}`,
-      base('Deal Submission', `<h3>New deal submitted.</h3>
-      <p><strong style="color:#ede8df">${deal.name}</strong> has been submitted by ${advisor.firm_name} (${advisor.name}) and is under review.</p>
+    await send(notifyList, `Aurum Prism — deal submitted: ${deal.name}`,
+      base('Deal Submission', `<h3>Deal submitted for review.</h3>
+      <p><strong style="color:#ede8df">${deal.name}</strong> has been submitted by ${advisor.name}, ${advisor.firm_name}.</p>
       <p>Deal ID: <span style="color:#C5A572;font-family:monospace">${deal.id}</span><br>
-      Type: ${deal.asset_class}<br>Allocation: ${deal.target_alloc_usd ? '$'+Number(deal.target_alloc_usd).toLocaleString() : '—'}<br>
-      Target IRR: ${deal.target_irr || '—'}%</p>
-      <a href="${SITE}/control" class="btn">Review in Control Panel →</a>`),
+      Asset class: ${deal.asset_class || '—'}<br>
+      Target allocation: ${deal.target_alloc_usd ? '$'+Number(deal.target_alloc_usd).toLocaleString() : '—'}<br>
+      Target IRR (illustrative): ${deal.target_irr ? deal.target_irr + '%' : '—'}</p>
+      <a href="${SITE}/admin-portal" class="btn">Open in control panel</a>`),
     'deal-received-operator');
   }
-  // Confirm to advisor
-  await send(advisor.email, `Deal received: ${deal.name}`, base('Deal Received',
-    `<h3>We've received your submission.</h3>
-    <p>Your deal <strong style="color:#ede8df">${deal.name}</strong> has been submitted to Aurum Prism for review. You'll receive a notification when the status changes.</p>
-    <p>Deal ID: <span style="color:#C5A572;font-family:monospace">${deal.id}</span></p>
-    <a href="${SITE}/advisor" class="btn">View in Advisor Portal →</a>`
+  await send(advisor.email, `Aurum Prism — submission received: ${deal.name}`, base('Submission Received',
+    `<h3>Dear ${advisor.name},</h3>
+    <p>Your submission, <strong style="color:#ede8df">${deal.name}</strong>, has been received and entered the operator review queue.</p>
+    <p>You will be notified when the deal advances stage. Should the operator require further documentation or commentary before publishing, we will write to you at this address.</p>
+    <p class="meta">Deal ID: ${deal.id}</p>
+    <a href="${SITE}/advisor-portal" class="btn">Open advisor portal</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'deal-received-advisor');
 }
 
 // ── Stage change notification to advisor ───────────────────────
 export async function sendStageChange(deal, advisor, newStage) {
   const stageMessages = {
-    live:   { line: 'Your deal is now live on the marketplace.', detail: 'It is visible to all admitted investors and IOIs may begin.' },
-    ioi:    { line: 'Your deal has entered the IOI stage.', detail: 'Investors are indicating interest. You can track IOI activity in your portal.' },
-    dd:     { line: 'Your deal has advanced to Due Diligence.', detail: 'Operators are conducting deeper analysis. Please ensure all requested documents are uploaded.' },
-    terms:  { line: 'Your deal has reached the Term Sheet stage.', detail: 'Operators will be issuing term sheets to allocated investors. Please stand by for further instructions.' },
-    close:  { line: 'Your deal is in the Closing stage.', detail: 'Capital is being called. Platform operators will coordinate the closing process.' },
-    review: { line: 'Your deal has been returned to Review.', detail: 'Operators have questions or require additional information. Check your Messages tab.' },
+    live:     { line: 'The deal has been published to the admitted investor register.', detail: 'Indications of interest may now be received.' },
+    ioi:      { line: 'The deal has entered the indication-of-interest window.', detail: 'IOI activity is visible in the advisor portal. The operator will return an aggregated package once the window closes.' },
+    dd:       { line: 'The deal has advanced to due diligence.', detail: 'Approved investors hold data room access. Q&A is open; responses are expected within 48 hours.' },
+    terms:    { line: 'The deal has advanced to term sheet.', detail: 'The operator will issue term sheets to allocated investors. No direct contact with investors is permitted at this stage.' },
+    close:    { line: 'The deal has advanced to close.', detail: 'Capital calls are in flight. The operator coordinates wire receipt and subscription document execution.' },
+    realized: { line: 'The deal has been marked realized.', detail: 'Final distributions and the closing statement will be issued via the investor portal.' },
+    killed:   { line: 'The deal has been withdrawn.', detail: 'No further investor activity will be accepted. Please contact the operator if you wish to discuss next steps.' },
+    review:   { line: 'The deal has been returned to review.', detail: 'The operator requires additional information or commentary. See the Messages tab in your portal.' },
   };
-  const msg = stageMessages[newStage] || { line: `Stage updated to: ${newStage}`, detail: '' };
-  await send(advisor.email, `Deal update: ${deal.name} — ${newStage.toUpperCase()}`, base('Deal Update',
+  const msg = stageMessages[newStage] || { line: `Stage updated to ${newStage}.`, detail: '' };
+  await send(advisor.email, `Aurum Prism — ${deal.name}: stage ${newStage}`, base('Deal Update',
     `<h3>${deal.name}</h3>
-    <p style="color:#C5A572;font-family:monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase">Stage: ${newStage}</p>
+    <p style="color:#C5A572;font-family:monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase">Stage · ${newStage}</p>
     <p>${msg.line}</p>
-    <p>${msg.detail}</p>
-    <a href="${SITE}/advisor" class="btn">View in Advisor Portal →</a>`
+    ${msg.detail ? `<p>${msg.detail}</p>` : ''}
+    <a href="${SITE}/advisor-portal" class="btn">Open advisor portal</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'stage-change');
 }
 
 // ── IOI data room access granted ───────────────────────────────
 export async function sendDataRoomAccess(investor, deal) {
-  await send(investor.email, `Data room access granted: ${deal.name}`, base('Data Room Open',
-    `<h3>Data room access granted.</h3>
-    <p>Your indication of interest on <strong style="color:#ede8df">${deal.name}</strong> has been approved.</p>
-    <p>You now have access to the full data room including the CIM, financial model, and all available documentation. All downloads are watermarked with your identity.</p>
-    <a href="${SITE}/marketplace" class="btn">Access Data Room →</a>
-    <p style="margin-top:12px;font-size:11px;color:#635e58">All documents are confidential. Do not distribute without written consent from the platform operator.</p>`
+  await send(investor.email, `Aurum Prism — data room open: ${deal.name}`, base('Data Room Open',
+    `<h3>Dear ${investor.contact_name || 'Investor'},</h3>
+    <p>Your indication of interest in <strong style="color:#ede8df">${deal.name}</strong> has been approved by the operator. The data room is now open to you.</p>
+    <p>It contains the CIM, financial model, and supporting documentation. Each document is watermarked with your identity on download. Materials are confidential and may not be distributed without written consent from the operator.</p>
+    <a href="${SITE}/investor-portal" class="btn">Open the data room</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'data-room-access');
 }
 
-// ── New investor access application ────────────────────────────
+// ── New investor access application — operator alert ───────────
 export async function sendAccessApplication(investor) {
   const notifyList = (process.env.NOTIFY_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
   if (!notifyList.length) return;
-  await send(notifyList, `New access application: ${investor.firm_name}`, base('Access Application',
-    `<h3>New institutional access request.</h3>
-    <p><strong style="color:#ede8df">${investor.firm_name}</strong> (${investor.contact_name}) has applied for access.</p>
-    <p>Type: ${investor.institution_type}<br>AUM: ${investor.aum_range}<br>Ticket: ${investor.ticket_range}</p>
-    <a href="${SITE}/control" class="btn">Review Application →</a>`
+  await send(notifyList, `Aurum Prism — investor application: ${investor.firm_name}`, base('Access Application',
+    `<h3>Investor application received.</h3>
+    <p><strong style="color:#ede8df">${investor.firm_name}</strong> (${investor.contact_name}) has applied for admission.</p>
+    <p>Type: ${investor.institution_type || '—'}<br>AUM: ${investor.aum_range || '—'}<br>Typical ticket: ${investor.ticket_range || '—'}</p>
+    <a href="${SITE}/admin-portal" class="btn">Review application</a>`
   ), 'access-application');
 }
 
@@ -179,28 +206,42 @@ export async function sendAdvisorApplication(application) {
   }
   // Applicant confirmation — private-bank register, brief
   await send(application.email,
-    'Your Aurum Prism advisor application has been received',
+    'Aurum Prism — advisor application received',
     base('Application Received',
-      `<h3>Thank you, ${application.name}.</h3>
-      <p>We have received your application to onboard as a deal advisor on Aurum Prism on behalf of <strong style="color:#ede8df">${application.firm}</strong>.</p>
-      <p>Our operations team will review your submission and respond within five business days. Should we require any further information to complete our review, we will be in touch directly at this address.</p>
-      <p class="meta">Reference: ${application.id}</p>`),
+      `<h3>Dear ${application.name},</h3>
+      <p>Your application for advisor admission, on behalf of <strong style="color:#ede8df">${application.firm}</strong>, has been received. Admission is by operator review.</p>
+      <p>The review will conclude within five business days. Should we require additional information, we will write to you at this address.</p>
+      <p class="meta">Reference: ${application.id}</p>
+      <p style="margin-top:18px">— The Operator, Aurum Prism</p>`),
     'advisor-application-ack');
+}
+
+// ── Advisor application — declined ─────────────────────────────
+// Sensitive copy: review with operator before enabling trigger.
+export async function sendAdvisorApplicationDeclined(application) {
+  await send(application.email,
+    'Aurum Prism — advisor application outcome',
+    base('Application Outcome',
+      `<h3>Dear ${application.name},</h3>
+      <p>Thank you for your interest in joining the Aurum Prism advisor panel. We are unable to admit your application at this time.</p>
+      <p>Admission decisions are not accompanied by detailed reasoning. You are welcome to re-apply after twelve months.</p>
+      <p style="margin-top:18px">— The Operator, Aurum Prism</p>`),
+    'advisor-application-declined');
 }
 
 // ── Advisor welcome + credentials ──────────────────────────────
 export async function sendAdvisorWelcome(advisor, tempPassword) {
-  await send(advisor.email, 'Your Aurum Prism advisor account is ready', base('Welcome',
-    `<h3>Welcome to Aurum Prism, ${advisor.name}.</h3>
-    <p>Your advisor account for <strong style="color:#ede8df">${advisor.firm_name}</strong> has been created.</p>
-    <p>Log in at <strong style="color:#C5A572">${SITE}/login</strong> with:</p>
+  await send(advisor.email, 'Aurum Prism — advisor account active', base('Account Active',
+    `<h3>Dear ${advisor.name},</h3>
+    <p>Your advisor account for <strong style="color:#ede8df">${advisor.firm_name}</strong> has been admitted to the Aurum Prism panel. Sign-in credentials are below.</p>
     <div style="background:#09090a;border:1px solid rgba(197,165,114,.2);padding:14px 18px;margin:14px 0;font-family:monospace;font-size:12px">
     <div style="color:#635e58;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">Email</div>
     <div style="color:#ede8df">${advisor.email}</div>
-    <div style="color:#635e58;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-top:8px;margin-bottom:6px">Temporary Password</div>
+    <div style="color:#635e58;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-top:8px;margin-bottom:6px">Temporary password</div>
     <div style="color:#C5A572">${tempPassword}</div></div>
-    <p>You will be prompted to set a new password on first login.</p>
-    <a href="${SITE}/login" class="btn">Log In →</a>`
+    <p>You will be required to set a new password on first sign-in.</p>
+    <a href="${SITE}/login" class="btn">Sign in</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'advisor-welcome');
 }
 
@@ -365,91 +406,122 @@ export async function sendIoiPackage(data) {
 
 // ── Password reset code ────────────────────────────────────────
 export async function sendPasswordReset(email, code) {
-  await send(email, 'Reset your Aurum Prism password', base('Password Reset',
+  await send(email, 'Aurum Prism — password reset code', base('Password Reset',
     `<h3>Password reset requested.</h3>
-    <p>Use the 6-digit code below to reset your password. The code expires in 30 minutes.</p>
+    <p>Use the six-digit code below to set a new password. The code expires in thirty minutes.</p>
     <div class="code-box">${code}</div>
-    <p>If you did not request this, you can ignore this email. Your password will not change.</p>`
+    <p>If you did not initiate this request, no action is required. Your password will not change.</p>`
   ), 'password-reset');
 }
 
-// ── IOI confirmation to investor (6a) ─────────────────────────
-export async function sendIoiConfirmation(investor, deal) {
-  await send(investor.email, `Expression of interest received: ${deal.name}`, base('IOI Received',
-    `<h3>Your expression of interest has been received.</h3>
-    <p>Your indication of interest for <strong style="color:#ede8df">${deal.name}</strong> has been received. Our team will review it and be in touch.</p>
-    <a href="${SITE}/investor-portal" class="btn">View in Investor Portal →</a>`
+// ── IOI confirmation to investor ──────────────────────────────
+export async function sendIoiConfirmation(investor, deal, ioi) {
+  const amount = ioi && ioi.amount_usd ? '$' + Number(ioi.amount_usd).toLocaleString() : null;
+  await send(investor.email, `Aurum Prism — IOI received: ${deal.name}`, base('IOI Received',
+    `<h3>Dear ${investor.contact_name || 'Investor'},</h3>
+    <p>Your indication of interest in <strong style="color:#ede8df">${deal.name}</strong>${amount ? ` for <span style="font-family:monospace;color:#C5A572">${amount}</span>` : ''} has been recorded.</p>
+    <p>The operator will return the allocation outcome within five business days. If your IOI is approved, the data room will be opened to you and Q&amp;A will be enabled.</p>
+    <a href="${SITE}/investor-portal" class="btn">Open investor portal</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'ioi-confirmation');
 }
 
-// ── IOI rejection to investor (6b) ────────────────────────────
+// ── IOI submitted — advisor notification ──────────────────────
+export async function sendIoiSubmittedToAdvisor(advisor, deal, ioi) {
+  const amount = ioi && ioi.amount_usd ? '$' + Number(ioi.amount_usd).toLocaleString() : null;
+  await send(advisor.email, `Aurum Prism — IOI received: ${deal.name}`, base('IOI Received',
+    `<h3>${deal.name}</h3>
+    <p>An indication of interest has been received${amount ? ` for <span style="font-family:monospace;color:#C5A572">${amount}</span>` : ''}.</p>
+    <p>Investor identity is held by the operator per compliance policy. The aggregated IOI package will be sent once the window closes or on operator request.</p>
+    <a href="${SITE}/advisor-portal" class="btn">Open advisor portal</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
+  ), 'ioi-submitted-advisor');
+}
+
+// ── IOI declined to investor ──────────────────────────────────
 export async function sendIoiRejection(investor, deal) {
-  await send(investor.email, `Update on your expression of interest: ${deal.name}`, base('IOI Update',
-    `<h3>Expression of interest update.</h3>
-    <p>Thank you for your interest in <strong style="color:#ede8df">${deal.name}</strong>. After review, your indication of interest was not progressed at this time.</p>
-    <p>You may be considered for future opportunities. Please contact your relationship manager if you have questions.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Marketplace →</a>`
+  await send(investor.email, `Aurum Prism — IOI outcome: ${deal.name}`, base('IOI Outcome',
+    `<h3>Dear ${investor.contact_name || 'Investor'},</h3>
+    <p>Following operator review, your indication of interest in <strong style="color:#ede8df">${deal.name}</strong> has not been progressed at this time.</p>
+    <p>This decision does not affect your standing on the register. You will continue to receive deal notifications matched to your stated mandate.</p>
+    <a href="${SITE}/investor-portal" class="btn">View marketplace</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'ioi-rejection');
 }
 
-// ── IOI package response — data room access confirmation to investor (6c) ──
+// ── Package response — data room access confirmation to investor ──
 export async function sendDataRoomPackageResponse(investor, deal) {
-  await send(investor.email, `Data room access confirmed: ${deal.name}`, base('Data Room Access',
-    `<h3>Your data room access has been granted.</h3>
-    <p>Your request for full documentation on <strong style="color:#ede8df">${deal.name}</strong> has been processed. You now have access to the complete data room.</p>
-    <p>All documents are confidential and watermarked with your identity. Do not distribute without written consent from the platform operator.</p>
-    <a href="${SITE}/investor-portal" class="btn">Access Data Room →</a>`
+  await send(investor.email, `Aurum Prism — data room confirmed: ${deal.name}`, base('Data Room Confirmed',
+    `<h3>Dear ${investor.contact_name || 'Investor'},</h3>
+    <p>Your request for full documentation on <strong style="color:#ede8df">${deal.name}</strong> has been processed. The data room is open to you.</p>
+    <p>Materials are watermarked with your identity on download and may not be distributed without written consent from the operator.</p>
+    <a href="${SITE}/investor-portal" class="btn">Open the data room</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'data-room-package-response');
 }
 
-// ── Q&A question notification to advisor (6d) ─────────────────
-export async function sendQaQuestionToAdvisor(advisor, deal, question) {
-  const preview = question.length > 100 ? question.slice(0, 100) + '…' : question;
-  await send(advisor.email, `New question on ${deal.name}`, base('Q&A Question',
-    `<h3>A question has been submitted.</h3>
-    <p>An investor has submitted a question on <strong style="color:#ede8df">${deal.name}</strong>:</p>
+// ── Q&A question notification to advisor ──────────────────────
+export async function sendQaQuestionToAdvisor(advisor, deal, question, threadId) {
+  const preview = question.length > 200 ? question.slice(0, 200) + '…' : question;
+  const link = threadId ? `${SITE}/advisor-portal?deal=${deal.id}&thread=${threadId}` : `${SITE}/advisor-portal?deal=${deal.id}`;
+  await send(advisor.email, `Aurum Prism — Q&A question: ${deal.name}`, base('Q&A Question',
+    `<h3>${deal.name}</h3>
+    <p>An approved investor has submitted a question through the secure Q&amp;A thread:</p>
     <blockquote style="border-left:2px solid rgba(197,165,114,.4);padding:10px 16px;margin:16px 0;color:#ede8df;font-style:italic">${preview}</blockquote>
-    <p>Please log in to your advisor portal to respond. Timely responses are expected within 48 hours.</p>
-    <a href="${SITE}/advisor-portal" class="btn">Answer in Advisor Portal →</a>`
+    <p>A response is expected within 48 hours. Investor identity is masked per compliance policy.</p>
+    <a href="${link}" class="btn">Open thread</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'qa-question-to-advisor');
 }
 
-// ── Q&A answer delivery to investor (6e) ──────────────────────
-export async function sendQaAnswerToInvestor(investor, deal) {
-  await send(investor.email, `Your question on ${deal.name} has been answered`, base('Q&A Answer',
-    `<h3>Your question has been answered.</h3>
-    <p>The advisor for <strong style="color:#ede8df">${deal.name}</strong> has responded to your question. Log in to view the full response in the Q&A thread.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Response →</a>`
+// ── Q&A answer delivery to investor ───────────────────────────
+export async function sendQaAnswerToInvestor(investor, deal, threadId) {
+  const link = threadId ? `${SITE}/investor-portal?deal=${deal.id}&thread=${threadId}` : `${SITE}/investor-portal?deal=${deal.id}`;
+  await send(investor.email, `Aurum Prism — Q&A response: ${deal.name}`, base('Q&A Response',
+    `<h3>Dear ${investor.contact_name || 'Investor'},</h3>
+    <p>The advisor on <strong style="color:#ede8df">${deal.name}</strong> has responded to your question. The full response is in the Q&amp;A thread.</p>
+    <a href="${link}" class="btn">Open thread</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'qa-answer-to-investor');
 }
 
-// ── Capital call notice to investor (6f) ──────────────────────
-export async function sendCapitalCallNotice(investor, deal) {
-  await send(investor.email, `Capital call notice: ${deal.name}`, base('Capital Call',
-    `<h3>Capital call notice issued.</h3>
-    <p>A capital call notice has been issued for <strong style="color:#ede8df">${deal.name}</strong>. Please log in to view full details and wire instructions.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Details →</a>
-    <p style="margin-top:12px;font-size:11px;color:#635e58">Wire instructions and full call documentation are available in your investor portal. Contact your relationship manager if you have questions.</p>`
+// ── Capital call notice to investor ───────────────────────────
+// data: { amount_usd, due_date, call_number }
+export async function sendCapitalCallNotice(investor, deal, data = {}) {
+  const amount = data.amount_usd != null ? '$' + Number(data.amount_usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null;
+  const dueStr = data.due_date ? new Date(data.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : null;
+  const callNo = data.call_number ? ` (Call ${data.call_number})` : '';
+  await send(investor.email, `Aurum Prism — capital call: ${deal.name}`, base('Capital Call',
+    `<h3>Dear ${investor.contact_name || 'Investor'},</h3>
+    <p>A capital call notice has been issued for your position in <strong style="color:#ede8df">${deal.name}</strong>${callNo}.</p>
+    ${(amount || dueStr) ? `<div style="background:#09090a;border:1px solid rgba(197,165,114,.2);padding:14px 18px;margin:14px 0;font-family:monospace;font-size:12px">
+    ${amount ? `<div style="color:#635e58;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">Amount due</div><div style="color:#C5A572;font-size:16px;margin-bottom:10px">${amount}</div>` : ''}
+    ${dueStr ? `<div style="color:#635e58;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">Settlement date</div><div style="color:#ede8df">${dueStr}</div>` : ''}
+    </div>` : ''}
+    <p>Wire instructions and the full call notice are available in the investor portal. Account details are not transmitted by email.</p>
+    <a href="${SITE}/investor-portal" class="btn">Open call notice</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'capital-call');
 }
 
-// ── Distribution notice to investor (6g) ──────────────────────
+// ── Distribution notice to investor (legacy, no amount) ───────
 export async function sendDistributionNotice(investor, deal) {
-  await send(investor.email, `Distribution notice: ${deal.name}`, base('Distribution',
-    `<h3>Distribution processed.</h3>
-    <p>A distribution has been processed for your position in <strong style="color:#ede8df">${deal.name}</strong>. Please log in to view details.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Details →</a>`
+  await send(investor.email, `Aurum Prism — distribution notice: ${deal.name}`, base('Distribution',
+    `<h3>Dear ${investor.contact_name || 'Investor'},</h3>
+    <p>A distribution has been processed against your position in <strong style="color:#ede8df">${deal.name}</strong>. Allocation type and amount are itemised in the investor portal.</p>
+    <a href="${SITE}/investor-portal" class="btn">View distribution</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'distribution');
 }
 
-// ── Q&A 48h reminder to advisor (Item 7) ──────────────────────
-// data: { advisor_email, deal_name, question_count }
+// ── Q&A 48h reminder to advisor ───────────────────────────────
 export async function sendQaReminder(advisor, dealName, questionCount) {
-  await send(advisor.email, `Unanswered questions on ${dealName}`, base('Q&A Reminder',
-    `<h3>Questions awaiting your response.</h3>
-    <p>You have <strong style="color:#ede8df">${questionCount} unanswered question${questionCount !== 1 ? 's' : ''}</strong> on <strong style="color:#ede8df">${dealName}</strong>.</p>
-    <p>Please respond within 24 hours. Investors expect timely engagement during the due diligence period.</p>
-    <a href="${SITE}/advisor-portal" class="btn">Answer Questions →</a>`
+  await send(advisor.email, `Aurum Prism — Q&A overdue: ${dealName}`, base('Q&A Overdue',
+    `<h3>${dealName}</h3>
+    <p>${questionCount} question${questionCount !== 1 ? 's' : ''} on <strong style="color:#ede8df">${dealName}</strong> ${questionCount !== 1 ? 'remain' : 'remains'} unanswered beyond the 48-hour service standard.</p>
+    <p>Please respond within 24 hours. Persistent overdue threads are reported in the operator's monthly advisor scorecard.</p>
+    <a href="${SITE}/advisor-portal" class="btn">Open Q&amp;A</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'qa-reminder');
 }
 
@@ -459,33 +531,31 @@ export async function sendNavUpdate(investor, data) {
   const navFormatted = data.navPerUnit != null ? `$${Number(data.navPerUnit).toLocaleString()}` : '—';
   const totalFormatted = data.totalNavUsd != null ? `$${Number(data.totalNavUsd).toLocaleString()}` : '—';
   const dateStr = data.asOfDate ? new Date(data.asOfDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—';
-  await send(investor.email, `NAV Update — ${data.dealName}`, base('NAV Update',
-    `<h3>NAV Update — ${data.dealName}</h3>
-    <p>A new net asset value has been posted for <strong style="color:#ede8df">${data.dealName}</strong>.</p>
+  await send(investor.email, `Aurum Prism — NAV update: ${data.dealName}`, base('NAV Update',
+    `<h3>${data.dealName}</h3>
+    <p>A revised net asset value has been posted for <strong style="color:#ede8df">${data.dealName}</strong>.</p>
     <div style="background:#09090a;border:1px solid rgba(197,165,114,.2);padding:16px 20px;margin:16px 0">
       <div style="font-family:monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(197,165,114,.5);margin-bottom:10px">As of ${dateStr}</div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:12px;color:#a89f94">NAV per unit</span>
-        <span style="font-family:monospace;font-size:14px;color:#C5A572">${navFormatted}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between">
-        <span style="font-size:12px;color:#a89f94">Total fund NAV</span>
-        <span style="font-family:monospace;font-size:14px;color:#ede8df">${totalFormatted}</span>
-      </div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td style="font-size:12px;color:#a89f94;padding:4px 0">NAV per unit</td><td align="right" style="font-family:monospace;font-size:14px;color:#C5A572;padding:4px 0">${navFormatted}</td></tr>
+        <tr><td style="font-size:12px;color:#a89f94;padding:4px 0">Total fund NAV</td><td align="right" style="font-family:monospace;font-size:14px;color:#ede8df;padding:4px 0">${totalFormatted}</td></tr>
+      </table>
     </div>
-    <p>Log in to your investor portal to view full details and your position statement.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Position →</a>`
+    <p>Your position statement is available in the investor portal.</p>
+    <a href="${SITE}/investor-portal" class="btn">View position</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'nav-update');
 }
 
 // ── Quarterly statement available notification (Phase 4) ───────
 // data: { dealName, period }
 export async function sendStatementAvailable(investor, data) {
-  await send(investor.email, `Quarterly statement available — ${data.dealName} ${data.period}`, base('Statement Available',
-    `<h3>Your quarterly statement is available.</h3>
-    <p>Your <strong style="color:#ede8df">${data.period}</strong> statement for <strong style="color:#ede8df">${data.dealName}</strong> has been generated and is available in your investor portal.</p>
-    <p>The statement reflects your position NAV and any distributions processed during the period.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Statement →</a>`
+  await send(investor.email, `Aurum Prism — ${data.period} statement: ${data.dealName}`, base('Statement Available',
+    `<h3>Dear ${investor.contact_name || 'Investor'},</h3>
+    <p>Your <strong style="color:#ede8df">${data.period}</strong> statement for <strong style="color:#ede8df">${data.dealName}</strong> is available. It records position NAV, capital activity, and distributions over the period.</p>
+    <p>Tax forms, where applicable, accompany the statement in the documents tab.</p>
+    <a href="${SITE}/investor-portal" class="btn">View statement</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'statement-available');
 }
 
@@ -496,46 +566,45 @@ export async function sendDistributionNoticeWithAmount(investor, data) {
   const typeLabel = typeLabels[data.distributionType] || 'Distribution';
   const amtFormatted = data.investorAmount != null ? `$${Number(data.investorAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—';
   const dateStr = data.distributionDate ? new Date(data.distributionDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—';
-  await send(investor.email, `Distribution Notice — ${data.dealName}`, base('Distribution Notice',
-    `<h3>Distribution Notice — ${data.dealName}</h3>
-    <p>A <strong style="color:#ede8df">${typeLabel}</strong> has been processed for your position in <strong style="color:#ede8df">${data.dealName}</strong>.</p>
+  await send(investor.email, `Aurum Prism — distribution: ${data.dealName}`, base('Distribution Notice',
+    `<h3>${data.dealName}</h3>
+    <p>Dear ${investor.contact_name || 'Investor'},</p>
+    <p>A <strong style="color:#ede8df">${typeLabel.toLowerCase()}</strong> has been processed against your position in <strong style="color:#ede8df">${data.dealName}</strong>.</p>
     <div style="background:#09090a;border:1px solid rgba(197,165,114,.2);padding:16px 20px;margin:16px 0">
       <div style="font-family:monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(197,165,114,.5);margin-bottom:10px">${dateStr}</div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:12px;color:#a89f94">Type</span>
-        <span style="font-size:12px;color:#ede8df">${typeLabel}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between">
-        <span style="font-size:12px;color:#a89f94">Your amount</span>
-        <span style="font-family:monospace;font-size:16px;color:#C5A572">${amtFormatted}</span>
-      </div>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td style="font-size:12px;color:#a89f94;padding:4px 0">Allocation type</td><td align="right" style="font-size:12px;color:#ede8df;padding:4px 0">${typeLabel}</td></tr>
+        <tr><td style="font-size:12px;color:#a89f94;padding:4px 0">Amount to your account</td><td align="right" style="font-family:monospace;font-size:16px;color:#C5A572;padding:4px 0">${amtFormatted}</td></tr>
+      </table>
     </div>
-    <p>Please log in to view full distribution details and confirm receipt with your relationship manager.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Details →</a>`
+    <p>The full notice and any associated tax form are available in the investor portal. Please confirm receipt of funds against the bank reference once settled.</p>
+    <a href="${SITE}/investor-portal" class="btn">View distribution</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
   ), 'distribution-with-amount');
 }
 
-// ── Investor welcome sequence Day 2 (Phase 4) ──────────────────
+// ── Investor welcome sequence Day 2 ────────────────────────────
 export async function sendWelcomeDay2(investor) {
-  await send(investor.email, `Getting started on Aurum Prism`, base('Welcome to Prism',
-    `<h3>Welcome to Aurum Prism, ${investor.contact_name}.</h3>
-    <p>Your account is active. Here is a quick guide to getting started:</p>
+  await send(investor.email, 'Aurum Prism — orientation', base('Orientation',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>A short note on how the platform operates, now that your account is active.</p>
     <div style="background:#09090a;border:1px solid rgba(197,165,114,.15);padding:16px 20px;margin:16px 0">
-      <div style="margin-bottom:12px">
-        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">1. Explore the Marketplace</div>
-        <div style="font-size:12px;color:#a89f94;line-height:1.6">Browse current private credit and equity opportunities selected for Aurum Prism members.</div>
+      <div style="margin-bottom:14px">
+        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">Marketplace</div>
+        <div style="font-size:12px;color:#a89f94;line-height:1.6">Live deals are private credit, pre-IPO equity, real estate, and infrastructure across the US and Asia. Each carries an operator-prepared brief before the data room opens.</div>
       </div>
-      <div style="margin-bottom:12px">
-        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">2. Submit an Indication of Interest</div>
-        <div style="font-size:12px;color:#a89f94;line-height:1.6">When you find a deal that matches your mandate, submit an IOI to request full data room access. Platform operators review all IOIs within 48 hours.</div>
+      <div style="margin-bottom:14px">
+        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">Indication of interest</div>
+        <div style="font-size:12px;color:#a89f94;line-height:1.6">An IOI signals mandate fit and a target ticket. The operator returns an allocation outcome within five business days. Approval opens the data room and the Q&amp;A thread.</div>
       </div>
       <div>
-        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">3. Q&amp;A with Deal Advisors</div>
-        <div style="font-size:12px;color:#a89f94;line-height:1.6">Once your IOI is approved, you can submit questions directly to the deal advisor through the secure Q&amp;A thread.</div>
+        <div style="font-family:monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#C5A572;margin-bottom:4px">Q&amp;A and direct contact</div>
+        <div style="font-size:12px;color:#a89f94;line-height:1.6">All advisor contact runs through the secure Q&amp;A thread. The operator holds investor identities; advisors do not see your firm by name.</div>
       </div>
     </div>
-    <a href="${SITE}/investor-portal" class="btn">Open Investor Portal →</a>
-    <p style="margin-top:16px;font-size:11px;color:#635e58">Questions? Reach your relationship manager at <a href="mailto:prism@theaurumcc.com" style="color:#C5A572">prism@theaurumcc.com</a></p>`
+    <a href="${SITE}/investor-portal" class="btn">Open investor portal</a>
+    <p style="margin-top:16px;font-size:11px;color:#635e58">Direct queries to <a href="mailto:prism@theaurumcc.com" style="color:#C5A572">prism@theaurumcc.com</a>.<br>Manage email preferences at <a href="${SITE}/investor-portal#settings" style="color:#C5A572">${SITE}/investor-portal#settings</a>.</p>
+    <p style="margin-top:14px">— The Operator, Aurum Prism</p>`
   ), 'welcome-day2');
 }
 
@@ -549,12 +618,41 @@ export async function sendWelcomeDay7(investor, data) {
       ${d.target_irr ? `<span style="font-size:11px;color:#a89f94;margin-left:6px">· ${d.target_irr}% target IRR</span>` : ''}
     </div>`
   ).join('');
-  await send(investor.email, `Your Aurum Prism account — a quick check-in`, base('Prism Check-In',
-    `<h3>A quick check-in, ${investor.contact_name}.</h3>
-    <p>You have been a member of Aurum Prism for one week. Here is what is currently open on the marketplace:</p>
-    ${dealList ? `<div style="background:#09090a;border:1px solid rgba(197,165,114,.15);padding:12px 16px;margin:16px 0">${dealList}</div>` : '<p style="color:#a89f94">No active deals at this time — new opportunities are added regularly.</p>'}
-    <p>If you have any questions about the platform, deal flow, or your membership, please contact your relationship manager.</p>
-    <a href="${SITE}/investor-portal" class="btn">View Open Deals →</a>
-    <p style="margin-top:16px;font-size:11px;color:#635e58">Reply to this email or contact <a href="mailto:prism@theaurumcc.com" style="color:#C5A572">prism@theaurumcc.com</a> with any questions.</p>`
+  await send(investor.email, 'Aurum Prism — current marketplace', base('Marketplace Snapshot',
+    `<h3>Dear ${investor.contact_name},</h3>
+    <p>One week on the register. The deals currently open to you are below.</p>
+    ${dealList ? `<div style="background:#09090a;border:1px solid rgba(197,165,114,.15);padding:12px 16px;margin:16px 0">${dealList}</div>` : '<p style="color:#a89f94">No deals are open at the moment. New opportunities are added as they pass operator review.</p>'}
+    <p>Target IRR figures are illustrative and reflect the advisor's sponsor case. Underwriting is your own.</p>
+    <a href="${SITE}/investor-portal" class="btn">View open deals</a>
+    <p style="margin-top:16px;font-size:11px;color:#635e58">Manage email preferences at <a href="${SITE}/investor-portal#settings" style="color:#C5A572">${SITE}/investor-portal#settings</a>.</p>
+    <p style="margin-top:14px">— The Operator, Aurum Prism</p>`
   ), 'welcome-day7');
+}
+
+// ── Compliance flag: KYC / NDA expiring or stale ───────────────
+// data: { type: 'kyc'|'nda', daysRemaining, expiresOn }
+export async function sendComplianceFlag(investor, data) {
+  const typeLabel = data.type === 'nda' ? 'Non-disclosure agreement' : 'KYC documentation';
+  const noun = data.type === 'nda' ? 'NDA' : 'KYC';
+  const dateStr = data.expiresOn ? new Date(data.expiresOn).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : null;
+  const daysLine = data.daysRemaining != null
+    ? `${data.daysRemaining} day${data.daysRemaining !== 1 ? 's' : ''} remain${data.daysRemaining === 1 ? 's' : ''} before expiry${dateStr ? ` on ${dateStr}` : ''}.`
+    : `Documentation is due for renewal${dateStr ? ` by ${dateStr}` : ''}.`;
+  await send(investor.email, `Aurum Prism — ${noun} renewal due`, base(`${noun} Renewal`,
+    `<h3>Dear ${investor.contact_name || 'Investor'},</h3>
+    <p>Your ${typeLabel.toLowerCase()} on file is due for renewal. ${daysLine}</p>
+    <p>Until renewal is complete, the operator may suspend new IOI submissions and data room access. Existing positions are unaffected.</p>
+    <a href="${SITE}/investor-portal#compliance" class="btn">Renew documentation</a>
+    <p style="margin-top:18px">— The Operator, Aurum Prism</p>`
+  ), 'compliance-flag');
+
+  // Operator copy
+  const notifyList = (process.env.NOTIFY_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+  if (notifyList.length) {
+    await send(notifyList, `Aurum Prism — ${noun} renewal due: ${investor.firm_name || investor.email}`, base('Compliance Flag',
+      `<h3>${noun} renewal due.</h3>
+      <p><strong style="color:#ede8df">${investor.firm_name || '—'}</strong> (${investor.contact_name || investor.email}) — ${daysLine.toLowerCase()}</p>
+      <a href="${SITE}/admin-portal#compliance" class="btn">Open compliance queue</a>`
+    ), 'compliance-flag-operator');
+  }
 }

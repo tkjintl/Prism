@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a0a'/><rect x='4' y='4' width='24' height='24' fill='none' stroke='%23C5A572' stroke-width='1.2'/><text x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='15' font-style='italic' fill='%23C5A572'>Au</text></svg>">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Risk Disclosure · Aurum Prism</title>
+<meta name="description" content="Risk disclosure statement for Aurum Prism — private market investments involve risk of total loss.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070706;--bg2:#0a0908;--bg3:#0c0b09;--bg4:#0f0e0b;
+  --card:#111009;
+  --text:#ece6da;--sub:#a89f94;--muted:#655f58;--dim:#2a2725;
+  --gold:#C5A572;--goldB:#DEB97A;--goldD:#8a7c68;
+  --goldBd:rgba(197,165,114,0.22);--goldBdS:rgba(197,165,114,0.45);
+  --goldW:rgba(197,165,114,0.04);
+  --border:rgba(255,255,255,0.065);
+  --amber:#b8833a;--amberW:rgba(184,131,58,0.07);--amberBd:rgba(184,131,58,0.32);
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Outfit',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--goldD);text-decoration:none;border-bottom:1px solid var(--goldBd)}
+a:hover{color:var(--gold);border-bottom-color:var(--goldBdS)}
+nav{position:sticky;top:0;z-index:100;height:58px;background:rgba(7,7,6,0.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);display:flex;align-items:center;padding:0 48px}
+.n-wm{display:flex;align-items:center;line-height:1}
+.n-wm-aurum{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
+.n-wm-rule{display:block;width:1px;height:12px;background:var(--goldBd);margin:0 10px}
+.n-wm-prism{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.n-back{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;border:none}
+.n-back:hover{color:var(--gold)}
+main{max-width:780px;margin:0 auto;padding:80px 48px 100px}
+.eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--goldD);text-transform:uppercase;margin-bottom:18px}
+.eyebrow-rule{width:48px;height:1px;background:var(--goldBd);margin:14px 0 22px}
+h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(40px,5vw,58px);color:var(--text);line-height:1.05;letter-spacing:-.02em;margin-bottom:20px}
+h1 em{color:var(--goldB);font-style:italic}
+.meta{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:48px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.meta span{color:var(--goldD)}
+.warn{background:var(--amberW);border-left:2px solid var(--amber);padding:24px 28px;margin-bottom:56px}
+.warn-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.20em;color:var(--amber);text-transform:uppercase;margin-bottom:10px}
+.warn p{font-family:var(--serif);font-size:18px;font-weight:400;color:var(--text);line-height:1.65}
+.warn p strong{color:var(--goldB);font-style:italic}
+.short{background:var(--card);border-left:2px solid var(--gold);padding:24px 28px;margin-bottom:48px}
+.short-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.20em;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+.short p{font-family:var(--serif);font-size:17px;font-weight:300;color:var(--text);line-height:1.7}
+h2{font-family:var(--serif);font-style:italic;font-weight:400;font-size:32px;color:var(--text);line-height:1.15;margin:56px 0 8px;letter-spacing:-.01em}
+h2 em{color:var(--goldB)}
+.h2-num{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--goldD);text-transform:uppercase;margin-bottom:6px;display:block}
+.risk-row{display:grid;grid-template-columns:140px 1fr;gap:24px;padding:18px 0;border-bottom:1px solid var(--border);align-items:start}
+.risk-name{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;line-height:1.5}
+.risk-body{font-family:var(--sans);font-size:15px;color:var(--sub);line-height:1.7}
+.risk-body strong{color:var(--text);font-weight:500}
+p{font-family:var(--sans);font-size:15px;font-weight:400;color:var(--sub);line-height:1.75;margin-bottom:16px}
+p strong{color:var(--text);font-weight:500}
+.attest{margin-top:48px;padding:28px;border:1px solid var(--goldBdS);background:var(--bg3)}
+.attest-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+.attest p{font-family:var(--serif);font-size:17px;color:var(--text);font-weight:400;line-height:1.7}
+footer{border-top:1px solid var(--border);background:var(--bg2);padding:40px 48px;text-align:center}
+footer .foot-name{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--goldD);text-transform:uppercase;margin-bottom:8px}
+footer .foot-line{font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.85}
+footer .foot-links{margin-top:16px}
+footer .foot-links a{font-family:var(--mono);font-size:10px;color:var(--muted);margin:0 10px;border:none;letter-spacing:.10em;text-transform:uppercase}
+footer .foot-links a:hover{color:var(--gold)}
+@media(max-width:680px){
+  nav{padding:0 20px}
+  main{padding:48px 22px 60px}
+  h1{font-size:36px}
+  h2{font-size:26px}
+  .risk-row{grid-template-columns:1fr;gap:8px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="n-wm">
+    <span class="n-wm-aurum">Aurum</span>
+    <span class="n-wm-rule"></span>
+    <span class="n-wm-prism">Prism</span>
+  </div>
+  <a class="n-back" href="/">← Return</a>
+</nav>
+
+<main>
+  <div class="eyebrow">Compliance · Document 03</div>
+  <div class="eyebrow-rule"></div>
+  <h1>Risk <em>Disclosure</em></h1>
+  <div class="meta">Effective <span>[PLACEHOLDER — EFFECTIVE DATE]</span> · Read before participating</div>
+
+  <div class="warn">
+    <div class="warn-lbl">Headline risk</div>
+    <p><strong>Investments offered through Aurum Prism may result in the total loss of capital.</strong> They are illiquid, long-dated, unrated, and unsuitable for any investor who cannot sustain the complete loss of the amount committed.</p>
+  </div>
+
+  <div class="short">
+    <div class="short-lbl">In short</div>
+    <p>Private-market investments do not behave like listed securities. There is no exit on demand. Valuations are estimates. Sponsors fail. Currencies move. Targeted returns are illustrative — they are not guaranteed, not promised, and frequently not achieved. Read the deal-specific offering documents in full. If you cannot accept losing 100% of what you commit, do not commit it.</p>
+  </div>
+
+  <span class="h2-num">§ 01</span>
+  <h2>Specific risks</h2>
+  <p>The list below is not exhaustive. Each transaction's offering documents will set out further deal-specific risks that take precedence over this general statement.</p>
+
+  <div class="risk-row">
+    <div class="risk-name">Loss of capital</div>
+    <div class="risk-body">All or part of an investor's capital may be lost. Private credit, private equity, real estate debt, and infrastructure investments are not deposits, are not protected by the Singapore Deposit Insurance Scheme or any equivalent scheme, and are not guaranteed by TACC, the sponsor, or any third party.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Illiquidity</div>
+    <div class="risk-body">Investments are <strong>illiquid by design</strong>. There is no public secondary market. Resale is typically restricted by the offering documents and applicable law. An investor must be prepared to hold to the natural exit of the underlying transaction, which may take many years.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Lock-up</div>
+    <div class="risk-body">Investments are subject to lock-up periods specified in the deal documents. Early redemption is generally not available; where available, it may incur substantial discounts or penalties or require sponsor consent that may be withheld.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">No public market</div>
+    <div class="risk-body">The instruments offered are not listed on any exchange, are not registered with any securities regulator for public sale, and may not be transferred except in compliance with the offering documents and applicable securities laws.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Sponsor concentration</div>
+    <div class="risk-body">Each transaction depends materially on the integrity, judgment, and execution capability of the sponsor or general partner. Sponsor failure — fraud, departure of key personnel, operational breakdown, financial distress — can result in total loss regardless of the underlying asset's quality.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Foreign exchange</div>
+    <div class="risk-body">Many transactions are denominated in currencies other than the investor's home currency. FX movements may erode or eliminate returns. Hedging, where available, has cost and basis risk of its own.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Jurisdictional risk</div>
+    <div class="risk-body">Investments span the United States, Singapore, broader Asia, and other markets. Local law, tax treatment, regulatory regimes, capital controls, and enforceability of contractual rights vary materially. Political and policy change in any jurisdiction may impair the investment.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Valuation subjectivity</div>
+    <div class="risk-body">Private-market valuations are not determined by a public order book. They are <strong>estimates</strong> based on sponsor methodology, comparable transactions, discounted cash flow, or third-party appraisals. Reported NAV may differ materially from realisable value at exit.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Conflicts of interest</div>
+    <div class="risk-body">TACC, its affiliates, advisors, and other Members may have economic relationships with sponsors — including carry-share arrangements, principal positions, or referral fees. Material conflicts are disclosed in the deal materials and on the Disclosures page. Investors should review them before committing.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Leverage</div>
+    <div class="risk-body">Many transactions employ leverage at the asset, fund, or vehicle level. Leverage amplifies both gains and losses, introduces refinancing risk, and may force liquidation of underlying assets in adverse conditions.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Operational and platform risk</div>
+    <div class="risk-body">The Platform itself is software. Bugs, downtime, data loss, third-party sub-processor failure, or cyber incident may interrupt access to documents, delay transactions, or affect record-keeping. TACC mitigates but cannot eliminate these risks.</div>
+  </div>
+
+  <div class="risk-row">
+    <div class="risk-name">Tax</div>
+    <div class="risk-body">Tax treatment depends on the investor's specific circumstances, residency, and jurisdiction. Tax law and its interpretation may change. Investors must obtain their own tax advice; TACC does not provide tax advice.</div>
+  </div>
+
+  <span class="h2-num">§ 02</span>
+  <h2>Targeted returns are illustrative</h2>
+  <p>Where the Platform displays a targeted IRR, MOIC, DPI, coupon, yield, or any other return metric, that figure is <strong>illustrative</strong>. It represents a sponsor's or operator's modelled outcome under stated assumptions. It is not a forecast, not a projection, not a guarantee, and not a representation of likely outcome.</p>
+  <p><strong>Past performance does not guarantee future results.</strong> Track records of sponsors, advisors, or related vehicles are historical and may not be repeated. Comparable transactions are reference points, not predictions.</p>
+
+  <span class="h2-num">§ 03</span>
+  <h2>Suitability</h2>
+  <p>Private-market investments are <strong>speculative</strong> and <strong>only</strong> suitable for sophisticated investors who:</p>
+  <ul style="list-style:none;padding-left:0;margin:8px 0 18px 0">
+    <li style="font-family:var(--sans);font-size:15px;color:var(--sub);line-height:1.7;padding:6px 0 6px 22px;position:relative">
+      <span style="position:absolute;left:0;color:var(--goldD)">—</span>
+      qualify as accredited or institutional investors under applicable law;
+    </li>
+    <li style="font-family:var(--sans);font-size:15px;color:var(--sub);line-height:1.7;padding:6px 0 6px 22px;position:relative">
+      <span style="position:absolute;left:0;color:var(--goldD)">—</span>
+      can <strong>sustain the total loss</strong> of the amount committed without affecting their financial wellbeing or required liquidity;
+    </li>
+    <li style="font-family:var(--sans);font-size:15px;color:var(--sub);line-height:1.7;padding:6px 0 6px 22px;position:relative">
+      <span style="position:absolute;left:0;color:var(--goldD)">—</span>
+      have the experience and resources to evaluate the merits and risks of each transaction independently;
+    </li>
+    <li style="font-family:var(--sans);font-size:15px;color:var(--sub);line-height:1.7;padding:6px 0 6px 22px;position:relative">
+      <span style="position:absolute;left:0;color:var(--goldD)">—</span>
+      can hold to a multi-year horizon with no expectation of liquidity.
+    </li>
+  </ul>
+
+  <div class="attest">
+    <div class="attest-lbl">Self-attestation</div>
+    <p>By participating in any transaction made available through Aurum Prism — including by submitting an indication of interest or executing subscription documents — the Member confirms that the Member has read, understood, and accepts the risks set out above and the further risks set out in the deal-specific offering documents, and is participating on that basis.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="foot-name">Aurum · Prism</div>
+  <div class="foot-line">Operated by TACC Pte Ltd · Singapore · © 2026 All Rights Reserved</div>
+  <div class="foot-links">
+    <a href="/">Home</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/risk">Risk</a>
+    <a href="/disclosures">Disclosures</a>
+  </div>
+</footer>
+
+</body>
+</html>
