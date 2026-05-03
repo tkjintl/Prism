@@ -6,6 +6,11 @@
 <title>Aurum Prism · Member Portal</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a0a'/><rect x='4' y='4' width='24' height='24' fill='none' stroke='%23C5A572' stroke-width='1.2'/><text x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='15' font-style='italic' fill='%23C5A572'>Au</text></svg>">
+<meta name="theme-color" content="#070706">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -527,8 +532,9 @@ a{color:inherit;text-decoration:none}
 .vdr-viewer-frame{flex:1;position:relative;overflow:hidden}
 .vdr-viewer-iframe{width:100%;height:100%;border:none}
 .vdr-wm{position:absolute;inset:0;pointer-events:none;z-index:10;overflow:hidden}
-.vdr-wm-inner{position:absolute;inset:-50%;display:flex;flex-direction:column;justify-content:space-around;opacity:.06;transform:rotate(-30deg);white-space:nowrap;overflow:hidden}
-.vdr-wm-row{font-family:monospace;font-size:13px;color:white;letter-spacing:.04em;margin:14px 0}
+.vdr-wm-inner{position:absolute;inset:-50%;display:flex;flex-direction:column;justify-content:space-around;transform:rotate(-30deg);white-space:nowrap;overflow:hidden}
+.vdr-wm-row{font-family:var(--serif,'Cormorant Garamond'),serif;font-style:italic;font-size:22px;color:rgba(197,165,114,0.4);letter-spacing:.04em;margin:18px 0}
+@media(max-width:600px){.vdr-wm-row{font-size:14px;margin:10px 0}}
 
 /* ── TOAST ── */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 20px;font-size:13px;border-radius:3px;z-index:999;opacity:0;transition:all .25s var(--ease);pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.3);font-family:var(--sans)}
@@ -2442,9 +2448,10 @@ async function openDeal(id, action) {
     </div>`;
   }).join('');
 
-  // Build dataroom tab HTML (only for dd stage)
-  const isDd = d.stage === 'dd';
-  const ddTabBtn  = isDd ? `<button class="inv-dr-tab" id="inv-tab-btn-dataroom" onclick="invShowDealTab('dataroom',this)">Dataroom / Q&amp;A</button>` : '';
+  // Build dataroom tab HTML (only for dd stage AND investor has approved IOI)
+  const hasApprovedIoi = PORTFOLIO.some(p => p.deal_id === d.id && p.status === 'approved');
+  const isDd = d.stage === 'dd' && hasApprovedIoi;
+  const ddTabBtn  = isDd ? `<button class="inv-dr-tab" id="inv-tab-btn-dataroom" onclick="invShowDealTab('dataroom',this)">Dataroom</button>` : '';
   const ddTabPanel = isDd ? `<div id="inv-tab-dataroom" style="display:none"></div>` : '';
 
   document.getElementById('dd-left').innerHTML = `
@@ -2771,20 +2778,24 @@ function renderInvestorDataroom() {
   const panel = document.getElementById('inv-tab-dataroom');
   if(!d || !panel) return;
 
-  // DD deadline banner
+  // DD deadline banner — prefers API-provided dd_deadline / dd_active
   let bannerHtml = '';
-  if(d.closing) {
-    const ddDeadline = new Date(new Date(d.closing) - 14*24*60*60*1000);
-    const now = new Date();
-    const daysLeft = Math.round((ddDeadline - now) / 86400000);
+  let ddDeadline = null;
+  if(d._ddDeadline) ddDeadline = new Date(d._ddDeadline);
+  else if(d.closing) ddDeadline = new Date(new Date(d.closing) - 14*24*60*60*1000);
+  const ddActive = d._ddActive!=null ? d._ddActive : (ddDeadline ? ddDeadline > new Date() : false);
+  if(ddDeadline) {
+    const daysLeft = Math.max(0,Math.round((ddDeadline - new Date()) / 86400000));
     const deadlineStr = ddDeadline.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    if(daysLeft > 0) {
-      bannerHtml = `<div class="dd-deadline-banner active">&#9679; DD Period open &middot; Closes ${deadlineStr} &middot; ${daysLeft} day${daysLeft!==1?'s':''} remaining</div>`;
+    if(ddActive) {
+      bannerHtml = `<div class="dd-deadline-banner active">DD CLOSES IN ${daysLeft} DAY${daysLeft!==1?'S':''} &middot; ${deadlineStr}</div>`;
     } else {
-      bannerHtml = `<div class="dd-deadline-banner expired">&#9632; DD Period closed &middot; ${deadlineStr}</div>`;
+      bannerHtml = `<div class="dd-deadline-banner expired">DD PERIOD ENDED &middot; ${deadlineStr}</div>`;
     }
+  } else {
+    bannerHtml = `<div class="dd-deadline-banner expired">DD DEADLINE — Pending</div>`;
   }
-  const ddClosed = bannerHtml.includes('expired');
+  const ddClosed = !ddActive;
 
   // File list grouped by folder
   const files = d.vdr_files || [];
@@ -2864,27 +2875,67 @@ function renderInvestorDataroom() {
   loadQaThread(d.id);
 }
 
+function _invHumanSize(n){if(n==null)return'—';return n>1048576?(n/1048576).toFixed(1)+' MB':(n/1024).toFixed(0)+' KB';}
+function _invRelTime(iso){if(!iso)return'';const t=new Date(iso).getTime();if(isNaN(t))return iso;const m=Math.round((Date.now()-t)/60000);if(m<60)return Math.max(1,m)+'m ago';const h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago';}
+
 async function loadVdrFilesInvestor(dealId) {
+  // Contract: returns {files:[{fileId,name,size,mimeType,uploadedAt,uploadedBy}], dd_deadline, dd_active}
+  // 403 -> no approved IOI; hide tab
   const res = await fetchSilent(`/api/v2?resource=inst&op=vdr-files&dealId=${dealId}`);
-  if(!res || !res.files) return;
   const d = DEALS.find(x => x.id === dealId);
   if(!d) return;
-  d.vdr_files = res.files;
-  // Re-render the dataroom panel if it is currently visible
+  if(res && res._unauth){d._ddTabBlocked=true;d.vdr_files=[];return;}
+  if(!res || !Array.isArray(res.files)) return;
+  d.vdr_files = res.files.map(f=>({
+    id:f.fileId||f.id,
+    name:f.name,
+    size:f.size,
+    sizeStr:_invHumanSize(f.size),
+    type:f.mimeType||f.type||'application/octet-stream',
+    uploadedAt:_invRelTime(f.uploadedAt)||f.uploadedAt||'',
+    folder:f.folder||'General'
+  }));
+  if(res.dd_deadline!=null) d._ddDeadline=res.dd_deadline;
+  if(res.dd_active!=null) d._ddActive=res.dd_active;
   const panel = document.getElementById('inv-tab-dataroom');
   if(panel && panel.style.display !== 'none') renderInvestorDataroom();
 }
 
 async function loadQaThread(dealId) {
+  // Contract: {threads:[{id,question,asked_by,asked_by_name,asked_at,answer,answered_at}], dd_deadline, dd_active}
+  // asked_by_name masked to "Investor #N" for non-self.
   const res = await fetchSilent(`/api/v2?resource=inst&op=qa-thread&dealId=${dealId}`);
-  if(!res || !res.qa) return;
+  if(!res || !Array.isArray(res.threads)) return;
   const d = DEALS.find(x => x.id === dealId);
   if(!d) return;
-  // Map API items directly — supports both investor_q and advisor_open types
-  d._investorQa = res.qa.map(item => ({...item}));
-  // Re-render only the QA portion if panel is visible
+  // Identify "self" — backend should mark or asked_by matches my id; fall back: asker_name === 'You'
+  const myId = (window._invMe && window._invMe.id) || null;
+  d._investorQa = res.threads.map(t=>({
+    id:t.id,
+    type:'investor_q',
+    question:t.question,
+    askedBy:(myId && t.asked_by===myId) ? 'You' : (t.asked_by_name||'Investor'),
+    askedAt:t.asked_at?_invRelTime(t.asked_at):'',
+    answer:t.answer||null,
+    answeredAt:t.answered_at?_invRelTime(t.answered_at):'',
+    answeredBy:t.answered_by||'Advisor'
+  }));
+  // Sort: open first, then date desc
+  d._investorQa.sort((a,b)=>{
+    const ao=a.answer?1:0,bo=b.answer?1:0;
+    if(ao!==bo) return ao-bo;
+    return 0;
+  });
+  if(res.dd_deadline!=null) d._ddDeadline=res.dd_deadline;
+  if(res.dd_active!=null) d._ddActive=res.dd_active;
   const panel = document.getElementById('inv-tab-dataroom');
   if(panel && panel.style.display !== 'none') renderInvestorDataroom();
+  // Auto-refresh every 60s while panel visible
+  clearTimeout(window._invQaT);
+  window._invQaT=setTimeout(()=>{
+    const pan=document.getElementById('inv-tab-dataroom');
+    if(pan && pan.style.display !== 'none'){loadVdrFilesInvestor(dealId);loadQaThread(dealId);}
+  },60000);
 }
 
 async function submitInvestorQuestion(dealId) {
@@ -2893,50 +2944,70 @@ async function submitInvestorQuestion(dealId) {
   if(!inp) return;
   const text = inp.value.trim();
   if(!text) { toast('Please enter a question','err'); return; }
+  if(text.length > 2000) { toast('Question too long (max 2000 characters)','err'); return; }
   if(btn){btn.disabled=true;btn.textContent='...';}
 
-  await api('POST','/api/v2?resource=inst&op=submit-qa',{dealId, question:text});
-
-  // Append locally as a right-side bubble immediately
-  const d = DEALS.find(x => x.id === dealId);
-  if(d) {
-    if(!d._investorQa) d._investorQa = [];
-    d._investorQa.push({
-      id: 'q'+Date.now(),
-      type: 'investor_q',
-      question: text,
-      askedBy: 'You',
-      askedAt: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
-      answer: null,
-    });
+  // Contract: POST {dealId, question}; errors dd_closed, not_authorized
+  const res = await api('POST','/api/v2?resource=inst&op=submit-qa',{dealId, question:text});
+  if(btn){btn.disabled=false;btn.textContent='SEND';}
+  if(!res || res.ok===false){
+    const code = res && res.error;
+    if(code==='dd_closed') toast('DD period has ended — questions are no longer accepted','err');
+    else if(code==='not_authorized') toast('You need an approved IOI to submit questions','err');
+    else toast('Failed to submit — try again','err');
+    return;
   }
   inp.value = '';
-  if(btn){btn.disabled=false;btn.textContent='SEND';}
   toast('Question submitted','ok');
-  renderInvestorDataroom();
-  // Scroll chat to bottom so the new bubble is visible
+  await loadQaThread(dealId);
   const chat = document.getElementById('inv-qa-chat');
   if(chat) chat.scrollTop = chat.scrollHeight;
 }
 
 async function viewVdrFileInvestor(dealId, fileId, fileName) {
-  // Try API first
+  // Contract: returns {file:{name,mimeType,contentBase64,size}, watermark:{investor_id,investor_name,viewed_at}}
+  toast('Loading file…');
   const res = await fetchSilent(`/api/v2?resource=inst&op=vdr-file&dealId=${dealId}&fileId=${fileId}`);
-
-  let dataUrl = null;
-  let mimeType = 'application/pdf';
-
-  if(res && res.data) {
-    mimeType = res.type || 'application/pdf';
-    dataUrl = `data:${mimeType};base64,${res.data}`;
-  } else {
-    // Mock: show a placeholder PDF-like viewer message
-    toast('Loading file preview…');
+  if(!res || !res.file || !res.file.contentBase64){
     showVdrViewerMock(fileName);
     return;
   }
+  const f = res.file;
+  const wm = res.watermark || {};
+  const mimeType = f.mimeType || 'application/octet-stream';
+  const dataUrl = `data:${mimeType};base64,${f.contentBase64}`;
 
-  showVdrViewer(fileName, dataUrl, mimeType);
+  // docx/xlsx/pptx — view-not-supported (watermark not feasible client-side)
+  const unsupported = /(officedocument|msword|ms-excel|ms-powerpoint)/i.test(mimeType) ||
+                      /\.(docx|xlsx|pptx|doc|xls|ppt)$/i.test(fileName);
+  if(unsupported){
+    showVdrViewerUnsupported(fileName);
+    return;
+  }
+  showVdrViewer(fileName, dataUrl, mimeType, wm);
+}
+
+function showVdrViewerUnsupported(fileName){
+  const existing = document.getElementById('vdr-viewer-modal');
+  if(existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'vdr-viewer-modal';
+  modal.className = 'vdr-viewer-modal';
+  modal.setAttribute('role','dialog');
+  modal.setAttribute('aria-modal','true');
+  modal.oncontextmenu = ()=>false;
+  modal.innerHTML = `<div class="vdr-viewer-bar">
+    <span class="vdr-viewer-title">${esc(fileName)}</span>
+    <button class="vdr-viewer-close" onclick="document.getElementById('vdr-viewer-modal').remove()">Close</button>
+  </div>
+  <div class="vdr-viewer-frame" style="display:flex;align-items:center;justify-content:center">
+    <div style="text-align:center;color:var(--text-3);font-family:var(--sans);max-width:380px;padding:20px">
+      <div style="font-size:36px;margin-bottom:16px;opacity:.3">&#128196;</div>
+      <div style="font-size:14px;color:var(--text-2);margin-bottom:8px">${esc(fileName)}</div>
+      <div style="font-size:12px;color:var(--text-3);line-height:1.6">Office documents (xlsx/docx/pptx) cannot be viewed in the browser.<br>Contact the platform operator for a watermarked copy.</div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
 }
 
 function showVdrViewerMock(fileName) {
@@ -2964,24 +3035,35 @@ function showVdrViewerMock(fileName) {
   document.body.appendChild(modal);
 }
 
-function showVdrViewer(fileName, dataUrl, mimeType) {
-  const investorName = document.getElementById('nav-user-name')?.textContent || 'Investor';
-  const dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  const wmText = `AURUM PRISM · ${investorName} · ${dateStr} · CONFIDENTIAL`;
+function showVdrViewer(fileName, dataUrl, mimeType, watermark) {
+  const wm = watermark || {};
+  const investorName = wm.investor_name || (document.getElementById('nav-user-name')?.textContent) || 'Investor';
+  const investorEmail = wm.investor_email || (window._invMe && window._invMe.email) || '';
+  const viewedAt = wm.viewed_at ? new Date(wm.viewed_at).toISOString() : new Date().toISOString();
+  const wmText = `AURUM PRISM · ${investorName}${investorEmail?' · '+investorEmail:''} · ${viewedAt} · CONFIDENTIAL`;
   const existing = document.getElementById('vdr-viewer-modal');
   if(existing) existing.remove();
   const modal = document.createElement('div');
   modal.id = 'vdr-viewer-modal';
   modal.className = 'vdr-viewer-modal';
+  modal.setAttribute('role','dialog');
+  modal.setAttribute('aria-modal','true');
+  modal.oncontextmenu = ()=>false;
+  // image -> canvas with watermark; pdf/text -> iframe with overlay
+  const isImg = (mimeType||'').startsWith('image/');
+  const inner = isImg
+    ? `<img src="${dataUrl}" alt="" style="max-width:100%;max-height:100%;display:block;margin:auto" oncontextmenu="return false">`
+    : `<iframe class="vdr-viewer-iframe" src="${dataUrl}"></iframe>`;
   modal.innerHTML = `<div class="vdr-viewer-bar">
-    <span class="vdr-viewer-title">${fileName}</span>
+    <span class="vdr-viewer-title">${esc(fileName)}</span>
     <button class="vdr-viewer-close" onclick="document.getElementById('vdr-viewer-modal').remove()">Close</button>
   </div>
   <div class="vdr-viewer-frame">
-    <iframe class="vdr-viewer-iframe" src="${dataUrl}"></iframe>
-    <div class="vdr-wm"><div class="vdr-wm-inner">${Array(8).fill(`<div class="vdr-wm-row">${wmText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${wmText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${wmText}</div>`).join('')}</div></div>
+    ${inner}
+    <div class="vdr-wm"><div class="vdr-wm-inner">${Array(10).fill(`<div class="vdr-wm-row">${esc(wmText)}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${esc(wmText)}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${esc(wmText)}</div>`).join('')}</div></div>
   </div>`;
   document.body.appendChild(modal);
+  trapFocus && trapFocus(modal);
 }
 
 /* ── PORTFOLIO ── */

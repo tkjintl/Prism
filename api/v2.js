@@ -19,6 +19,61 @@ import { initiateKycCheck, getKycStatus } from './_lib/kyc.js';
 import { callAI, scoreDeal } from './_lib/ai.js';
 import { wipeAll, seedBotAccounts, seedHighVolume } from './_lib/bot-seed.js';
 import bcrypt from 'bcryptjs';
+import { nanoid } from 'nanoid';
+
+// ── DD Dataroom helpers (shared by advisor + investor branches) ────────────
+// DD window closes 14 days before closing_date. If closing_date missing, treat
+// as active with null deadline (frontend renders "DD deadline TBD").
+function ddInfo(deal) {
+  const raw = deal?.closing_date || deal?.closing;
+  if (!raw) return { dd_deadline: null, dd_active: true };
+  const closing = new Date(raw);
+  if (isNaN(closing)) return { dd_deadline: null, dd_active: true };
+  const deadline = new Date(closing.getTime() - 14 * 24 * 60 * 60 * 1000);
+  return { dd_deadline: deadline.toISOString(), dd_active: Date.now() < deadline.getTime() };
+}
+
+// Sanitize free-text Q&A input. Trim, cap at maxLen, strip control chars
+// (except \n \r \t). Frontend HTML-escapes for display; this just normalises.
+function sanitizeText(input, maxLen = 2000) {
+  if (input == null) return '';
+  let s = String(input).trim();
+  // Strip ASCII control chars except \n \r \t
+  s = s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  if (s.length > maxLen) s = s.slice(0, maxLen);
+  return s;
+}
+
+// Per-deal anonymous-investor map: investor_id → "Investor #N", assigned in
+// order of first question. Stored at qa_anon_map:{dealId}.
+async function assignAnonLabel(dealId, investorId) {
+  const key = `qa_anon_map:${dealId}`;
+  const map = (await kvGet(key)) || {};
+  if (map[investorId]) return { map, label: map[investorId], created: false };
+  const next = Object.keys(map).length + 1;
+  const label = `Investor #${next}`;
+  map[investorId] = label;
+  await kvSet(key, map);
+  return { map, label, created: true };
+}
+async function getAnonLabel(dealId, investorId) {
+  const map = (await kvGet(`qa_anon_map:${dealId}`)) || {};
+  return map[investorId] || null;
+}
+function maskQaThreadsForInvestor(threads, anonMap) {
+  return (threads || []).map(t => {
+    if (t.type === 'advisor_open') return t;
+    const anon = anonMap[t.investor_id] || t.askedBy_anon || 'Investor';
+    return {
+      id: t.id,
+      question: t.question,
+      asked_by_name: anon,
+      asked_at: t.asked_at || t.askedAt || null,
+      answer: t.answer || null,
+      answered_at: t.answered_at || t.answeredAt || null,
+    };
+  });
+}
 
 // ── Rate limiting helper (sliding window via Redis INCR+EXPIRE) ─────────────
 // Returns the current attempt count for this IP within the 15-minute window.
@@ -464,85 +519,131 @@ async function _handler(req, res, resource, op) {
       return ok(res, { message: 'Password updated. You can now log in.' });
     }
 
-    // ── VDR: upload files ────────────────────────────────────────
+    // ── VDR: upload files (DD Dataroom) ──────────────────────────
+    // Contract: POST { dealId, files: [{name, size, contentBase64, mimeType}] }
     // KV keys:
-    //   vdr:{dealId}:index          — JSON array of file metadata
-    //   vdr:{dealId}:file:{fileId}  — base64 file content
+    //   vdr:{dealId}:files            — JSON array of metadata (no content)
+    //   vdr:{dealId}:file:{fileId}    — full record incl. base64 content
+    // Stage gating: deal.stage must be 'dd' (or 'terms' so DD content stays accessible).
+    // Limits: 4MB per single file, 8MB total per request (Vercel function payload cap).
     if (op === 'vdr-upload') {
       const adv = await getAdvisor();
       if (!adv) return unauth(res);
       const { dealId, files } = req.body || {};
-      if (!dealId || !Array.isArray(files) || files.length === 0) return bad(res, 'dealId and files array required');
+      if (!dealId || !Array.isArray(files) || files.length === 0) return bad(res, 'bad_request');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
       if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      if (deal.stage !== 'dd' && deal.stage !== 'terms') return bad(res, 'stage_not_dd', 403);
 
-      // Load existing index and merge
-      const existingIndex = (await kvGet(`vdr:${dealId}:index`)) || [];
-      const existingIds = new Set(existingIndex.map(f => f.id));
-
-      const newMeta = [];
+      const MAX_FILE = 4 * 1024 * 1024;
+      const MAX_TOTAL = 8 * 1024 * 1024;
+      let totalSize = 0;
       for (const file of files) {
-        if (!file.id || !file.name || !file.data) return bad(res, `File entry missing id, name, or data`);
-
-        // [BLOB] Attempt Vercel Blob upload; fall back to base64-in-Redis if not activated.
-        // Set BLOB_READ_WRITE_TOKEN in Vercel env vars to activate — see api/_lib/blob-storage.js.
-        const contentType = file.type || 'application/octet-stream';
-        const blobUrl = await uploadDocument(
-          `vdr/${dealId}/${file.id}-${file.name}`,
-          file.data,
-          contentType
-        );
-        // Store URL if uploaded to Blob, otherwise store raw base64 (legacy path)
-        await kvSet(`vdr:${dealId}:file:${file.id}`, blobUrl || file.data);
-
-        const meta = {
-          id: file.id,
-          name: file.name,
-          size: file.size || 0,
-          folder: file.folder || '',
-          type: contentType,
-          uploadedAt: new Date().toISOString(),
-          storageType: blobUrl ? 'blob' : 'redis',
-        };
-        if (!existingIds.has(file.id)) {
-          existingIndex.push(meta);
-          existingIds.add(file.id);
-        } else {
-          // Replace metadata for re-uploaded file
-          const idx = existingIndex.findIndex(f => f.id === file.id);
-          if (idx >= 0) existingIndex[idx] = meta;
+        if (!file || !file.name || !file.contentBase64) return bad(res, 'bad_request');
+        // base64 size ≈ ceil(rawBytes * 4 / 3); approximate via string length
+        const approxBytes = Math.floor(String(file.contentBase64).length * 3 / 4);
+        const declaredSize = Number(file.size) || approxBytes;
+        if (declaredSize > MAX_FILE || approxBytes > MAX_FILE) {
+          return res.status(413).json({ error: 'file_too_large', maxBytes: MAX_FILE });
         }
-        newMeta.push(meta);
+        totalSize += approxBytes;
+      }
+      if (totalSize > MAX_TOTAL) {
+        return res.status(413).json({ error: 'payload_too_large', maxBytes: MAX_TOTAL });
       }
 
-      await kvSet(`vdr:${dealId}:index`, existingIndex);
+      // Merge with existing metadata. Prefer the new key; fall back to legacy index.
+      const existingMeta = (await kvGet(`vdr:${dealId}:files`)) || (await kvGet(`vdr:${dealId}:index`)) || [];
+      const now = new Date().toISOString();
+      const uploaderId = adv.advisor_id;
 
-      // Audit log on deal
+      const created = [];
+      for (const file of files) {
+        const fileId = nanoid(10);
+        const mimeType = file.mimeType || file.type || 'application/octet-stream';
+        const approxBytes = Math.floor(String(file.contentBase64).length * 3 / 4);
+        const size = Number(file.size) || approxBytes;
+        const meta = {
+          fileId,
+          // legacy alias 'id' kept so existing readers (frontend cards) still resolve
+          id: fileId,
+          name: String(file.name).slice(0, 256),
+          size,
+          mimeType,
+          // legacy alias 'type' kept for older code paths
+          type: mimeType,
+          folder: file.folder ? String(file.folder).slice(0, 64) : '',
+          uploadedAt: now,
+          uploadedBy: uploaderId,
+          storageType: 'redis',
+        };
+
+        // TODO: route to blobStore.put() when BLOB_READ_WRITE_TOKEN is set
+        await kvSet(`vdr:${dealId}:file:${fileId}`, {
+          name: meta.name,
+          size: meta.size,
+          mimeType,
+          contentBase64: file.contentBase64,
+          uploadedAt: now,
+          uploadedBy: uploaderId,
+        });
+
+        existingMeta.push(meta);
+        created.push({ fileId, name: meta.name, size: meta.size, mimeType, uploadedAt: now });
+      }
+
+      await kvSet(`vdr:${dealId}:files`, existingMeta);
+      // Mirror to legacy index key so any unmigrated reader still works
+      await kvSet(`vdr:${dealId}:index`, existingMeta);
+
+      // Append audit entries (deal embedded log + immutable sorted set)
       deal.audit_log = deal.audit_log || [];
-      deal.audit_log.push({
-        at: new Date().toISOString(),
-        actor: adv.advisor_id,
-        action: 'vdr_upload',
-        meta: { fileCount: files.length, fileNames: newMeta.map(f => f.name) },
-      });
-      deal.updated_at = new Date().toISOString();
+      const auditEntry = { at: now, actor: uploaderId, action: 'vdr_upload', meta: { count: created.length } };
+      deal.audit_log.push(auditEntry);
+      deal.updated_at = now;
       await saveDeal(deal);
+      await appendAuditEntry(dealId, auditEntry);
 
-      return ok(res, { ok: true, files: newMeta });
+      return ok(res, { files: created });
     }
 
     // ── VDR: list files (advisor view) ───────────────────────────
+    // Returns contract shape: { files, dd_deadline, dd_active }
+    // Auth: advisor (must own deal) or admin (any deal).
     if (op === 'vdr-files') {
       const adv = await getAdvisor();
-      if (!adv) return unauth(res);
+      const admin = adv ? null : await getAdmin();
+      if (!adv && !admin) return unauth(res);
       const { dealId } = req.query;
-      if (!dealId) return bad(res, 'dealId required');
+      if (!dealId) return bad(res, 'bad_request');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (adv && deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      const files = (await kvGet(`vdr:${dealId}:files`)) || (await kvGet(`vdr:${dealId}:index`)) || [];
+      const { dd_deadline, dd_active } = ddInfo(deal);
+      return ok(res, { files, dd_deadline, dd_active });
+    }
+
+    // ── VDR: download single file (advisor view) ─────────────────
+    // Advisor reviewing their own dataroom contents.
+    if (op === 'vdr-file') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const { dealId, fileId } = req.query;
+      if (!dealId || !fileId) return bad(res, 'bad_request');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
       if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
-      const files = (await kvGet(`vdr:${dealId}:index`)) || [];
-      return ok(res, { ok: true, files });
+      const raw = await kvGet(`vdr:${dealId}:file:${fileId}`);
+      if (!raw) return bad(res, 'File not found', 404);
+      // raw may be the new object form OR (legacy) a base64 string / blob URL
+      if (typeof raw === 'string') {
+        const index = (await kvGet(`vdr:${dealId}:files`)) || (await kvGet(`vdr:${dealId}:index`)) || [];
+        const m = index.find(f => f.fileId === fileId || f.id === fileId) || {};
+        return ok(res, { file: { name: m.name || 'file', mimeType: m.mimeType || m.type || 'application/octet-stream', contentBase64: raw, size: m.size || 0 } });
+      }
+      return ok(res, { file: { name: raw.name, mimeType: raw.mimeType, contentBase64: raw.contentBase64, size: raw.size } });
     }
 
     // ── VDR: delete file ─────────────────────────────────────────
@@ -568,58 +669,83 @@ async function _handler(req, res, resource, op) {
 
     // ── Q&A: full thread (advisor view) ─────────────────────────
     // KV key: qa:{dealId} — JSON array of Q&A entries
-    if (op === 'qa-thread-advisor') {
+    // Both 'qa-thread-advisor' (legacy) and 'qa-thread' (contract) are accepted.
+    if (op === 'qa-thread-advisor' || op === 'qa-thread') {
       const adv = await getAdvisor();
-      if (!adv) return unauth(res);
+      const admin = adv ? null : await getAdmin();
+      if (!adv && !admin) return unauth(res);
       const { dealId } = req.query;
-      if (!dealId) return bad(res, 'dealId required');
+      if (!dealId) return bad(res, 'bad_request');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
-      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      if (adv && deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
       const qa = (await kvGet(`qa:${dealId}`)) || [];
-      return ok(res, { ok: true, qa });
+      const { dd_deadline, dd_active } = ddInfo(deal);
+      // Advisor + admin see real investor identity (asked_by_name) — no masking.
+      return ok(res, { qa, threads: qa, dd_deadline, dd_active });
     }
 
     // ── Q&A: answer a question ───────────────────────────────────
     if (op === 'answer-qa') {
       const adv = await getAdvisor();
       if (!adv) return unauth(res);
-      const { dealId, qaId, answer, broadcast, message } = req.body || {};
-      if (!dealId) return bad(res, 'dealId required');
+      const body = req.body || {};
+      const { dealId, broadcast, message } = body;
+      // Contract: { dealId, threadId, answer }. Backward-compat: qaId.
+      const threadId = body.threadId || body.qaId;
+      const answer = body.answer;
+      if (!dealId) return bad(res, 'bad_request');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
       if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
       const advObj = await kvGet(`advisor:${adv.advisor_id}`);
       const senderName = advObj?.name || advObj?.firm_name || adv.advisor_id;
       const qa = (await kvGet(`qa:${dealId}`)) || [];
+      const now = new Date().toISOString();
+
       // Broadcast / opening statement path
       if (broadcast && message) {
         const broadcastEntry = {
           id: 'qa-bc-' + Date.now().toString(36),
           type: 'advisor_open',
-          message: message.trim(),
+          message: sanitizeText(message, 2000),
           sentBy: senderName,
-          sentAt: new Date().toISOString(),
+          sentAt: now,
           broadcast: true,
         };
         qa.push(broadcastEntry);
         await kvSet(`qa:${dealId}`, qa);
         return ok(res, { ok: true });
       }
+
       // Standard Q&A reply path
-      if (!qaId || !answer) return bad(res, 'dealId, qaId, and answer required');
-      const entry = qa.find(q => q.id === qaId);
-      if (!entry) return bad(res, 'Question not found', 404);
-      entry.answer = answer.trim();
-      entry.answeredAt = new Date().toISOString();
+      if (!threadId || !answer) return bad(res, 'bad_request');
+      const cleanAnswer = sanitizeText(answer, 2000);
+      if (!cleanAnswer) return bad(res, 'bad_request');
+      const entry = qa.find(q => q.id === threadId);
+      if (!entry) return bad(res, 'invalid_thread', 404);
+      if (entry.answer) return bad(res, 'invalid_thread', 409);
+      entry.answer = cleanAnswer;
+      entry.answered_at = now;
+      // Backward-compat field
+      entry.answeredAt = now;
       entry.answeredBy = senderName;
       await kvSet(`qa:${dealId}`, qa);
       // Delete the pending reminder key — question is answered
-      await kvDel(`qa_pending:${dealId}:${qaId}`);
+      await kvDel(`qa_pending:${dealId}:${threadId}`);
+
+      // Audit log
+      const auditEntry = { at: now, actor: adv.advisor_id, action: 'qa_answered', meta: { threadId } };
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push(auditEntry);
+      deal.updated_at = now;
+      await saveDeal(deal);
+      await appendAuditEntry(dealId, auditEntry);
+
       // Email the investor who asked
       if (entry.investor_id && entry.investor_id.startsWith('inv-')) {
         const qaInvestor = await kvGet(`inst:${entry.investor_id}`);
-        if (qaInvestor) await sendQaAnswerToInvestor(qaInvestor, deal).catch(console.error);
+        if (qaInvestor) await sendQaAnswerToInvestor(qaInvestor, deal, threadId).catch(console.error);
       }
       return ok(res, { ok: true });
     }
@@ -1377,135 +1503,203 @@ async function _handler(req, res, resource, op) {
     }
 
     // ── VDR: list files (investor view) ─────────────────────────
+    // Contract: { files, dd_deadline, dd_active } when authorized; { error: 'not_authorized' } otherwise.
     if (op === 'vdr-files') {
       const instAuth = await getInst();
       if (!instAuth) return unauth(res);
       const inst = await kvGet(`inst:${instAuth.inst_id}`);
       if (!inst || inst.status !== 'approved') return unauth(res);
       const { dealId } = req.query;
-      if (!dealId) return bad(res, 'dealId required');
+      if (!dealId) return bad(res, 'bad_request');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
 
       const approvedIoi = await getApprovedIoi(dealId, instAuth.inst_id);
-      if (!approvedIoi) return bad(res, 'Data room access requires an approved indication of interest', 403);
+      if (!approvedIoi) return res.status(403).json({ error: 'not_authorized' });
 
-      const files = (await kvGet(`vdr:${dealId}:index`)) || [];
-      const ddDeadline = getDdDeadline(deal);
-      const ddExpired = ddDeadline ? new Date() > ddDeadline : false;
-
-      return ok(res, {
-        ok: true,
-        files,
-        dd_deadline: ddDeadline ? ddDeadline.toISOString() : null,
-        dd_expired: ddExpired,
-      });
+      const files = (await kvGet(`vdr:${dealId}:files`)) || (await kvGet(`vdr:${dealId}:index`)) || [];
+      const { dd_deadline, dd_active } = ddInfo(deal);
+      // Backward-compat: dd_expired retained for older frontends
+      return ok(res, { files, dd_deadline, dd_active, dd_expired: !dd_active });
     }
 
     // ── VDR: download single file (investor view) ────────────────
+    // Contract: { file: {name, mimeType, contentBase64, size}, watermark }
+    // Audit log: 'vdr_view' with { investor_id, fileId, ts }.
     if (op === 'vdr-file') {
       const instAuth = await getInst();
       if (!instAuth) return unauth(res);
       const inst = await kvGet(`inst:${instAuth.inst_id}`);
       if (!inst || inst.status !== 'approved') return unauth(res);
       const { dealId, fileId } = req.query;
-      if (!dealId || !fileId) return bad(res, 'dealId and fileId required');
+      if (!dealId || !fileId) return bad(res, 'bad_request');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
 
       const approvedIoi = await getApprovedIoi(dealId, instAuth.inst_id);
-      if (!approvedIoi) return bad(res, 'Data room access requires an approved indication of interest', 403);
+      if (!approvedIoi) return res.status(403).json({ error: 'not_authorized' });
 
-      const index = (await kvGet(`vdr:${dealId}:index`)) || [];
-      const fileMeta = index.find(f => f.id === fileId);
+      const index = (await kvGet(`vdr:${dealId}:files`)) || (await kvGet(`vdr:${dealId}:index`)) || [];
+      const fileMeta = index.find(f => f.fileId === fileId || f.id === fileId);
       if (!fileMeta) return bad(res, 'File not found', 404);
 
-      const rawFileData = await kvGet(`vdr:${dealId}:file:${fileId}`);
-      if (!rawFileData) return bad(res, 'File content not found', 404);
+      const raw = await kvGet(`vdr:${dealId}:file:${fileId}`);
+      if (!raw) return bad(res, 'File content not found', 404);
 
-      // [BLOB] Resolve stored value: Blob URL returned directly, base64 wrapped in data URI.
-      // Clients receiving a value starting with https:// should redirect; otherwise decode
-      // as a data URI (legacy Redis path).
-      const resolvedFileData = getDocumentUrl(
-        rawFileData,
-        fileMeta.type || 'application/octet-stream'
-      );
+      const ts = new Date().toISOString();
+      const investorName = inst.firm_name || inst.contact_name || instAuth.inst_id;
+
+      // Resolve to contract shape regardless of legacy storage form
+      let filePayload;
+      if (typeof raw === 'string') {
+        filePayload = {
+          name: fileMeta.name || 'file',
+          mimeType: fileMeta.mimeType || fileMeta.type || 'application/octet-stream',
+          contentBase64: raw,
+          size: fileMeta.size || 0,
+        };
+      } else {
+        filePayload = {
+          name: raw.name,
+          mimeType: raw.mimeType,
+          contentBase64: raw.contentBase64,
+          size: raw.size,
+        };
+      }
+
+      // Audit log entry
+      const auditEntry = {
+        at: ts,
+        actor: instAuth.inst_id,
+        action: 'vdr_view',
+        meta: { investor_id: instAuth.inst_id, fileId, ts },
+      };
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push(auditEntry);
+      deal.updated_at = ts;
+      await saveDeal(deal);
+      await appendAuditEntry(dealId, auditEntry);
 
       return ok(res, {
-        ok: true,
-        name: fileMeta.name,
-        type: fileMeta.type,
-        data: resolvedFileData,
+        file: filePayload,
         watermark: {
+          investor_id: instAuth.inst_id,
+          investor_name: investorName,
+          viewed_at: ts,
+          // Backward-compat aliases
           investorId: instAuth.inst_id,
-          investorName: inst.firm_name || inst.contact_name || instAuth.inst_id,
-          timestamp: new Date().toISOString(),
+          investorName,
+          timestamp: ts,
         },
       });
     }
 
     // ── Q&A: submit a question ───────────────────────────────────
-    // qa:{dealId} — JSON array of {id, question, askedBy, askedAt, answer, answeredAt, answeredBy}
+    // Contract: POST { dealId, question } → { ok, threadId }
+    // Anonymises asker via qa_anon_map:{dealId}; advisor sees real identity.
     if (op === 'submit-qa') {
       const instAuth = await getInst();
       if (!instAuth) return unauth(res);
       const inst = await kvGet(`inst:${instAuth.inst_id}`);
       if (!inst || inst.status !== 'approved') return unauth(res);
       const { dealId, question } = req.body || {};
-      if (!dealId || !question) return bad(res, 'dealId and question required');
+      const cleanQ = sanitizeText(question, 2000);
+      if (!dealId || !cleanQ) return bad(res, 'bad_request');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
 
       const approvedIoi = await getApprovedIoi(dealId, instAuth.inst_id);
-      if (!approvedIoi) return bad(res, 'Q&A access requires an approved indication of interest', 403);
+      if (!approvedIoi) return res.status(403).json({ error: 'not_authorized' });
 
-      const ddDeadline = getDdDeadline(deal);
-      if (ddDeadline && new Date() > ddDeadline) return bad(res, 'DD period has closed — questions are no longer accepted', 403);
+      const { dd_active } = ddInfo(deal);
+      if (!dd_active) return res.status(403).json({ error: 'dd_closed' });
 
-      const qaId = 'qa-' + Date.now().toString(36);
-      const qaSubmittedAt = new Date().toISOString();
+      const threadId = nanoid(10);
+      const askedAt = new Date().toISOString();
+      const askedByName = inst.firm_name || inst.contact_name || instAuth.inst_id;
+
+      // Assign anonymous label for this investor (idempotent — first question wins index)
+      await assignAnonLabel(dealId, instAuth.inst_id);
+
       const qa = (await kvGet(`qa:${dealId}`)) || [];
-      qa.push({
-        id: qaId,
-        question: question.trim(),
-        askedBy: inst.firm_name || inst.contact_name || instAuth.inst_id,
-        askedAt: qaSubmittedAt,
+      const entry = {
+        id: threadId,
+        question: cleanQ,
+        // Contract field names
+        asked_by: instAuth.inst_id,
+        asked_by_name: askedByName,
+        asked_at: askedAt,
         investor_id: instAuth.inst_id,
         answer: null,
+        answered_at: null,
+        // Backward-compat aliases used by existing readers
+        askedBy: askedByName,
+        askedAt: askedAt,
         answeredAt: null,
         answeredBy: null,
-      });
+      };
+      qa.push(entry);
       await kvSet(`qa:${dealId}`, qa);
 
-      // Store pending key for 48h reminder (score = submission timestamp ms)
-      // TTL is 48h — question auto-expires from pending set if ignored beyond reminder window
-      await kvSet(`qa_pending:${dealId}:${qaId}`, JSON.stringify({ dealId, qaId, submittedAt: qaSubmittedAt, reminderSent: false }), { ex: 172800 });
+      // Store pending key for 48h reminder
+      await kvSet(`qa_pending:${dealId}:${threadId}`, JSON.stringify({ dealId, qaId: threadId, submittedAt: askedAt, reminderSent: false }), { ex: 172800 });
 
-      // Email the deal's advisor
+      // Audit log
+      const auditEntry = { at: askedAt, actor: instAuth.inst_id, action: 'qa_question_submitted', meta: { threadId } };
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push(auditEntry);
+      deal.updated_at = askedAt;
+      await saveDeal(deal);
+      await appendAuditEntry(dealId, auditEntry);
+
+      // Email the deal's advisor with the new thread id
       if (deal.advisor_id && deal.advisor_id.startsWith('adv-')) {
         const qaAdvisor = await kvGet(`advisor:${deal.advisor_id}`);
-        if (qaAdvisor) await sendQaQuestionToAdvisor(qaAdvisor, deal, question.trim()).catch(console.error);
+        if (qaAdvisor) await sendQaQuestionToAdvisor(qaAdvisor, deal, cleanQ, threadId).catch(console.error);
       }
 
-      return ok(res, { ok: true, qaId });
+      return ok(res, { threadId, qaId: threadId });
     }
 
     // ── Q&A: fetch full thread (investor view) ───────────────────
+    // Contract: { threads, dd_deadline, dd_active }
+    // Investor names are masked to "Investor #N" via qa_anon_map.
     if (op === 'qa-thread') {
       const instAuth = await getInst();
       if (!instAuth) return unauth(res);
       const inst = await kvGet(`inst:${instAuth.inst_id}`);
       if (!inst || inst.status !== 'approved') return unauth(res);
       const { dealId } = req.query;
-      if (!dealId) return bad(res, 'dealId required');
+      if (!dealId) return bad(res, 'bad_request');
       const deal = await getDeal(dealId);
       if (!deal) return bad(res, 'Deal not found', 404);
 
       const approvedIoi = await getApprovedIoi(dealId, instAuth.inst_id);
-      if (!approvedIoi) return bad(res, 'Q&A access requires an approved indication of interest', 403);
+      if (!approvedIoi) return res.status(403).json({ error: 'not_authorized' });
 
       const qa = (await kvGet(`qa:${dealId}`)) || [];
-      return ok(res, { ok: true, qa });
+      const anonMap = (await kvGet(`qa_anon_map:${dealId}`)) || {};
+      // Backfill: any historical questioner without a label gets one now (stable order).
+      let dirty = false;
+      for (const t of qa) {
+        if (t.type === 'advisor_open') continue;
+        if (t.investor_id && !anonMap[t.investor_id]) {
+          const next = Object.keys(anonMap).length + 1;
+          anonMap[t.investor_id] = `Investor #${next}`;
+          dirty = true;
+        }
+      }
+      if (dirty) await kvSet(`qa_anon_map:${dealId}`, anonMap);
+      const threads = maskQaThreadsForInvestor(qa, anonMap);
+      const { dd_deadline, dd_active } = ddInfo(deal);
+      // Backward-compat: also return raw `qa` so older frontend reads still work — but
+      // mask names there too so identity is never leaked to investors.
+      const qaMasked = qa.map(t => {
+        if (t.type === 'advisor_open') return t;
+        const anon = anonMap[t.investor_id] || 'Investor';
+        return { ...t, askedBy: anon, asked_by_name: anon };
+      });
+      return ok(res, { threads, qa: qaMasked, dd_deadline, dd_active });
     }
 
     // ── investor statements (GET) ─────────────────────────────────

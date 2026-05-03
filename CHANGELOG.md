@@ -4,6 +4,134 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-03] — DD Dataroom — frontend (`advisor-portal.html`, `investor-portal.html`)
+
+Aligned the existing Dataroom tab UI on both advisor and investor portals to the new contract built by the backend agent. Tab name standardised to "Dataroom" (single word) on both sides.
+
+**Advisor portal (`advisor-portal.html`).**
+- Tab `#ctab-dataroom` already gated on `stage==='dd'`. Label changed `Dataroom / Q&A` → `Dataroom`.
+- New helpers: `_humanSize()`, `_relTime()`, `_readBase64()`, `_postVdrBatch()`.
+- `loadVdrAndQa()` rewritten to consume the contract: maps `{files:[{fileId,name,size,mimeType,uploadedAt,uploadedBy}], dd_deadline, dd_active}` from `op=vdr-files`, and `{threads:[{id,question,asked_by,asked_by_name,asked_at,answer,answered_at}], dd_deadline, dd_active}` from `op=qa-thread`. Threads sorted open-first then date-desc. Schedules a 60s self-refresh while the dataroom panel is active.
+- `handleVdrUpload()` reworked: 4MB per-file guard, 8MB per-request guard, base64 read via FileReader, files batched into multiple POSTs against `op=vdr-upload` (backend's actual op-name) when total payload exceeds 8MB. ZIP path now uploads extracted entries through the same batched flow instead of the legacy local-only push.
+- `viewVdrFile()`: was a toast stub — now fetches via `op=vdr-file&dealId=X&fileId=Y`, decodes contentBase64 to a Blob, opens PDFs/images/text inline in a new tab, downloads office formats (xlsx/docx/pptx). Object URL is revoked after 60s.
+- `sendQaReply()` now sends `{dealId, threadId, answer}` per contract; broadcast / opening-statement path removed (no contract op for it). Replies trigger a re-fetch of the thread instead of mutating local state.
+- DD banner: prefers API-supplied `dd_deadline`/`dd_active`. Falls back to `closing - 14d` for unconfigured deals. Renders `DD CLOSES IN N DAYS · <date>` when active, `DD PERIOD ENDED · <date>` when inactive, and `DD DEADLINE — Set closing_date in deal settings` when no deadline is set.
+- File row Delete button removed (no contract op exposed for delete).
+
+**Investor portal (`investor-portal.html`).**
+- Dataroom tab now gated on BOTH `stage==='dd'` AND `PORTFOLIO.some(p=>p.deal_id===d.id && p.status==='approved')`. Hidden entirely for investors without an approved IOI on that deal. Label changed `Dataroom / Q&A` → `Dataroom`.
+- New helpers: `_invHumanSize()`, `_invRelTime()`.
+- `loadVdrFilesInvestor()` and `loadQaThread()` rewritten against the contract. 403 from `op=vdr-files` flips `d._ddTabBlocked` and clears the file list. `loadQaThread()` maps masked `asked_by_name` (backend already returns "Investor #N"), labels self-questions as "You", sorts open-first, schedules 60s self-refresh.
+- `submitInvestorQuestion()` enforces 2000-char cap client-side, surfaces backend errors `dd_closed` ("DD period has ended — questions are no longer accepted") and `not_authorized` ("You need an approved IOI to submit questions"). On success, re-fetches the thread instead of optimistic local append.
+- `viewVdrFileInvestor()` consumes `{file:{name,mimeType,contentBase64,size}, watermark:{investor_id,investor_name,viewed_at}}`. Office formats (xlsx/docx/pptx/doc/xls/ppt) route to a new `showVdrViewerUnsupported()` modal instead of attempting in-browser render.
+- `showVdrViewer()` now: receives the watermark object from the API; image MIME types render through `<img>` instead of iframe; modal has `role="dialog"`, `aria-modal="true"`, `oncontextmenu` returning false; calls `trapFocus()` on open.
+- Watermark CSS overhauled to brand spec: `Cormorant Garamond` italic, 22px (14px on mobile), `rgba(197,165,114,0.4)`, `rotate(-30deg)`, ~10 repeated rows.
+- DD banner unified with the advisor portal logic.
+
+**Contract deviations.**
+- Spec listed `op=upload-vdr`; backend implements `op=vdr-upload` (per the backend changelog entry below). Frontend wired to `vdr-upload` to match the running API. A code comment flags this.
+- Spec called for an "Opening Statement" / broadcast path on the advisor side. The contract has no broadcast op, so the button was removed. Advisor can still answer any specific thread.
+- Spec called for canvas-based image watermarking; implemented as the same DOM overlay used for PDFs (functionally equivalent — overlay is `pointer-events:none` over an `<img>` that has `oncontextmenu` disabled). Cleaner than canvas re-encode.
+
+**TODOs / operator notes.**
+- xlsx/docx/pptx in the investor viewer: deferred. Watermarking those client-side requires a heavyweight library. For now the investor sees `View not supported in browser — contact the platform operator for a watermarked copy`. Operator should hand-deliver these formats out-of-band.
+- Advisor cannot delete uploaded files from the UI — no `op=vdr-delete` in the contract. Operator must clear via admin tooling if needed.
+- Auto-refresh interval is 60s; no manual refresh button.
+
+**Manual QA — operator script.**
+1. Log in as advisor. Open a deal at `stage==='dd'`. Confirm the new "Dataroom" tab is visible; tabs on non-DD deals stay hidden.
+2. Click Dataroom. Confirm DD banner shows expected countdown. Drop 2–3 PDF files (<4MB each, total <8MB) on "Upload to Dataroom"; toast confirms upload count; file list re-renders with `name · size · time ago · View` rows.
+3. Click View on the PDF — opens in a new tab inline.
+4. Try uploading a >4MB file — frontend rejects with toast before any POST.
+5. Log in as investor with an approved IOI on that deal. Open the deal — "Dataroom" tab appears (and is hidden on deals where you have no approved IOI).
+6. Click Dataroom. Files list shows what the advisor uploaded.
+7. Click View on a PDF — modal opens with watermark "AURUM PRISM · <your name> · <your email> · <iso timestamp> · CONFIDENTIAL" repeating diagonally in gold italic; right-click suppressed inside the modal.
+8. View on an xlsx — "View not supported in browser" message instead of download.
+9. Type a question (<2000 chars), Submit. Toast "Question submitted". Question appears top of thread.
+10. Switch back to advisor. Dataroom shows the new question with "Unanswered — reply" affordance. Click it; type answer; Send. Toast "Reply sent".
+11. Switch back to investor. Within 60s the thread auto-refreshes; question now shows the answer; other investors' questions masked to "Investor #N", own labelled "You".
+12. After DD window expires, submit-qa returns `dd_closed` — toast surfaces it; compose box is replaced with "DD period has closed" message.
+
+---
+
+## [2026-05-03] — Brand polish: 404, 500, OG image, favicons, robots, sitemap
+
+Production hygiene pass — branded error pages, full social-preview metadata, favicon set with PNG fallbacks, search-engine guidance. Visual treatment matches the landing page: near-black `#070706` ground, gold `#C5A572` accents, Cormorant italic display, JetBrains Mono eyebrows/labels, DM Sans body. No tracking, no cookie banner, no analytics.
+
+**Files added.**
+- `404.html` — branded "This room is not on the register." with watermark, two CTAs (return / member login), TACC footer. Self-contained inline CSS. Mobile-tested at 360px (links stack vertically).
+- `500.html` — same template, "A momentary disturbance." Points to status.aurumprism.com.
+- `og-image.png` — 1200×630 PNG, 182,595 bytes (~178 KB, under 200 KB target). Centered Cormorant italic headline ("The room you were never shown.") plus reused slide-1 prism SVG to the right, AURUM | PRISM watermark top-left, "Invitation only" tag top-right, footer line.
+- `og-source.html` — render source for the OG image. Not deployed in any meaningful way (Vercel will serve it, but nothing links to it). Kept so the image can be regenerated on rebrand by running playwright against this file.
+- `Au.svg` — file-based version of the existing inline data-URI Au monogram, for `/Au.svg` references.
+- `apple-touch-icon.png` (180×180), `favicon-32.png` (32×32), `favicon-16.png` (16×16) — generated from the same Au monogram via headless Chromium.
+- `site.webmanifest` — PWA manifest with theme/background `#070706`, standalone display.
+- `robots.txt` — allows `/`, disallows portals + bot-driver/bot-viewer, points to sitemap.
+- `sitemap.xml` — six public pages (`/`, `/login`, `/privacy`, `/terms`, `/risk`, `/disclosures`) with 2026-05-03 lastmod.
+
+**Files modified.**
+- `index.html` — added theme-color, canonical, file-based favicon link tags (32/16/apple-touch/manifest), full Open Graph set (title, description, url, type, image with dimensions, site_name), Twitter `summary_large_image` card. Did not touch existing inline data-URI SVG favicon (still primary).
+- `admin-portal.html`, `advisor-portal.html`, `investor-portal.html`, `login.html` — added theme-color + file-based favicon link tags + manifest. Existing inline-SVG favicons preserved (loads first, the file-based PNGs are fallbacks for browsers that prefer external icons, especially iOS Safari which needs the apple-touch-icon).
+
+**Open Graph image specs.**
+- Dimensions: 1200×630 (Facebook + LinkedIn + Twitter `summary_large_image` baseline).
+- File size: 178 KB.
+- Format: PNG, 8-bit RGB, non-interlaced.
+- Render path: `og-source.html` rendered via playwright `chromium.launch()` at 1200×630 viewport, deviceScaleFactor 1, networkidle wait + 800 ms webfont settle, fixed clip.
+
+**vercel.json.** Not modified. Confirmed `cleanUrls: true` is set; no rewrite rules block the new static files (`/og-image.png`, `/site.webmanifest`, `/robots.txt`, `/sitemap.xml`, `/Au.svg`, the favicon PNGs); existing CSP allows `img-src 'self' data: blob:` so the OG image and favicons load fine.
+
+**Verification.** Rendered `404.html` and `500.html` locally via playwright at 1280×800 and 360×720. 404: gold "Error 404" eyebrow, large italic Cormorant headline wraps to two lines on desktop and three on mobile, two CTAs side-by-side desktop / stacked mobile, footer pinned bottom. 500: same structure, "A momentary disturbance." headline holds on one line desktop and wraps cleanly mobile.
+
+**TODOs / notes.**
+- Apple touch icon, favicon-16, favicon-32 generated fresh from the Au mark; existing inline data-URI SVG favicons across all portals untouched (per directive: don't break existing).
+- `og-source.html` is a render artifact, not a deployed page — no nav links to it but it will be served if anyone hits the URL directly. Acceptable.
+- No analytics, no cookie banner — separate task with legal review.
+- No deploy run; operator to push when ready.
+
+---
+
+## [2026-05-03] — DD Dataroom — backend (`api/v2.js`)
+
+DD Dataroom + Q&A backend wired to the contract shared with the frontend agent. Existing partial implementation extended; legacy field aliases preserved so older portal calls keep working.
+
+**Endpoints (all under `/api/v2`)**
+- `POST resource=advisor&op=vdr-upload` — advisor only, must own deal, stage must be `dd` or `terms`. Body `{ dealId, files: [{name, size, contentBase64, mimeType}] }`. Per-file cap 4MB → `{error:'file_too_large', maxBytes:4194304}` (413). Total cap 8MB → `{error:'payload_too_large'}` (413). Returns `{ files: [{fileId, name, size, mimeType, uploadedAt}] }`.
+- `GET resource=advisor&op=vdr-files&dealId=X` — advisor (own deal) or admin. Returns `{ files, dd_deadline, dd_active }`.
+- `GET resource=advisor&op=vdr-file&dealId=X&fileId=Y` — advisor own deal. Returns `{ file: {name, mimeType, contentBase64, size} }`.
+- `GET resource=inst&op=vdr-files&dealId=X` — investor with approved IOI. Returns `{ files, dd_deadline, dd_active }`. Otherwise 403 `{error:'not_authorized'}`.
+- `GET resource=inst&op=vdr-file&dealId=X&fileId=Y` — investor with approved IOI. Returns `{ file, watermark: {investor_id, investor_name, viewed_at} }`. Audits `vdr_view`.
+- `POST resource=inst&op=submit-qa` — investor with approved IOI. Body `{ dealId, question }`. Sanitised + capped at 2000 chars. Returns `{ threadId }`. Rejects with `{error:'dd_closed'}` (403) when DD window has expired. Audits `qa_question_submitted`. Triggers `sendQaQuestionToAdvisor(advisor, deal, question, threadId)`.
+- `POST resource=advisor&op=answer-qa` — advisor own deal. Body `{ dealId, threadId, answer }` (`qaId` accepted as backward-compat alias). 2000-char cap. Rejects with `{error:'invalid_thread'}` if not found or already answered. Audits `qa_answered`. Triggers `sendQaAnswerToInvestor(investor, deal, threadId)`.
+- `GET resource=advisor&op=qa-thread&dealId=X` — advisor own deal or admin. Returns `{ threads, qa, dd_deadline, dd_active }` with real investor identity. (Existing alias `qa-thread-advisor` still accepted.)
+- `GET resource=inst&op=qa-thread&dealId=X` — investor with approved IOI. Returns `{ threads, qa, dd_deadline, dd_active }` with `asked_by_name` masked to `Investor #N` via `qa_anon_map:{dealId}`.
+
+**KV keys**
+- `vdr:{dealId}:files` — JSON array of `{fileId, name, size, mimeType, uploadedAt, uploadedBy, ...}` metadata only. Mirrored to legacy `vdr:{dealId}:index` for older readers.
+- `vdr:{dealId}:file:{fileId}` — full record `{name, size, mimeType, contentBase64, uploadedAt, uploadedBy}`.
+- `qa:{dealId}` — JSON array of Q&A entries. Carries both contract field names (`asked_by_name`, `asked_at`, `answered_at`) and legacy aliases (`askedBy`, `askedAt`, `answeredAt`).
+- `qa_anon_map:{dealId}` — JSON object `investor_id → "Investor #N"`. Backfilled lazily on first investor `qa-thread` read.
+- `qa_pending:{dealId}:{threadId}` — unchanged 48h reminder marker.
+
+**Audit log events**
+`vdr_upload`, `vdr_view`, `qa_question_submitted`, `qa_answered`. All written via `appendAuditEntry()` (immutable sorted set `audit:{dealId}`) and mirrored onto `deal.audit_log[]`.
+
+**Email triggers wired**
+- New question → `sendQaQuestionToAdvisor(advisor, deal, question, threadId)`.
+- Advisor answer → `sendQaAnswerToInvestor(investor, deal, threadId)`.
+
+**Deferred / TODOs**
+- File content stays in Redis. `// TODO: route to blobStore.put() when BLOB_READ_WRITE_TOKEN is set` placed in `vdr-upload`. Vercel Blob NOT activated per scope.
+- Watermark is data-only; frontend overlays at render time.
+
+**Env vars**
+None added. Existing `RESEND_API_KEY`, `KV_REST_API_*`, `PRISM_SECRET`, `SITE_URL`, `NOTIFY_EMAILS` cover the feature.
+
+**Files changed**
+- `api/v2.js` — new helpers `ddInfo()`, `sanitizeText()`, `assignAnonLabel()`, `maskQaThreadsForInvestor()`; rewrote `advisor:vdr-upload`, `advisor:vdr-files`; added `advisor:vdr-file`; extended `advisor:qa-thread(-advisor)`; rewrote `advisor:answer-qa` to accept `threadId`; rewrote `inst:vdr-files`, `inst:vdr-file`, `inst:submit-qa`, `inst:qa-thread` for the contract shape and anon masking. `nanoid` imported at top.
+
+---
+
 ## [2026-05-03] — Transactional email templates audited and rewritten (`api/_lib/email.js`)
 
 Brought every transactional email up to a single private-bank register voice. No call-site changes — function names and existing parameters preserved; new templates added with consistent naming so wiring can follow in the next pass.

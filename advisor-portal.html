@@ -6,6 +6,11 @@
 <title>Aurum Prism · Advisor Portal</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a0a'/><rect x='4' y='4' width='24' height='24' fill='none' stroke='%23C5A572' stroke-width='1.2'/><text x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='15' font-style='italic' fill='%23C5A572'>Au</text></svg>">
+<meta name="theme-color" content="#070706">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1034,7 +1039,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ctab on" onclick="showTab('overview',this)">Overview</button>
     <button class="ctab" onclick="showTab('materials',this)">Materials</button>
 
-    <button class="ctab" id="ctab-dataroom" onclick="showTab('dataroom',this)" style="display:none">Dataroom / Q&amp;A</button>
+    <button class="ctab" id="ctab-dataroom" onclick="showTab('dataroom',this)" style="display:none">Dataroom</button>
     <button class="ctab" id="ctab-review" onclick="showTab('review',this)" style="display:none;color:var(--gold)">&#x2756; Review &amp; Edit</button>
   </div>
 
@@ -2230,18 +2235,22 @@ function renderDataroom(){
   const panel=document.getElementById('tab-dataroom');
   if(!panel)return;
 
-  // DD deadline banner
+  // DD deadline banner — prefers API-provided dd_deadline / dd_active
   let bannerHtml='';
-  if(d.closing){
-    const ddDeadline=new Date(new Date(d.closing)-14*24*60*60*1000);
-    const now=new Date();
-    const daysLeft=Math.round((ddDeadline-now)/86400000);
+  let ddDeadline=null;
+  if(d._ddDeadline) ddDeadline=new Date(d._ddDeadline);
+  else if(d.closing) ddDeadline=new Date(new Date(d.closing)-14*24*60*60*1000);
+  const ddActive=d._ddActive!=null?d._ddActive:(ddDeadline?ddDeadline>new Date():false);
+  if(ddDeadline){
+    const daysLeft=Math.max(0,Math.round((ddDeadline-new Date())/86400000));
     const deadlineStr=ddDeadline.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    if(daysLeft>0){
-      bannerHtml=`<div class="dd-deadline-banner active">&#9679; DD Period open &middot; Closes ${deadlineStr} &middot; ${daysLeft} day${daysLeft!==1?'s':''} remaining</div>`;
+    if(ddActive){
+      bannerHtml=`<div class="dd-deadline-banner active">DD CLOSES IN ${daysLeft} DAY${daysLeft!==1?'S':''} &middot; ${deadlineStr}</div>`;
     }else{
-      bannerHtml=`<div class="dd-deadline-banner expired">&#9632; DD Period closed &middot; ${deadlineStr}</div>`;
+      bannerHtml=`<div class="dd-deadline-banner expired">DD PERIOD ENDED &middot; ${deadlineStr}</div>`;
     }
+  } else {
+    bannerHtml=`<div class="dd-deadline-banner expired">DD DEADLINE — Set closing_date in deal settings</div>`;
   }
 
   // File list grouped by folder
@@ -2266,7 +2275,6 @@ function renderDataroom(){
           <span class="vdr-file-size">${sizeStr}</span>
           <span class="vdr-file-date">${f.uploadedAt||'Today'}</span>
           <button class="vdr-view-btn" onclick="viewVdrFile('${f.id}')">View</button>
-          <button class="vdr-view-btn" onclick="deleteVdrFile('${f.id}')" style="color:#ef4444;border-color:rgba(220,38,38,.25)" onmouseover="this.style.borderColor='#ef4444'" onmouseout="this.style.borderColor='rgba(220,38,38,.25)'">Delete</button>
         </div>`;
       });
     });
@@ -2318,7 +2326,7 @@ function renderDataroom(){
   <div>
     <div class="vdr-section-hd">
       <span>Investor Q&amp;A ${unansweredCount>0?`<span style="color:var(--amber);font-size:10px;font-weight:600;margin-left:6px">${unansweredCount} unanswered</span>`:''}</span>
-      <button class="qa-open-stmt-btn" onclick="sendOpeningStatement()">+ Opening Statement</button>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:.08em">${qaArr.filter(q=>q.answer).length} ANSWERED</span>
     </div>
     <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
       <div class="qa-chat" id="qa-chat-scroll">${chatHtml}</div>
@@ -2339,12 +2347,63 @@ function triggerVdrUpload(){
   if(inp)inp.click();
 }
 
+const VDR_PER_FILE_MAX=4*1024*1024;   // 4 MB
+const VDR_PER_REQUEST_MAX=8*1024*1024; // 8 MB
+
+async function _readBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=e=>resolve((e.target.result||'').toString().split(',')[1]||'');
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function _postVdrBatch(dealId,batch){
+  const payload={dealId,files:batch.map(f=>({name:f.name,size:f.size,contentBase64:f.contentBase64,mimeType:f.mimeType}))};
+  // NOTE: backend implements op=vdr-upload (see CHANGELOG 2026-05-03 backend entry); spec listed op=upload-vdr.
+  const r=await api('POST','/api/v2?resource=advisor&op=vdr-upload',payload);
+  return r;
+}
+
 async function handleVdrUpload(fileList){
   if(!fileList||!fileList.length)return;
   const d=DEALS[currentDealIdx];
   if(!d._vdrFiles)d._vdrFiles=[];
   const files=Array.from(fileList);
 
+  // Pre-flight size validation
+  const oversize=files.filter(f=>f.size>VDR_PER_FILE_MAX);
+  if(oversize.length){toast(`Each file must be ≤4MB. ${oversize[0].name} is ${(oversize[0].size/1048576).toFixed(1)}MB`,'err');return;}
+
+  // Non-ZIP path: batch into 8MB requests against the contract
+  const nonZip=files.filter(f=>!(f.type==='application/zip'||f.name.toLowerCase().endsWith('.zip')));
+  if(nonZip.length){
+    toast('Uploading…');
+    const prepared=[];
+    for(const file of nonZip){
+      const b64=await _readBase64(file);
+      prepared.push({name:file.name,size:file.size,mimeType:file.type||'application/octet-stream',contentBase64:b64});
+    }
+    // Pack into batches of <=8MB by raw size
+    const batches=[];let cur=[],curSz=0;
+    for(const p of prepared){
+      if(curSz+p.size>VDR_PER_REQUEST_MAX && cur.length){batches.push(cur);cur=[];curSz=0;}
+      cur.push(p);curSz+=p.size;
+    }
+    if(cur.length)batches.push(cur);
+    let okN=0,errN=0;
+    for(const b of batches){
+      const res=await _postVdrBatch(d.id,b);
+      if(res && (res.ok||res.success!==false)) okN+=b.length; else errN+=b.length;
+    }
+    if(errN===0) toast(`${okN} file${okN!==1?'s':''} uploaded`,'ok');
+    else toast(`Uploaded ${okN}, failed ${errN}`,'err');
+    await loadVdrAndQa();
+    return;
+  }
+
+  // ZIP path: extract, then upload extracted entries in 8MB batches
   for(const file of files){
     const isZip=file.type==='application/zip'||file.name.toLowerCase().endsWith('.zip');
     if(isZip && typeof JSZip !== 'undefined'){
@@ -2354,57 +2413,58 @@ async function handleVdrUpload(fileList){
         const zip=await JSZip.loadAsync(ab);
         const entries=[];
         zip.forEach((path,entry)=>{ if(!entry.dir&&!path.startsWith('__MACOSX')&&!path.startsWith('.DS_Store')&&!path.includes('/.'))entries.push({path,entry}); });
-        let done=0;
+        const prepared=[];let skipped=0;
         for(const {path,entry} of entries){
           const parts=path.split('/').filter(Boolean);
-          const folder=parts.length>1?parts[0]:'General';
           const name=parts[parts.length-1];
           const ext=name.split('.').pop().toLowerCase();
           const typeMap={pdf:'application/pdf',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',csv:'text/csv'};
           const b64=await entry.async('base64');
           const byteSize=Math.round(b64.length*0.75);
-          const fEntry={
-            id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-            name, folder,
-            size:byteSize,
-            sizeStr:byteSize>1048576?(byteSize/1048576).toFixed(1)+' MB':(byteSize/1024).toFixed(0)+' KB',
-            type:typeMap[ext]||'application/octet-stream',
-            uploadedAt:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
-            data:b64
-          };
-          d._vdrFiles.push(fEntry);
-          done++;
+          if(byteSize>VDR_PER_FILE_MAX){skipped++;continue;}
+          prepared.push({name,size:byteSize,mimeType:typeMap[ext]||'application/octet-stream',contentBase64:b64});
         }
-        renderDataroom();
-        toast(done+' file'+(done!==1?'s':'')+' extracted from ZIP','ok');
-        fetch('/api/v2?resource=advisor&op=vdr-upload',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({dealId:d.id,files:d._vdrFiles})}).catch(()=>{});
+        const batches=[];let cur=[],curSz=0;
+        for(const p of prepared){
+          if(curSz+p.size>VDR_PER_REQUEST_MAX && cur.length){batches.push(cur);cur=[];curSz=0;}
+          cur.push(p);curSz+=p.size;
+        }
+        if(cur.length)batches.push(cur);
+        let okN=0;
+        for(const b of batches){
+          const res=await _postVdrBatch(d.id,b);
+          if(res && (res.ok||res.success!==false)) okN+=b.length;
+        }
+        toast(`${okN} file${okN!==1?'s':''} uploaded${skipped?` · ${skipped} skipped (>4MB)`:''}`,okN?'ok':'err');
+        await loadVdrAndQa();
       }catch(e){ toast('ZIP error: '+e.message,'err'); }
-    } else {
-      // Single file
-      const reader=new FileReader();
-      reader.onload=function(ev){
-        const b64=ev.target.result.split(',')[1]||'';
-        const entry={
-          id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-          name:file.name, folder:'General',
-          size:file.size,
-          sizeStr:file.size>1048576?(file.size/1048576).toFixed(1)+' MB':(file.size/1024).toFixed(0)+' KB',
-          type:file.type||'application/octet-stream',
-          uploadedAt:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
-          data:b64
-        };
-        d._vdrFiles.push(entry);
-        renderDataroom();
-        toast('File uploaded','ok');
-        fetch('/api/v2?resource=advisor&op=vdr-upload',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({dealId:d.id,files:d._vdrFiles})}).catch(()=>{});
-      };
-      reader.readAsDataURL(file);
     }
   }
 }
 
-function viewVdrFile(fileId){
-  toast('File viewer coming — opening preview…');
+async function viewVdrFile(fileId){
+  const d=DEALS[currentDealIdx];
+  if(!d)return;
+  toast('Loading file…');
+  const res=await fetchSilent(`/api/v2?resource=advisor&op=vdr-file&dealId=${d.id}&fileId=${fileId}`);
+  const f=res && res.file;
+  if(!f || !f.contentBase64){toast('File preview unavailable','err');return;}
+  const mime=f.mimeType||'application/octet-stream';
+  const bin=atob(f.contentBase64);
+  const buf=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i);
+  const blob=new Blob([buf],{type:mime});
+  const url=URL.createObjectURL(blob);
+  // PDF/image -> open in new tab; xlsx/docx -> download
+  const inlineable=mime.startsWith('application/pdf')||mime.startsWith('image/')||mime.startsWith('text/');
+  if(inlineable){
+    window.open(url,'_blank','noopener');
+  } else {
+    const a=document.createElement('a');
+    a.href=url;a.download=f.name||'file';
+    document.body.appendChild(a);a.click();a.remove();
+  }
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 
 function deleteVdrFile(fileId){
@@ -2442,25 +2502,23 @@ async function sendQaReply(){
   inp.value='';
 
   if(_qaReplyToId){
-    // Reply to specific question
-    const arr=d._qaThread||QA_THREAD;
-    const q=arr.find(x=>x.id===_qaReplyToId);
-    if(q){ q.answer=text; q.answeredAt=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); q.answeredBy='TACC Singapore'; }
-    if(!d._qaThread) d._qaThread=[...QA_THREAD];
-    api('POST','/api/v2?resource=advisor&op=answer-qa',{dealId:d.id,qaId:_qaReplyToId,answer:text}).catch(()=>{});
+    // Reply to specific question — contract: {dealId, threadId, answer}
+    const res=await api('POST','/api/v2?resource=advisor&op=answer-qa',{dealId:d.id,threadId:_qaReplyToId,answer:text});
+    if(res && res.ok===false){toast(res.error||'Failed to send','err');return;}
     _qaReplyToId=null;
     const ctx=document.getElementById('qa-reply-ctx');
     if(ctx){ ctx.style.display='none'; ctx.textContent=''; }
     const replyInput=document.getElementById('qa-reply-input');
     if(replyInput) replyInput.placeholder='Reply to investor question…';
+    toast('Reply sent','ok');
+    await loadVdrAndQa();
   } else {
-    // Broadcast message
-    if(!d._qaThread) d._qaThread=[...QA_THREAD];
-    d._qaThread.push({id:'qa'+Date.now(),type:'advisor_open',message:text,sentBy:'TACC Singapore',sentAt:new Date().toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'})});
-    api('POST','/api/v2?resource=advisor&op=answer-qa',{dealId:d.id,broadcast:true,message:text}).catch(()=>{});
+    // No "broadcast" in contract — guide operator to pick a question
+    toast('Click "Unanswered — reply" on a question to respond','err');
+    const inp2=document.getElementById('qa-reply-input');
+    if(inp2)inp2.value=text;
+    return;
   }
-  toast('Message sent','ok');
-  renderDataroom();
   setTimeout(()=>{ const s=document.getElementById('qa-chat-scroll'); if(s)s.scrollTop=s.scrollHeight; },50);
 }
 
@@ -2472,16 +2530,58 @@ function sendOpeningStatement(){
   if(ctx){ ctx.style.display='block'; ctx.textContent='Opening statement — sent to all DD investors'; }
 }
 
-/* ── DATAROOM LIVE FETCH ── */
+/* ── DATAROOM LIVE FETCH (contract-aligned) ── */
+function _humanSize(n){if(n==null)return'—';return n>1048576?(n/1048576).toFixed(1)+' MB':(n/1024).toFixed(0)+' KB';}
+function _relTime(iso){if(!iso)return'';const t=new Date(iso).getTime();if(isNaN(t))return iso;const m=Math.round((Date.now()-t)/60000);if(m<60)return Math.max(1,m)+'m ago';const h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago';}
 async function loadVdrAndQa(){
   const d=DEALS[currentDealIdx];
   if(!d)return;
-  // Fetch live VDR files from API; fall back to d._vdrFiles if request fails
+  // Files: contract returns {files:[{fileId,name,size,mimeType,uploadedAt,uploadedBy}], dd_deadline, dd_active}
   const vdrRes=await fetchSilent(`/api/v2?resource=advisor&op=vdr-files&dealId=${d.id}`);
-  if(vdrRes?.files){d._vdrFiles=vdrRes.files;renderDataroom();}
-  // Fetch live Q&A thread from API; fall back to d._qaThread if request fails
-  const qaRes=await fetchSilent(`/api/v2?resource=advisor&op=qa-thread-advisor&dealId=${d.id}`);
-  if(qaRes?.qa){d._qaThread=qaRes.qa;renderDataroom();}
+  if(vdrRes && Array.isArray(vdrRes.files)){
+    d._vdrFiles=vdrRes.files.map(f=>({
+      id:f.fileId||f.id,
+      name:f.name,
+      size:f.size,
+      sizeStr:_humanSize(f.size),
+      type:f.mimeType||f.type||'application/octet-stream',
+      uploadedAt:_relTime(f.uploadedAt)||f.uploadedAt||'',
+      uploadedBy:f.uploadedBy||'',
+      folder:f.folder||'General'
+    }));
+    if(vdrRes.dd_deadline!=null)d._ddDeadline=vdrRes.dd_deadline;
+    if(vdrRes.dd_active!=null)d._ddActive=vdrRes.dd_active;
+    renderDataroom();
+  }
+  // Q&A: contract returns {threads:[{id,question,asked_by,asked_by_name,asked_at,answer,answered_at}], dd_deadline, dd_active}
+  const qaRes=await fetchSilent(`/api/v2?resource=advisor&op=qa-thread&dealId=${d.id}`);
+  if(qaRes && Array.isArray(qaRes.threads)){
+    d._qaThread=qaRes.threads.map(t=>({
+      id:t.id,
+      type:'investor_q',
+      question:t.question,
+      askedBy:t.asked_by_name||t.asked_by||'Investor',
+      askedAt:t.asked_at?new Date(t.asked_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'',
+      answer:t.answer||null,
+      answeredAt:t.answered_at?new Date(t.answered_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'',
+      answeredBy:t.answered_by||'TACC Singapore'
+    }));
+    // Sort: open (no answer) first, then date desc
+    d._qaThread.sort((a,b)=>{
+      const ao=a.answer?1:0,bo=b.answer?1:0;
+      if(ao!==bo)return ao-bo;
+      return (b.askedAt||'').localeCompare(a.askedAt||'');
+    });
+    if(qaRes.dd_deadline!=null)d._ddDeadline=qaRes.dd_deadline;
+    if(qaRes.dd_active!=null)d._ddActive=qaRes.dd_active;
+    renderDataroom();
+  }
+  // Auto-refresh every 60s while on dataroom tab
+  clearTimeout(window._vdrRefreshT);
+  window._vdrRefreshT=setTimeout(()=>{
+    const active=document.getElementById('tab-dataroom');
+    if(active && active.classList.contains('active')) loadVdrAndQa();
+  },60000);
 }
 
 /* ── PERFORMANCE ── */

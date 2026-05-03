@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aurum Prism — OG Image Source (1200x630)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1200px;height:630px;overflow:hidden}
+body{
+  background:#070706;
+  color:#ece6da;
+  font-family:'JetBrains Mono',monospace;
+  position:relative;
+  width:1200px;
+  height:630px;
+}
+/* subtle vignette */
+body::before{
+  content:'';
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center, rgba(197,165,114,0.04) 0%, rgba(7,7,6,0) 60%);
+  pointer-events:none;
+}
+.watermark{
+  position:absolute;
+  top:48px;left:60px;
+  display:flex;align-items:center;gap:14px;
+  font-size:14px;letter-spacing:.28em;text-transform:uppercase;
+  color:#a89f94;
+}
+.watermark .au{color:#ece6da}
+.watermark .rule{display:block;width:1px;height:14px;background:rgba(197,165,114,0.35)}
+.watermark .pr{color:#C5A572}
+.tag{
+  position:absolute;
+  top:48px;right:60px;
+  font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+  color:#8a7c68;
+  border:1px solid rgba(197,165,114,0.3);
+  padding:6px 14px;
+}
+.stage{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.composition{
+  display:flex;
+  align-items:center;
+  gap:80px;
+  padding:0 80px;
+}
+.copy{
+  flex:1;
+  max-width:640px;
+}
+.eyebrow{
+  font-size:12px;letter-spacing:.3em;text-transform:uppercase;
+  color:#C5A572;
+  margin-bottom:28px;
+}
+h1{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-style:italic;
+  font-weight:400;
+  font-size:64px;
+  line-height:1.05;
+  color:#ece6da;
+  letter-spacing:-.005em;
+  margin-bottom:28px;
+}
+.sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  line-height:1.6;
+  letter-spacing:.04em;
+  color:#a89f94;
+  max-width:480px;
+}
+.prism-art{
+  flex-shrink:0;
+  width:300px;height:300px;
+  position:relative;
+}
+.prism-art svg{width:100%;height:100%;display:block}
+.footer{
+  position:absolute;
+  bottom:40px;left:0;right:0;
+  text-align:center;
+  font-size:10px;letter-spacing:.28em;text-transform:uppercase;
+  color:#655f58;
+}
+.footer .dot{color:#8a7c68;margin:0 10px}
+</style>
+</head>
+<body>
+  <div class="watermark">
+    <span class="au">AURUM</span>
+    <span class="rule"></span>
+    <span class="pr">PRISM</span>
+  </div>
+  <div class="tag">Invitation only</div>
+
+  <div class="stage">
+    <div class="composition">
+      <div class="copy">
+        <div class="eyebrow">Private deal flow</div>
+        <h1>The room you were never shown.</h1>
+        <div class="sub">Sit at the same table as institutional capital.<br>Operated by TACC Pte Ltd, Singapore.</div>
+      </div>
+      <div class="prism-art" aria-hidden="true">
+        <svg viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="prismInner" x1="10%" y1="0%" x2="90%" y2="100%">
+              <stop offset="0%" stop-color="#C5A572" stop-opacity=".06"/>
+              <stop offset="30%" stop-color="#E3C187" stop-opacity=".22"/>
+              <stop offset="60%" stop-color="#C5A572" stop-opacity=".14"/>
+              <stop offset="100%" stop-color="#5b85b8" stop-opacity=".05"/>
+            </linearGradient>
+            <linearGradient id="faceL" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#E3C187" stop-opacity=".1"/>
+              <stop offset="100%" stop-color="#C5A572" stop-opacity=".03"/>
+            </linearGradient>
+            <linearGradient id="faceR" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#C5A572" stop-opacity=".05"/>
+              <stop offset="100%" stop-color="#E3C187" stop-opacity=".12"/>
+            </linearGradient>
+            <filter id="ray" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="2" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="6" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <ellipse cx="200" cy="240" rx="150" ry="60" fill="#C5A572" fill-opacity=".09" filter="url(#soft)"/>
+          <line x1="20" y1="10" x2="200" y2="130" stroke="#E3C187" stroke-opacity=".7" stroke-width="2.4" filter="url(#ray)"/>
+          <polygon points="200,30 200,147 52,264"  fill="url(#faceL)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+          <polygon points="200,30 200,147 348,264" fill="url(#faceR)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <polygon points="200,30 348,264 52,264" fill="url(#prismInner)" stroke="rgba(255,255,255,0.32)" stroke-width="1.6"/>
+          <line x1="200" y1="30"  x2="200" y2="264" stroke="rgba(255,255,255,0.11)" stroke-width=".8"/>
+          <line x1="200" y1="130" x2="348" y2="264" stroke="rgba(255,255,255,0.13)" stroke-width="1"/>
+          <line x1="200" y1="130" x2="52"  y2="264" stroke="rgba(255,255,255,0.09)" stroke-width=".8"/>
+          <line x1="348" y1="264" x2="395" y2="285" stroke="#C5A572" stroke-opacity=".85" stroke-width="1.6" filter="url(#ray)"/>
+          <line x1="348" y1="264" x2="395" y2="305" stroke="#E3C187" stroke-opacity=".95" stroke-width="1.8" filter="url(#ray)"/>
+          <line x1="348" y1="264" x2="395" y2="318" stroke="#C5A572" stroke-opacity=".7" stroke-width="1.4" filter="url(#ray)"/>
+          <circle cx="395" cy="285" r="2.6" fill="#E3C187"/>
+          <circle cx="395" cy="305" r="3" fill="#E3C187"/>
+          <circle cx="395" cy="318" r="2.4" fill="#E3C187"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Aurum Prism <span class="dot">&middot;</span> TACC Pte Ltd <span class="dot">&middot;</span> Singapore <span class="dot">&middot;</span> www.aurumprism.com
+  </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /admin-portal
+Disallow: /advisor-portal
+Disallow: /investor-portal
+Disallow: /bot-driver
+Disallow: /bot-viewer
+Allow: /
+Sitemap: https://www.aurumprism.com/sitemap.xml
