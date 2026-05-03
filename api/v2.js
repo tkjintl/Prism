@@ -4,7 +4,7 @@ import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, kvZadd, kvZre
 import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, bumpIoiCounters, appendAuditEntry, validateDealForPublish } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
-  sendDataRoomAccess, sendAccessApplication,
+  sendDataRoomAccess, sendAccessApplication, sendAdvisorApplication,
   sendAdvisorWelcome, sendPasswordReset, sendIoiPackage,
   sendIoiConfirmation, sendIoiRejection, sendDataRoomPackageResponse,
   sendQaQuestionToAdvisor, sendQaAnswerToInvestor,
@@ -1105,6 +1105,52 @@ async function _handler(req, res, resource, op) {
       const ip = getClientIp(req);
       if (!(await shouldBypassRateLimit(req)) && await checkRateLimit(ip) > 10) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
       const data = req.body || {};
+      const rawCategory = data.category != null ? String(data.category).toLowerCase().trim() : '';
+
+      // ── Advisor application branch ───────────────────────────
+      // Routed to a separate KV bucket (advisor_application:*) so the
+      // operator can review them as a distinct queue without polluting
+      // the institutional investor pipeline.
+      if (rawCategory === 'advisor') {
+        // Accept either advisor-native field names (name, firm) or the
+        // shared landing-form field names (contact_name, firm_name).
+        const advName = (data.name || data.contact_name || '').toString().trim();
+        const advFirm = (data.firm || data.firm_name || '').toString().trim();
+        const advEmail = (data.email || '').toString().toLowerCase().trim();
+        const advJurisdiction = (data.jurisdiction || '').toString().trim();
+        const advDealTypes = (data.deal_types || '').toString().trim();
+        const advMissing = [];
+        if (!advName) advMissing.push('name');
+        if (!advEmail) advMissing.push('email');
+        if (!advFirm) advMissing.push('firm');
+        if (!advJurisdiction) advMissing.push('jurisdiction');
+        if (!advDealTypes) advMissing.push('deal_types');
+        if (advMissing.length) return bad(res, 'Missing required fields: ' + advMissing.join(', '), 400);
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(advEmail)) return bad(res, 'Invalid email address', 400);
+        const appId = 'advapp-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
+        const application = {
+          id: appId,
+          name: advName,
+          role: data.role ? String(data.role).trim() : '',
+          firm: advFirm,
+          email: advEmail,
+          jurisdiction: advJurisdiction,
+          website: data.website ? String(data.website).trim() : (data.firm_url ? String(data.firm_url).trim() : ''),
+          deal_types: advDealTypes,
+          recent_deal: data.recent_deal ? String(data.recent_deal).trim() : '',
+          status: 'pending',
+          source: 'public-landing',
+          ip: getClientIp(req),
+          created_at: new Date().toISOString(),
+        };
+        await kvSet(`advisor_application:${appId}`, application);
+        // Sorted-set index by created_at for the future operator review UI.
+        await kvZadd('advisor_applications:index', Date.now(), appId);
+        await sendAdvisorApplication(application).catch(console.error);
+        return ok(res, { message: 'Application received. Operator review within five business days.' });
+      }
+
+      // ── Investor (institutional / HNW) branch ────────────────
       // ticket_range is optional in the public form (form's 'Deployment Capacity'
       // field maps to aum_range). Bots fill both. Keep aum_range required as the
       // canonical capacity signal.
@@ -1114,8 +1160,8 @@ async function _handler(req, res, resource, op) {
         return v == null || String(v).trim() === '';
       });
       if (missing.length) return bad(res, 'Missing required fields: ' + missing.join(', '), 400);
-      const category = String(data.category).toLowerCase().trim();
-      if (category !== 'institutional' && category !== 'hnw') return bad(res, 'Applicant category must be "institutional" or "hnw"', 400);
+      const category = rawCategory;
+      if (category !== 'institutional' && category !== 'hnw') return bad(res, 'Applicant category must be "institutional", "hnw", or "advisor"', 400);
       const email = String(data.email).toLowerCase().trim();
       const existing = await kvGet(`inst_email:${email}`);
       if (existing) return bad(res, 'This email is already registered');

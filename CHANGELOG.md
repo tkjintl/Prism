@@ -4,6 +4,18 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-02] — Advisor application backend (`api/v2.js`, `api/_lib/email.js`)
+
+Companion to the @ui advisor tier on the landing page. The shared `?resource=inst&op=register` endpoint now accepts `category: 'advisor'` and routes those submissions to a dedicated KV bucket so the operator can review them as a distinct queue without polluting the institutional investor pipeline.
+
+- **`api/v2.js`** — `inst&op=register` branches on `category`. Advisor branch validates `name, email, firm, jurisdiction, deal_types` (accepts the shared landing-form names `contact_name`/`firm_name` as fallbacks for `name`/`firm`; accepts `firm_url` as fallback for `website`), email-format checks, writes to `advisor_application:{id}` and indexes into the `advisor_applications:index` sorted set scored by epoch ms. Existing institutional/HNW path untouched. Same per-IP rate limit (10 / 15 min) applies.
+- **`api/_lib/email.js`** — new `sendAdvisorApplication(application)` template. Two emails per submission: (1) operator alert to `NOTIFY_EMAILS` with subject `[Advisor application] {name} · {firm}` listing every advisor field plus the application ID; (2) applicant ack — brief private-bank-register confirmation noting operator review within five business days, referencing the application ID.
+- **TODO (follow-up)** — admin portal review surface for `advisor_application:*` records (approve / reject / convert-to-advisor flow). For now the data lives in KV and the operator gets the email alert.
+
+No new env vars. Reuses existing `NOTIFY_EMAILS` and `RESEND_API_KEY`.
+
+---
+
 ## [2026-05-02] — Advisor tier + form de-duplication (`index.html`)
 
 Approved mockup `mockup-tiers-form.html` ported into the live landing page. Adds a third advisor tier card and rebuilds the application form's left column as category-reactive copy.

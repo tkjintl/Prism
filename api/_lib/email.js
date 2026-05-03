@@ -153,6 +153,41 @@ export async function sendAccessApplication(investor) {
   ), 'access-application');
 }
 
+// ── Advisor application — operator alert + applicant ack ──────
+export async function sendAdvisorApplication(application) {
+  const notifyList = (process.env.NOTIFY_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+  const fields = `
+    <p>
+    <strong style="color:#ede8df">Name:</strong> ${application.name}<br>
+    <strong style="color:#ede8df">Role:</strong> ${application.role || '—'}<br>
+    <strong style="color:#ede8df">Firm:</strong> ${application.firm}<br>
+    <strong style="color:#ede8df">Email:</strong> ${application.email}<br>
+    <strong style="color:#ede8df">Jurisdiction:</strong> ${application.jurisdiction}<br>
+    <strong style="color:#ede8df">Website / LinkedIn:</strong> ${application.website || '—'}<br>
+    <strong style="color:#ede8df">Deal Types:</strong> ${application.deal_types}<br>
+    <strong style="color:#ede8df">Recent Deal:</strong> ${application.recent_deal || '—'}
+    </p>`;
+  if (notifyList.length) {
+    await send(notifyList,
+      `[Advisor application] ${application.name} · ${application.firm}`,
+      base('Advisor Application', `<h3>New advisor application.</h3>
+      <p>An advisor has applied for access to Aurum Prism.</p>
+      ${fields}
+      <p class="meta">Application ID: ${application.id}</p>
+      <a href="${SITE}/control" class="btn">Review in Control Panel →</a>`),
+      'advisor-application-operator');
+  }
+  // Applicant confirmation — private-bank register, brief
+  await send(application.email,
+    'Your Aurum Prism advisor application has been received',
+    base('Application Received',
+      `<h3>Thank you, ${application.name}.</h3>
+      <p>We have received your application to onboard as a deal advisor on Aurum Prism on behalf of <strong style="color:#ede8df">${application.firm}</strong>.</p>
+      <p>Our operations team will review your submission and respond within five business days. Should we require any further information to complete our review, we will be in touch directly at this address.</p>
+      <p class="meta">Reference: ${application.id}</p>`),
+    'advisor-application-ack');
+}
+
 // ── Advisor welcome + credentials ──────────────────────────────
 export async function sendAdvisorWelcome(advisor, tempPassword) {
   await send(advisor.email, 'Your Aurum Prism advisor account is ready', base('Welcome',
