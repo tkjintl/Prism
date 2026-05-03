@@ -1545,7 +1545,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
         <div class="view-heading" style="margin-bottom:4px">Deal Pipeline</div>
         <div class="view-sub">All active deals across all advisors. Stage advances are controlled by admin.</div>
       </div>
-      <button onclick="openAdminDealPanel()" style="flex-shrink:0;padding:10px 20px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s;margin-top:4px" onmouseover="this.style.background='var(--gold-b)'" onmouseout="this.style.background='var(--gold)'">+ Add Deal</button>
+      <div style="display:flex;gap:8px;flex-shrink:0;margin-top:4px;align-items:center">
+        <button id="unassigned-deals-btn" onclick="openUnassignedDealsModal()" style="display:none;padding:10px 16px;background:transparent;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:1px solid var(--gold-bd);border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.background='var(--gold-bg)'" onmouseout="this.style.background='transparent'">Unassigned deals (<span id="unassigned-deals-count">0</span>)</button>
+        <button onclick="openAdminDealPanel()" style="padding:10px 20px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.background='var(--gold-b)'" onmouseout="this.style.background='var(--gold)'">+ Add Deal</button>
+      </div>
     </div>
     <div id="deal-submissions-wrap"></div>
     <div class="section-hd"><div class="section-hd-title">Active Deals</div><span class="section-hd-count" id="active-deals-count"></span></div>
@@ -1670,6 +1673,22 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closePushModal()">Cancel</button>
       <button class="modal-confirm" id="push-modal-confirm">Open Due Diligence →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Unassigned Deals modal -->
+<div class="modal-overlay hidden" id="unassigned-deals-modal">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="udm-title" style="max-width:680px;width:92%">
+    <div class="modal-title" id="udm-title">Unassigned Deals</div>
+    <div class="modal-body" style="padding-top:8px">
+      <div style="font-size:12px;color:var(--text-3);font-family:var(--sans);line-height:1.55;margin-bottom:14px">Deals submitted without an advisor attached. Assign each to a registered advisor so it can flow into their portfolio.</div>
+      <div id="udm-list" style="max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px">
+        <div style="color:var(--text-3);font-size:12px;font-family:var(--mono)">Loading…</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeUnassignedDealsModal()">Close</button>
     </div>
   </div>
 </div>
@@ -2388,7 +2407,7 @@ function showView(name,btn){
   document.getElementById('view-'+name).classList.add('active');
   if(btn)btn.classList.add('on');
   if(name==='queue')renderQueue();
-  if(name==='pipeline')renderPipeline();
+  if(name==='pipeline'){renderPipeline();refreshUnassignedDealsBadge();}
   if(name==='aitool')renderAITool();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -3757,6 +3776,95 @@ function closeModal(){
   document.getElementById('stage-modal').classList.add('hidden');
   pendingStage=null;pendingDealId=null;
   if(_modalReleasers['stage-modal']){_modalReleasers['stage-modal']();delete _modalReleasers['stage-modal'];}
+}
+
+/* ── UNASSIGNED DEALS (advisor assignment) ── */
+let _UNASSIGNED_DATA={deals:[],advisors:[]};
+async function refreshUnassignedDealsBadge(){
+  const res=await fetchSilent('/api/v2?resource=admin&op=unassigned-deals');
+  _UNASSIGNED_DATA={deals:Array.isArray(res?.deals)?res.deals:[],advisors:Array.isArray(res?.advisors)?res.advisors:[]};
+  const btn=document.getElementById('unassigned-deals-btn');
+  const cnt=document.getElementById('unassigned-deals-count');
+  const n=_UNASSIGNED_DATA.deals.length;
+  if(cnt)cnt.textContent=String(n);
+  if(btn)btn.style.display=n>0?'inline-flex':'none';
+  return n;
+}
+function _udmStageLabel(s){
+  const M={review:'Under Review',live:'Live',live_ioi:'Live · IOI',dd:'Due Diligence',terms:'Term Sheet',close:'Closing',realized:'Realized',killed:'Killed'};
+  return M[s]||s||'—';
+}
+function _udmRel(ts){
+  if(!ts)return'';
+  const diff=Date.now()-new Date(ts).getTime();
+  const m=60000,h=3600000,d=86400000;
+  if(diff<m)return'just now';
+  if(diff<h)return Math.round(diff/m)+'m ago';
+  if(diff<d)return Math.round(diff/h)+'h ago';
+  return Math.round(diff/d)+'d ago';
+}
+function renderUnassignedDealsList(){
+  const root=document.getElementById('udm-list');
+  if(!root)return;
+  if(!_UNASSIGNED_DATA.deals.length){
+    root.innerHTML='<div style="color:var(--text-3);font-size:13px;font-family:var(--sans);font-style:italic;padding:12px 0">All deals are assigned. Nothing to do here.</div>';
+    return;
+  }
+  const advOpts=_UNASSIGNED_DATA.advisors.map(a=>{
+    const id=esc(a.id||a.advisor_id||'');
+    const label=esc((a.name||a.full_name||a.email||id)+(a.firm?' · '+a.firm:''));
+    return '<option value="'+id+'">'+label+'</option>';
+  }).join('');
+  root.innerHTML=_UNASSIGNED_DATA.deals.map(d=>{
+    const id=esc(d.id||d.dealId||'');
+    const name=esc(d.name||'Unnamed deal');
+    const stage=esc(_udmStageLabel(d.stage));
+    const created=_udmRel(d.created_at||d.submitted_at);
+    return '<div class="udm-row" data-deal="'+id+'" style="padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r);display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:180px">'+
+        '<div style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--text);line-height:1.3">'+name+'</div>'+
+        '<div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text-3);margin-top:2px;text-transform:uppercase">'+stage+(created?' · '+created:'')+'</div>'+
+      '</div>'+
+      '<select id="udm-sel-'+id+'" style="flex:1;min-width:160px;padding:8px 10px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:2px;font-size:12px;color:var(--text);font-family:var(--sans)">'+
+        '<option value="">Select advisor…</option>'+advOpts+
+      '</select>'+
+      '<button onclick="confirmAssignAdvisor(\''+id+'\')" style="padding:8px 14px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;border:none;border-radius:2px;cursor:pointer">Assign</button>'+
+    '</div>';
+  }).join('');
+}
+async function openUnassignedDealsModal(){
+  await refreshUnassignedDealsBadge();
+  renderUnassignedDealsList();
+  document.getElementById('unassigned-deals-modal').classList.remove('hidden');
+  _modalReleasers['unassigned-deals-modal']=trapFocus(document.querySelector('#unassigned-deals-modal .modal-box'));
+}
+function closeUnassignedDealsModal(){
+  document.getElementById('unassigned-deals-modal').classList.add('hidden');
+  if(_modalReleasers['unassigned-deals-modal']){_modalReleasers['unassigned-deals-modal']();delete _modalReleasers['unassigned-deals-modal'];}
+}
+async function confirmAssignAdvisor(dealId){
+  const sel=document.getElementById('udm-sel-'+dealId);
+  const advisorId=sel?.value;
+  if(!advisorId){toast('Pick an advisor first','err');return;}
+  const row=document.querySelector('.udm-row[data-deal="'+dealId+'"]');
+  const btn=row?.querySelector('button');
+  if(btn){btn.disabled=true;btn.textContent='Assigning…';}
+  const res=await api('POST','/api/v2?resource=admin&op=assign-advisor',{dealId,advisorId});
+  if(!res||res.error||res.ok===false){
+    if(btn){btn.disabled=false;btn.textContent='Assign';}
+    toast(res?.error||'Could not assign advisor','err');
+    return;
+  }
+  toast('Advisor assigned','ok');
+  // Remove row and decrement badge
+  if(row)row.remove();
+  _UNASSIGNED_DATA.deals=_UNASSIGNED_DATA.deals.filter(x=>(x.id||x.dealId)!==dealId);
+  const cnt=document.getElementById('unassigned-deals-count');
+  if(cnt)cnt.textContent=String(_UNASSIGNED_DATA.deals.length);
+  if(_UNASSIGNED_DATA.deals.length===0){
+    const ub=document.getElementById('unassigned-deals-btn');if(ub)ub.style.display='none';
+    renderUnassignedDealsList();
+  }
 }
 const _mc=document.getElementById('modal-confirm');if(_mc)_mc.onclick=async function(){
   if(!pendingDealId)return;
@@ -5376,6 +5484,7 @@ async function confirmPublish(){
 
 /* ── INIT ── */
 renderKPIs();renderOverview();updateQueueBadge();
+try{refreshUnassignedDealsBadge();}catch(e){}
 
 async function load(){
   const me=await fetchSilent('/api/me');

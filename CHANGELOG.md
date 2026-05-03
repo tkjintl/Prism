@@ -4,6 +4,93 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-03] — Wave 3 frontend — gap registry UI (`advisor-portal.html`, `admin-portal.html`, `investor-portal.html`)
+
+Wired the Wave 3 backend contract into the three portals.
+
+**Portals modified.**
+- `advisor-portal.html` — banking persistence, push-package list + accept/decline modal, real activity feed, doc slot label fix, seed data realigned.
+- `admin-portal.html` — "Unassigned deals (N)" pill in the Pipeline header, modal listing orphaned deals with advisor `<select>` + Assign button, badge auto-refreshes after assign.
+- `investor-portal.html` — doc-slot labels aligned to `NDA / Sponsor Memo / Financial Model / Term Sheet`. Added a slot→label mapping so API-supplied docs always render with the canonical label.
+
+**JS functions added/rewritten.**
+- `loadBankingIntoForm()` — `GET op=get-banking`, prefills the deal-materials banking form, shows masked account number and an Edit button to clear it; renders an "Updated Xd ago" pill in the section header.
+- `saveBankingDetails()` — rewritten. Maps Section A → contract fields (`account_holder`, `bank_name`, `account_number`, `swift_code`, `address`, `notes`), validates required fields, POSTs `op=save-banking`, disables the button while in flight, drops a mono-italic `Updated · HH:mm SGT` confirmation under the button. Skips sending `account_number` if it's still the masked value (until the user clicks Edit). Section B (distribution account) still persists locally per-deal until the contract extends.
+- `loadPushPackages()`, `renderPushPackagesInto()`, `openPkgRespModal()`, `closePkgRespModal()`, `submitPackageResponse()` — full lifecycle for the new "Pushed IOI Packages" dashboard section. Cards show `dealName · stage`, mono amount, relative timestamp; pending shows Accept/Decline; responded shows status + timestamp + note. Accept/Decline open the confirm modal (optional 1000-char note, `role="dialog" aria-modal="true"`). On `already_responded` shows a calm toast and refreshes.
+- `loadAdvisorActivityFeed()`, `renderAdvisorActivityInto()`, `goToDealById()` — `GET op=activity`, last 50 entries, color-tinted by kind (deal_created / published / ioi_received / qa_question_submitted / stage_advanced), relative timestamps in mono, deal name in serif italic, summary in body sans, click jumps to the deal detail.
+- `acceptAdminIOI()` / `declineAdminIOI()` — now send both `response` (new contract) and `decision` (legacy) on `respond-package` for backward compatibility.
+- `_pkgRel()` / `_actRel()` / `_bkRel()` / `_udmRel()` — small relative-time helpers.
+- (admin) `refreshUnassignedDealsBadge()`, `renderUnassignedDealsList()`, `openUnassignedDealsModal()`, `closeUnassignedDealsModal()`, `confirmAssignAdvisor()` — pill auto-hides at zero, modal uses the existing `trapFocus()` pattern, removes the row + decrements the count on success.
+
+**Markup added.**
+- Advisor: `#pkg-resp-overlay` confirm modal (gold-bordered, role=dialog), `#pkg-list-root` and `#pkg-list-count` on the dashboard, `#dash-activity-root` for the live feed.
+- Admin: `#unassigned-deals-modal`, `#unassigned-deals-btn` pill in the Pipeline header.
+
+**Doc slots normalised.**
+- Advisor `DOC_DEFS` rewritten to canonical four: `nda` "NDA", `mgmt` "Sponsor Memo", `fin` "Financial Model", `term` "Term Sheet". The previous `nda/teaser/im/financials/model` scheme is gone (term sheet was missing entirely).
+- Seed deals (`d1/d2/d3/d8`) rewritten to use the new keys.
+- Investor portal label list aligned to the same canonical set; added `SLOT_LABEL` map so backend-supplied docs always render the right label regardless of historical naming drift.
+
+**Operator-facing copy.**
+- "Pushed IOI Packages" dashboard heading, "No pushed IOI packages yet — admin will forward investor indications here." empty state.
+- "No recent activity. Submit a deal to see updates here." (italic, mute) for empty activity feed.
+- "This package has already been responded to" non-alarming toast on `409 already_responded`.
+- Banking save inline confirmation: `Updated · 16:42 SGT` (mono italic, gold).
+- Admin pill: `Unassigned deals (N)` — only visible while N > 0.
+
+No backend or contract deviations.
+
+---
+
+## [2026-05-03] — Wave 3 backend — gap registry fixes (`api/v2.js`)
+
+Closed CRITICAL gaps #1, #2, #3 + SIGNIFICANT #6 from the platform gap registry. Verified gap #7 (doc slot labels) and gap #12 (IOI declined email) were already correct on the backend.
+
+**Endpoints added.**
+- `POST resource=advisor&op=save-banking` — persist banking details to `advisor_banking:{advisor_id}`. Required: `account_number`, `swift_code`. All fields ≤200 chars. Audit-only payload (no raw numbers).
+- `GET resource=advisor&op=get-banking` — own record, account number masked to `XXXX••••XXXX`.
+- `GET resource=admin&op=advisor-banking&advisorId=X` — full unmasked record. Logs `banking_viewed` to advisor audit trail.
+- `GET resource=advisor&op=packages` — lists pushed packages across all of advisor's deals with response status.
+- `GET resource=admin&op=unassigned-deals` — orphaned deals (null/non-`adv-` advisor_id) + active advisor list.
+- `POST resource=admin&op=assign-advisor` — sets `deal.advisor_id`, audits `advisor_assigned`.
+- `GET resource=advisor&op=activity` — last 50 audit entries across advisor's deals, with one-line human summaries.
+
+**Endpoint extended.**
+- `POST resource=advisor&op=respond-package` — now accepts `response` (Wave 3 contract) as an alias for `decision`. Optional `note` (≤1000 chars). Idempotent: returns `409 already_responded` if package was already accepted/declined. Triggers minimal operator alert email (Resend, no PII beyond firm + deal name).
+
+**KV keys touched.**
+- `advisor_banking:{advisor_id}` — JSON `{bank_name, account_holder, account_number, swift_code, iban, address, currency, notes, updated_at, updated_by}`.
+- `audit:advisor:{advisor_id}` — sorted set of advisor-scoped audit entries (`banking_updated`, `banking_viewed`).
+- `package:{packageId}` — added `advisor_decision_note` field on response.
+
+**Audit events added.** `banking_updated`, `banking_viewed`, `advisor_assigned`, `package_accepted`/`package_declined` now carry `{advisor_id, note}` in meta.
+
+**Email triggers wired.**
+- IOI declined → already wired (`sendIoiRejection` in `op=reject-ioi` since pre-Wave 3) — no change needed.
+- Package accept/decline → operator alert via direct Resend POST (NOTIFY_EMAILS), inline because no shared template existed and the spec said do not invent copy.
+
+**Verified existing.**
+- Gap #7 (doc slot labels): backend already uses `nda/mgmt/fin/term` consistently (`api/v2.js` lines 382, 1443, 2049, 2084, 2497, 2864). No backend change. Frontend agent owns the label fix.
+- Gap #12 (IOI declined email): `op=reject-ioi` already calls `sendIoiRejection`. Mark `[DONE]`.
+
+**Contract deviations.**
+- `respond-package` op-name and `decision` field already existed pre-Wave 3. The new `response` alias is additive. Both shapes work; recommend frontend agent use `response` per spec.
+- Operator alert on package response is sent directly via Resend rather than through `_lib/email.js` because the spec said "use existing operator-alert template if present, else add a thin one" and "DO NOT invent copy" was reserved for IOI declined. The thin inline alert is plain text, no marketing copy.
+
+**Env vars required.** None new. Uses existing `RESEND_API_KEY`, `NOTIFY_EMAILS`, `SITE_URL`, `BOT_MODE`.
+
+**What to test.**
+- Advisor portal POSTs `op=save-banking` → KV `advisor_banking:{id}` populated, audit entry written, account number not in audit payload.
+- Advisor `op=get-banking` returns masked account.
+- Admin `op=advisor-banking` returns unmasked + writes `banking_viewed` audit.
+- Advisor `op=packages` returns all packages for that advisor's deals; non-advisor deals not exposed.
+- Advisor `op=respond-package` with `response: 'accepted'` → deal stage = `dd`, second call returns 409.
+- Admin `op=unassigned-deals` returns deals with null/non-adv advisor_id.
+- Admin `op=assign-advisor` sets advisor on orphaned deal + audits.
+- Advisor `op=activity` returns last 50 audit entries from advisor's deals only, sorted desc.
+
+---
+
 ## [2026-05-03] — DD Dataroom — frontend (`advisor-portal.html`, `investor-portal.html`)
 
 Aligned the existing Dataroom tab UI on both advisor and investor portals to the new contract built by the backend agent. Tab name standardised to "Dataroom" (single word) on both sides.

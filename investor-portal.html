@@ -2423,15 +2423,16 @@ async function openDeal(id, action) {
   } else {
     const fullFallback = [
       ndaDocEntry,
-      { slot: 'mgmt', label: 'Management Presentation', name: d.ticker+'_ManagementDeck.pdf', gate: 'nda', accessible: signed },
-      { slot: 'fin',  label: 'Financial Summary',       name: d.ticker+'_Financials.xlsx',    gate: 'nda', accessible: signed },
-      ...(d.asset_class!=='Equity'?[{ slot: 'term', label: 'Term Sheet', name: d.ticker+'_TermSheet.pdf', gate: 'nda', accessible: signed }]:[]),
+      { slot: 'mgmt', label: 'Sponsor Memo',    name: d.ticker+'_SponsorMemo.pdf',  gate: 'nda', accessible: signed },
+      { slot: 'fin',  label: 'Financial Model', name: d.ticker+'_FinancialModel.xlsx', gate: 'nda', accessible: signed },
+      { slot: 'term', label: 'Term Sheet',      name: d.ticker+'_TermSheet.pdf',    gate: 'nda', accessible: signed },
     ];
-    docs = realDocs.length ? realDocs.map(doc => ({...doc, accessible: doc.gate === 'public' || signed})) : fullFallback;
+    const SLOT_LABEL = { nda:'NDA', mgmt:'Sponsor Memo', fin:'Financial Model', term:'Term Sheet' };
+    docs = realDocs.length ? realDocs.map(doc => ({...doc, label: SLOT_LABEL[doc.slot] || doc.label, accessible: doc.gate === 'public' || signed})) : fullFallback;
   }
 
   const docsLockedNote = !hasIoi
-    ? `<div style="font-size:12px;color:var(--text-3);font-family:var(--sans);margin-top:10px;padding:10px 12px;background:var(--bg-3);border-radius:var(--r);border:1px solid var(--border)">Additional documents — Management Presentation, Financials${d.asset_class!=='Equity'?', Term Sheet':''} — unlock after submitting an expression of interest.</div>`
+    ? `<div style="font-size:12px;color:var(--text-3);font-family:var(--sans);margin-top:10px;padding:10px 12px;background:var(--bg-3);border-radius:var(--r);border:1px solid var(--border)">Additional documents — Sponsor Memo, Financial Model, Term Sheet — unlock after submitting an expression of interest.</div>`
     : '';
 
   const docsHtml = docs.map(doc => {

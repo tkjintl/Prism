@@ -847,32 +847,44 @@ async function _handler(req, res, resource, op) {
     }
 
     // ── IOI package response (advisor accepts or declines pushed package) ──
+    // Accepts either `decision` (legacy) or `response` (Wave 3 contract). Same semantics.
     if (op === 'respond-package') {
       const adv = await getAdvisor();
       if (!adv) return unauth(res);
-      const { dealId, packageId, decision } = req.body || {};
-      if (!dealId || !packageId || !['accepted', 'declined'].includes(decision)) {
-        return bad(res, 'dealId, packageId, and decision (accepted|declined) required');
+      const body = req.body || {};
+      const dealId = body.dealId;
+      const packageId = body.packageId;
+      const decision = body.decision || body.response;
+      const note = typeof body.note === 'string' ? body.note.slice(0, 1000) : '';
+      if (!packageId || !['accepted', 'declined'].includes(decision)) {
+        return bad(res, 'packageId and decision/response (accepted|declined) required');
       }
-      const deal = await getDeal(dealId);
-      if (!deal) return bad(res, 'Deal not found', 404);
-      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
       const pkg = await kvGet(`package:${packageId}`);
       if (!pkg) return bad(res, 'Package not found', 404);
+      const resolvedDealId = dealId || pkg.dealId;
+      if (!resolvedDealId) return bad(res, 'dealId required');
+      const deal = await getDeal(resolvedDealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      if (deal.advisor_id !== adv.advisor_id) return bad(res, 'Not your deal', 403);
+      // Idempotency: if already responded, return early
+      if (pkg.advisor_decision && ['accepted','declined'].includes(pkg.advisor_decision)) {
+        return bad(res, 'already_responded', 409);
+      }
       // Persist decision on both the package and deal
       pkg.advisor_decision = decision;
       pkg.advisor_decision_at = new Date().toISOString();
+      pkg.advisor_decision_note = note || '';
       await kvSet(`package:${packageId}`, pkg);
       deal.pushed_ioi_status = decision;
       if (decision === 'accepted') {
         deal.stage = 'dd';
       }
-      const pkgAuditEntry = { at: new Date().toISOString(), actor: adv.advisor_id, action: `package_${decision}`, meta: { packageId } };
+      const pkgAuditEntry = { at: new Date().toISOString(), actor: adv.advisor_id, action: `package_${decision}`, meta: { packageId, advisor_id: adv.advisor_id, note: note || undefined } };
       deal.audit_log = deal.audit_log || [];
       deal.audit_log.push(pkgAuditEntry);
       deal.updated_at = new Date().toISOString();
       await saveDeal(deal);
-      await appendAuditEntry(dealId, pkgAuditEntry);
+      await appendAuditEntry(resolvedDealId, pkgAuditEntry);
       // P-6: package response does not change IOI count or aggregate — only
       // flips a per-deal pushed_ioi_status and may advance stage to dd.
       // No counter bump required. (Was previously a defensive recalc.)
@@ -891,7 +903,172 @@ async function _handler(req, res, resource, op) {
           }
         }
       }
+      // Operator alert — minimal, no PII beyond firm name + deal name
+      try {
+        const notifyList = (process.env.NOTIFY_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+        if (notifyList.length && process.env.RESEND_API_KEY && process.env.BOT_MODE !== '1') {
+          const advFull = await kvGet(`advisor:${adv.advisor_id}`);
+          const subject = `Aurum Prism — package ${decision}: ${deal.name}`;
+          const html = `<p><strong>${advFull?.firm_name || advFull?.name || adv.advisor_id}</strong> ${decision} the IOI package for <strong>${deal.name}</strong>.</p>${note ? `<blockquote>${note.replace(/[<>]/g,'')}</blockquote>` : ''}<p><a href="${process.env.SITE_URL || ''}/admin-portal">Open control panel</a></p>`;
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+            body: JSON.stringify({ from: 'Aurum Prism <prism@theaurumcc.com>', to: notifyList, subject, html }),
+          }).catch(() => {});
+        }
+      } catch {}
       return ok(res, { ok: true, decision, stage: deal.stage });
+    }
+
+    // ── Banking details: save (advisor only, own record) ───────────
+    if (op === 'save-banking') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const body = req.body || {};
+      const fields = ['bank_name','account_holder','account_number','swift_code','iban','address','currency','notes'];
+      const clean = {};
+      for (const f of fields) {
+        if (body[f] != null) {
+          const v = String(body[f]);
+          if (v.length > 200) return bad(res, `${f} exceeds 200 chars`);
+          clean[f] = v.trim();
+        }
+      }
+      if (!clean.account_number || !clean.swift_code) {
+        return bad(res, 'account_number and swift_code required');
+      }
+      const updated_at = new Date().toISOString();
+      const record = { ...clean, updated_at, updated_by: adv.advisor_id };
+      await kvSet(`advisor_banking:${adv.advisor_id}`, record);
+      // Audit — never persist account numbers in audit payload
+      await kvZadd(`audit:advisor:${adv.advisor_id}`, Date.now(), JSON.stringify({
+        at: updated_at, actor: adv.advisor_id, action: 'banking_updated', meta: { updated_at, updated_by: adv.advisor_id },
+      }));
+      return ok(res, { ok: true, updated_at });
+    }
+
+    // ── Banking details: get (advisor only, own record, masked) ────
+    if (op === 'get-banking') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const rec = await kvGet(`advisor_banking:${adv.advisor_id}`);
+      if (!rec) return ok(res, { banking: null });
+      const acct = rec.account_number || '';
+      const masked = acct.length > 8
+        ? acct.slice(0, 4) + '••••' + acct.slice(-4)
+        : (acct.length > 0 ? '••••' + acct.slice(-Math.min(4, acct.length)) : '');
+      return ok(res, {
+        banking: {
+          bank_name: rec.bank_name || '',
+          account_holder: rec.account_holder || '',
+          account_number: masked,
+          swift_code: rec.swift_code || '',
+          iban: rec.iban || '',
+          address: rec.address || '',
+          currency: rec.currency || '',
+          notes: rec.notes || '',
+          updated_at: rec.updated_at || null,
+        },
+      });
+    }
+
+    // ── Pushed packages list (advisor only, own deals) ─────────────
+    if (op === 'packages') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const advDeals = await listDeals({ advisor_id: adv.advisor_id });
+      const out = [];
+      for (const d of advDeals) {
+        const pkgList = await kvGet(`packages:deal:${d.id}`);
+        if (!pkgList || !pkgList.length) continue;
+        for (const pid of pkgList) {
+          const p = await kvGet(`package:${pid}`);
+          if (!p) continue;
+          out.push({
+            packageId: p.packageId,
+            dealId: d.id,
+            dealName: d.name,
+            dealStage: d.stage,
+            amount_usd: p.indicatedTotal || 0,
+            target_alloc_usd: p.targetAlloc || 0,
+            approved_count: p.iois?.length || 0,
+            admin_comment: p.admin_comment || '',
+            created_at: p.generatedAt || null,
+            response: p.advisor_decision || (d.pushed_ioi_status === 'accepted' || d.pushed_ioi_status === 'declined' ? d.pushed_ioi_status : null),
+            response_at: p.advisor_decision_at || null,
+            response_note: p.advisor_decision_note || '',
+          });
+        }
+      }
+      out.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+      return ok(res, { packages: out });
+    }
+
+    // ── Real activity feed (advisor only, scoped to their deals) ───
+    if (op === 'activity') {
+      const adv = await getAdvisor();
+      if (!adv) return unauth(res);
+      const advDeals = await listDeals({ advisor_id: adv.advisor_id });
+      const dealIndex = new Map(advDeals.map(d => [d.id, d]));
+      // Pull last 100 audit entries per deal (ascending), then merge + sort desc
+      const merged = [];
+      await Promise.all(advDeals.map(async d => {
+        const rawEntries = await kvZrange(`audit:${d.id}`, 0, -1, { rev: false });
+        for (const raw of rawEntries) {
+          let entry;
+          try { entry = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { continue; }
+          merged.push({ ...entry, deal_id: d.id });
+        }
+      }));
+      // Sort desc by `at`
+      merged.sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+      const top = merged.slice(0, 50);
+      const KIND_LABELS = (kind, meta = {}) => {
+        switch (kind) {
+          case 'created':
+          case 'deal_created': return 'Deal submitted';
+          case 'stage_changed':
+          case 'stage_advanced': return meta.to ? `Advanced to ${meta.to}` : 'Stage advanced';
+          case 'ioi_received': return meta.amount ? `IOI received: $${Number(meta.amount).toLocaleString()}` : 'IOI received';
+          case 'ioi_approved': return 'IOI approved';
+          case 'ioi_rejected':
+          case 'ioi_declined': return 'IOI declined';
+          case 'vdr_upload': return meta.count ? `Files uploaded (${meta.count})` : 'Files uploaded';
+          case 'vdr_view': return 'Investor viewed file';
+          case 'qa_question_submitted':
+          case 'qa_question': return 'New Q&A question';
+          case 'qa_answered': return 'Q&A answered';
+          case 'package_accepted': return 'Package accepted';
+          case 'package_declined': return 'Package declined';
+          case 'package_pushed': return 'Package pushed';
+          case 'banking_updated': return 'Banking details updated';
+          case 'published':
+          case 'auto_published_on_approval': return 'Published to register';
+          case 'nav_update': return 'NAV updated';
+          default: return String(kind || '').replace(/_/g, ' ').toLowerCase();
+        }
+      };
+      const ROLE_OF = (actor) => {
+        if (!actor) return 'system';
+        const a = String(actor).toLowerCase();
+        if (a.startsWith('adv-') || a.includes('advisor')) return 'advisor';
+        if (a.startsWith('inv-') || a.includes('investor')) return 'investor';
+        if (a.includes('@') || a === 'admin' || a === 'system') return a === 'system' ? 'system' : 'admin';
+        return 'system';
+      };
+      const entries = top.map(e => {
+        const d = dealIndex.get(e.deal_id);
+        const kind = e.action || e.kind || '';
+        return {
+          at: e.at || null,
+          kind,
+          deal_id: e.deal_id,
+          deal_name: d?.name || '',
+          actor_role: ROLE_OF(e.actor),
+          payload_summary: KIND_LABELS(kind, e.meta || {}),
+        };
+      });
+      return ok(res, { entries });
     }
 
     // ── advisor-confirm-deal ──────────────────────────────────────
@@ -3007,6 +3184,58 @@ Return ONLY valid JSON in this exact structure:
       const entries = await kvZrange(`audit:${dealId}`, 0, -1, { rev: false });
       const parsed = entries.map(e => { try { return JSON.parse(e); } catch { return e; } });
       return ok(res, { dealId, log: parsed });
+    }
+
+    // ── unassigned-deals (admin) — list deals without an advisor + active advisors ──
+    if (op === 'unassigned-deals') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const allDeals = await listDeals();
+      const orphans = allDeals
+        .filter(d => !d.advisor_id || (typeof d.advisor_id === 'string' && !d.advisor_id.startsWith('adv-')))
+        .map(d => ({ id: d.id, name: d.name, stage: d.stage, created_at: d.created_at || null }));
+      const advKeys = await kvKeys('advisor:adv-*');
+      const advisors = (await Promise.all(advKeys.map(k => kvGet(k))))
+        .filter(a => a && a.status === 'active')
+        .map(a => ({ id: a.id, name: a.name || '', firm: a.firm_name || '', email: a.email }));
+      return ok(res, { deals: orphans, advisors });
+    }
+
+    // ── assign-advisor (admin) ────────────────────────────────────
+    if (op === 'assign-advisor') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId, advisorId } = req.body || {};
+      if (!dealId || !advisorId) return bad(res, 'dealId and advisorId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      const adv = await kvGet(`advisor:${advisorId}`);
+      if (!adv) return bad(res, 'Advisor not found', 404);
+      const prev = deal.advisor_id || null;
+      deal.advisor_id = advisorId;
+      deal.advisor_admin_mode = false;
+      deal.updated_at = new Date().toISOString();
+      const auditEntry = { at: deal.updated_at, actor: admin.email, action: 'advisor_assigned', meta: { by_admin: admin.email, advisor_id: advisorId, prev_advisor_id: prev } };
+      deal.audit_log = deal.audit_log || [];
+      deal.audit_log.push(auditEntry);
+      await saveDeal(deal);
+      await appendAuditEntry(dealId, auditEntry);
+      return ok(res, { ok: true });
+    }
+
+    // ── advisor-banking (admin) — full unmasked record + audit view ──
+    if (op === 'advisor-banking') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { advisorId } = req.query;
+      if (!advisorId) return bad(res, 'advisorId required');
+      const rec = await kvGet(`advisor_banking:${advisorId}`);
+      const viewedAt = new Date().toISOString();
+      // Audit the view on the advisor's audit trail (no PII in the audit payload)
+      await kvZadd(`audit:advisor:${advisorId}`, Date.now(), JSON.stringify({
+        at: viewedAt, actor: admin.email, action: 'banking_viewed', meta: { viewer_admin_id: admin.email, viewed_at: viewedAt },
+      }));
+      return ok(res, { banking: rec || null });
     }
 
     // ── capital-call-notify ───────────────────────────────────────

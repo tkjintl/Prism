@@ -867,6 +867,25 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   </div>
 </div>
 
+<!-- ══ PACKAGE RESPONSE MODAL ══ -->
+<div id="pkg-resp-overlay" role="dialog" aria-modal="true" aria-labelledby="pkg-resp-title" style="display:none;position:fixed;inset:0;z-index:520;background:rgba(10,9,8,.88);backdrop-filter:blur(10px);align-items:center;justify-content:center">
+  <div id="pkg-resp-box" style="max-width:480px;width:92%;background:var(--surface);border:1px solid var(--gold-bd);border-radius:var(--r);overflow:hidden">
+    <div style="padding:24px 28px 16px;border-bottom:1px solid var(--border)">
+      <div style="font-family:var(--mono);font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:8px" id="pkg-resp-eyebrow">Confirm Response</div>
+      <div style="font-family:var(--serif);font-style:italic;font-size:22px;color:var(--text);line-height:1.25" id="pkg-resp-title">Confirm response</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px" id="pkg-resp-meta"></div>
+    </div>
+    <div style="padding:20px 28px">
+      <label style="display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Note (optional)</label>
+      <textarea id="pkg-resp-note" maxlength="1000" rows="4" placeholder="Optional note to the operator…" style="width:100%;padding:10px 12px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:var(--r);font-size:13px;color:var(--text);font-family:var(--sans);resize:vertical"></textarea>
+      <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+        <button onclick="closePkgRespModal()" style="padding:11px 18px;border:1px solid var(--border-m);color:var(--text-3);font-size:12px;border-radius:2px;background:none;cursor:pointer;font-family:var(--sans)">Cancel</button>
+        <button id="pkg-resp-confirm" onclick="submitPackageResponse()" style="padding:11px 22px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;border:none;border-radius:2px;cursor:pointer">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ VIEW: DASHBOARD ══ -->
 <div id="view-overview" class="view active">
 
@@ -1188,10 +1207,9 @@ let DEALS = [
     ],
     documents:{
       nda:{name:'NDA_PacificBridge_v2.pdf',size:'312 KB',uploaded:'Apr 10',access:'public'},
-      teaser:{name:'PBI_InvestmentDeck_2026.pdf',size:'3.2 MB',uploaded:'Apr 11',access:'public'},
-      im:{name:'PBI_InformationMemo_v3.pdf',size:'6.8 MB',uploaded:'Apr 12',access:'nda'},
-      financials:{name:'PBI_FinancialSummary.xlsx',size:'580 KB',uploaded:'Apr 12',access:'nda'},
-      model:{name:'PBI_ProjectionModel.xlsx',size:'1.4 MB',uploaded:'Apr 15',access:'dd'},
+      mgmt:{name:'PBI_SponsorMemo_v3.pdf',size:'6.8 MB',uploaded:'Apr 12',access:'nda'},
+      fin:{name:'PBI_FinancialModel.xlsx',size:'1.4 MB',uploaded:'Apr 15',access:'nda'},
+      term:{name:'PBI_TermSheet_v2.pdf',size:'420 KB',uploaded:'Apr 13',access:'nda'},
     },
     closing_docs:{fund_docs:null,ppm:null,wire:null},
     dataroom:[
@@ -1233,10 +1251,9 @@ let DEALS = [
     ],
     documents:{
       nda:{name:'NDA_Clearwater_v1.pdf',size:'298 KB',uploaded:'Mar 28',access:'public'},
-      teaser:{name:'CCP_InvestmentDeck.pdf',size:'2.6 MB',uploaded:'Mar 29',access:'public'},
-      im:{name:'CCP_InfoMemo_v2.pdf',size:'5.4 MB',uploaded:'Apr 1',access:'nda'},
-      financials:{name:'CCP_FinancialSummary.xlsx',size:'420 KB',uploaded:'Apr 2',access:'nda'},
-      model:null,
+      mgmt:{name:'CCP_SponsorMemo_v2.pdf',size:'5.4 MB',uploaded:'Apr 1',access:'nda'},
+      fin:{name:'CCP_FinancialModel.xlsx',size:'820 KB',uploaded:'Apr 2',access:'nda'},
+      term:null,
     },
     closing_docs:null,
     dataroom:[
@@ -1276,10 +1293,9 @@ let DEALS = [
     ],
     documents:{
       nda:{name:'NDA_VAS_v1.pdf',size:'286 KB',uploaded:'Apr 5',access:'public'},
-      teaser:{name:'VAS_InvestmentDeck_2026.pdf',size:'3.8 MB',uploaded:'Apr 6',access:'public'},
-      im:{name:'VAS_InformationMemo_v2.pdf',size:'7.2 MB',uploaded:'Apr 8',access:'nda'},
-      financials:{name:'VAS_FinancialSummary.xlsx',size:'640 KB',uploaded:'Apr 9',access:'nda'},
-      model:{name:'VAS_ProjectionModel.xlsx',size:'1.8 MB',uploaded:'Apr 12',access:'dd'},
+      mgmt:{name:'VAS_SponsorMemo_v2.pdf',size:'7.2 MB',uploaded:'Apr 8',access:'nda'},
+      fin:{name:'VAS_FinancialModel.xlsx',size:'1.8 MB',uploaded:'Apr 12',access:'nda'},
+      term:{name:'VAS_TermSheet.pdf',size:'380 KB',uploaded:'Apr 9',access:'nda'},
     },
     closing_docs:{fund_docs:null,ppm:null,wire:null},
     dataroom:[],
@@ -1306,10 +1322,9 @@ let DEALS = [
     ],
     documents:{
       nda:{name:'NDA_CCP3_v1.pdf',size:'292 KB',uploaded:'Mar 15',access:'public'},
-      teaser:{name:'CCP3_InvestmentDeck.pdf',size:'3.1 MB',uploaded:'Mar 16',access:'public'},
-      im:{name:'CCP3_InfoMemo_v2.pdf',size:'6.2 MB',uploaded:'Mar 20',access:'nda'},
-      financials:{name:'CCP3_FinancialSummary.xlsx',size:'510 KB',uploaded:'Mar 21',access:'nda'},
-      model:{name:'CCP3_Model.xlsx',size:'1.2 MB',uploaded:'Apr 1',access:'dd'},
+      mgmt:{name:'CCP3_SponsorMemo_v2.pdf',size:'6.2 MB',uploaded:'Mar 20',access:'nda'},
+      fin:{name:'CCP3_FinancialModel.xlsx',size:'1.2 MB',uploaded:'Apr 1',access:'nda'},
+      term:{name:'CCP3_TermSheet.pdf',size:'410 KB',uploaded:'Mar 22',access:'nda'},
     },
     closing_docs:{
       fund_docs:{name:'CCP3_FundDocs.pdf',uploaded:'Apr 10'},
@@ -1784,6 +1799,175 @@ async function postNAVUpdate(dealId){
   }
 }
 
+/* ── ACTIVITY FEED (live) ── */
+let _ACTIVITY_ENTRIES=[];
+let _ACTIVITY_LOADED=false;
+async function loadAdvisorActivityFeed(){
+  const res=await fetchSilent('/api/v2?resource=advisor&op=activity');
+  _ACTIVITY_ENTRIES=Array.isArray(res?.entries)?res.entries.slice():[];
+  _ACTIVITY_LOADED=true;
+  return _ACTIVITY_ENTRIES;
+}
+function _actRel(ts){
+  if(!ts)return'';
+  const diff=Date.now()-new Date(ts).getTime();
+  const m=60000,h=3600000,d=86400000,w=7*d;
+  if(diff<m)return'just now';
+  if(diff<h)return Math.round(diff/m)+'m ago';
+  if(diff<d)return Math.round(diff/h)+'h ago';
+  if(diff<w)return Math.round(diff/d)+'d ago';
+  return Math.round(diff/w)+'w ago';
+}
+function renderAdvisorActivityInto(rootEl,entries){
+  if(!rootEl)return;
+  if(!entries||!entries.length){
+    rootEl.innerHTML='<div style="color:var(--text-3);font-size:13px;font-family:var(--serif);font-style:italic;padding:18px 0">No recent activity. Submit a deal to see updates here.</div>';
+    return;
+  }
+  const KIND_COLOR={
+    deal_created:'var(--gold)',
+    published:'var(--gold)',
+    ioi_received:'#E3C187',
+    qa_question_submitted:'#E3C187',
+    stage_advanced:'var(--text)',
+  };
+  rootEl.innerHTML=entries.slice(0,50).map(function(e){
+    const c=KIND_COLOR[e.kind]||'var(--text-3)';
+    const dealName=esc(e.deal_name||'Deal');
+    const summary=esc(e.payload_summary||(e.kind||'').replace(/_/g,' '));
+    const when=_actRel(e.at);
+    const onclick=e.deal_id?`onclick="goToDealById('${esc(e.deal_id)}')"`:'';
+    return '<div class="dash-act-item" '+onclick+' style="cursor:'+(e.deal_id?'pointer':'default')+'">'+
+      '<div class="dash-act-icon" style="color:'+c+';border-color:'+c+'">◆</div>'+
+      '<div class="dash-act-body">'+
+        '<div class="dash-act-text" style="font-family:var(--sans);font-size:13px;color:var(--text-2)">'+summary+'</div>'+
+        '<div class="dash-act-deal" style="font-family:var(--serif);font-style:italic;font-size:13px;color:'+c+'">'+dealName+'</div>'+
+      '</div>'+
+      '<div class="dash-act-time" style="font-family:var(--mono);font-size:10px;color:var(--text-3)">'+esc(when)+'</div>'+
+    '</div>';
+  }).join('');
+}
+function goToDealById(dealId){
+  const idx=DEALS.findIndex(d=>d.id===dealId);
+  if(idx<0){toast('Deal not in your portfolio','err');return;}
+  const dealTab=document.querySelectorAll('.ntab')[1];
+  showView('deal',dealTab);
+  switchDeal(idx);
+  showTab('overview',document.querySelector('.ctab'));
+}
+
+/* ── PUSH PACKAGES (Admin-forwarded IOIs) ── */
+let _PACKAGES=[];
+let _PKG_LOADED=false;
+let _PKG_PENDING=null; // {packageId, response, dealName}
+
+async function loadPushPackages(){
+  const res=await fetchSilent('/api/v2?resource=advisor&op=packages');
+  _PACKAGES=Array.isArray(res?.packages)?res.packages.slice():[];
+  _PKG_LOADED=true;
+  // Sort: pending first, then most-recent response_at desc
+  _PACKAGES.sort((a,b)=>{
+    const ap=!a.response,bp=!b.response;
+    if(ap!==bp)return ap?-1:1;
+    const ar=new Date(a.response_at||a.created_at||0).getTime();
+    const br=new Date(b.response_at||b.created_at||0).getTime();
+    return br-ar;
+  });
+  return _PACKAGES;
+}
+
+function _pkgRel(ts){
+  if(!ts)return'';
+  const diff=Date.now()-new Date(ts).getTime();
+  const m=60000,h=3600000,d=86400000,w=7*d;
+  if(diff<m)return'just now';
+  if(diff<h)return Math.round(diff/m)+'m ago';
+  if(diff<d)return Math.round(diff/h)+'h ago';
+  if(diff<w)return Math.round(diff/d)+'d ago';
+  return Math.round(diff/w)+'w ago';
+}
+
+function renderPushPackagesInto(rootEl){
+  if(!rootEl)return;
+  if(!_PACKAGES.length){
+    rootEl.innerHTML='<div style="color:var(--text-3);font-size:13px;font-family:var(--sans);font-style:italic;padding:18px 0">No pushed IOI packages yet — admin will forward investor indications here.</div>';
+    return;
+  }
+  rootEl.innerHTML=_PACKAGES.map(p=>{
+    const stage=esc(p.dealStage||'');
+    const name=esc(p.dealName||'Deal');
+    const amt=fmU(p.amount_usd||0);
+    const created=_pkgRel(p.created_at);
+    const responded=p.response==='accepted'||p.response==='declined';
+    const respClr=p.response==='accepted'?'var(--green)':p.response==='declined'?'var(--red)':'var(--gold)';
+    const respLbl=p.response==='accepted'?'Accepted':p.response==='declined'?'Declined':'Pending';
+    const note=p.response_note?`<div style="margin-top:10px;padding:10px 12px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text-2);font-family:var(--sans);font-style:italic;line-height:1.55">${esc(p.response_note)}</div>`:'';
+    const actions=responded
+      ? `<div style="margin-top:12px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:${respClr}">
+           <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${respClr}"></span>
+           ${respLbl}${p.response_at?' · '+_pkgRel(p.response_at):''}
+         </div>${note}`
+      : `<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+           <button class="ipc-decline" onclick="openPkgRespModal('${esc(p.packageId)}','declined','${esc(p.dealName||'')}')">Decline</button>
+           <button class="ipc-accept" onclick="openPkgRespModal('${esc(p.packageId)}','accepted','${esc(p.dealName||'')}')">Accept</button>
+         </div>`;
+    return `<div class="pkg-card" style="padding:16px 18px;background:var(--bg-2);border:1px solid var(--border);border-left:3px solid ${respClr};border-radius:var(--r);margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div style="min-width:0;flex:1">
+          <div style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--text);line-height:1.25">${name}</div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-top:4px">${stage} · ${created||'—'}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:18px;color:var(--gold);font-weight:600">${amt}</div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--text-3);margin-top:2px">Indicated</div>
+        </div>
+      </div>
+      ${actions}
+    </div>`;
+  }).join('');
+}
+
+function openPkgRespModal(packageId,response,dealName){
+  _PKG_PENDING={packageId,response,dealName};
+  document.getElementById('pkg-resp-eyebrow').textContent=response==='accepted'?'Accept package':'Decline package';
+  document.getElementById('pkg-resp-title').textContent=(response==='accepted'?'Accept ':'Decline ')+(dealName||'package');
+  document.getElementById('pkg-resp-meta').textContent=response==='accepted'?'Confirms the IOI and notifies the operator.':'Tells the operator this indication will not be carried forward.';
+  document.getElementById('pkg-resp-note').value='';
+  document.getElementById('pkg-resp-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('pkg-resp-note')?.focus(),50);
+}
+function closePkgRespModal(){
+  _PKG_PENDING=null;
+  document.getElementById('pkg-resp-overlay').style.display='none';
+}
+async function submitPackageResponse(){
+  if(!_PKG_PENDING)return;
+  const note=(document.getElementById('pkg-resp-note')?.value||'').trim();
+  const btn=document.getElementById('pkg-resp-confirm');
+  if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  const payload={packageId:_PKG_PENDING.packageId,response:_PKG_PENDING.response};
+  if(note)payload.note=note;
+  const res=await api('POST','/api/v2?resource=advisor&op=respond-package',payload);
+  if(btn){btn.disabled=false;btn.textContent='Confirm';}
+  if(!res||res.error||res.ok===false){
+    if(res?.error==='already_responded'){
+      toast('This package has already been responded to');
+      _PKG_LOADED=false;
+      await loadPushPackages();
+      const tgt=document.getElementById('pkg-list-root');if(tgt)renderPushPackagesInto(tgt);
+      closePkgRespModal();
+      return;
+    }
+    toast(res?.error||'Could not save response','err');
+    return;
+  }
+  toast(_PKG_PENDING.response==='accepted'?'Package accepted':'Package declined','ok');
+  closePkgRespModal();
+  _PKG_LOADED=false;
+  await loadPushPackages();
+  const tgt=document.getElementById('pkg-list-root');if(tgt)renderPushPackagesInto(tgt);
+}
+
 async function acceptAdminIOI(){
   const d=DEALS[currentDealIdx];
   if(!d.pushed_ioi)return;
@@ -1801,7 +1985,7 @@ async function acceptAdminIOI(){
   renderOverview();
   toast('IOI accepted — deal advanced to Due Diligence','ok');
   // Persist decision via API
-  api('POST','/api/v2?resource=advisor&op=respond-package',{dealId:d.id,packageId:d.pushed_ioi.id,decision:'accepted'}).catch(()=>{});
+  api('POST','/api/v2?resource=advisor&op=respond-package',{dealId:d.id,packageId:d.pushed_ioi.id,response:'accepted',decision:'accepted'}).catch(()=>{});
   // Mark notification read on server
   api('POST','/api/v2?resource=advisor&op=notifications',{action:'mark-read',ids:'all',dealId:d.id}).catch(()=>{});
 }
@@ -1820,16 +2004,15 @@ async function declineAdminIOI(){
   // Mark notification read on server
   api('POST','/api/v2?resource=advisor&op=notifications',{action:'mark-read',ids:'all',dealId:d.id}).catch(()=>{});
   // Persist decision via API
-  api('POST','/api/v2?resource=advisor&op=respond-package',{dealId:d.id,packageId:d.pushed_ioi.id,decision:'declined'}).catch(()=>{});
+  api('POST','/api/v2?resource=advisor&op=respond-package',{dealId:d.id,packageId:d.pushed_ioi.id,response:'declined',decision:'declined'}).catch(()=>{});
 }
 
 /* ── MATERIALS ── */
 const DOC_DEFS=[
-  {id:'nda',label:'NDA Template',desc:'Required before investors access any materials',iconClass:'di-key',iconEmoji:'🔑',accessClass:'dab-public',accessLabel:'Pre-Access'},
-  {id:'teaser',label:'Investment Deck',desc:'Shown to all invited investors',iconClass:'di-pdf',iconEmoji:'📄',accessClass:'dab-public',accessLabel:'Public'},
-  {id:'im',label:'Information Memo',desc:'Full memorandum, NDA-gated',iconClass:'di-pdf',iconEmoji:'📄',accessClass:'dab-nda',accessLabel:'NDA Required'},
-  {id:'financials',label:'Financial Summary',desc:'Required — NDA-gated',iconClass:'di-excel',iconEmoji:'📊',accessClass:'dab-nda',accessLabel:'NDA Required'},
-  {id:'model',label:'Financial Model',desc:'Detailed projections — DD stage only',iconClass:'di-excel',iconEmoji:'📊',accessClass:'dab-dd',accessLabel:'DD Only'},
+  {id:'nda',label:'NDA',desc:'Required before investors access any materials',iconClass:'di-key',iconEmoji:'🔑',accessClass:'dab-public',accessLabel:'Pre-Access'},
+  {id:'mgmt',label:'Sponsor Memo',desc:'Primary investor-facing memo — NDA-gated',iconClass:'di-pdf',iconEmoji:'📄',accessClass:'dab-nda',accessLabel:'NDA Required'},
+  {id:'fin',label:'Financial Model',desc:'Projections / financial summary — NDA-gated',iconClass:'di-excel',iconEmoji:'📊',accessClass:'dab-nda',accessLabel:'NDA Required'},
+  {id:'term',label:'Term Sheet',desc:'Deal terms and structure overview — NDA-gated',iconClass:'di-pdf',iconEmoji:'📋',accessClass:'dab-nda',accessLabel:'NDA Required'},
 ];
 
 const CLOSING_DEFS=[
@@ -2008,6 +2191,8 @@ function renderMaterials(){
   }
 
   document.getElementById('tab-materials').innerHTML=html;
+  // Load advisor-level banking record into the form (real persistence)
+  if(d.stage==='close'||d.stage==='realized'){loadBankingIntoForm();}
 }
 
 function simulateUpload(docId){
@@ -2075,37 +2260,113 @@ function toggleSameAccount(){
   }
 }
 
-function saveBankingDetails(){
+/* Advisor-level banking record (single source of truth, advisor scoped).
+   Section A maps to the API contract (account_holder/bank_name/etc).
+   Section B (distribution account) is kept per-deal in deal-local state until
+   the backend extends the contract. */
+let _BANKING_CACHE=null;       // {bank_name, account_holder, account_number(masked), swift_code, ...}
+let _BANKING_LOADED=false;
+let _BANKING_EDITING=false;    // true once user clicks Edit — replaces masked acct
+function _bkRel(ts){
+  if(!ts)return'';
+  const diff=Date.now()-new Date(ts).getTime();
+  const m=60000,h=3600000,d=86400000;
+  if(diff<m)return'just now';
+  if(diff<h)return Math.round(diff/m)+'m ago';
+  if(diff<d)return Math.round(diff/h)+'h ago';
+  if(diff<30*d)return Math.round(diff/d)+'d ago';
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+async function loadBankingIntoForm(){
+  if(!_BANKING_LOADED){
+    const res=await fetchSilent('/api/v2?resource=advisor&op=get-banking');
+    _BANKING_CACHE=res?.banking||null;
+    _BANKING_LOADED=true;
+  }
+  const b=_BANKING_CACHE;
+  if(!b)return;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
+  set('bk-a-bene',b.account_holder);
+  set('bk-a-bank',b.bank_name);
+  set('bk-a-addr',b.address);
+  set('bk-a-swift',b.swift_code);
+  // Account number: show masked until user clicks Edit
+  const acct=document.getElementById('bk-a-acct');
+  if(acct){
+    if(_BANKING_EDITING){acct.value='';acct.placeholder='Enter new account number';acct.readOnly=false;}
+    else if(b.account_number){
+      acct.value=b.account_number;          // server returns masked '•••• 1234'
+      acct.readOnly=true;
+      acct.dataset.masked='1';
+    }
+  }
+  set('bk-a-ref',b.notes);
+  // Header timestamp pill
+  const hdr=document.querySelector('.banking-header');
+  if(hdr&&b.updated_at&&!hdr.querySelector('.banking-updated-pill')){
+    const pill=document.createElement('span');
+    pill.className='banking-updated-pill';
+    pill.style.cssText='display:inline-block;margin-left:10px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.04em';
+    pill.textContent='Updated '+_bkRel(b.updated_at);
+    hdr.querySelector('.banking-title')?.appendChild(pill);
+  }
+  // Edit toggle next to acct field
+  if(acct&&acct.dataset.masked&&!document.getElementById('bk-edit-acct-btn')){
+    const btn=document.createElement('button');
+    btn.type='button';btn.id='bk-edit-acct-btn';
+    btn.textContent='Edit';
+    btn.style.cssText='margin-top:6px;align-self:flex-start;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:none;border:none;cursor:pointer;padding:0';
+    btn.onclick=()=>{_BANKING_EDITING=true;acct.value='';acct.placeholder='Enter new account number';acct.readOnly=false;acct.focus();btn.remove();};
+    acct.parentElement.appendChild(btn);
+  }
+}
+async function saveBankingDetails(){
+  const btn=document.querySelector('.banking-save-btn');
+  const readField=id=>(document.getElementById(id)?.value||'').trim();
+  const acctEl=document.getElementById('bk-a-acct');
+  const acctMaskedUnchanged=acctEl?.dataset?.masked==='1'&&!_BANKING_EDITING;
+  const payload={
+    bank_name:readField('bk-a-bank'),
+    account_holder:readField('bk-a-bene'),
+    swift_code:readField('bk-a-swift'),
+    address:readField('bk-a-addr'),
+    notes:readField('bk-a-ref'),
+  };
+  // Only send account_number if user actually typed a new one
+  if(!acctMaskedUnchanged)payload.account_number=readField('bk-a-acct');
+  // Validate required
+  const missing=[];
+  if(!payload.bank_name)missing.push('Bank Name');
+  if(!payload.account_holder)missing.push('Beneficiary Name');
+  if(!payload.swift_code)missing.push('SWIFT / BIC');
+  if(!acctMaskedUnchanged&&!payload.account_number)missing.push('Account Number');
+  if(missing.length){toast('Required: '+missing.join(', '),'err');return;}
+  // Persist Section B (deal-local) so the existing UI keeps working
   const d=DEALS[currentDealIdx];
   const sameAsA=document.getElementById('bk-same-chk')?.checked||false;
-  const readField=id=>(document.getElementById(id)?.value||'').trim();
   d.banking={
     sameAsA,
-    a:{
-      bene:readField('bk-a-bene'),
-      bank:readField('bk-a-bank'),
-      addr:readField('bk-a-addr'),
-      swift:readField('bk-a-swift'),
-      acct:readField('bk-a-acct'),
-      ref:readField('bk-a-ref'),
-    },
-    b:sameAsA?{
-      bene:readField('bk-a-bene'),
-      bank:readField('bk-a-bank'),
-      addr:readField('bk-a-addr'),
-      swift:readField('bk-a-swift'),
-      acct:readField('bk-a-acct'),
-      ref:readField('bk-a-ref'),
-    }:{
-      bene:readField('bk-b-bene'),
-      bank:readField('bk-b-bank'),
-      addr:readField('bk-b-addr'),
-      swift:readField('bk-b-swift'),
-      acct:readField('bk-b-acct'),
-      ref:readField('bk-b-ref'),
+    a:{bene:payload.account_holder,bank:payload.bank_name,addr:payload.address,swift:payload.swift_code,acct:acctMaskedUnchanged?(_BANKING_CACHE?.account_number||''):payload.account_number,ref:payload.notes},
+    b:sameAsA?null:{
+      bene:readField('bk-b-bene'),bank:readField('bk-b-bank'),addr:readField('bk-b-addr'),
+      swift:readField('bk-b-swift'),acct:readField('bk-b-acct'),ref:readField('bk-b-ref'),
     },
   };
+  if(btn){btn.disabled=true;btn.dataset.origText=btn.dataset.origText||btn.textContent;btn.textContent='Saving…';}
+  const res=await api('POST','/api/v2?resource=advisor&op=save-banking',payload);
+  if(btn){btn.disabled=false;btn.textContent=btn.dataset.origText||'Save Banking Details';}
+  if(!res||res.error||res.ok===false){toast(res?.error||'Could not save banking details','err');return;}
+  _BANKING_LOADED=false;_BANKING_EDITING=false;       // refresh cache with masked value next render
   toast('Banking details saved','ok');
+  // Inline confirmation under the save button
+  let conf=document.getElementById('bk-saved-conf');
+  if(!conf){
+    conf=document.createElement('div');conf.id='bk-saved-conf';
+    conf.style.cssText='margin-top:10px;font-family:var(--mono);font-style:italic;font-size:11px;color:var(--gold);letter-spacing:.04em';
+    btn?.insertAdjacentElement('afterend',conf);
+  }
+  const t=new Date().toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit',hour12:false});
+  conf.textContent='Updated · '+t+' SGT';
 }
 
 /* ── PRISM DOC VIEWER ── */
@@ -3568,12 +3829,20 @@ function renderDashboard() {
     '</div>' +
   '</div>' +
 
+  '<div class="dash-section" style="padding-top:0">' +
+    '<div class="dash-section-hd" style="margin-bottom:14px">' +
+      '<div class="dash-section-title">Pushed IOI Packages</div>' +
+      '<span class="dash-section-mono" id="pkg-list-count" style="color:var(--text-3)">—</span>' +
+    '</div>' +
+    '<div id="pkg-list-root"><div style="color:var(--text-3);font-size:13px;font-family:var(--sans);font-style:italic;padding:12px 0">Loading packages…</div></div>' +
+  '</div>' +
+
   '<div class="dash-section dash-bottom-grid" style="padding-top:0">' +
     '<div>' +
       '<div class="dash-section-hd" style="margin-bottom:16px">' +
         '<div class="dash-section-title">Recent Activity</div>' +
       '</div>' +
-      '<div class="dash-activity-feed">' +
+      '<div class="dash-activity-feed" id="dash-activity-root">' +
         (recentActivity.length ? recentActivity.map(function(a){
           const iconMap = {ioi:'◈',access:'↓',stage:'▲',admin:'✦',msg:'◆',review:'✦'};
           const colorMap = {ioi:'gold',access:'blue',stage:'green',admin:'text-3',msg:'text-3',review:'amber'};
@@ -3631,6 +3900,24 @@ function renderDashboard() {
       el.style.width = el.dataset.pct || '0%';
     });
   }, 50);
+
+  // ── Async data loaders for live sections ──
+  loadPushPackages().then(function(){
+    const tgt=document.getElementById('pkg-list-root');if(tgt)renderPushPackagesInto(tgt);
+    const cnt=document.getElementById('pkg-list-count');
+    if(cnt){
+      const pending=_PACKAGES.filter(p=>!p.response).length;
+      cnt.textContent=_PACKAGES.length+' total'+(pending?' · '+pending+' pending':'');
+    }
+  }).catch(function(){
+    const tgt=document.getElementById('pkg-list-root');
+    if(tgt)tgt.innerHTML='<div style="color:var(--red);font-size:12px;font-family:var(--mono)">Could not load packages.</div>';
+  });
+
+  loadAdvisorActivityFeed().then(function(entries){
+    const tgt=document.getElementById('dash-activity-root');
+    if(tgt)renderAdvisorActivityInto(tgt,entries);
+  }).catch(function(){});
 }
 
 function goDashDeal(idx) {
