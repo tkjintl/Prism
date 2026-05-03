@@ -1611,13 +1611,14 @@ a{color:inherit;text-decoration:none}
 
 /* ── MOBILE FULL-PANE HERO: investor portal — prism + greeting fills viewport ── */
 @media(max-width:768px){
-  /* Hero fills available height below nav; 44px left so first deal section peeks */
+  /* Hero fills available height below nav, centered like advisor portal */
   .lobby-hero{
     display:flex!important;
     flex-direction:column!important;
     align-items:center!important;
-    height:calc(100svh - var(--nav-h) - 44px)!important;
-    height:calc(100vh - var(--nav-h) - 44px)!important;
+    justify-content:center!important;
+    height:calc(100svh - var(--nav-h))!important;
+    height:calc(100vh - var(--nav-h))!important;
     min-height:0!important;
     overflow:visible!important;
     grid-template-columns:none!important;
@@ -1625,15 +1626,14 @@ a{color:inherit;text-decoration:none}
     position:relative!important;
   }
 
-  /* Prism: first, large — ~46% of available height */
+  /* Prism: sized to its content so flex center distributes empty space above/below */
   .hero-visual{
     order:-1!important;
     display:flex!important;
     align-items:center!important;
     justify-content:center!important;
     width:100%!important;
-    flex:0 0 46vh!important;
-    flex:0 0 46svh!important;
+    flex:0 0 auto!important;
     min-height:0!important;
     max-height:none!important;
     padding:0!important;
@@ -1684,20 +1684,22 @@ a{color:inherit;text-decoration:none}
     margin-top:2px!important;
   }
 
-  /* Deal content: sits below fold — scrolls into view */
+  /* Deal content (eyebrow, name, tagline, stats, CTAs): hidden in hero pane —
+     appears in the deal grid section that scrolls into view below */
   .hero-content{
-    order:2!important;
-    width:100%!important;
-    flex:0 0 auto!important;
-    flex-shrink:0!important;
-    padding:64px 20px 0!important;
-    justify-content:flex-start!important;
+    display:none!important;
+  }
+  /* Hero dots / sub-bar / urgency badge: also hidden in the hero pane on mobile */
+  .hero-dots,
+  .hero-sub-bar-wrap,
+  .urgency-badge{
+    display:none!important;
   }
   /* Scroll chevron at bottom of hero area */
   .lobby-hero::after{
     content:''!important;
     position:absolute!important;
-    bottom:-28px!important;
+    bottom:20px!important;
     left:50%!important;
     width:16px!important;
     height:16px!important;
@@ -2197,8 +2199,12 @@ function initLobby() {
   ).join('');
   document.documentElement.style.setProperty('--carousel-ms', CAROUSEL_MS + 'ms');
 
-  // Render deal grid (all except featured slot)
-  const others = publicDeals.filter(d => !d.featured);
+  // Render deal grid (all except featured slot — but include featured on mobile,
+  // where the featured carousel pane is hidden in favor of a clean prism+greeting fold)
+  const _isMobileLobby = window.matchMedia('(max-width:768px)').matches;
+  const others = _isMobileLobby ? publicDeals : publicDeals.filter(d => !d.featured);
+  const _otherTitle = document.querySelector('#view-lobby .section .section-title');
+  if (_otherTitle) _otherTitle.textContent = _isMobileLobby ? 'Opportunities' : 'Other Opportunities';
   document.getElementById('other-count').textContent = `${others.length} Active`;
   document.getElementById('deal-grid').innerHTML = others.map(d => {
     const p  = Math.round(d.ioi_agg / d.target_alloc * 100);

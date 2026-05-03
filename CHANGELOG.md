@@ -10,9 +10,15 @@ The three portal HTMLs were missing a `<link rel="icon">`, so browser tabs showe
 
 ---
 
-## [2026-05-02] — Investor lobby mobile spacing (`investor-portal.html`)
+## [2026-05-02] — Investor lobby mobile: prism-centered hero, deal grid below (`investor-portal.html`)
 
-Bumped `.hero-content` top padding on mobile (≤768px) from `20px` to `64px` so the "Featured Opportunity" eyebrow + deal name no longer sit right under the "Good evening, JWC" greeting. Cleaner separation between the personalized greeting block and the first deal card on phones.
+Reworked the mobile lobby to mirror the advisor portal's mobile dashboard hero: a centered prism with the personalized greeting underneath and clean empty space above and below — no featured deal card crammed into the same fold.
+
+- `.lobby-hero` now uses `justify-content:center` and fills the full viewport-minus-nav, so the prism + greeting are vertically centered with breathing room above and below.
+- `.hero-visual` no longer claims `46svh`; sized to its content so the flex centering distributes the empty space evenly.
+- `.hero-content` (featured deal eyebrow / name / tagline / stats / CTAs) is hidden on mobile, along with the carousel `.hero-dots`, the thin `.hero-sub-bar-wrap`, and the `.urgency-badge` — all of which were what made the previous fold feel cramped.
+- Scroll chevron repositioned inside the hero (bottom: 20px) so it sits above the fold rather than below it.
+- `initLobby()` now includes the featured deal in the `Other Opportunities` grid on mobile (`window.matchMedia('(max-width:768px)')`) and renames the section to `Opportunities` so the featured deal remains reachable from the deal grid below the fold. Desktop behavior is unchanged.
 
 ---
 
