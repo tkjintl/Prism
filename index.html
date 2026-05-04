@@ -629,6 +629,18 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   .hero-ctas{margin-bottom:0!important;gap:0}
   .hero-note{display:none!important}
 }
+/* mobile-v5: belt-and-suspenders overflow prevention + footer stack */
+@media (max-width:768px){
+  html{overflow-x:hidden}
+  /* Footer top grid: already stacked at 900px via earlier rule — reinforce at 768px */
+  .foot-top{grid-template-columns:1fr!important;gap:28px}
+  /* Tier CTA tap target floor */
+  .tier-cta{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  /* Form submit tap target */
+  .form-submit{min-height:44px}
+  /* Stats bar horizontal scroll fallback if somehow visible */
+  .stats-inner{overflow-x:auto}
+}
 </style>
 </head>
 <body>
