@@ -805,6 +805,64 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .dhs-vis-inner{width:min(220px,72%)!important;gap:8px!important}
   .dhs-ring-float{display:none!important}
 }
+
+/* ══════════════════════════════════════════════════════
+   mobile-v6: advisor-portal targeted gap fixes
+   Scope: ≤768px and ≤480px only.
+   1. Wizard step overflow at 360px
+   2. Modal max-height scrollable on iOS
+   3. Inline-grid operator panel override
+   4. html overflow-x prevention
+   ══════════════════════════════════════════════════════ */
+
+/* html overflow guard */
+@media(max-width:768px){
+  html{overflow-x:hidden}
+}
+
+/* Wizard steps: at 360px the step row overflows — shrink labels + compress connectors */
+@media(max-width:480px){
+  .wizard-steps{gap:2px!important;padding:0 8px}
+  .ws-label{font-size:8px!important;letter-spacing:.03em!important;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ws-line{flex:0 0 6px!important;max-width:6px!important}
+  .ws-circle{width:22px!important;height:22px!important;font-size:9px!important}
+}
+@media(max-width:360px){
+  .wizard-steps{gap:0!important}
+  .ws-label{display:none!important}
+  .ws-line{flex:0 0 4px!important;max-width:4px!important}
+}
+
+/* Modals: constrain max-height and enable scroll on iOS */
+@media(max-width:768px){
+  .modal-overlay{align-items:flex-end!important}
+  .modal-box{
+    max-height:90vh!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    border-radius:12px 12px 0 0!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0!important;
+  }
+  /* Also constrain large inline modal-like overlays */
+  #review-notify-box,#pkg-resp-box{
+    max-height:88vh!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+  }
+}
+
+/* Deal submit wizard panel: ensure tab panels don't overflow */
+@media(max-width:480px){
+  .tab-panel{padding:16px!important}
+  .content-tabs{padding:0 12px!important}
+  /* Field rows inside wizard: stack */
+  .field-row{grid-template-columns:1fr!important}
+  /* IOI push card actions: stack */
+  .ipc-actions{flex-direction:column!important;gap:8px!important}
+  .ipc-accept,.ipc-decline{width:100%!important;justify-content:center!important}
+}
 </style>
 </head>
 <body>
