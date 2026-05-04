@@ -4155,6 +4155,21 @@ async function loadEarnings() {
 
 
 load();
+
+/* measure real nav height and apply as padding-top to all .view elements */
+(function fixNavOffset(){
+  if(window.innerWidth>1023)return;
+  function apply(){
+    const nav=document.querySelector('.nav');
+    if(!nav)return;
+    const h=nav.getBoundingClientRect().height;
+    const offset=Math.ceil(h)+8; // 8px breathing room
+    document.documentElement.style.setProperty('--nav-h',offset+'px');
+    document.querySelectorAll('.view').forEach(v=>{v.style.paddingTop=offset+'px'});
+  }
+  apply();
+  new ResizeObserver(apply).observe(document.querySelector('.nav')||document.body);
+})();
 </script>
 <!-- Prism Doc Viewer Modal -->
 <div id="prism-doc-viewer" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(10,9,8,.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
