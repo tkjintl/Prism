@@ -106,4 +106,44 @@ All three auth pages and login.html and index.html have already received mobile 
 
 ## Changes Applied
 
-_(updated as Phase 2 proceeds)_
+### mobile-v1 — forgot-password.html
+Appended `@media(max-width:768px)` block: `.btn` gets `min-height:44px` + flex centering; `.back` gets `min-height:44px` + inline-flex. 5 lines added.
+
+### mobile-v2 — reset-password.html
+Same pattern as mobile-v1. `.btn` and `a[href="/login"]` tap-target floor. 5 lines added.
+
+### mobile-v3 — setup-password.html
+`.btn` tap-target floor only (no back link on this page). 4 lines added.
+
+### mobile-v4 — login.html
+Appended `@media(max-width:480px)`: operator panel inline grid overridden to `1fr` (email + password stack vertically); `.l-btn` tap-target floor. 9 lines added.
+
+### mobile-v5 — index.html
+Appended `@media(max-width:768px)`: `html{overflow-x:hidden}`; `.foot-top` forced to `1fr` column at 768px (already at 900px); `.tier-cta` and `.form-submit` 44px min-height; `.stats-inner` overflow-x auto fallback. 12 lines added.
+
+### mobile-v6 — advisor-portal.html
+Appended after mobile-hero style block:
+- `html{overflow-x:hidden}` at ≤768px
+- Wizard steps: labels truncated, connector lines compressed at ≤480px; labels hidden at ≤360px
+- Modal bottom-sheet: max-height 90vh, overflow-y scroll, border-radius 12px 12px 0 0, full width at ≤768px
+- `#review-notify-box` and `#pkg-resp-box` max-height 88vh
+- Tab panels: 16px padding, field-row stacks, IOI push card actions stack at ≤480px
+58 lines added.
+
+### mobile-v7 — investor-portal.html
+Appended after mobile-pass block:
+- Hero stats: flex-wrap at ≤480px with 50/50 pairs; column layout at ≤360px
+- `#view-deal` overlay: `-webkit-overflow-scrolling:touch`
+- Modal bottom-sheet pattern at ≤768px
+- IOI form 12px padding; pos-grid 1-col at ≤480px
+62 lines added.
+
+### mobile-v8 — admin-portal.html
+Appended after view-as style block:
+- `html{overflow-x:hidden}` at ≤768px
+- Modal + dist-modal bottom-sheet at ≤768px
+- Pipeline table tighter padding at ≤360px
+- IOI sub-wrap narrower at ≤360px
+- View-as FAB safe-area bottom on touch devices
+- Attention cards, section headers at ≤480px
+66 lines added.
