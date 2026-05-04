@@ -4874,5 +4874,40 @@ load();
   body { padding-bottom: env(safe-area-inset-bottom); }
   input, select, textarea { font-size: 16px; }
 }
+
+/* ── fix-9: deal-switcher — thinner bar, no bleed */
+@media(max-width:768px){
+  .deal-switcher{
+    padding:5px 12px!important;
+    max-width:100vw!important;
+    box-sizing:border-box!important;
+  }
+  .ds-pill{
+    flex-direction:row!important;
+    align-items:center!important;
+    padding:5px 10px!important;
+  }
+  .ds-ioi-banner{display:none!important}
+}
+
+/* ── fix-10: NAV update form grid — stack on mobile */
+@media(max-width:768px){
+  #nav-form-grid{
+    grid-template-columns:1fr!important;
+  }
+}
+
+/* ── fix-11: wizard steps — force single row, scroll if needed */
+@media(max-width:640px){
+  .wizard-steps{
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    scrollbar-width:none!important;
+    row-gap:0!important;
+    padding-bottom:4px!important;
+  }
+  .wizard-steps::-webkit-scrollbar{display:none}
+}
 </style>
 </body>
