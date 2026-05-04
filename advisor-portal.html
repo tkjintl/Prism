@@ -4724,10 +4724,7 @@ load();
 }
 
 /* ── FIX: deal-switcher overlap — nav actual height > --nav-h var on mobile ── */
-@media(max-width:768px){
-  :root{--nav-h:96px}
-  .view{padding-top:96px!important}
-}
+/* (--nav-h and padding-top now set in fix-9 block above) */
 
 /* ── FIX: stage circles — spread evenly across full width ── */
 @media(max-width:480px){
@@ -4875,19 +4872,55 @@ load();
   input, select, textarea { font-size: 16px; }
 }
 
-/* ── fix-9: deal-switcher — thinner bar, no bleed */
+/* ── fix-9: deal-switcher — flat compact bar, no bleed into nav */
 @media(max-width:768px){
+  /* Bar itself: fixed 40px tall, no overflow */
   .deal-switcher{
-    padding:5px 12px!important;
-    max-width:100vw!important;
+    padding:0 12px!important;
+    height:40px!important;
+    min-height:40px!important;
+    max-height:40px!important;
     box-sizing:border-box!important;
+    align-items:center!important;
+    overflow:hidden!important;
+    overflow-x:auto!important;
+    flex-wrap:nowrap!important;
+    width:100%!important;
+    max-width:100vw!important;
   }
+  /* Pills: explicitly 28px tall, single row */
   .ds-pill{
     flex-direction:row!important;
     align-items:center!important;
-    padding:5px 10px!important;
+    justify-content:flex-start!important;
+    padding:0 9px!important;
+    height:28px!important;
+    min-height:28px!important;
+    max-height:28px!important;
+    max-width:150px!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    flex-shrink:0!important;
   }
+  /* Inner content div: row, single line */
+  .ds-pill > div{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    gap:5px!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    max-width:100%!important;
+    text-overflow:ellipsis!important;
+  }
+  /* Hide stage label to save width */
+  .ds-pill-stage{display:none!important}
+  /* Hide IOI banner — prevents pill from growing tall */
   .ds-ioi-banner{display:none!important}
+  /* Also ensure --nav-h accounts for the two-row nav */
+  :root{--nav-h:92px}
+  .view{padding-top:92px!important}
+  .deal-switcher + *{margin-top:0!important}
 }
 
 /* ── fix-10: NAV update form grid — stack on mobile */
