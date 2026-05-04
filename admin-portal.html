@@ -5846,6 +5846,72 @@ function vuGenerate() {
   .vap-row .vap-go{color:#C5A572;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em}
   #vap-modal[style*="display: flex"]{display:flex !important}
 </style>
+<style>
+/* ══════════════════════════════════════════════════════
+   mobile-v8: admin-portal targeted gap fixes
+   1. Modal bottom-sheet + max-height scroll
+   2. html overflow-x guard
+   3. Pipeline table at 360px
+   4. IOI sub-wrap narrower at 360px
+   5. View-as FAB repositioned for safe-area bottom
+   ══════════════════════════════════════════════════════ */
+
+/* html overflow guard */
+@media(max-width:768px){
+  html{overflow-x:hidden}
+}
+
+/* Modals: bottom-sheet pattern on mobile */
+@media(max-width:768px){
+  .modal-overlay{align-items:flex-end!important}
+  .modal-box{
+    max-height:90vh!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    border-radius:12px 12px 0 0!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0!important;
+  }
+  /* Dist modal */
+  .dist-modal-box{
+    max-height:90vh!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    border-radius:12px 12px 0 0!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0!important;
+  }
+}
+
+/* Pipeline table at 360px: advisor column already hidden at 640px via existing rule */
+@media(max-width:360px){
+  .dp-row{gap:4px!important;padding:10px 12px!important}
+  .dp-name{font-size:13px!important}
+}
+
+/* IOI sub-wrap: shrink at 360px */
+@media(max-width:360px){
+  .ioi-sub-wrap{width:110px!important}
+  .ioi-deal-hd{padding:12px!important}
+}
+
+/* View-as FAB: respect safe-area bottom on notched devices */
+@media(max-width:768px) and (hover: none) and (pointer: coarse){
+  #vap-fab{bottom:calc(16px + env(safe-area-inset-bottom))!important}
+}
+
+/* Deal detail in pipeline: large text at narrow widths */
+@media(max-width:480px){
+  .ddp-metrics{grid-template-columns:repeat(2,1fr)!important}
+  /* Attention cards: wrap actions */
+  .att-actions{gap:6px!important}
+  .att-btn{min-height:40px!important;font-size:12px!important}
+  /* Section header: allow wrapping */
+  .section-hd{flex-wrap:wrap!important;gap:6px!important}
+}
+</style>
 <script>
 let vapMode = 'adv';
 let vapData = { adv: null, inv: null };
