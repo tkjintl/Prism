@@ -4156,18 +4156,20 @@ async function loadEarnings() {
 
 load();
 
-/* measure real nav height and apply as padding-top to all .view elements */
+/* inject a live <style> so nav offset beats all !important rules */
 (function fixNavOffset(){
   if(window.innerWidth>1023)return;
+  const st=document.createElement('style');
+  st.id='nav-offset-override';
+  document.head.appendChild(st);
   function apply(){
     const nav=document.querySelector('.nav');
     if(!nav)return;
-    const h=nav.getBoundingClientRect().height;
-    const offset=Math.ceil(h)+8; // 8px breathing room
-    document.documentElement.style.setProperty('--nav-h',offset+'px');
-    document.querySelectorAll('.view').forEach(v=>{v.style.paddingTop=offset+'px'});
+    const h=Math.ceil(nav.getBoundingClientRect().height)+10;
+    st.textContent=`.view{padding-top:${h}px!important}:root{--nav-h:${h}px}`;
   }
-  apply();
+  // run after fonts/layout settle
+  requestAnimationFrame(()=>requestAnimationFrame(apply));
   new ResizeObserver(apply).observe(document.querySelector('.nav')||document.body);
 })();
 </script>
@@ -4929,10 +4931,8 @@ load();
   .ds-pill-stage{display:none!important}
   /* Hide IOI banner — prevents pill from growing tall */
   .ds-ioi-banner{display:none!important}
-  /* --nav-h: two-row nav (~88px) + 8px buffer */
-  :root{--nav-h:96px}
-  .view{padding-top:96px!important}
-  .deal-switcher + *{margin-top:0!important}
+  /* --nav-h fallback only — JS overwrites via injected <style> */
+  :root{--nav-h:100px}
 }
 
 /* ── fix-10: NAV update form grid — stack on mobile */
