@@ -188,6 +188,15 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
   body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); padding-top: max(0px, env(safe-area-inset-top)); }
   html, body { overflow-x: hidden; }
 }
+/* mobile-v4: operator panel field stack + tap-target floor */
+@media (max-width: 480px) {
+  /* Operator panel inline grid — stack email + password fields vertically */
+  #op-login-panel > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* Ensure btn-nav tap-target */
+  .l-btn { min-height: 44px; display: flex; align-items: center; justify-content: center; }
+}
 </style>
 </head>
 <body>
