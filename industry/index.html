@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Energy Supercycle — Synaptic Investment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#080B14;
+  --surface:#0F1629;
+  --card:#161E35;
+  --gold:#C9A84C;
+  --gold-light:#E8C96B;
+  --blue:#3B8FD4;
+  --green:#2ECC9A;
+  --red:#E05C5C;
+  --text:#F0EFE8;
+  --muted:#8B93A7;
+  --border:rgba(255,255,255,0.07);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--ink);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden}
+
+/* NAV DOTS */
+.nav-dots{position:fixed;right:28px;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:10px}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.2);cursor:pointer;transition:all .3s;border:none}
+.nav-dot.active,.nav-dot:hover{background:var(--gold);transform:scale(1.4)}
+
+/* PAGE LABELS */
+.page-label{position:fixed;bottom:28px;right:28px;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font-weight:500;z-index:100}
+
+/* SLIDES */
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:60px 80px;position:relative;overflow:hidden}
+section:nth-child(even){background:var(--surface)}
+section:nth-child(odd){background:var(--ink)}
+
+/* SLIDE NUMBERS */
+.slide-num{position:absolute;top:36px;left:80px;font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;font-weight:600}
+
+/* LOGO LINE */
+.logo-line{position:absolute;top:32px;right:80px;font-size:11px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;font-weight:700}
+
+/* DIVIDER */
+.divider{width:48px;height:2px;background:var(--gold);margin:20px 0 32px}
+.divider.wide{width:100%;height:1px;background:var(--border);margin:32px 0}
+
+/* TYPOGRAPHY */
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:16px}
+h1.hero{font-family:'Playfair Display',serif;font-size:clamp(3rem,6vw,5.5rem);line-height:1.05;font-weight:900;color:var(--text)}
+h2.section-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3.2rem);line-height:1.1;font-weight:700;color:var(--text)}
+h3.card-title{font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:12px}
+p.lead{font-size:1.15rem;line-height:1.7;color:var(--muted);max-width:660px}
+p.body{font-size:.95rem;line-height:1.7;color:var(--muted)}
+
+/* BIG STAT */
+.stat-block{display:flex;flex-direction:column}
+.stat-num{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,5vw,4.5rem);font-weight:900;line-height:1;color:var(--text)}
+.stat-num.gold{color:var(--gold)}
+.stat-num.blue{color:var(--blue)}
+.stat-num.green{color:var(--green)}
+.stat-label{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:8px;font-weight:500;max-width:220px;line-height:1.5}
+.stat-source{font-size:.7rem;color:rgba(139,147,167,.5);margin-top:4px}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:20px}
+.grid-hero{display:grid;grid-template-columns:1.2fr 1fr;gap:80px;align-items:center}
+.grid-content{display:grid;grid-template-columns:1fr 1.4fr;gap:60px;align-items:start}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:28px}
+.card.accent-gold{border-left:3px solid var(--gold)}
+.card.accent-blue{border-left:3px solid var(--blue)}
+.card.accent-green{border-left:3px solid var(--green)}
+.card.accent-red{border-left:3px solid var(--red)}
+
+/* TAGS */
+.tag{display:inline-block;padding:3px 10px;border-radius:3px;font-size:10px;letter-spacing:.15em;text-transform:uppercase;font-weight:700}
+.tag.gold{background:rgba(201,168,76,.15);color:var(--gold)}
+.tag.blue{background:rgba(59,143,212,.15);color:var(--blue)}
+.tag.green{background:rgba(46,204,154,.15);color:var(--green)}
+.tag.red{background:rgba(224,92,92,.15);color:var(--red)}
+
+/* TIMELINE */
+.timeline{display:flex;gap:0;margin-top:16px}
+.tl-item{flex:1;position:relative;padding-bottom:24px}
+.tl-item::before{content:'';position:absolute;top:6px;left:0;right:0;height:2px;background:var(--border)}
+.tl-item:first-child::before{left:50%}
+.tl-item:last-child::before{right:50%}
+.tl-dot{width:12px;height:12px;border-radius:50%;background:var(--gold);position:absolute;top:1px;left:50%;transform:translateX(-50%);z-index:1}
+.tl-content{margin-top:24px;text-align:center;padding:0 8px}
+.tl-year{font-size:10px;letter-spacing:.15em;color:var(--gold);font-weight:700;margin-bottom:4px}
+.tl-role{font-size:.78rem;color:var(--muted);line-height:1.4}
+.tl-org{font-size:.72rem;color:rgba(139,147,167,.6);margin-top:2px}
+
+/* BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:12px;height:160px;padding-top:20px}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.bar{background:var(--blue);border-radius:3px 3px 0 0;width:100%;transition:all .3s;position:relative}
+.bar.gold{background:var(--gold)}
+.bar.green{background:var(--green)}
+.bar-val{font-size:.7rem;color:var(--text);font-weight:700;white-space:nowrap}
+.bar-lbl{font-size:.65rem;color:var(--muted);text-align:center}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.data-table th{text-align:left;padding:10px 12px;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);font-weight:600}
+.data-table td{padding:12px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text)}
+.data-table td.num{font-weight:700;color:var(--gold);font-family:'Playfair Display',serif;font-size:.95rem}
+.data-table td.pos{color:var(--green);font-weight:600}
+.data-table tr:last-child td{border-bottom:none}
+
+/* CALLOUT BOX */
+.callout{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:24px 28px;margin-top:24px}
+.callout p{font-size:.92rem;line-height:1.65;color:var(--text)}
+.callout strong{color:var(--gold)}
+
+/* PILL LIST */
+.pill-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pill{padding:5px 14px;border:1px solid var(--border);border-radius:20px;font-size:.75rem;color:var(--muted)}
+
+/* QUOTE */
+.pull-quote{font-family:'Playfair Display',serif;font-style:italic;font-size:1.5rem;line-height:1.5;color:var(--text);border-left:3px solid var(--gold);padding-left:24px;margin:24px 0}
+
+/* PROGRESS BAR */
+.prog-item{margin-bottom:16px}
+.prog-label{display:flex;justify-content:space-between;margin-bottom:6px;font-size:.78rem}
+.prog-name{color:var(--text);font-weight:500}
+.prog-val{color:var(--gold);font-weight:700}
+.prog-track{background:rgba(255,255,255,.06);border-radius:2px;height:4px}
+.prog-fill{height:4px;border-radius:2px;background:var(--gold)}
+
+/* CTA */
+.cta-btn{display:inline-block;padding:14px 32px;background:var(--gold);color:var(--ink);border-radius:4px;font-weight:700;font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;margin-top:8px;transition:all .2s}
+.cta-btn:hover{background:var(--gold-light)}
+.cta-btn.outline{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+
+/* ICON CIRCLES */
+.icon-circle{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ic-gold{background:rgba(201,168,76,.12)}
+.ic-blue{background:rgba(59,143,212,.12)}
+.ic-green{background:rgba(46,204,154,.12)}
+
+/* RISK CARD */
+.risk-row{display:flex;gap:20px;align-items:flex-start;padding:20px 0;border-bottom:1px solid var(--border)}
+.risk-row:last-child{border-bottom:none}
+
+/* COVER BG */
+#s1::after{content:'';position:absolute;top:0;right:0;width:55%;height:100%;background:linear-gradient(135deg,var(--surface) 0%,var(--card) 100%);clip-path:polygon(15% 0,100% 0,100% 100%,0% 100%);z-index:0}
+#s1 .content{position:relative;z-index:1}
+
+/* ACCENT LINE */
+.accent-line{display:flex;align-items:center;gap:16px;margin-bottom:40px}
+.accent-line span{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.accent-line::before{content:'';display:block;width:40px;height:1px;background:var(--gold)}
+
+/* FOOTER NOTE */
+.footnote{position:absolute;bottom:28px;left:80px;font-size:.65rem;color:rgba(139,147,167,.4);max-width:600px;line-height:1.5}
+
+/* CONVERGENCE CARD */
+.conv-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:32px 28px;position:relative;overflow:hidden}
+.conv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.conv-card.ai::before{background:var(--blue)}
+.conv-card.ev::before{background:var(--gold)}
+.conv-card.grid::before{background:var(--green)}
+.conv-num{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;line-height:1;margin:16px 0 6px}
+.conv-card.ai .conv-num{color:var(--blue)}
+.conv-card.ev .conv-num{color:var(--gold)}
+.conv-card.grid .conv-num{color:var(--green)}
+
+/* THEME BADGE */
+.theme-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:4px;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;font-weight:700;margin-bottom:20px}
+.tb-1{background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.tb-2{background:rgba(59,143,212,.1);color:var(--blue);border:1px solid rgba(59,143,212,.3)}
+.tb-3{background:rgba(46,204,154,.1);color:var(--green);border:1px solid rgba(46,204,154,.3)}
+
+/* CONFIDENTIAL WATERMARK */
+.conf-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border:1px solid rgba(139,147,167,.2);border-radius:3px;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:32px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  section{padding:48px 28px}
+  .grid-2,.grid-3,.grid-4,.grid-hero,.grid-content{grid-template-columns:1fr}
+  .slide-num,.logo-line,.footnote{left:28px;right:28px}
+  .nav-dots{display:none}
+  h1.hero{font-size:2.4rem}
+  h2.section-title{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV DOTS -->
+<nav class="nav-dots" id="navDots">
+  <button class="nav-dot active" onclick="goTo(1)" title="Cover"></button>
+  <button class="nav-dot" onclick="goTo(2)" title="The Convergence"></button>
+  <button class="nav-dot" onclick="goTo(3)" title="The Numbers"></button>
+  <button class="nav-dot" onclick="goTo(4)" title="About Synaptic"></button>
+  <button class="nav-dot" onclick="goTo(5)" title="Track Record"></button>
+  <button class="nav-dot" onclick="goTo(6)" title="Battery Supercycle"></button>
+  <button class="nav-dot" onclick="goTo(7)" title="Battery Position"></button>
+  <button class="nav-dot" onclick="goTo(8)" title="ESS Market"></button>
+  <button class="nav-dot" onclick="goTo(9)" title="ESS Angle"></button>
+  <button class="nav-dot" onclick="goTo(10)" title="Grid Emergency"></button>
+  <button class="nav-dot" onclick="goTo(11)" title="Korea's Moment"></button>
+  <button class="nav-dot" onclick="goTo(12)" title="Why Korea"></button>
+  <button class="nav-dot" onclick="goTo(13)" title="Fund II"></button>
+  <button class="nav-dot" onclick="goTo(14)" title="Risk"></button>
+  <button class="nav-dot" onclick="goTo(15)" title="Next Steps"></button>
+</nav>
+<div class="page-label" id="pageLabel">01 / 15</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 1: COVER -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s1">
+  <div class="content" style="max-width:620px">
+    <div class="conf-badge">&#9632; Strictly Private &amp; Confidential</div>
+    <div class="eyebrow" style="margin-bottom:20px">Synaptic Investment &nbsp;·&nbsp; October 2024</div>
+    <h1 class="hero">The<br>Energy<br>Supercycle.</h1>
+    <div class="divider"></div>
+    <p class="lead" style="margin-bottom:40px">Korea's industrial infrastructure sits at the centre of three converging global megatrends. This is the case for investment.</p>
+    <div style="display:flex;gap:32px;flex-wrap:wrap">
+      <div class="stat-block">
+        <span class="stat-num gold" style="font-size:2.2rem">Three</span>
+        <span class="stat-label">converging megatrends</span>
+      </div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div class="stat-block">
+        <span class="stat-num gold" style="font-size:2.2rem">$470B</span>
+        <span class="stat-label">global grid investment, 2025</span>
+      </div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div class="stat-block">
+        <span class="stat-num gold" style="font-size:2.2rem">29.7%</span>
+        <span class="stat-label">battery CAGR through 2026</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">01</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="footnote">For discussion purposes only. Not an offer to sell or solicitation of an offer to buy any securities. Past performance is not indicative of future results.</div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 2: THE CONVERGENCE -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s2">
+  <div class="slide-num">02</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="eyebrow">The Macro Setup</div>
+  <h2 class="section-title" style="max-width:600px;margin-bottom:12px">Three megatrends.<br>One window of entry.</h2>
+  <p class="body" style="max-width:620px;margin-bottom:36px">Each of these forces is structurally powerful alone. Their simultaneous arrival creates a demand supercycle that cannot be served by existing infrastructure — and opens a concentrated window for private capital.</p>
+  <div class="grid-3">
+    <div class="conv-card ai">
+      <div class="tag blue">Megatrend 01</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 4px">AI &amp; Data Centre Explosion</div>
+      <div class="conv-num">945<span style="font-size:1.2rem">TWh</span></div>
+      <div class="stat-label" style="font-size:.72rem">Global data centre power demand by 2030, doubling from 415 TWh in 2024</div>
+      <div class="divider wide"></div>
+      <p class="body" style="font-size:.8rem">A single data centre consumes 40–100MW — enough to power 33,000 households. Goldman Sachs forecasts a <strong style="color:var(--blue)">220% surge</strong> in AI data centre power demand by 2030. Hyperscalers (Google, Microsoft, Meta, Amazon) are spending <strong style="color:var(--blue)">$364 billion</strong> on data centre construction in 2025 alone.</p>
+    </div>
+    <div class="conv-card ev">
+      <div class="tag gold">Megatrend 02</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 4px">EV &amp; Battery Transition</div>
+      <div class="conv-num">29.7<span style="font-size:1.2rem">%</span></div>
+      <div class="stat-label" style="font-size:.72rem">CAGR for Korean Big 3 battery capacity, 2023A–2026E</div>
+      <div class="divider wide"></div>
+      <p class="body" style="font-size:.8rem">EV sales of 89.6M units in 2023 are projected to reach 102M by 2030. The current demand dip is a cyclical pause driven by Chinese oversupply — not a structural reversal. Equipment orders are forecast to surge to <strong style="color:var(--gold)">KRW 23 trillion</strong> by 2026 as CAPA expansion accelerates.</p>
+    </div>
+    <div class="conv-card grid">
+      <div class="tag green">Megatrend 03</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 4px">Grid Decarbonisation &amp; Replacement</div>
+      <div class="conv-num">$470<span style="font-size:1.2rem">B</span></div>
+      <div class="stat-label" style="font-size:.72rem">Global grid investment in 2025 — a record, per BloombergNEF</div>
+      <div class="divider wide"></div>
+      <p class="body" style="font-size:.8rem">70% of North American grid infrastructure is over 25 years old. 40% is over 70. Transformer lead times have hit <strong style="color:var(--green)">4 years</strong>. The IEA says annual grid spend must rise to $600B by 2030 — current levels fall $200B short. Korea's high-efficiency transformer makers are the primary beneficiaries.</p>
+    </div>
+  </div>
+  <div class="footnote">Sources: IEA Energy and AI Report 2024; Goldman Sachs; BloombergNEF; Synaptic Analysis</div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 3: THE NUMBERS -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s3">
+  <div class="slide-num">03</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="eyebrow">The Scale of Opportunity</div>
+  <h2 class="section-title" style="margin-bottom:48px">The numbers<br>speak clearly.</h2>
+  <div class="grid-4" style="margin-bottom:48px">
+    <div class="stat-block">
+      <span class="stat-num gold">$470B</span>
+      <span class="stat-label">Global grid investment, 2025 — first time in history</span>
+      <span class="stat-source">BloombergNEF, 2025</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num blue">247 GWh</span>
+      <span class="stat-label">Global battery storage deployments forecast, 2025 — up from 168 GWh in 2024</span>
+      <span class="stat-source">BloombergNEF / Wood Mackenzie</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num green">220%</span>
+      <span class="stat-label">AI data centre power demand surge forecast by 2030</span>
+      <span class="stat-source">Goldman Sachs, April 2026 revised</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num" style="color:var(--text)">61.1%</span>
+      <span class="stat-label">YoY revenue growth across 18 Korean power grid manufacturers, FY2023</span>
+      <span class="stat-source">Synaptic Analysis</span>
+    </div>
+  </div>
+  <div class="divider wide"></div>
+  <div class="grid-4">
+    <div class="stat-block">
+      <span class="stat-num gold" style="font-size:2.6rem">15×</span>
+      <span class="stat-label">Global energy storage market growth by 2030</span>
+      <span class="stat-source">BloombergNEF</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num blue" style="font-size:2.6rem">+95%</span>
+      <span class="stat-label">Rise in transformer prices since 2020 — persistent supply shock</span>
+      <span class="stat-source">Power Magazine / CISA</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num green" style="font-size:2.6rem">32.5%</span>
+      <span class="stat-label">CAGR in Korean power infrastructure exports to the US, 2021–2023</span>
+      <span class="stat-source">Korea Trade Statistics</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num" style="font-size:2.6rem;color:var(--text)">2,300 GW</span>
+      <span class="stat-label">Stuck in US interconnection queue — the bottleneck shaping the decade</span>
+      <span class="stat-source">Lawrence Berkeley Lab, 2025</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 4: ABOUT SYNAPTIC -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s4">
+  <div class="slide-num">04</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="grid-content">
+    <div>
+      <div class="eyebrow">The Manager</div>
+      <h2 class="section-title" style="margin-bottom:20px">Deep inside<br>the value chain.</h2>
+      <div class="divider"></div>
+      <p class="lead" style="font-size:1rem;margin-bottom:24px">Heejong (Jason) Kim founded Synaptic Investment after a decade building dealflow from inside Korea's largest industrial companies and financial institutions. The edge is not analytical — it is relational and operational.</p>
+      <div class="callout">
+        <p><strong>Why this matters:</strong> The most valuable Korean battery equipment and grid component companies are SMEs with no IR function, no investment banking relationships, and no English-language coverage. Synaptic's sourcing advantage exists entirely because of the relationships built across Deloitte, IBK, and Shinsegae — not because of a Bloomberg terminal.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:0">
+        <div class="h3 card-title">Career Timeline — Heejong (Jason) Kim</div>
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:0">
+          <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)">
+            <div style="width:56px;text-align:right;flex-shrink:0"><span class="tag gold" style="font-size:9px">2013</span></div>
+            <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">Deloitte Consulting Korea</div><div style="font-size:.75rem;color:var(--muted);margin-top:2px">Semiconductors · Automotive · Energy</div></div>
+          </div>
+          <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)">
+            <div style="width:56px;text-align:right;flex-shrink:0"><span class="tag blue" style="font-size:9px">2015</span></div>
+            <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">Centroid Investment Partners</div><div style="font-size:.75rem;color:var(--muted);margin-top:2px">PE — SoFi (Fintech) · TaylorMade (Golf)</div></div>
+          </div>
+          <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)">
+            <div style="width:56px;text-align:right;flex-shrink:0"><span class="tag gold" style="font-size:9px">2017</span></div>
+            <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">Shinsegae International</div><div style="font-size:.75rem;color:var(--muted);margin-top:2px">M&amp;A / Strategic Investment — Cosmetics · Consumer · Fashion</div></div>
+          </div>
+          <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)">
+            <div style="width:56px;text-align:right;flex-shrink:0"><span class="tag blue" style="font-size:9px">2019</span></div>
+            <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">IBK Securities — PE Division</div><div style="font-size:.75rem;color:var(--muted);margin-top:2px">SME Buyouts · Secondary Batteries</div></div>
+          </div>
+          <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)">
+            <div style="width:56px;text-align:right;flex-shrink:0"><span class="tag gold" style="font-size:9px">2020</span></div>
+            <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">Synaptic Investment (Partner)</div><div style="font-size:.75rem;color:var(--muted);margin-top:2px">Digital Healthcare · CDMOs · Secondary Batteries</div></div>
+          </div>
+          <div style="display:flex;gap:16px;padding:16px 0">
+            <div style="width:56px;text-align:right;flex-shrink:0"><span class="tag green" style="font-size:9px">2023+</span></div>
+            <div><div style="font-size:.82rem;font-weight:600;color:var(--text)">Fund I → Fund II</div><div style="font-size:.75rem;color:var(--muted);margin-top:2px">70%+ deployed in &lt;12 months · Fund II raising now</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 5: TRACK RECORD -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s5">
+  <div class="slide-num">05</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="eyebrow">Proof of Execution</div>
+  <h2 class="section-title" style="margin-bottom:8px">Fund I: What we built.</h2>
+  <p class="body" style="margin-bottom:36px;max-width:560px">Launched in 2023. Over 70% deployed within 12 months. Every portfolio company sits inside the Korean battery manufacturing supply chain — the same chain we are now expanding into energy and grid.</p>
+  <div class="grid-3" style="margin-bottom:32px">
+    <div class="card accent-gold">
+      <div class="card-title">ENCHEM</div>
+      <p class="body" style="font-size:.8rem">Korea's largest electrolyte manufacturer. Already supplying Tesla, GM-LGES Ultium Cells, and Panasonic Energy. Three US plants operational by 2025 (Kentucky, Texas, Ontario). Targeting <strong style="color:var(--gold)">300,000 tons/year</strong> US capacity by 2026 — ~70% of total US electrolyte supply.</p>
+      <div style="margin-top:12px"><span class="tag gold">Materials</span></div>
+    </div>
+    <div class="card accent-gold">
+      <div class="card-title">Advanced Nano Products</div>
+      <p class="body" style="font-size:.8rem">CNT conductive additives for battery anodes. 2025F: revenue +39% YoY, operating profit +116% YoY. Revenue mix shifting toward battery (65% of revenue by 2025F). Outperforming peers because materials exposure is less cyclical than equipment.</p>
+      <div style="margin-top:12px"><span class="tag gold">Materials</span></div>
+    </div>
+    <div class="card accent-gold">
+      <div class="card-title">ONEJOON</div>
+      <p class="body" style="font-size:.8rem">Industrial furnace and thermal processing equipment for battery electrode manufacturing. Supplies to multiple Korean and international cell makers.</p>
+      <div style="margin-top:12px"><span class="tag blue">Equipment</span></div>
+    </div>
+    <div class="card accent-gold">
+      <div class="card-title">CHAEVI</div>
+      <p class="body" style="font-size:.8rem">EV charging infrastructure company. Positioned at the intersection of EV adoption and grid demand — charging networks are a growing component of grid load management.</p>
+      <div style="margin-top:12px"><span class="tag green">Infrastructure</span></div>
+    </div>
+    <div class="card accent-gold">
+      <div class="card-title">System R&D</div>
+      <p class="body" style="font-size:.8rem">Tab welding and packaging automation equipment supplier to LG Energy Solution. Precision assembly is a quality bottleneck in high-volume cell production.</p>
+      <div style="margin-top:12px"><span class="tag blue">Equipment</span></div>
+    </div>
+    <div class="card" style="background:rgba(201,168,76,.04);border:1px dashed rgba(201,168,76,.25);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:160px">
+      <div style="font-size:2rem;margin-bottom:8px">+</div>
+      <div style="font-size:.78rem;color:var(--muted)">Additional positions not disclosed publicly</div>
+    </div>
+  </div>
+  <div class="callout">
+    <p>Fund I deployed <strong>70%+ within 12 months</strong> of launch — a reflection of pre-built deal pipeline, not rushed decision-making. All five disclosed companies were identified through proprietary relationships, not auction processes. <strong>Expected to record high returns.</strong></p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 6: BATTERY SUPERCYCLE — SETUP -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s6">
+  <div class="slide-num">06</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="theme-badge tb-1">&#9679; Theme 01 &nbsp;/&nbsp; Secondary Batteries</div>
+  <div class="grid-content">
+    <div>
+      <h2 class="section-title" style="margin-bottom:16px">The dip is noise.<br>The trend is structural.</h2>
+      <div class="divider"></div>
+      <p class="body" style="margin-bottom:20px">The current numbers are uncomfortable — LGES revenue fell 24% in 2024, Korean Big 3 are running at 40–50% utilisation versus CATL and BYD at 90%. This is the dip. It is caused by a specific, temporary condition: Chinese oversupply created a price war that compressed near-term demand and customer ordering behaviour. It is not a structural reversal of the EV transition.</p>
+      <p class="body" style="margin-bottom:20px">The recovery signals are already visible. Global EV sales exceeded <strong style="color:var(--gold)">17 million units in 2024</strong> — over 20% of new car sales for the first time. LGES signed a <strong style="color:var(--gold)">$4.3B</strong> LFP cell deal with Tesla Energy. Samsung SDI won <strong style="color:var(--gold)">6 of 8</strong> slots in Korea's government ESS program and finalized a US JV with GM. Analysts are calling Q1 2026 the earnings bottom — with a V-shaped rebound expected H2 2026.</p>
+      <div class="pull-quote" style="font-size:1.1rem">"The equipment order cycle always leads the CAPA cycle by 12–18 months. 2025 is the entry window before volumes surge."</div>
+    </div>
+    <div>
+      <div class="card-title" style="margin-bottom:20px">Korean Big 3 Capacity Plan (GWh)</div>
+      <div class="bar-chart" style="height:180px;align-items:flex-end">
+        <div class="bar-col">
+          <div class="bar-val">234</div>
+          <div class="bar" style="height:30%;background:rgba(255,255,255,.12)"></div>
+          <div class="bar-lbl">2021A</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-val">400</div>
+          <div class="bar" style="height:44%;background:rgba(255,255,255,.12)"></div>
+          <div class="bar-lbl">2022A</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-val">500</div>
+          <div class="bar" style="height:55%;background:rgba(255,255,255,.18)"></div>
+          <div class="bar-lbl">2023A</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-val">681</div>
+          <div class="bar" style="height:68%;background:var(--gold);opacity:.7"></div>
+          <div class="bar-lbl">2024E</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-val">972</div>
+          <div class="bar" style="height:85%;background:var(--gold)"></div>
+          <div class="bar-lbl">2025E</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-val">1,091</div>
+          <div class="bar" style="height:100%;background:var(--gold-light)"></div>
+          <div class="bar-lbl">2026E</div>
+        </div>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:16px">2023A–2026E CAGR: <strong style="color:var(--gold)">29.7%</strong> · LGES + SDI + SK On combined</div>
+      <div class="divider wide"></div>
+      <div class="grid-2" style="gap:16px">
+        <div class="card accent-gold" style="padding:16px">
+          <div style="font-size:1.4rem;font-weight:900;color:var(--gold);font-family:'Playfair Display',serif">$4.3B</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:4px">LGES–Tesla Energy LFP supply agreement, 2025–2030</div>
+        </div>
+        <div class="card accent-blue" style="padding:16px">
+          <div style="font-size:1.4rem;font-weight:900;color:var(--blue);font-family:'Playfair Display',serif">102M</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:4px">EV units forecast by 2030, up from 89.6M in 2023</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footnote">Sources: Mirae Asset Securities; Press releases; Synaptic Analysis; LG Energy Solution IR</div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 7: BATTERY — WHERE WE PLAY -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s7">
+  <div class="slide-num">07</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="theme-badge tb-1">&#9679; Theme 01 &nbsp;/&nbsp; Our Position</div>
+  <div class="grid-content">
+    <div>
+      <h2 class="section-title" style="margin-bottom:16px">We don't bet on<br>the OEMs.<br>We bet on the<br>picks and shovels.</h2>
+      <div class="divider"></div>
+      <p class="body" style="margin-bottom:20px">The OEMs — LG Energy Solution, Samsung SDI, SK On — are publicly listed, efficiently priced, and competing in a commoditising market. The alpha is in the vendors: the equipment makers, material suppliers, and automation specialists that supply all three without OEM concentration risk.</p>
+      <p class="body" style="margin-bottom:20px">Equipment order volumes are a leading indicator. They <em>precede</em> capacity builds. When the Big 3 commit to a factory, equipment orders flow 12–24 months before production starts. That is the entry window.</p>
+      <div class="card accent-gold" style="margin-top:8px">
+        <div class="card-title">Equipment Order Outlook (KRW trillion)</div>
+        <div class="bar-chart" style="height:120px;margin-top:12px">
+          <div class="bar-col"><div class="bar-val" style="font-size:.65rem">5</div><div class="bar" style="height:22%"></div><div class="bar-lbl">21A</div></div>
+          <div class="bar-col"><div class="bar-val" style="font-size:.65rem">7</div><div class="bar" style="height:30%"></div><div class="bar-lbl">22A</div></div>
+          <div class="bar-col"><div class="bar-val" style="font-size:.65rem">16</div><div class="bar" style="height:70%"></div><div class="bar-lbl">23A</div></div>
+          <div class="bar-col"><div class="bar-val" style="font-size:.65rem">15</div><div class="bar" style="height:65%;background:rgba(201,168,76,.4)"></div><div class="bar-lbl">24F</div></div>
+          <div class="bar-col"><div class="bar-val" style="font-size:.65rem">18</div><div class="bar" style="height:78%;background:var(--gold)"></div><div class="bar-lbl">25F</div></div>
+          <div class="bar-col"><div class="bar-val" style="font-size:.65rem">23</div><div class="bar" style="height:100%;background:var(--gold-light)"></div><div class="bar-lbl">26F</div></div>
+        </div>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:8px">The 2024 dip is a pause, not a peak. The surge in 2025–2026 reflects confirmed CAPA commitments translating into equipment contracts.</div>
+      </div>
+    </div>
+    <div>
+      <div class="card-title" style="margin-bottom:16px">Where Synaptic Operates in the Value Chain</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" style="padding:16px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:.78rem;font-weight:700;color:var(--text)">Electrode Manufacturing</span>
+            <span class="tag gold">Active</span>
+          </div>
+          <p class="body" style="font-size:.75rem">Mixing, coating, pressing, cutting. Capital-intensive, high-precision. Korean players: PNT, CIS, YUNSUNG F&amp;C, JEIL M&amp;S.</p>
+        </div>
+        <div class="card" style="padding:16px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:.78rem;font-weight:700;color:var(--text)">Cell Assembly</span>
+            <span class="tag gold">Active</span>
+          </div>
+          <p class="body" style="font-size:.75rem">Tab welding, packaging, formation. System R&amp;D (portfolio) operates here. Strong defensibility via long customer qualification cycles.</p>
+        </div>
+        <div class="card" style="padding:16px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:.78rem;font-weight:700;color:var(--text)">Formation &amp; Testing</span>
+            <span class="tag blue">Monitoring</span>
+          </div>
+          <p class="body" style="font-size:.75rem">Charge/discharge cycling, degassing, QA. WONIK PNE dominates this segment. High-value due to energy intensity of the formation process.</p>
+        </div>
+        <div class="card" style="padding:16px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:.78rem;font-weight:700;color:var(--text)">Automation &amp; Inspection</span>
+            <span class="tag blue">Monitoring</span>
+          </div>
+          <p class="body" style="font-size:.75rem">Vision systems, X-ray, conveyor automation. Fastest-growing sub-segment as yield optimisation becomes critical at GWh scale.</p>
+        </div>
+        <div class="card" style="padding:16px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:.78rem;font-weight:700;color:var(--text)">Materials (Electrolytes, Coatings)</span>
+            <span class="tag gold">Active</span>
+          </div>
+          <p class="body" style="font-size:.75rem">ENCHEM, Advanced Nano Products (portfolio). High-IP, recurring revenue, essential chemistry. Less cyclical than equipment.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 8: ESS MARKET -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s8">
+  <div class="slide-num">08</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="theme-badge tb-2">&#9679; Theme 02 &nbsp;/&nbsp; Energy Storage</div>
+  <div class="grid-content">
+    <div>
+      <h2 class="section-title" style="margin-bottom:16px">Storage is the<br>infrastructure of<br>the energy transition.</h2>
+      <div class="divider"></div>
+      <p class="body" style="margin-bottom:20px">Renewable energy is intermittent. The grid needs to balance supply and demand in real time. Energy storage is the missing layer — and the IRA has fundamentally changed its economics.</p>
+      <p class="body" style="margin-bottom:20px">In 2024, global battery storage installations hit <strong style="color:var(--blue)">168–173 GWh</strong> — a 75% jump year-on-year. 2025 is forecast at 247 GWh. By 2030, BloombergNEF projects global storage to be <strong style="color:var(--blue)">15 times</strong> larger than 2019 levels.</p>
+      <p class="body" style="margin-bottom:24px">The US IRA's standalone storage Investment Tax Credit (30–70% of capex) is a structural demand floor that makes ESS projects financeable regardless of wholesale power prices. LG Energy Solution signed a $4.3B LFP cell deal with Tesla Energy specifically to serve this market through 2030.</p>
+      <div class="grid-2" style="gap:16px">
+        <div class="card accent-blue" style="padding:16px">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--blue);font-family:'Playfair Display',serif">$50.8B</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:4px">Global ESS market, 2025</div>
+        </div>
+        <div class="card accent-green" style="padding:16px">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--green);font-family:'Playfair Display',serif">$106B</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:4px">Global ESS market, 2030F — CAGR ~15–16%</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card-title" style="margin-bottom:16px">Global ESS Deployments (GWh) &amp; Market Drivers</div>
+      <div class="bar-chart" style="height:160px;margin-bottom:24px">
+        <div class="bar-col"><div class="bar-val">96</div><div class="bar" style="height:39%;background:rgba(59,143,212,.3)"></div><div class="bar-lbl">2023A</div></div>
+        <div class="bar-col"><div class="bar-val">170</div><div class="bar" style="height:69%;background:var(--blue);opacity:.8"></div><div class="bar-lbl">2024A</div></div>
+        <div class="bar-col"><div class="bar-val">247</div><div class="bar" style="height:100%;background:var(--blue)"></div><div class="bar-lbl">2025F</div></div>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:24px">+75% YoY in 2024. 2025F up another +23%. Source: BloombergNEF / Wood Mackenzie</div>
+      <div class="card-title" style="margin-bottom:12px">What's Driving Demand</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="prog-item">
+          <div class="prog-label"><span class="prog-name">IRA Standalone Storage ITC (30–70%)</span><span class="prog-val">High</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:90%"></div></div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-label"><span class="prog-name">Utility-scale renewable integration</span><span class="prog-val">High</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:85%"></div></div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-label"><span class="prog-name">AI data centre backup / frequency control</span><span class="prog-val">Growing</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:65%"></div></div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-label"><span class="prog-name">Commercial &amp; Industrial load shifting</span><span class="prog-val">Growing</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:55%"></div></div>
+        </div>
+        <div class="prog-item">
+          <div class="prog-label"><span class="prog-name">Residential (Australia Arena, EU)</span><span class="prog-val">Moderate</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:40%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footnote">Sources: BloombergNEF; Wood Mackenzie; MarketsandMarkets; IEA; Morgan Lewis (IRA tax credit analysis)</div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 9: ESS ANGLE -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s9">
+  <div class="slide-num">09</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="theme-badge tb-2">&#9679; Theme 02 &nbsp;/&nbsp; Our Angle</div>
+  <h2 class="section-title" style="margin-bottom:8px">We don't invest in batteries.<br>We invest in intelligence.</h2>
+  <p class="body" style="max-width:620px;margin-bottom:36px">The infrastructure layer of ESS — cell manufacturing, hardware assembly — is dominated by CATL, BYD, Tesla, and Sungrow. That market is already efficiently priced. The opportunity is in the software and solution layer: the companies that tell the battery when to charge, when to discharge, and how to optimise returns for the asset owner.</p>
+  <div class="grid-3">
+    <div class="card accent-gold">
+      <div class="card-title">Infrastructure Layer <span class="tag" style="background:rgba(224,92,92,.1);color:var(--red);font-size:9px">Avoid</span></div>
+      <p class="body" style="font-size:.78rem;margin-top:8px">Cell manufacturing, module/pack assembly, system integration. Dominated by Chinese and large-cap players. Commodity pricing. High sensitivity to battery price fluctuations. Capital-intensive with compressed margins.</p>
+      <div style="margin-top:12px"><span class="pill">CATL</span><span class="pill">BYD</span><span class="pill">Sungrow</span><span class="pill">Tesla</span></div>
+    </div>
+    <div class="card accent-blue">
+      <div class="card-title">BMS / EMS Layer <span class="tag blue" style="font-size:9px">Selective</span></div>
+      <p class="body" style="font-size:.78rem;margin-top:8px">Battery Management Systems and Energy Management Systems. Korean companies have strong BMS IP developed alongside the Big 3 cell makers. Moderate capital intensity, recurring software revenue component.</p>
+      <div style="margin-top:12px"><span class="pill">Korean specialists</span><span class="pill">BMS IP</span></div>
+    </div>
+    <div class="card accent-green">
+      <div class="card-title">Solution / Software Layer <span class="tag green" style="font-size:9px">Priority</span></div>
+      <p class="body" style="font-size:.78rem;margin-top:8px">AI-driven dispatch optimisation, grid frequency control, demand response, O&amp;M platforms. Hardware-agnostic. Less exposed to battery commodity cycles. High-margin, defensible IP. Recurring revenue. Global comps (Fluence, Stem, Fractal EMS) command significant premiums.</p>
+      <div style="margin-top:12px"><span class="pill">Company "E"</span><span class="pill">ESS Total Solutions</span></div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:28px">
+    <p><strong>Pipeline — Company "E":</strong> A Korean ESS total solution provider positioned in the software/intelligence layer. Provides end-to-end ESS solutions combining hardware integration with proprietary dispatch software. Revenue profile: project-based with recurring O&amp;M. Less exposed to cell price volatility than infrastructure peers. <strong>Currently in active due diligence.</strong></p>
+  </div>
+  <div class="footnote">Global software-layer ESS comps: Fluence (Siemens/AES JV), Stem, Fractal EMS, Ascend Analytics, Habitat Energy</div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 10: THE GRID EMERGENCY -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s10">
+  <div class="slide-num">10</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="theme-badge tb-3">&#9679; Theme 03 &nbsp;/&nbsp; Electricity Infrastructure</div>
+  <div class="grid-content">
+    <div>
+      <h2 class="section-title" style="margin-bottom:16px">The grid is failing.<br>Demand is<br>accelerating.</h2>
+      <div class="divider"></div>
+      <p class="body" style="margin-bottom:20px">The US power grid was built for a different world. Most of it is approaching or past its design life. Simultaneously, AI data centres, EVs, and electrification are adding demand at a pace the grid was never designed to handle.</p>
+      <p class="body" style="margin-bottom:20px">The CISA formally designated the power transformer shortage a <strong style="color:var(--green)">critical infrastructure threat</strong> in June 2024. Lead times for large transformers have hit <strong style="color:var(--green)">4 years</strong>. Prices are up 95% since 2020. There is no short-term domestic solution — the US simply does not manufacture enough.</p>
+      <p class="body">US utilities have responded by accelerating import sourcing — and Korea, already the #2 supplier after China, is the primary beneficiary of de-risking policy.</p>
+    </div>
+    <div>
+      <div class="grid-2" style="gap:16px;margin-bottom:24px">
+        <div class="card accent-green" style="padding:20px">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--green);font-family:'Playfair Display',serif">4 Years</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:6px">Lead time for generator step-up transformers (GSU) — up from &lt;6 months pre-2022</div>
+        </div>
+        <div class="card accent-green" style="padding:20px">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--green);font-family:'Playfair Display',serif">+95%</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:6px">Transformer price increase since 2020. Distribution transformers up 41%, power transformers up 116% in demand.</div>
+        </div>
+        <div class="card" style="padding:20px">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--text);font-family:'Playfair Display',serif">70%</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:6px">Of North American grid infrastructure is over 25 years old. 40% is over 70 years old — past its design life.</div>
+        </div>
+        <div class="card" style="padding:20px">
+          <div style="font-size:1.8rem;font-weight:900;color:var(--text);font-family:'Playfair Display',serif">2,300 GW</div>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:6px">Generation and storage capacity stuck in US interconnection queue — median wait time now 4+ years.</div>
+        </div>
+      </div>
+      <div class="card accent-green">
+        <div class="card-title">Recent Grid Failures — The Urgency Is Real</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <span class="tag green" style="flex-shrink:0">Uri '21</span>
+            <span style="font-size:.78rem;color:var(--muted)">Power generation shutdowns across Texas. 69 deaths. $195B in economic damage.</span>
+          </div>
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <span class="tag green" style="flex-shrink:0">Elliott '22</span>
+            <span style="font-size:.78rem;color:var(--muted)">46 GW of generation offline across Eastern US during Christmas weekend.</span>
+          </div>
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <span class="tag green" style="flex-shrink:0">Gerry '24</span>
+            <span style="font-size:.78rem;color:var(--muted)">16 GW offline near Chicago — extreme cold tested grid limits once again.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footnote">Sources: CISA June 2024; Power Magazine; Lawrence Berkeley Lab Queued Up 2025; Korea Herald</div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 11: KOREA'S MOMENT -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s11">
+  <div class="slide-num">11</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="theme-badge tb-3">&#9679; Theme 03 &nbsp;/&nbsp; Korea's Moment</div>
+  <div class="eyebrow">The Beneficiary</div>
+  <h2 class="section-title" style="margin-bottom:8px">Korea's industrial base<br>was built for this moment.</h2>
+  <p class="body" style="max-width:620px;margin-bottom:36px">Korea's transformer and cable manufacturers have spent decades building the quality, efficiency, and production capacity that the US grid now urgently needs. The de-risking of Chinese supply chains didn't create this opportunity — it accelerated it.</p>
+  <div class="grid-3" style="margin-bottom:28px">
+    <div class="card accent-gold">
+      <div class="card-title">HD Hyundai Electric</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--gold);font-weight:700;margin:8px 0 4px">KRW 3.32T</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:12px">2024 Revenue</div>
+      <div style="display:flex;gap:12px">
+        <div><div style="font-size:1rem;font-weight:800;color:var(--green)">+22.9%</div><div style="font-size:.65rem;color:var(--muted)">Revenue YoY</div></div>
+        <div><div style="font-size:1rem;font-weight:800;color:var(--green)">+112%</div><div style="font-size:.65rem;color:var(--muted)">Operating Profit YoY</div></div>
+      </div>
+      <div style="margin-top:12px;font-size:.72rem;color:var(--muted)">Order backlog: $5.4B (+36% YoY, Q3 2024)</div>
+    </div>
+    <div class="card accent-blue">
+      <div class="card-title">LS Electric</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--blue);font-weight:700;margin:8px 0 4px">KRW 4.55T</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:12px">2024 Revenue</div>
+      <div style="display:flex;gap:12px">
+        <div><div style="font-size:1rem;font-weight:800;color:var(--green)">+7.6%</div><div style="font-size:.65rem;color:var(--muted)">Revenue YoY</div></div>
+        <div><div style="font-size:1rem;font-weight:800;color:var(--green)">+27.6%</div><div style="font-size:.65rem;color:var(--muted)">Operating Profit YoY</div></div>
+      </div>
+      <div style="margin-top:12px;font-size:.72rem;color:var(--muted)">Broad portfolio: transformers, switchgear, EV chargers</div>
+    </div>
+    <div class="card accent-green">
+      <div class="card-title">Hyosung Heavy Industries</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--green);font-weight:700;margin:8px 0 4px">$5.2B</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:12px">Order Backlog (+30% YoY)</div>
+      <div style="font-size:.72rem;color:var(--muted)">HICO plant (Memphis, TN): doubling US transformer output from 130 to 250+ units/year before 2027. AI-driven demand is shielding the company from tariff pressure — buyers accept higher prices to secure supply.</div>
+    </div>
+  </div>
+  <div class="callout">
+    <p><strong>Pipeline — Company "S":</strong> A global-leading Korean manufacturer of grid components and materials. Supplies directly to US utilities and data centre developers. Positioned to benefit from both the transformer shortage and the broader infrastructure supercycle. <strong>Currently in active engagement.</strong></p>
+  </div>
+  <div class="footnote">Sources: KED Global; Korea Herald; Transformer Magazine; Seoul Economic Daily (May 2026)</div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 12: WHY KOREA, WHY NOW -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s12">
+  <div class="slide-num">12</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="eyebrow">The Structural Case</div>
+  <h2 class="section-title" style="margin-bottom:36px">Why Korea.<br>Why now.</h2>
+  <div class="grid-3">
+    <div>
+      <div class="icon-circle ic-gold" style="margin-bottom:16px"><span>🇰🇷</span></div>
+      <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:10px">Unmatched Value Chain Depth</div>
+      <p class="body" style="font-size:.8rem">Korea's industrial base covers every layer of the battery and grid supply chain — from raw materials and chemicals through equipment, cell manufacturing, and infrastructure hardware. No other non-Chinese nation has this breadth. Japan has materials; Germany has equipment; Korea has both — plus the scale.</p>
+    </div>
+    <div>
+      <div class="icon-circle ic-blue" style="margin-bottom:16px"><span>🇺🇸</span></div>
+      <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:10px">US Policy Alignment Is Structural</div>
+      <p class="body" style="font-size:.8rem">The IRA, IIJA, and BBG Initiative represent the most significant industrial policy commitment in US history. Korean companies are explicitly positioned to benefit — the US-Korea alliance means Korean suppliers qualify for domestic content and de-risking treatment that Chinese competitors do not. Korean power infrastructure exports to the US have grown at <strong style="color:var(--blue)">CAGR 32.5% (2021–2023)</strong>.</p>
+    </div>
+    <div>
+      <div class="icon-circle ic-green" style="margin-bottom:16px"><span>📉</span></div>
+      <div style="font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:10px">China De-risking Transfers Share to Korea</div>
+      <p class="body" style="font-size:.8rem">China held <strong style="color:var(--green)">37%</strong> of US power infrastructure imports. US policy is actively reducing this. Korea, at 12% share and growing, is the primary substitute — not Mexico (4%), not Vietnam (5%), not Germany (4%). The AI-driven transformer shortage is already shielding Korean exporters from US tariff pressure: demand is so acute that buyers accept higher prices to secure supply.</p>
+    </div>
+  </div>
+  <div class="divider wide"></div>
+  <div style="display:flex;gap:48px;flex-wrap:wrap">
+    <div class="stat-block">
+      <span class="stat-num gold" style="font-size:2.2rem">$1.4T</span>
+      <span class="stat-label">US utility capex, 2025–2030 (Morningstar DBRS)</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num blue" style="font-size:2.2rem">$105B</span>
+      <span class="stat-label">IIJA allocation to power infrastructure — 2nd largest category</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num green" style="font-size:2.2rem">3×</span>
+      <span class="stat-label">Target size of US power grid by 2050 per BBG Initiative</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-num" style="font-size:2.2rem">60%</span>
+      <span class="stat-label">Tema VOLT ETF (grid infrastructure) return as of April 2026</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 13: FUND II -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s13">
+  <div class="slide-num">13</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="eyebrow">The Opportunity</div>
+  <h2 class="section-title" style="margin-bottom:8px">Fund II:<br>Green &amp; Digital Transformation.</h2>
+  <p class="body" style="max-width:620px;margin-bottom:36px">Building on Fund I's demonstrated execution speed and proprietary deal access, Fund II targets the intersection of Korea's industrial strength and the three megatrends outlined in this document. The pipeline is pre-built. Entry timing is deliberate.</p>
+  <div class="grid-2">
+    <div>
+      <div class="card accent-gold" style="margin-bottom:20px">
+        <div class="card-title">Fund II — Overview</div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+          <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--border)">
+            <span style="font-size:.8rem;color:var(--muted)">Strategy</span>
+            <span style="font-size:.8rem;font-weight:600;color:var(--text)">Private Equity / Growth Buyout</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--border)">
+            <span style="font-size:.8rem;color:var(--muted)">Focus</span>
+            <span style="font-size:.8rem;font-weight:600;color:var(--text)">Green / Digital Transformation</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--border)">
+            <span style="font-size:.8rem;color:var(--muted)">Geography</span>
+            <span style="font-size:.8rem;font-weight:600;color:var(--text)">Korea (with global export revenue)</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--border)">
+            <span style="font-size:.8rem;color:var(--muted)">Sourcing</span>
+            <span style="font-size:.8rem;font-weight:600;color:var(--text)">Proprietary — no auction process</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--border)">
+            <span style="font-size:.8rem;color:var(--muted)">Value Creation</span>
+            <span style="font-size:.8rem;font-weight:600;color:var(--text)">Value-up + internationalisation</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="font-size:.8rem;color:var(--muted)">Fund Size / Terms</span>
+            <span style="font-size:.8rem;font-weight:600;color:var(--gold)">Available on request</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Fund I Reference Point</div>
+        <div style="display:flex;gap:24px;margin-top:12px">
+          <div><div style="font-size:1.4rem;font-weight:900;color:var(--gold);font-family:'Playfair Display',serif">70%+</div><div style="font-size:.7rem;color:var(--muted)">Deployed in &lt;12 months</div></div>
+          <div><div style="font-size:1.4rem;font-weight:900;color:var(--gold);font-family:'Playfair Display',serif">5</div><div style="font-size:.7rem;color:var(--muted)">Portfolio companies</div></div>
+          <div><div style="font-size:1.4rem;font-weight:900;color:var(--gold);font-family:'Playfair Display',serif">High</div><div style="font-size:.7rem;color:var(--muted)">Expected returns</div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card-title" style="margin-bottom:16px">Active Pipeline</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card accent-blue" style="padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div style="font-size:.88rem;font-weight:700;color:var(--text)">Company "E"</div>
+            <span class="tag blue">ESS Solutions</span>
+          </div>
+          <p class="body" style="font-size:.78rem">Korean ESS total solution provider. Software-layer positioning: dispatch optimisation, O&amp;M, grid frequency control. Recurring revenue model. Less commodity-exposed than hardware peers. Active due diligence underway.</p>
+        </div>
+        <div class="card accent-green" style="padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div style="font-size:.88rem;font-weight:700;color:var(--text)">Company "S"</div>
+            <span class="tag green">Grid Infrastructure</span>
+          </div>
+          <p class="body" style="font-size:.78rem">Global-leading manufacturer of grid components and materials. Direct exposure to the US transformer shortage and AI data centre buildout. Export-oriented with established US customer relationships. Active engagement underway.</p>
+        </div>
+        <div class="card" style="padding:20px;border:1px dashed rgba(255,255,255,.12)">
+          <div style="font-size:.78rem;color:var(--muted)">Additional pipeline opportunities in battery material and automation sub-sectors available for discussion in follow-up sessions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 14: RISKS -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s14">
+  <div class="slide-num">14</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div class="eyebrow">Honest Assessment</div>
+  <h2 class="section-title" style="margin-bottom:8px">Risk factors<br>&amp; how we think<br>about them.</h2>
+  <p class="body" style="max-width:560px;margin-bottom:36px">Strong conviction in a thesis does not mean dismissing its risks. We identify four material risks — and the structural mitigants already embedded in our approach.</p>
+  <div class="grid-2">
+    <div>
+      <div class="risk-row">
+        <div class="icon-circle ic-gold" style="width:36px;height:36px;font-size:15px;flex-shrink:0">⏱</div>
+        <div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:4px">EV Demand Timing Uncertainty</div>
+          <p class="body" style="font-size:.77rem">The battery supercycle depends on US and European EV adoption accelerating. If the transition takes longer than anticipated, equipment order volumes stay depressed.</p>
+          <div style="margin-top:8px;font-size:.75rem;color:var(--green)">&#10003; <strong>Mitigant:</strong> Our exposure is at the vendor/equipment layer, not OEM. Equipment vendors supply all three Korean OEMs — no single-customer concentration. Materials investments (ENCHEM, ANP) are less cyclical than equipment.</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="icon-circle ic-blue" style="width:36px;height:36px;font-size:15px;flex-shrink:0">🇨🇳</div>
+        <div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:4px">Chinese Competition</div>
+          <p class="body" style="font-size:.77rem">CATL holds 37.9% and BYD 17.2% of the 2024 global EV battery market — combined 55%. Korean Big 3 hold ~19% combined at 40–50% utilisation. Chinese equipment makers (Yinghe Technology) are also expanding. This is the real competitive picture.</p>
+          <div style="margin-top:8px;font-size:.75rem;color:var(--green)">&#10003; <strong>Mitigant:</strong> CATL and BYD are explicitly excluded from IRA-qualifying supply chains. US FEOC rules bar Chinese battery components from tax-credit-eligible vehicles from 2025. Korean exporters are price-accepted on grid hardware — the transformer shortage means buyers have no alternative. The policy moat is structural, not temporary.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="risk-row">
+        <div class="icon-circle ic-gold" style="width:36px;height:36px;font-size:15px;flex-shrink:0">💱</div>
+        <div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:4px">KRW / USD FX Exposure</div>
+          <p class="body" style="font-size:.77rem">Portfolio companies are KRW-denominated. International LPs receive returns in USD. Currency movements can meaningfully affect realised returns.</p>
+          <div style="margin-top:8px;font-size:.75rem;color:var(--green)">&#10003; <strong>Mitigant:</strong> Most portfolio companies generate significant USD/EUR export revenue — natural hedge at the operating level. Fund-level FX hedging approach to be discussed with LPs on a case-by-case basis.</div>
+        </div>
+      </div>
+      <div class="risk-row">
+        <div class="icon-circle ic-green" style="width:36px;height:36px;font-size:15px;flex-shrink:0">👤</div>
+        <div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:4px">Key-Person Concentration</div>
+          <p class="body" style="font-size:.77rem">Jason Kim is the primary decision-maker and relationship holder. Departure or incapacitation would materially affect fund execution.</p>
+          <div style="margin-top:8px;font-size:.75rem;color:var(--green)">&#10003; <strong>Mitigant:</strong> Deal pipeline is embedded across the IBK, Deloitte, and Shinsegae networks — not solely dependent on one individual. Board representation on portfolio companies distributes operational oversight. Team build-out is part of Fund II capital deployment plan.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SLIDE 15: NEXT STEPS -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="s15" style="background:var(--card)">
+  <div class="slide-num">15</div>
+  <div class="logo-line">Synaptic Investment</div>
+  <div style="max-width:760px">
+    <div class="eyebrow">The Invitation</div>
+    <h2 class="section-title" style="margin-bottom:20px">The window<br>for entry is now.</h2>
+    <div class="divider"></div>
+    <p class="lead" style="margin-bottom:40px">The three megatrends outlined in this document do not wait. Equipment order cycles, ESS project timelines, and transformer lead times all favour investors who move decisively in 2024–2025. We have the pipeline, the relationships, and the track record.</p>
+    <div class="grid-3" style="margin-bottom:40px">
+      <div class="card" style="text-align:center;padding:28px 20px">
+        <div style="font-size:1.8rem;margin-bottom:12px">01</div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:8px">Schedule a Follow-Up</div>
+        <p class="body" style="font-size:.75rem">Introductory call to discuss investment mandate alignment and fund terms.</p>
+      </div>
+      <div class="card accent-gold" style="text-align:center;padding:28px 20px">
+        <div style="font-size:1.8rem;margin-bottom:12px;color:var(--gold)">02</div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:8px">Request Fund Terms</div>
+        <p class="body" style="font-size:.75rem">Full fund terms, fee structure, LP co-investment rights, and minimum commitment available on request.</p>
+      </div>
+      <div class="card" style="text-align:center;padding:28px 20px">
+        <div style="font-size:1.8rem;margin-bottom:12px">03</div>
+        <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:8px">Pipeline Deep Dive</div>
+        <p class="body" style="font-size:.75rem">Review Company "E" and Company "S" deal materials under NDA. Full financial models and DD summaries available.</p>
+      </div>
+    </div>
+    <div class="card" style="padding:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px">
+      <div>
+        <div style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:4px">Heejong (Jason) Kim</div>
+        <div style="font-size:.8rem;color:var(--muted)">Partner &amp; Founder, Synaptic Investment</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-top:4px">Singapore · Seoul · October 2024</div>
+      </div>
+      <div style="display:flex;gap:12px">
+        <a href="#s1" class="cta-btn outline">Back to Start</a>
+        <a href="mailto:?" class="cta-btn">Get in Touch</a>
+      </div>
+    </div>
+  </div>
+  <div class="footnote" style="bottom:20px">This document is for discussion purposes only and does not constitute an offer or solicitation. Past performance is not indicative of future results. Strictly Private and Confidential. © 2024 Synaptic Investment.</div>
+</section>
+
+<script>
+const sections = document.querySelectorAll('section');
+const dots = document.querySelectorAll('.nav-dot');
+const pageLabel = document.getElementById('pageLabel');
+
+function goTo(n) {
+  sections[n-1].scrollIntoView({behavior:'smooth'});
+}
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting && e.intersectionRatio > 0.5) {
+      const idx = Array.from(sections).indexOf(e.target);
+      dots.forEach((d,i) => d.classList.toggle('active', i===idx));
+      pageLabel.textContent = String(idx+1).padStart(2,'0') + ' / 15';
+    }
+  });
+},{threshold:0.5});
+
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
