@@ -3500,6 +3500,8 @@ function notifClick(notifId,dealId,type,dealIdx){
   // Close panel
   document.getElementById('notif-panel').classList.remove('open');
   const _bd=document.getElementById('notif-backdrop');if(_bd)_bd.style.display='none';
+  // Guard: deal no longer in advisor's list (stale notification from reset/reassigned deal)
+  if(dealIdx<0){toast('This deal is no longer available','info');return;}
   // Mark read locally
   const n=NOTIFS.find(x=>x.id===notifId);
   if(n)n.read=true;

@@ -4,6 +4,14 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-05] — Production hardening: bot page redirect + notification dead-click fix
+
+**vercel.json** — Added `redirects` block before `rewrites`. `/bot-driver` and `/bot-viewer` now redirect to `/` (302) in all deployments. Bot pages remain reachable by admin directly via Vercel preview URL or by temporarily removing the redirect — they are not permanently deleted.
+
+**advisor-portal.html** — Added null guard in `notifClick()`. If `dealIdx < 0` (notification references a deal that no longer exists in the advisor's list — e.g. stale data after a sandbox reset or deal reassignment), the function now shows a brief "This deal is no longer available" toast and returns early instead of silently closing the panel and doing nothing.
+
+---
+
 ## [2026-05-03] — Wave 3 frontend — gap registry UI (`advisor-portal.html`, `admin-portal.html`, `investor-portal.html`)
 
 Wired the Wave 3 backend contract into the three portals.
