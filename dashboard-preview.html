@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Aurum Prism · Admin Dashboard Preview</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────── */
+:root{
+  --bg:#0A0908; --bg-2:#100F0D; --bg-3:#161412; --surface:#131210;
+  --border:rgba(255,255,255,0.07); --border-m:rgba(255,255,255,0.13);
+  --text:#EDE8DF; --text-2:#A09A91; --text-3:#6B665E;
+  --gold:#C5A572; --gold-b:#E3C187; --gold-bg:rgba(197,165,114,0.07); --gold-bd:rgba(197,165,114,0.22);
+  --green:#5a9e72; --green-bg:rgba(90,158,114,0.07); --green-bd:rgba(90,158,114,0.25);
+  --amber:#b8833a; --amber-bg:rgba(184,131,58,0.08); --amber-bd:rgba(184,131,58,0.28);
+  --red:#b05e56; --red-bg:rgba(176,94,86,0.07); --red-bd:rgba(176,94,86,0.22);
+  --blue:#5b85b8; --blue-bg:rgba(91,133,184,0.07); --blue-bd:rgba(91,133,184,0.25);
+  --violet:#8B7BC0; --violet-bg:rgba(139,123,192,0.07); --violet-bd:rgba(139,123,192,0.22);
+  --slate:#7B8FA1; --slate-bg:rgba(123,143,161,0.07); --slate-bd:rgba(123,143,161,0.22);
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --r:6px; --nav-h:56px; --ease:cubic-bezier(0.22,1,0.36,1);
+}
+
+/* ─── RESET ──────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{
+  min-height:100%; background:var(--bg); color:var(--text);
+  font-family:var(--sans); font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes rowSlide{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* ─── NAV ────────────────────────────────────────────────── */
+.nav{
+  position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:200;
+  display:flex;align-items:center;padding:0 20px;gap:16px;
+  background:rgba(10,9,8,0.94);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(16px);
+}
+.nav-wordmark{display:flex;flex-direction:column;justify-content:center;gap:2px;flex-shrink:0}
+.nav-wm-tacc{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--text-3);text-transform:uppercase}
+.nav-wm-name{display:flex;align-items:center;line-height:1}
+.nav-wm-aurum{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
+.nav-wm-rule{display:block;width:1px;height:11px;background:var(--gold-bd);margin:0 9px;flex-shrink:0}
+.nav-wm-prism{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.nav-div{width:1px;height:20px;background:var(--border);flex-shrink:0}
+.nav-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0}
+.ntab{
+  padding:8px 14px;font-size:12px;font-weight:500;color:var(--text-3);
+  border-bottom:2px solid transparent;transition:color .15s,border-color .15s;
+  white-space:nowrap;position:relative;flex-shrink:0;cursor:pointer;
+}
+.ntab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.ntab:hover:not(.on){color:var(--text-2)}
+.ntab-badge{
+  position:absolute;top:6px;right:3px;min-width:15px;height:15px;border-radius:8px;
+  background:var(--amber);font-family:var(--mono);font-size:8px;color:#fff;
+  display:flex;align-items:center;justify-content:center;padding:0 3px;
+  animation:pulse 2s infinite;
+}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nav-icon-btn{
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);border-radius:50%;color:var(--text-2);
+  font-size:15px;transition:all .2s;position:relative;cursor:pointer;
+}
+.nav-icon-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
+.nav-bell-dot{
+  position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;
+  background:var(--amber);border:1.5px solid var(--bg);animation:pulse 2s infinite;
+}
+.nav-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#2a2318 0%,#1a160f 100%);
+  border:1.5px solid rgba(197,165,114,0.45);display:flex;align-items:center;
+  justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700;
+  letter-spacing:.06em;color:#C5A572;flex-shrink:0;cursor:default;user-select:none;
+}
+
+/* ─── PAGE SHELL ─────────────────────────────────────────── */
+.page{padding-top:var(--nav-h);min-height:100vh}
+
+/* ─── ZONE 1 — KPI STRIP ─────────────────────────────────── */
+.kpi-strip{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.kpi-tile{
+  padding:20px 24px;
+  border-right:1px solid var(--border);
+  transition:background .15s;
+}
+.kpi-tile:last-child{border-right:none}
+.kpi-tile:hover{background:var(--bg-3)}
+.kpi-lbl{
+  font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-3);margin-bottom:10px;
+}
+.kpi-val{
+  font-family:var(--mono);font-size:28px;font-weight:500;line-height:1;
+  margin-bottom:6px;
+}
+.kpi-val.gold{color:var(--gold)}
+.kpi-val.amber{color:var(--amber)}
+.kpi-val.red{color:var(--red)}
+.kpi-val.violet{color:var(--violet)}
+.kpi-sub{font-size:11px;color:var(--text-3)}
+
+/* ─── ZONE 2 — ACTION QUEUE ──────────────────────────────── */
+.zone-2{
+  background:var(--bg-2);
+  border-bottom:1px solid var(--border);
+  padding:20px 24px 24px;
+}
+.zone-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.zone-hd-title{
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-3);
+}
+.zone-hd-count{
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--amber);
+}
+
+/* Horizontal scrolling card row */
+.action-scroll{
+  display:flex;
+  flex-direction:row;
+  gap:12px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:4px;
+  /* custom scrollbar styling already set globally */
+}
+.action-scroll::-webkit-scrollbar{height:3px}
+.action-scroll::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
+
+.act-card{
+  flex-shrink:0;
+  width:280px;
+  min-height:160px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  border-left:4px solid;
+  padding:14px 16px 14px 14px;
+  display:flex;flex-direction:column;gap:6px;
+  animation:fadeUp .4s var(--ease) both;
+  transition:transform .15s,border-color .15s;
+}
+.act-card:hover{transform:translateY(-1px)}
+
+.act-card.border-red{border-left-color:var(--red)}
+.act-card.border-amber{border-left-color:var(--amber)}
+.act-card.border-gold{border-left-color:var(--gold)}
+
+.act-pill{
+  font-family:var(--mono);font-size:8px;letter-spacing:.14em;
+  text-transform:uppercase;align-self:flex-start;
+  padding:2px 7px;border-radius:2px;border:1px solid;
+}
+.act-pill.red{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.act-pill.amber{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.act-pill.gold{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+
+.act-name{font-size:14px;font-weight:500;color:var(--text);line-height:1.3}
+.act-sub{font-size:12px;color:var(--text-3);line-height:1.4;flex:1}
+.act-btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
+
+/* card buttons */
+.cbtn{
+  padding:5px 12px;border-radius:3px;font-size:11px;font-weight:500;
+  border:1px solid;transition:all .15s;cursor:pointer;font-family:inherit;
+  white-space:nowrap;
+}
+.cbtn-green{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.cbtn-green:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.cbtn-red{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.cbtn-red:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.cbtn-amber{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.cbtn-amber:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
+.cbtn-gold{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.cbtn-gold:hover{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+
+/* ─── ZONE 3 — TWO COLUMN ────────────────────────────────── */
+.zone-3{
+  display:grid;
+  grid-template-columns:1fr 320px;
+  gap:0;
+  align-items:start;
+  min-height:calc(100vh - var(--nav-h) - 120px - 220px);
+}
+
+/* left column */
+.col-pipeline{
+  border-right:1px solid var(--border);
+  padding:24px;
+}
+/* right column */
+.col-activity{
+  padding:24px;
+  position:sticky;top:var(--nav-h);
+  max-height:calc(100vh - var(--nav-h));
+  overflow-y:auto;
+}
+
+.col-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.col-hd-title{
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-3);
+}
+
+/* stage group headers */
+.stage-grp{margin-bottom:24px}
+.stage-grp-hd{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:10px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.stage-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.stage-dot.gold{background:var(--gold)}
+.stage-dot.violet{background:var(--violet)}
+.stage-dot.blue{background:var(--blue)}
+.stage-dot.slate{background:var(--slate)}
+.stage-grp-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-3);
+}
+.stage-grp-badge{
+  margin-left:auto;font-family:var(--mono);font-size:9px;
+  letter-spacing:.1em;padding:2px 7px;border-radius:2px;
+  border:1px solid var(--border-m);color:var(--text-3);
+}
+
+/* deal cards in pipeline */
+.deal-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-left:3px solid transparent;
+  border-radius:var(--r);
+  padding:13px 16px;
+  margin-bottom:8px;
+  cursor:pointer;
+  transition:border-left-color .15s,background .15s,transform .15s;
+  animation:fadeUp .35s var(--ease) both;
+}
+.deal-card:hover{
+  border-left-color:var(--gold);
+  background:var(--bg-3);
+  transform:translateX(1px);
+}
+.deal-card-row1{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.deal-card-name{font-size:14px;font-weight:500;color:var(--text);line-height:1.2}
+.deal-stage-chip{
+  font-family:var(--mono);font-size:7px;letter-spacing:.12em;text-transform:uppercase;
+  padding:2px 7px;border-radius:10px;border:1px solid;white-space:nowrap;flex-shrink:0;
+}
+.sc-dd{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.sc-ioi{color:var(--violet);border-color:var(--violet-bd);background:var(--violet-bg)}
+.sc-live{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+
+.deal-card-row2{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.deal-advisor{font-size:12px;color:var(--text-3)}
+.deal-meta-sep{width:1px;height:11px;background:var(--border-m);flex-shrink:0}
+.deal-class-chip{
+  font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;
+  padding:1px 6px;border-radius:2px;border:1px solid var(--border-m);color:var(--text-3);
+}
+.deal-ioi-count{font-family:var(--mono);font-size:11px;color:var(--text-3);margin-left:auto}
+
+.deal-card-row3{display:flex;align-items:center;gap:10px}
+.deal-bar-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.deal-bar-fill{height:100%;background:var(--gold);border-radius:2px;transition:width 1s var(--ease)}
+.deal-pct{font-family:var(--mono);font-size:10px;color:var(--text-3);white-space:nowrap}
+
+/* ─── ACTIVITY FEED ──────────────────────────────────────── */
+.feed-list{display:flex;flex-direction:column}
+.feed-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:11px 0;border-bottom:1px solid var(--border);
+  animation:rowSlide .35s var(--ease) both;
+}
+.feed-item:last-child{border-bottom:none}
+.feed-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.feed-dot.gold{background:var(--gold)}
+.feed-dot.amber{background:var(--amber)}
+.feed-dot.green{background:var(--green)}
+.feed-dot.blue{background:var(--blue)}
+.feed-dot.violet{background:var(--violet)}
+.feed-body{flex:1;font-size:13px;color:var(--text-2);line-height:1.45}
+.feed-time{
+  font-family:var(--mono);font-size:10px;color:var(--text-3);
+  white-space:nowrap;margin-top:2px;
+}
+
+/* ─── UTILITY ────────────────────────────────────────────── */
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     NAV BAR
+══════════════════════════════════════════════════════ -->
+<nav class="nav" role="navigation" aria-label="Admin navigation">
+  <div class="nav-wordmark">
+    <span class="nav-wm-tacc">TACC · Aurum</span>
+    <div class="nav-wm-name">
+      <span class="nav-wm-aurum">Prism</span>
+      <span class="nav-wm-rule" aria-hidden="true"></span>
+      <span class="nav-wm-prism">Admin</span>
+    </div>
+  </div>
+
+  <div class="nav-div" aria-hidden="true"></div>
+
+  <nav class="nav-tabs" aria-label="Dashboard sections">
+    <button class="ntab on" aria-current="page">Overview</button>
+    <button class="ntab">Pipeline</button>
+    <button class="ntab">IOI Queue<span class="ntab-badge" aria-label="3 pending">3</span></button>
+    <button class="ntab">Deal Studio</button>
+    <button class="ntab">System</button>
+  </nav>
+
+  <div class="nav-r">
+    <button class="nav-icon-btn" aria-label="Toggle theme" title="Toggle theme">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+    <button class="nav-icon-btn" aria-label="Notifications — 9 unread">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="nav-bell-dot" aria-hidden="true"></span>
+    </button>
+    <div class="nav-avatar" role="img" aria-label="Operator account">AD</div>
+  </div>
+</nav>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE
+══════════════════════════════════════════════════════ -->
+<main class="page">
+
+  <!-- ─────────────────────────────────────────────────────
+       ZONE 1 — KPI STRIP
+  ───────────────────────────────────────────────────── -->
+  <section class="kpi-strip" aria-label="Key performance indicators">
+    <div class="kpi-tile">
+      <div class="kpi-lbl">Approved Capital</div>
+      <div class="kpi-val gold">USD 54.4M</div>
+      <div class="kpi-sub">8 active deals</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-lbl">Pending Approvals</div>
+      <div class="kpi-val amber">4</div>
+      <div class="kpi-sub">need decision</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-lbl">New Submissions</div>
+      <div class="kpi-val amber">2</div>
+      <div class="kpi-sub">from advisors</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-lbl">Ready for DD</div>
+      <div class="kpi-val violet">3</div>
+      <div class="kpi-sub">approved IOIs waiting</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-lbl">Actions Required</div>
+      <div class="kpi-val red">9</div>
+      <div class="kpi-sub">open items</div>
+    </div>
+  </section>
+
+
+  <!-- ─────────────────────────────────────────────────────
+       ZONE 2 — ACTION QUEUE
+  ───────────────────────────────────────────────────── -->
+  <section class="zone-2" aria-label="Action queue">
+    <div class="zone-hd">
+      <span class="zone-hd-title">Action Queue</span>
+      <span class="zone-hd-count">9 items</span>
+    </div>
+
+    <div class="action-scroll" role="list" aria-label="Actions requiring attention">
+
+      <!-- Card 1 — HIGH · INVESTOR APPROVAL -->
+      <div class="act-card border-red" role="listitem" style="animation-delay:.05s">
+        <span class="act-pill red">HIGH · Investor Approval</span>
+        <div class="act-name">Whitmore Family Office</div>
+        <div class="act-sub">Registered 3 days ago · HNW · Singapore</div>
+        <div class="act-btns">
+          <button class="cbtn cbtn-green">Approve Access →</button>
+        </div>
+      </div>
+
+      <!-- Card 2 — HIGH · INVESTOR APPROVAL -->
+      <div class="act-card border-red" role="listitem" style="animation-delay:.09s">
+        <span class="act-pill red">HIGH · Investor Approval</span>
+        <div class="act-name">Sterling Endowment Fund</div>
+        <div class="act-sub">Registered 5 days ago · Institutional · Hong Kong</div>
+        <div class="act-btns">
+          <button class="cbtn cbtn-green">Approve Access →</button>
+        </div>
+      </div>
+
+      <!-- Card 3 — MEDIUM · IOI PENDING -->
+      <div class="act-card border-amber" role="listitem" style="animation-delay:.13s">
+        <span class="act-pill amber">MEDIUM · IOI Pending</span>
+        <div class="act-name">IOI — Orchard Street Credit II</div>
+        <div class="act-sub">Pinnacle Asset Management · USD 8M · 2 days ago</div>
+        <div class="act-btns">
+          <button class="cbtn cbtn-green">Approve</button>
+          <button class="cbtn cbtn-red">Decline</button>
+        </div>
+      </div>
+
+      <!-- Card 4 — MEDIUM · IOI PENDING -->
+      <div class="act-card border-amber" role="listitem" style="animation-delay:.17s">
+        <span class="act-pill amber">MEDIUM · IOI Pending</span>
+        <div class="act-name">IOI — Meridian Growth Fund IV</div>
+        <div class="act-sub">GIC Family Office · USD 15M · 1 day ago</div>
+        <div class="act-btns">
+          <button class="cbtn cbtn-green">Approve</button>
+          <button class="cbtn cbtn-red">Decline</button>
+        </div>
+      </div>
+
+      <!-- Card 5 — MEDIUM · IOI PENDING -->
+      <div class="act-card border-amber" role="listitem" style="animation-delay:.21s">
+        <span class="act-pill amber">MEDIUM · IOI Pending</span>
+        <div class="act-name">IOI — Meridian Growth Fund IV</div>
+        <div class="act-sub">Apex Capital · USD 6M · 4 hours ago</div>
+        <div class="act-btns">
+          <button class="cbtn cbtn-green">Approve</button>
+          <button class="cbtn cbtn-red">Decline</button>
+        </div>
+      </div>
+
+      <!-- Card 6 — READY · OPEN DD -->
+      <div class="act-card border-gold" role="listitem" style="animation-delay:.25s">
+        <span class="act-pill gold">READY · Open DD</span>
+        <div class="act-name">Meridian Growth Fund IV</div>
+        <div class="act-sub">3 approved IOIs · USD 29M indicated · 68% subscribed</div>
+        <div class="act-btns">
+          <button class="cbtn cbtn-gold">Open Due Diligence →</button>
+        </div>
+      </div>
+
+      <!-- Card 7 — READY · PUBLISH -->
+      <div class="act-card border-gold" role="listitem" style="animation-delay:.29s">
+        <span class="act-pill gold">READY · Publish</span>
+        <div class="act-name">Apex Infra Partners III</div>
+        <div class="act-sub">Reviewed by advisor · Ready to go live</div>
+        <div class="act-btns">
+          <button class="cbtn cbtn-gold">Publish to Live →</button>
+        </div>
+      </div>
+
+      <!-- Card 8 — MEDIUM · NEW DEAL -->
+      <div class="act-card border-amber" role="listitem" style="animation-delay:.33s">
+        <span class="act-pill amber">MEDIUM · New Deal</span>
+        <div class="act-name">Pacific Logistics REIT</div>
+        <div class="act-sub">Submitted by James Chen · 1 day ago · Private Equity</div>
+        <div class="act-btns">
+          <button class="cbtn cbtn-amber">Review Submission →</button>
+        </div>
+      </div>
+
+      <!-- Card 9 — MEDIUM · NEW DEAL -->
+      <div class="act-card border-amber" role="listitem" style="animation-delay:.37s">
+        <span class="act-pill amber">MEDIUM · New Deal</span>
+        <div class="act-name">Greenfield Credit Opportunities</div>
+        <div class="act-sub">Submitted by Sarah Lim · 3 hours ago · Private Credit</div>
+        <div class="act-btns">
+          <button class="cbtn cbtn-amber">Review Submission →</button>
+        </div>
+      </div>
+
+    </div><!-- /action-scroll -->
+  </section>
+
+
+  <!-- ─────────────────────────────────────────────────────
+       ZONE 3 — PIPELINE + ACTIVITY
+  ───────────────────────────────────────────────────── -->
+  <div class="zone-3">
+
+    <!-- LEFT — DEAL PIPELINE -->
+    <section class="col-pipeline" aria-label="Deal pipeline">
+      <div class="col-hd">
+        <span class="col-hd-title">Deal Pipeline</span>
+      </div>
+
+      <!-- DD Stage -->
+      <div class="stage-grp">
+        <div class="stage-grp-hd">
+          <span class="stage-dot gold" aria-hidden="true"></span>
+          <span class="stage-grp-label">Due Diligence</span>
+          <span class="stage-grp-badge">2</span>
+        </div>
+
+        <div class="deal-card" role="article" tabindex="0">
+          <div class="deal-card-row1">
+            <div class="deal-card-name">Orchard Street Credit Partners II</div>
+            <span class="deal-stage-chip sc-dd">DD</span>
+          </div>
+          <div class="deal-card-row2">
+            <span class="deal-advisor">James Chen</span>
+            <span class="deal-meta-sep" aria-hidden="true"></span>
+            <span class="deal-class-chip">Private Credit</span>
+            <span class="deal-ioi-count">8 IOIs</span>
+          </div>
+          <div class="deal-card-row3">
+            <div class="deal-bar-track" title="68% subscribed" aria-label="68% subscribed">
+              <div class="deal-bar-fill" style="width:68%"></div>
+            </div>
+            <span class="deal-pct">68%</span>
+          </div>
+        </div>
+
+        <div class="deal-card" role="article" tabindex="0">
+          <div class="deal-card-row1">
+            <div class="deal-card-name">Meridian Growth Fund IV</div>
+            <span class="deal-stage-chip sc-dd">DD</span>
+          </div>
+          <div class="deal-card-row2">
+            <span class="deal-advisor">Sarah Lim</span>
+            <span class="deal-meta-sep" aria-hidden="true"></span>
+            <span class="deal-class-chip">Private Equity</span>
+            <span class="deal-ioi-count">5 IOIs</span>
+          </div>
+          <div class="deal-card-row3">
+            <div class="deal-bar-track" title="54% subscribed" aria-label="54% subscribed">
+              <div class="deal-bar-fill" style="width:54%"></div>
+            </div>
+            <span class="deal-pct">54%</span>
+          </div>
+        </div>
+      </div><!-- /DD -->
+
+      <!-- IOI Stage -->
+      <div class="stage-grp">
+        <div class="stage-grp-hd">
+          <span class="stage-dot violet" aria-hidden="true"></span>
+          <span class="stage-grp-label">IOI</span>
+          <span class="stage-grp-badge">3</span>
+        </div>
+
+        <div class="deal-card" role="article" tabindex="0">
+          <div class="deal-card-row1">
+            <div class="deal-card-name">Apex Infra Partners III</div>
+            <span class="deal-stage-chip sc-ioi">IOI</span>
+          </div>
+          <div class="deal-card-row2">
+            <span class="deal-advisor">James Chen</span>
+            <span class="deal-meta-sep" aria-hidden="true"></span>
+            <span class="deal-class-chip">Infrastructure</span>
+            <span class="deal-ioi-count">3 IOIs</span>
+          </div>
+          <div class="deal-card-row3">
+            <div class="deal-bar-track" title="31% subscribed" aria-label="31% subscribed">
+              <div class="deal-bar-fill" style="width:31%"></div>
+            </div>
+            <span class="deal-pct">31%</span>
+          </div>
+        </div>
+
+        <div class="deal-card" role="article" tabindex="0">
+          <div class="deal-card-row1">
+            <div class="deal-card-name">Pacific Logistics REIT</div>
+            <span class="deal-stage-chip sc-ioi">IOI</span>
+          </div>
+          <div class="deal-card-row2">
+            <span class="deal-advisor">Michael Tan</span>
+            <span class="deal-meta-sep" aria-hidden="true"></span>
+            <span class="deal-class-chip">Real Estate</span>
+            <span class="deal-ioi-count">1 IOI</span>
+          </div>
+          <div class="deal-card-row3">
+            <div class="deal-bar-track" title="8% subscribed" aria-label="8% subscribed">
+              <div class="deal-bar-fill" style="width:8%"></div>
+            </div>
+            <span class="deal-pct">8%</span>
+          </div>
+        </div>
+
+        <div class="deal-card" role="article" tabindex="0">
+          <div class="deal-card-row1">
+            <div class="deal-card-name">Greenfield Credit</div>
+            <span class="deal-stage-chip sc-ioi">IOI</span>
+          </div>
+          <div class="deal-card-row2">
+            <span class="deal-advisor">Sarah Lim</span>
+            <span class="deal-meta-sep" aria-hidden="true"></span>
+            <span class="deal-class-chip">Private Credit</span>
+            <span class="deal-ioi-count">0 IOIs</span>
+          </div>
+          <div class="deal-card-row3">
+            <div class="deal-bar-track" title="0% subscribed" aria-label="0% subscribed">
+              <div class="deal-bar-fill" style="width:0%"></div>
+            </div>
+            <span class="deal-pct">0%</span>
+          </div>
+        </div>
+      </div><!-- /IOI -->
+
+      <!-- Live Stage -->
+      <div class="stage-grp">
+        <div class="stage-grp-hd">
+          <span class="stage-dot blue" aria-hidden="true"></span>
+          <span class="stage-grp-label">Live</span>
+          <span class="stage-grp-badge">2</span>
+        </div>
+
+        <div class="deal-card" role="article" tabindex="0">
+          <div class="deal-card-row1">
+            <div class="deal-card-name">Northstar Capital IV</div>
+            <span class="deal-stage-chip sc-live">Live</span>
+          </div>
+          <div class="deal-card-row2">
+            <span class="deal-advisor">Michael Tan</span>
+            <span class="deal-meta-sep" aria-hidden="true"></span>
+            <span class="deal-class-chip">Private Equity</span>
+            <span class="deal-ioi-count">0 IOIs</span>
+          </div>
+          <div class="deal-card-row3">
+            <div class="deal-bar-track" title="0% subscribed" aria-label="0% subscribed">
+              <div class="deal-bar-fill" style="width:0%"></div>
+            </div>
+            <span class="deal-pct">0%</span>
+          </div>
+        </div>
+
+        <div class="deal-card" role="article" tabindex="0">
+          <div class="deal-card-row1">
+            <div class="deal-card-name">BlueSky Renewables</div>
+            <span class="deal-stage-chip sc-live">Live</span>
+          </div>
+          <div class="deal-card-row2">
+            <span class="deal-advisor">James Chen</span>
+            <span class="deal-meta-sep" aria-hidden="true"></span>
+            <span class="deal-class-chip">Infrastructure</span>
+            <span class="deal-ioi-count">0 IOIs</span>
+          </div>
+          <div class="deal-card-row3">
+            <div class="deal-bar-track" title="0% subscribed" aria-label="0% subscribed">
+              <div class="deal-bar-fill" style="width:0%"></div>
+            </div>
+            <span class="deal-pct">0%</span>
+          </div>
+        </div>
+      </div><!-- /Live -->
+
+    </section><!-- /col-pipeline -->
+
+
+    <!-- RIGHT — ACTIVITY FEED -->
+    <section class="col-activity" aria-label="Recent activity">
+      <div class="col-hd">
+        <span class="col-hd-title">Recent Activity</span>
+      </div>
+
+      <div class="feed-list" role="list">
+
+        <div class="feed-item" role="listitem" style="animation-delay:.04s">
+          <span class="feed-dot gold" aria-hidden="true"></span>
+          <div class="feed-body">
+            IOI approved — Pinnacle Asset Mgmt on Orchard Street II
+            <div class="feed-time">2h ago</div>
+          </div>
+        </div>
+
+        <div class="feed-item" role="listitem" style="animation-delay:.08s">
+          <span class="feed-dot amber" aria-hidden="true"></span>
+          <div class="feed-body">
+            New IOI received — GIC Family Office on Meridian Growth IV
+            <div class="feed-time">4h ago</div>
+          </div>
+        </div>
+
+        <div class="feed-item" role="listitem" style="animation-delay:.12s">
+          <span class="feed-dot green" aria-hidden="true"></span>
+          <div class="feed-body">
+            Investor approved — Whitmore Family Office
+            <div class="feed-time">6h ago</div>
+          </div>
+        </div>
+
+        <div class="feed-item" role="listitem" style="animation-delay:.16s">
+          <span class="feed-dot blue" aria-hidden="true"></span>
+          <div class="feed-body">
+            Deal advanced to DD — Orchard Street Credit Partners II
+            <div class="feed-time">Yesterday</div>
+          </div>
+        </div>
+
+        <div class="feed-item" role="listitem" style="animation-delay:.20s">
+          <span class="feed-dot amber" aria-hidden="true"></span>
+          <div class="feed-body">
+            New deal submitted — Pacific Logistics REIT by J. Chen
+            <div class="feed-time">Yesterday</div>
+          </div>
+        </div>
+
+        <div class="feed-item" role="listitem" style="animation-delay:.24s">
+          <span class="feed-dot violet" aria-hidden="true"></span>
+          <div class="feed-body">
+            IOI approved — Apex Capital on Meridian Growth IV
+            <div class="feed-time">2d ago</div>
+          </div>
+        </div>
+
+        <div class="feed-item" role="listitem" style="animation-delay:.28s">
+          <span class="feed-dot gold" aria-hidden="true"></span>
+          <div class="feed-body">
+            IOI approved — Sterling Endowment on Orchard Street II
+            <div class="feed-time">2d ago</div>
+          </div>
+        </div>
+
+        <div class="feed-item" role="listitem" style="animation-delay:.32s">
+          <span class="feed-dot green" aria-hidden="true"></span>
+          <div class="feed-body">
+            New investor registered — Sterling Endowment Fund
+            <div class="feed-time">3d ago</div>
+          </div>
+        </div>
+
+      </div><!-- /feed-list -->
+    </section><!-- /col-activity -->
+
+  </div><!-- /zone-3 -->
+
+</main>
+
+</body>
+</html>
