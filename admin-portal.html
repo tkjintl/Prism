@@ -5903,7 +5903,7 @@ async function vapImpersonate(id) {
     });
     const d = await r.json();
     if (!d.ok) { win.close(); alert('Failed: ' + (d.error || 'unknown')); return; }
-    win.location.href = portal;
+    setTimeout(() => { win.location.href = portal; }, 150);
     vapClose();
   } catch (e) { win.close(); alert('Network error: ' + e.message); }
 }
