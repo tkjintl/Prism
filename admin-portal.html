@@ -518,6 +518,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ddp-adv-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
 .ddp-adv-firm{font-size:12px;color:var(--text-2);margin-bottom:8px}
 .ddp-adv-email{font-family:var(--mono);font-size:10px;color:var(--gold)}
+/* ── DEAL DETAIL TABS ── */
+.ddp-tab-nav{display:flex;border-bottom:1px solid var(--border);margin-bottom:28px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0}
+.ddp-tab-btn{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:10px 18px;color:var(--text-3);border:none;border-bottom:2px solid transparent;background:none;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s;flex-shrink:0}
+.ddp-tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.ddp-tab-btn:hover:not(.active){color:var(--text-2)}
+.ddp-tab-pane{display:none}
+.ddp-tab-pane.active{display:block;animation:fadeUp .2s var(--ease)}
 /* Row hover — clickable */
 .dp-row:not(.header){cursor:pointer}
 .dp-row:not(.header):hover{background:rgba(197,165,114,.04)}
@@ -2180,6 +2187,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <script>
 (function(){const t=localStorage.getItem('prism_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☾':'☀';})();
 (function(){try{const e=localStorage.getItem('prism_admin_email')||'';const local=(e.split('@')[0]||'').replace(/[^a-zA-Z]/g,' ').trim();const parts=local.split(/\s+/).filter(Boolean);let ini=parts.length>=2?parts[0][0]+parts[1][0]:local.slice(0,2);ini=(ini||'OP').toUpperCase();const el=document.getElementById('nav-avatar');if(el){el.textContent=ini;el.title=e||'Operator';}}catch(e){}})();
+function ddpTab(name){
+  document.querySelectorAll('.ddp-tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  document.querySelectorAll('.ddp-tab-pane').forEach(p=>p.classList.toggle('active',p.id==='ddp-pane-'+name));
+}
+
 /* ── LAUNCH REVIEW state ── */
 let _launchDeal=null,_launchContent=null;
 let _launchMode='featured';
@@ -4260,6 +4272,19 @@ function buildDealDetailHTML(deal){
         </div>
       </div>
 
+      <!-- Tab navigation -->
+      <nav class="ddp-tab-nav">
+        <button class="ddp-tab-btn active" data-tab="summary" onclick="ddpTab('summary')">Summary</button>
+        <button class="ddp-tab-btn" data-tab="iois" onclick="ddpTab('iois')">IOIs</button>
+        <button class="ddp-tab-btn" data-tab="dataroom" onclick="ddpTab('dataroom')">Dataroom</button>
+        <button class="ddp-tab-btn" data-tab="documents" onclick="ddpTab('documents')">Documents</button>
+        <button class="ddp-tab-btn" data-tab="activity" onclick="ddpTab('activity')">Activity</button>
+        <button class="ddp-tab-btn" data-tab="financials" onclick="ddpTab('financials')">Financials</button>
+      </nav>
+
+      <!-- SUMMARY TAB -->
+      <div class="ddp-tab-pane active" id="ddp-pane-summary">
+
       <!-- Key metrics -->
       <div class="ddp-section">
         <div class="ddp-section-title">Key Metrics</div>
@@ -4285,6 +4310,11 @@ function buildDealDetailHTML(deal){
         <div class="ddp-section-title">Investment Overview</div>
         <div class="ddp-desc">${deal.description||deal.thesis||'No description provided.'}</div>
       </div>
+
+      </div><!-- /ddp-pane-summary -->
+
+      <!-- IOIS TAB -->
+      <div class="ddp-tab-pane" id="ddp-pane-iois">
 
       <!-- IOI summary -->
       <div class="ddp-section">
@@ -4354,17 +4384,63 @@ function buildDealDetailHTML(deal){
         ${ioiTableHTML}
       </div>
 
+      </div><!-- /ddp-pane-iois -->
+
+      <!-- DATAROOM TAB -->
+      <div class="ddp-tab-pane" id="ddp-pane-dataroom">
+      <div class="ddp-section">
+        <div class="ddp-section-title">Virtual Data Room</div>
+        <div style="padding:32px;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)">
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Dataroom</div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:16px">${deal.stage==='dd'||deal.stage==='terms'||deal.stage==='close'||deal.stage==='realized'?'Advisor uploads VDR files from their portal. Files appear here once uploaded.':'This deal must be in DD stage or later to access the dataroom.'}</div>
+          ${deal.stage==='dd'||deal.stage==='terms'||deal.stage==='close'||deal.stage==='realized'?`<div style="font-family:var(--mono);font-size:10px;color:var(--gold)">DD Period active</div>`:`<div style="font-family:var(--mono);font-size:10px;color:var(--text-3)">Not yet in DD</div>`}
+        </div>
+      </div>
+      <div class="ddp-section">
+        <div class="ddp-section-title">Q&amp;A Thread</div>
+        <div style="padding:24px;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--text-2)">Q&amp;A is enabled when deal enters DD stage.</div>
+      </div>
+      </div><!-- /ddp-pane-dataroom -->
+
+      <!-- DOCUMENTS TAB -->
+      <div class="ddp-tab-pane" id="ddp-pane-documents">
+
       <!-- Documents -->
       <div class="ddp-section">
         <div class="ddp-section-title">Documents</div>
         ${docsHTML}
       </div>
 
+      </div><!-- /ddp-pane-documents -->
+
+      <!-- ACTIVITY TAB -->
+      <div class="ddp-tab-pane" id="ddp-pane-activity">
+
       <!-- Audit log -->
       <div class="ddp-section">
         <div class="ddp-section-title">Audit Log</div>
         ${auditHTML}
       </div>
+
+      </div><!-- /ddp-pane-activity -->
+
+      <!-- FINANCIALS TAB -->
+      <div class="ddp-tab-pane" id="ddp-pane-financials">
+      <div class="ddp-section">
+        <div class="ddp-section-title">Prism Economics</div>
+        <div style="background:var(--surface);border:1px solid var(--gold-bd);border-radius:var(--r);padding:16px;margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-family:var(--mono);font-size:10px;color:var(--text-2)">Placement Fee</span><span style="font-family:var(--mono);font-size:10px;color:var(--text)">${econ.fee_pct}% → ${fmU(econ.projected_fee_revenue)} proj.</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-family:var(--mono);font-size:10px;color:var(--text-2)">Carried Interest</span><span style="font-family:var(--mono);font-size:10px;color:var(--text)">${econ.carry_pct}%</span></div>
+          <div style="display:flex;justify-content:space-between;padding:7px 0"><span style="font-family:var(--mono);font-size:10px;color:var(--text-2)">Mgmt Fee p.a.</span><span style="font-family:var(--mono);font-size:10px;color:var(--text)">${econ.mgmt_fee_pct}% → ${fmU(econ.projected_mgmt_revenue)} proj.</span></div>
+          <div style="display:flex;justify-content:space-between;padding-top:10px;margin-top:6px;border-top:1px solid var(--gold-bd)"><span style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)">Total Projected</span><span style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--gold)">${fmU(econ.total_projected_revenue)}</span></div>
+        </div>
+      </div>
+      <div class="ddp-section">
+        <div class="ddp-section-title">Quarterly Reports</div>
+        <div style="padding:24px;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--text-2)">Advisors upload quarterly reports from their portal. Reports appear here once submitted.</div>
+      </div>
+      </div><!-- /ddp-pane-financials -->
+
     </div>
 
     <!-- RIGHT: admin panel -->
