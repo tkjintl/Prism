@@ -4,6 +4,38 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-06] — Security hardening + sprint failure fixes + XSS sweep
+
+### Security
+- `api/login.js`: admin password comparison now uses `crypto.timingSafeEqual` — eliminates timing side-channel
+- `api/login.js`: `op=check` now calls revocation denylist before returning role — revoked tokens no longer accepted
+- `api/logout.js`: admin token jti now written to revocation denylist on logout — tokens irrevocable within 12h TTL fixed
+
+### Sprint failures resolved
+- `admin-portal.html`: STAGE_CHIP now includes `ioi` (gold), `terms` (amber), `realized` (green) — were falling back to wrong amber "Pending Confirmation" chip
+- `admin-portal.html`: added standalone `.sc-terms` CSS class for pipeline chip rendering
+- `admin-portal.html`: `renderUnassignedDealsList` — replaced undefined `esc()` calls with `_saEsc()` — was throwing ReferenceError on every open
+- `advisor-portal.html`: added `ioi` key to `_stageGuides` — IOI-stage deals now show context banner
+- `investor-portal.html`: `STAGE_LABELS.review` → `'Pending Confirmation'` (was still 'Review')
+
+### Email reliability
+- `api/v2.js`: `sendDealReceived` and `sendAdvisorWelcome` now have `.catch` — email failure no longer crashes the request
+- `api/v2.js`: `sendIoiSubmittedToAdvisor` now called on every IOI submit — advisor notified when investor submits IOI
+
+### XSS
+- `admin-portal.html`: escaped deal name, advisor name, firm name, overview text in submissions panel
+- `admin-portal.html`: escaped deal description/thesis in deal detail panel
+- `admin-portal.html`: escaped IOI notes in IOI detail panel
+- `admin-portal.html`: escaped deal name in pipeline rows and overview cards
+- `advisor-portal.html`: escaped VDR folder and filename in data room
+- `investor-portal.html`: escaped notification title and body
+- `investor-portal.html`: escaped VDR folder and filename in data room
+
+### Session handling
+- `advisor-portal.html`, `investor-portal.html`: `fetchSilent` now redirects to `/login` on 401/403 instead of silently failing
+
+---
+
 ## [2026-05-06] — Sprint 2C–4B: stage labels, DD signals, investor/advisor management, audit fixes
 
 ### Sprint 2C — "Pending Confirmation" label rollout (platform-wide)

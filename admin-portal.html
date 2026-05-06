@@ -143,6 +143,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .sc-dd{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
 .sc-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .sc-close{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.sc-terms{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .dp-actions{display:flex;gap:6px;flex-wrap:wrap}
 .dp-btn{padding:5px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--border-m);color:var(--text-2);transition:all .15s;white-space:nowrap;cursor:pointer;font-family:inherit}
 .dp-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
@@ -2441,7 +2442,7 @@ function nextStageActionFor(stage){
   if(stage==='close')return {label:'Mark Realized',target:'realized',endpoint:'advance-stage'};
   return null; // realized / killed → terminal, no advance
 }
-const STAGE_CHIP={live:'sc-live',dd:'sc-dd',review:'sc-review',close:'sc-close'};
+const STAGE_CHIP={live:'sc-live',dd:'sc-dd',review:'sc-review',close:'sc-close',ioi:'sc-ioi',terms:'sc-terms',realized:'sc-close'};
 const CLASS_CHIP_COL={credit:'color:var(--blue)',pe:'color:var(--gold)',re:'color:var(--green)',infra:'color:var(--slate)'};
 
 let pendingStage=null,pendingDealId=null;
@@ -2818,7 +2819,7 @@ function renderOverview(){
       const cnt=d.iois.filter(i=>i.status!=='declined').length;
       return `<div class="deal-card-ov" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1]);setTimeout(()=>openDealDetail('${d.id}'),300)" title="${d.name}">
         <div class="deal-card-ov-row1">
-          <div class="deal-card-ov-name">${d.name}</div>
+          <div class="deal-card-ov-name">${_saEsc(d.name)}</div>
           ${stage==='dd'?'<span style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:2px 6px;border-radius:2px;color:var(--blue);border:1px solid var(--blue-bd);background:var(--blue-bg)">◆ DD</span>':''}
           <span class="deal-stage-chip-ov sc-${stage}">${lbl}</span>
         </div>
@@ -3675,8 +3676,8 @@ function renderPipeline(){
             <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
               <div class="ds-chevron" id="dsc-chev-${s.id}">›</div>
               <div style="min-width:0">
-                <div class="ds-deal-name">${s.name}</div>
-                <div class="ds-deal-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''} · ${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)}</div>
+                <div class="ds-deal-name">${_saEsc(s.name)}</div>
+                <div class="ds-deal-meta">From <strong>${_saEsc(s.advisor)}</strong>${s.advisor_firm?' · '+_saEsc(s.advisor_firm):''} · ${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)}</div>
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
@@ -3685,7 +3686,7 @@ function renderPipeline(){
             </div>
           </div>
           <div class="ds-card-expandable" id="dsc-body-${s.id}" style="display:none">
-            ${(s.company_overview||s.mk_notes)?`<div class="ds-overview">${s.company_overview||s.mk_notes}</div>`:''}
+            ${(s.company_overview||s.mk_notes)?`<div class="ds-overview">${_saEsc(s.company_overview||s.mk_notes)}</div>`:''}
             <div class="ds-card-body">
               <div><div class="ds-stat-lbl">Target IRR</div><div class="ds-stat-val">${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'}</div></div>
               <div><div class="ds-stat-lbl">Capacity</div><div class="ds-stat-val">${fmU(s.target_alloc)}</div></div>
@@ -3798,7 +3799,7 @@ function renderPipeline(){
       const irrCell=d.target_irr!=null?`${(+d.target_irr).toFixed(1)}%`:'—';
       return`<div class="dp-row" style="animation-delay:${i*50}ms" onclick="openDealDetail('${d.id}')">
         <div>
-          <div class="dp-name">${d.name}${d.stage==='dd'?'<span style="margin-left:6px;font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:2px 6px;border-radius:2px;color:var(--blue);border:1px solid var(--blue-bd);background:var(--blue-bg);vertical-align:middle">◆ DD</span>':''}</div>
+          <div class="dp-name">${_saEsc(d.name)}${d.stage==='dd'?'<span style="margin-left:6px;font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:2px 6px;border-radius:2px;color:var(--blue);border:1px solid var(--blue-bd);background:var(--blue-bg);vertical-align:middle">◆ DD</span>':''}</div>
           <div class="dp-sub">${d.geography||'—'} · ${irrCell} IRR</div>
         </div>
         <div class="dp-advisor">${d.advisor}</div>
@@ -3902,14 +3903,14 @@ function renderUnassignedDealsList(){
     return;
   }
   const advOpts=_UNASSIGNED_DATA.advisors.map(a=>{
-    const id=esc(a.id||a.advisor_id||'');
-    const label=esc((a.name||a.full_name||a.email||id)+(a.firm?' · '+a.firm:''));
+    const id=_saEsc(a.id||a.advisor_id||'');
+    const label=_saEsc((a.name||a.full_name||a.email||id)+(a.firm?' · '+a.firm:''));
     return '<option value="'+id+'">'+label+'</option>';
   }).join('');
   root.innerHTML=_UNASSIGNED_DATA.deals.map(d=>{
-    const id=esc(d.id||d.dealId||'');
-    const name=esc(d.name||'Unnamed deal');
-    const stage=esc(_udmStageLabel(d.stage));
+    const id=_saEsc(d.id||d.dealId||'');
+    const name=_saEsc(d.name||'Unnamed deal');
+    const stage=_saEsc(_udmStageLabel(d.stage));
     const created=_udmRel(d.created_at||d.submitted_at);
     return '<div class="udm-row" data-deal="'+id+'" style="padding:12px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r);display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
       '<div style="flex:1;min-width:180px">'+
@@ -4501,7 +4502,7 @@ function buildDealDetailHTML(deal){
       <!-- Description -->
       <div class="ddp-section">
         <div class="ddp-section-title">Investment Overview</div>
-        <div class="ddp-desc">${deal.description||deal.thesis||'No description provided.'}</div>
+        <div class="ddp-desc">${_saEsc(deal.description||deal.thesis||'No description provided.')}</div>
       </div>
 
       </div><!-- /ddp-pane-summary -->
@@ -5160,7 +5161,7 @@ function openIoiDetail(dealId,ioiId){
       <div class="idp-tl-title">IOI Status Timeline</div>
       <div class="idp-tl">${tlHtml}</div>
     </div>
-    ${ioi.note?`<div style="margin-bottom:8px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">Investor Note</div><div class="idp-notes">${ioi.note}</div>`:''}
+    ${ioi.note?`<div style="margin-bottom:8px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">Investor Note</div><div class="idp-notes">${_saEsc(ioi.note)}</div>`:''}
     <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">Deal Context</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">
       <div style="padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)"><div style="font-size:10px;color:var(--text-3);font-family:var(--sans);margin-bottom:4px">Total Indicated</div><div style="font-family:var(--mono);font-size:15px;font-weight:500;color:var(--gold)">${fmU(d.ioi_agg)}</div></div>

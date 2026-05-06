@@ -1177,7 +1177,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <script>
 /* ─── API + AUTH ─── */
 function esc(str){const d=document.createElement('div');d.textContent=str==null?'':String(str);return d.innerHTML;}
-async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
+async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403){window.location.href='/login';return{ok:false,_unauth:true};}if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
 function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--bg-2,#fff);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again to continue.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
 function adaptDeal(d){return{...d,target_alloc:d.target_alloc_usd||d.target_alloc||0,ioi_agg:d.ioi_agg_usd||d.ioi_agg||0,term:d.term_months||d.term||24,closing:d.closing_date||d.closing||'',min_ticket:d.min_ticket_usd||d.min_ticket||50000,thesis:d.thesis||d.ai_draft?.thesis||'',tagline:d.tagline||d.ai_draft?.tagline||'',highlights:(d.highlights&&d.highlights.length?d.highlights:d.ai_draft?.highlights||[]),documents:d.documents||{},dataroom:(d.docs||[]).filter(f=>f.access==='dd'),activity:(d.qa||[]).map(m=>({type:'msg',text:m.text||'',time:new Date(m.at).toLocaleDateString('en-US',{month:'short',day:'numeric'})})),pushed_ioi:d.pushed_ioi||null,closing_docs:d.closing_docs||{},investors_by_type:[],notifications:d.notifications||[]};}
@@ -1648,6 +1648,7 @@ function renderOverview(){
   /* next step guide */
   const _stageGuides={
     review:{icon:'⏳',col:'var(--amber)',bg:'var(--amber-bg)',bd:'var(--amber-bd)',title:'Pending Your Confirmation',body:'Your deal has been published by the Aurum team. Log in and confirm to make it live and visible to investors on the investor portal.'},
+    ioi:{icon:'↑',col:'var(--gold)',bg:'var(--gold-bg)',bd:'var(--gold-bd)',title:'IOI Stage — Collecting Expressions of Interest',body:'Your deal is live and investors are submitting IOIs. The Aurum team will review and forward approved IOIs to you for a decision before opening due diligence.'},
     live_ioi:{icon:'⚡',col:'var(--gold)',bg:'var(--gold-bg)',bd:'var(--gold-bd)',title:'IOI Awaiting Your Decision',body:'Admin has forwarded an investor IOI for your review. Accept to open Due Diligence for this investor — or decline. This is your deal, your call.'},
     live:{icon:'●',col:'var(--green)',bg:'var(--green-bg)',bd:'var(--green-bd)',title:'Deal Live — Collecting Interest',body:'Investors can view your deck and submit expressions of interest. Admin screens all IOIs before forwarding approved ones to you for a decision.'},
     dd:{icon:'◆',col:'var(--blue)',bg:'var(--blue-bg)',bd:'var(--blue-bd)',title:'Due Diligence Active',body:'Approved investors have access to your data room. Upload closing documents in the Materials tab when ready. Answer investor questions in the Dataroom tab.'},
@@ -2535,12 +2536,12 @@ function renderDataroom(){
     filesHtml=`<div style="padding:32px 20px;text-align:center;color:var(--text-3);font-size:13px;line-height:1.7">No files uploaded yet. Upload a ZIP or individual files<br>to populate the data room.</div>`;
   }else{
     Object.entries(filesByFolder).forEach(([folder,files])=>{
-      filesHtml+=`<div class="vdr-folder-label">${folder}</div>`;
+      filesHtml+=`<div class="vdr-folder-label">${esc(folder)}</div>`;
       files.forEach(f=>{
         const sizeStr=f.size?(f.size>1048576?(f.size/1048576).toFixed(1)+' MB':(f.size/1024).toFixed(0)+' KB'):f.sizeStr||'—';
         filesHtml+=`<div class="vdr-file-row">
           <span style="font-size:14px">📄</span>
-          <span class="vdr-file-name">${f.name}</span>
+          <span class="vdr-file-name">${esc(f.name)}</span>
           <span class="vdr-file-size">${sizeStr}</span>
           <span class="vdr-file-date">${f.uploadedAt||'Today'}</span>
           <button class="vdr-view-btn" onclick="viewVdrFile('${f.id}')">View</button>

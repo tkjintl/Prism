@@ -392,7 +392,7 @@ async function _handler(req, res, resource, op) {
         }
         // Get advisor object for email
         const advObj = adv ? await kvGet(`advisor:${adv.advisor_id}`) : null;
-        if (advObj) await sendDealReceived(deal, advObj);
+        if (advObj) await sendDealReceived(deal, advObj).catch(e => console.error('[email] sendDealReceived:', e?.message));
         // Async AI scoring — fire-and-forget, never blocks submission response
         scoreDeal(deal).then(async (score) => {
           try {
@@ -482,7 +482,7 @@ async function _handler(req, res, resource, op) {
       };
       await kvSet(`advisor:${id}`, adv);
       await kvSet(`advisor_email:${email}`, id);
-      if (!usingAdminPw) await sendAdvisorWelcome(adv, pwToHash);
+      if (!usingAdminPw) await sendAdvisorWelcome(adv, pwToHash).catch(e => console.error('[email] sendAdvisorWelcome:', e?.message));
       return ok(res, { advisor: sanitizeAdvisor(adv) });
     }
 
@@ -4149,9 +4149,13 @@ Return ONLY valid JSON in this exact structure:
         await kvDel('cache:marketplace:public');
         await kvDel('cache:marketplace:admin');
       } catch {}
-      // Send IOI confirmation email to investor
+      // Send IOI confirmation to investor + alert to advisor
       const ioiInst = auth.inst_id ? await kvGet(`inst:${auth.inst_id}`) : null;
       if (ioiInst) await sendIoiConfirmation(ioiInst, deal).catch(console.error);
+      if (deal.advisor_id) {
+        const ioiAdv = await kvGet(`advisor:${deal.advisor_id}`);
+        if (ioiAdv) await sendIoiSubmittedToAdvisor(ioiAdv, deal, { amount_usd: amt }).catch(e => console.error('[email] sendIoiSubmittedToAdvisor:', e?.message));
+      }
       return ok(res, { ioi });
     }
 

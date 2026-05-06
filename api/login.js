@@ -1,6 +1,8 @@
-import { signToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
+import { signToken, verifyToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
 import { ok, bad, unauth, getCookie, setCookieHeader } from './_lib/http.js';
+import { kvGet } from './_lib/storage.js';
 import bcrypt from 'bcryptjs';
+import { timingSafeEqual } from 'crypto';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return bad(res, 'POST only', 405);
@@ -20,7 +22,10 @@ export default async function handler(req, res) {
       })
     );
     const emailLower = email.toLowerCase().trim();
-    let isAdmin = adminMap[emailLower] && adminMap[emailLower] === password;
+    const storedPw = adminMap[emailLower] || '';
+    const buf1 = Buffer.alloc(72); Buffer.from(storedPw).copy(buf1);
+    const buf2 = Buffer.alloc(72); Buffer.from(password || '').copy(buf2);
+    let isAdmin = storedPw.length > 0 && password.length === storedPw.length && timingSafeEqual(buf1, buf2);
 
     // Fallback: allow KV advisors flagged is_admin:true (e.g. tkj@theaurumcc.com)
     if (!isAdmin) {
@@ -74,12 +79,16 @@ export default async function handler(req, res) {
 
   // ── Refresh / check ──────────────────────────────────────────
   if (op === 'check') {
-    const { verifyToken } = await import('./_lib/auth.js');
     const adminT = getCookie(req, 'prism_admin');
     const advisorT = getCookie(req, 'prism_advisor');
     const instT = getCookie(req, 'prism_inst');
     const payload = await verifyToken(adminT) || await verifyToken(advisorT) || await verifyToken(instT);
     if (!payload) return unauth(res);
+    // Check revocation denylist — same check performed in v2.js getAdmin/getAdvisor/getInst
+    if (payload.jti) {
+      const revoked = await kvGet('revoked:' + payload.jti);
+      if (revoked) return unauth(res);
+    }
     return ok(res, { role: payload.role });
   }
 

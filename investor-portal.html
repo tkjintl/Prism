@@ -1944,7 +1944,7 @@ a{color:inherit;text-decoration:none}
 (function(){const t=localStorage.getItem('prism_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☾':'☀';})();
 /* ── API + AUTH ── */
 function esc(str){const d=document.createElement('div');d.textContent=str==null?'':String(str);return d.innerHTML;}
-async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403)return{ok:false,_unauth:true};if(!r.ok)return null;return r.json();}catch{return null;}}
+async function fetchSilent(url){try{const r=await fetch(url,{credentials:'include'});if(r.status===401||r.status===403){window.location.href='/login';return{ok:false,_unauth:true};}if(!r.ok)return null;return r.json();}catch{return null;}}
 async function api(method,url,body){const opts={method,credentials:'include',headers:{}};if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}try{const r=await fetch(url,opts);if(r.status===401){showSessionExpired();return null;}return r.json();}catch{toast('Connection error','err');return null;}}
 function showSessionExpired(){let el=document.getElementById('session-expired');if(!el){el=document.createElement('div');el.id='session-expired';el.style.cssText='display:flex;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center';el.innerHTML='<div style="background:var(--surface,#131210);border:1px solid var(--gold-bd);padding:28px 32px;text-align:center;max-width:320px;border-radius:var(--r)"><div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px;letter-spacing:.12em">SESSION EXPIRED</div><div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.6">Your session has expired. Please log in again.</div><button onclick="window.location.href=\'/login\'" style="font-size:13px;padding:10px 22px;background:var(--gold);border:none;cursor:pointer;color:#0A0908;font-weight:600;border-radius:var(--r)">Log In Again →</button></div>';document.body.appendChild(el);}el.style.display='flex';}
 const LOGO_COLORS={infra:{c:'#7B8FA1',bg:'rgba(123,143,161,0.12)',bd:'rgba(123,143,161,0.3)'},credit:{c:'#5b85b8',bg:'rgba(91,133,184,0.12)',bd:'rgba(91,133,184,0.3)'},pe:{c:'#C5A572',bg:'rgba(197,165,114,0.12)',bd:'rgba(197,165,114,0.3)'},re:{c:'#5a9e72',bg:'rgba(90,158,114,0.12)',bd:'rgba(90,158,114,0.3)'}};
@@ -2057,7 +2057,7 @@ const CLASS_TAG   = {credit:'dct-credit',pe:'dct-pe',re:'dct-re',infra:'dct-infr
 const CLASS_LABEL = {credit:'Private Credit',pe:'Equity',re:'Real Estate',infra:'Infrastructure'};
 const CLASS_COLOR = {credit:'var(--blue)',pe:'var(--gold)',re:'var(--green)',infra:'var(--slate)'};
 const STAGE_ORDER  = ['review','live','ioi','dd','terms','close','realized'];
-const STAGE_LABELS = {review:'Review',live:'Live',ioi:'IOI',dd:'Due Diligence',terms:'Terms',close:'Close',realized:'Realized'};
+const STAGE_LABELS = {review:'Pending Confirmation',live:'Live',ioi:'IOI',dd:'Due Diligence',terms:'Terms',close:'Close',realized:'Realized'};
 const PIPELINE_STEPS = ['Submitted','Admin Review','Advisor Review','Confirmed','Closing / Wiring'];
 
 let activeDeal = null;
@@ -2811,11 +2811,11 @@ function renderInvestorDataroom() {
     filesHtml = `<div class="inv-dr-empty">No files have been added to the data room yet.</div>`;
   } else {
     Object.entries(filesByFolder).forEach(([folder, fls]) => {
-      filesHtml += `<div class="inv-dr-folder-label">${folder}</div>`;
+      filesHtml += `<div class="inv-dr-folder-label">${esc(folder)}</div>`;
       fls.forEach(f => {
         filesHtml += `<div class="inv-dr-file-row">
           <span style="font-size:14px">📄</span>
-          <span class="inv-dr-file-name">${f.name}</span>
+          <span class="inv-dr-file-name">${esc(f.name)}</span>
           <span class="inv-dr-file-size">${f.sizeStr||'—'}</span>
           <span class="inv-dr-file-date">${f.uploadedAt||''}</span>
           <button class="inv-dr-view-btn" onclick="viewVdrFileInvestor('${d.id}','${f.id}','${f.name}')">View</button>
@@ -3383,7 +3383,7 @@ function toggleNotifPanel() {
       body.innerHTML = _invNotifs.map(function(n) {
         return '<div class="notif-item">' +
           '<div class="notif-item-dot ' + (n.color || 'green') + '"></div>' +
-          '<div class="notif-item-body"><strong>' + n.title + '</strong><br>' + n.body + '</div>' +
+          '<div class="notif-item-body"><strong>' + esc(n.title) + '</strong><br>' + esc(n.body) + '</div>' +
           '</div>';
       }).join('');
     }
