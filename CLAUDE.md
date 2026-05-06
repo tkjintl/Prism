@@ -4,9 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## MANDATORY: No hyperlinks in responses
+## MANDATORY: Always provide clickable hyperlinks
 
-Never output a clickable hyperlink to a file path or URL in any response. Reference files by name only. Reference URLs by domain only. No markdown link syntax. No bare URLs. No exceptions.
+Every time you reference a file path or URL, format it as a clickable markdown hyperlink. No exceptions.
+
+- Local file: `[filename.html](file:///C:/Users/thoma/prism/filename.html)`
+- Web URL: `[label](https://example.com)`
+- Never output a bare path — always wrap it as a link.
+
+This applies to everything: files created, files edited, deployment URLs, any link whatsoever.
 
 ---
 
@@ -33,6 +39,17 @@ Investor comms, copy, decks → @write
 - A review agent runs after every sprint as a hard gate. Nothing moves to the next sprint until review passes.
 - Flag decisions that need operator input. Everything else: make the call.
 - **After every change to any HTML, API, or config file, append an entry to `CHANGELOG.md`** — date, what changed, why. One section per session/feature, reverse-chronological order.
+
+## Self-Check Protocol (always on)
+
+Every unit of work — whether done directly or by a subagent — follows this four-step loop. No exceptions.
+
+1. **Read before touching.** Before editing any file, read the exact section being changed. State what is currently there. State what it will become. One section at a time — not a file, not a feature.
+2. **Make one change.** One function, one endpoint, one HTML section per action. Commit or checkpoint after each unit, not after a batch.
+3. **Read it back.** After the edit, read the changed lines back using the Read tool. Confirm the result matches the spec exactly. If it does not, fix it before proceeding.
+4. **State the checkpoint.** Write one sentence confirming what was just verified and what the next step is. Do not proceed until that sentence is written and accurate.
+
+This applies to direct edits and to agent output. An agent returning a summary is not a checkpoint. Reading the diff and confirming it against spec is the checkpoint.
 
 ---
 
