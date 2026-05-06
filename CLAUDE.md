@@ -4,6 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## MANDATORY: No hyperlinks in responses
+
+Never output a clickable hyperlink to a file path or URL in any response. Reference files by name only. Reference URLs by domain only. No markdown link syntax. No bare URLs. No exceptions.
+
+---
+
 # Aurum — Command Center
 
 Two platforms in parallel:
@@ -21,9 +27,10 @@ Strategy, research, decisions → @strategy
 Investor comms, copy, decks → @write
 
 ## Rules
-- Parallel is the DEFAULT for feature work. Don't ask, just spawn both.
-- Each agent is self-sufficient. No handoffs. No waiting for specs.
-- Report back in plain English: what was built, what to verify.
+- Parallel build+ui is only allowed when both agents have locked, non-overlapping file lists and matching data contracts written before either spawns. If there is any file overlap, run sequentially.
+- No agent spawns without a line-level spec written first. "Build a management screen" is not a spec. The spec names the exact file, exact function, exact request/response shape, exact KV keys, exact HTML section.
+- After every agent returns, read the actual changed files before accepting the output. Agent summaries are not the output. The diff is.
+- A review agent runs after every sprint as a hard gate. Nothing moves to the next sprint until review passes.
 - Flag decisions that need operator input. Everything else: make the call.
 - **After every change to any HTML, API, or config file, append an entry to `CHANGELOG.md`** — date, what changed, why. One section per session/feature, reverse-chronological order.
 
@@ -573,3 +580,65 @@ Before any processing:
 - Silently dropping pages, fields, or content that didn't extract cleanly. Always surface what was lost.
 - Assuming a "PDF" is a single uniform thing — different tools for text, scans, forms, tables.
 - Running OCR with default settings on multilingual or unusual-encoding documents without confirming language settings.
+
+---
+
+## Agent Discipline Protocol (always on, no exceptions)
+
+This governs every agent spawn in every session. It overrides the default "parallel is the default" instinct.
+
+### Before spawning any agent
+
+1. Run an Explore agent or read the relevant files directly. Know exactly what exists before writing a spec. Never write a spec from memory.
+2. Write a line-level spec covering: exact files the agent may touch, exact files it may not touch, exact function names, exact request/response shapes, exact KV keys, exact HTML section. "Build a management screen" is not a spec.
+3. Confirm no other agent is currently touching any file in the spec. If overlap exists, wait.
+
+### The universal agent prompt header
+
+Every agent prompt must open with this block, filled in before spawning:
+
+```
+=== OPERATOR CONTEXT ===
+You are a subagent. You have one job defined below. You do not make architectural decisions. You do not refactor, clean up, or improve anything outside your defined scope. You do not add features that were not specified. If you encounter something that looks wrong outside your scope, note it in your report and leave it untouched.
+
+FILES YOU MAY TOUCH:
+[list each file explicitly — no wildcards]
+
+FILES YOU MAY NOT TOUCH:
+[list all other files in the same directory]
+
+YOUR EXACT TASK:
+[line-level spec: function name, request shape, response shape, KV keys, HTML section]
+
+WHAT YOU MUST REPORT BACK:
+- Every file you changed
+- Every function you added or modified, with line numbers
+- The exact request and response shape for any new endpoint
+- Any assumption you were forced to make that was not in the spec
+- Anything you noticed but did not act on
+
+DO NOT summarize what you intended to do. Report what you actually did.
+=== END CONTEXT ===
+```
+
+### After every agent returns
+
+1. Read the actual changed files using the Read tool. Do not accept the agent's summary as the output. The diff is the output.
+2. Check every changed function against the spec. If the agent deviated, correct it before spawning the next agent.
+3. Spawn a review agent with the original spec and the actual changed files. The review agent checks output against spec, not against its own judgment.
+4. Nothing moves to the next sprint until the review agent confirms the spec was met and no existing behaviour was broken.
+
+### Parallelism rules
+
+- Two agents may run in parallel only if their file lists are completely non-overlapping AND their data contracts were written and agreed before either spawned.
+- Never run two agents that both touch v2.js simultaneously.
+- Never run two agents that both touch the same portal HTML file simultaneously.
+- When in doubt, run sequentially.
+
+### Failure modes that are never acceptable
+
+- Spawning an agent and waiting passively for its summary without reading the diff.
+- Accepting "it's done" from an agent without a review agent gate.
+- Starting a sprint whose prerequisite sprint has not been confirmed working.
+- Giving an agent architectural discretion — data shapes, file structure, and key names are always defined in the spec.
+- Spawning a build and ui agent in parallel when their data contract was not written before either started.
