@@ -6,181 +6,129 @@
 <title>Fund 1 – Deal Structure</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   body {
-    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-    background: #d6d6d6;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #c8c8c8;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
     padding: 40px 20px;
   }
-
   .slide {
     width: 1240px;
     background: #fff;
-    box-shadow: 0 12px 60px rgba(0,0,0,0.28);
-    border-radius: 4px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.30);
     overflow: hidden;
   }
 
-  /* ── HEADER ── */
+  /* HEADER */
   .slide-header {
-    background: #111;
-    padding: 22px 40px;
+    background: #1a1a1a;
+    padding: 20px 36px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
   .header-title {
     color: #fff;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 300;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px;
   }
   .header-title strong { font-weight: 700; }
-  .header-title .sep {
-    color: #555;
-    margin: 0 10px;
-  }
+  .header-title .dash { color: #666; margin: 0 12px; }
   .confidential {
     color: #e03030;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 3px;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
   }
 
-  /* ── SUBHEADING ── */
+  /* SUBHEADING */
   .slide-subhead {
-    margin: 22px 40px 0;
-    padding: 14px 18px;
-    border-left: 5px solid #111;
-    background: #f7f7f7;
-    border-radius: 0 4px 4px 0;
+    padding: 22px 36px 18px;
   }
-  .slide-subhead h2 {
-    font-size: 16px;
-    font-weight: 600;
+  .subhead-inner {
+    border-left: 5px solid #222;
+    padding-left: 16px;
+  }
+  .subhead-inner h2 {
+    font-size: 17px;
+    font-weight: 700;
     color: #111;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    line-height: 1.3;
   }
-  .slide-subhead p {
-    font-size: 12.5px;
+  .subhead-inner p {
+    font-size: 12px;
     color: #555;
+    line-height: 1.5;
   }
 
-  /* ── BODY ── */
-  .slide-body {
-    display: flex;
-    gap: 18px;
-    padding: 18px 40px 24px;
-    align-items: flex-start;
-  }
-
-  /* ── CHART AREA ── */
-  .chart-wrap {
-    flex: 1;
-  }
-
-  /* Blue title bar — matches original "투자구조도" bar */
+  /* BLUE BAR */
   .chart-title-bar {
     background: #4a7ab5;
     color: #fff;
     text-align: center;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
-    padding: 7px 0;
-    margin-bottom: 0;
+    padding: 8px 0;
+    margin: 0 36px;
   }
 
+  /* SECTION LABELS */
   .section-labels {
     display: flex;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
     text-transform: uppercase;
-    color: #666;
-    padding: 6px 0 5px;
-    border-bottom: 1px dashed #bbb;
-    margin-bottom: 6px;
-  }
-  .section-labels .dom  { flex: 0 0 48%; padding-left: 4px; }
-  .section-labels .ovs  { flex: 0 0 52%; text-align: right; padding-right: 4px; }
-
-  /* ── NOTES PANEL ── */
-  .notes-panel {
-    width: 220px;
-    flex-shrink: 0;
-    background: #f5f5f5;
-    border: 1.5px dashed #aaa;
-    border-radius: 6px;
-    padding: 16px 16px 18px;
-  }
-  .notes-panel h3 {
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 1.8px;
-    text-transform: uppercase;
-    color: #444;
-    margin-bottom: 14px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #ccc;
-  }
-  .note-item { margin-bottom: 16px; }
-  .note-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: #c96000;
-  }
-  .note-item p {
-    font-size: 11.5px;
-    color: #333;
-    line-height: 1.55;
-    margin-top: 3px;
-  }
-  .note-sub {
-    margin-top: 5px;
-    padding-left: 10px;
-    font-size: 11px;
     color: #555;
-    line-height: 1.55;
-    border-left: 2px solid #ddd;
+    padding: 7px 36px 5px;
+    border-bottom: 1.5px dashed #aaa;
+    margin-bottom: 0;
+  }
+  .section-labels .dom { width: 52%; }
+  .section-labels .ovs { width: 48%; text-align: right; }
+
+  /* BODY */
+  .slide-body {
+    padding: 0 36px 16px;
   }
 
-  /* ── LEGEND ── */
+  .chart-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  /* LEGEND */
   .legend-bar {
     display: flex;
     align-items: center;
-    gap: 28px;
-    padding: 12px 40px 14px;
-    border-top: 1px solid #e8e8e8;
-    background: #fafafa;
-  }
-  .legend-bar .leg-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #555;
-    margin-right: 4px;
+    gap: 24px;
+    padding: 10px 36px 12px;
+    border-top: 1px solid #e0e0e0;
+    background: #f8f8f8;
   }
   .leg-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11.5px;
+    font-size: 11px;
     color: #333;
   }
 
-  /* ── FOOTER ── */
+  /* FOOTER */
   .slide-footer {
-    background: #f2f2f2;
-    border-top: 1px solid #ddd;
-    padding: 11px 40px;
+    background: #f0f0f0;
+    border-top: 1px solid #d8d8d8;
+    padding: 10px 36px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -188,403 +136,436 @@
   .footer-left {
     display: flex;
     align-items: center;
-    gap: 14px;
-    font-size: 13px;
+    gap: 12px;
   }
   .logo-invites {
+    font-size: 13px;
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
     color: #111;
-    font-size: 12px;
   }
   .logo-invites strong { font-weight: 800; }
   .logo-spinner {
     font-size: 12px;
     color: #555;
     font-style: italic;
-    letter-spacing: 0.5px;
   }
   .footer-right {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
   }
   .footer-spacex {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 900;
     letter-spacing: 3px;
     font-family: 'Arial Black', Arial, sans-serif;
     color: #0a0a0a;
   }
-  .footer-spacex span { color: #777; }
   .page-num {
     font-size: 12px;
-    color: #888;
+    color: #777;
+    font-weight: 500;
   }
 </style>
 </head>
 <body>
-
 <div class="slide">
 
   <!-- HEADER -->
   <div class="slide-header">
     <div class="header-title">
-      <strong>1</strong> Fund Overview<span class="sep">—</span><strong>Deal Structure</strong>
+      <strong>1</strong> Fund Overview<span class="dash">—</span><strong>Deal Structure</strong>
     </div>
     <div class="confidential">Confidential</div>
   </div>
 
   <!-- SUBHEADING -->
   <div class="slide-subhead">
-    <h2>Target: Mid-May capital call — partial SWAP of existing LP interests via overseas SPV</h2>
-    <p>The SPV holds a direct 1-Layer investment structure as UBO (Ultimate Beneficial Owner) of the target company</p>
+    <div class="subhead-inner">
+      <h2>Target: Mid-May capital call — partial SWAP of existing LP interests via overseas SPV</h2>
+      <p>- The SPV holds a direct 1-Layer investment structure as UBO (Ultimate Beneficial Owner) of the target company</p>
+    </div>
   </div>
 
-  <!-- BODY -->
+  <!-- BLUE TITLE BAR -->
+  <div class="chart-title-bar">Investment Structure</div>
+
+  <!-- SECTION LABELS -->
+  <div class="section-labels">
+    <span class="dom">&#9664; Domestic (Korea)</span>
+    <span class="ovs">Overseas &#9654;</span>
+  </div>
+
+  <!-- SVG CHART BODY -->
   <div class="slide-body">
+    <!--
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║  viewBox 0 0 1160 490                                           ║
+    ║                                                                  ║
+    ║  ZONES (x):                                                      ║
+    ║   Domestic panel : 0..480                                        ║
+    ║   Overseas panel : 480..800                                      ║
+    ║   SpaceX zone    : 800..990                                      ║
+    ║   Notes panel    : 1000..1155                                    ║
+    ║                                                                  ║
+    ║  COLUMN CENTERS:                                                 ║
+    ║   GP_dom / Fund / LP_dom : cx = 160                              ║
+    ║   OvsGP  / SPV  / LP_us  : cx = 635                             ║
+    ║                                                                  ║
+    ║  ROW Y-CENTERS:                                                  ║
+    ║   1-Layer arrow  : y = 24                                        ║
+    ║   GP row         : cy=78  top=36  h=84  bot=120                  ║
+    ║   manages gap    : 120..162                                       ║
+    ║   Fund row       : cy=232 top=162 h=140 bot=302   (Fund tallest) ║
+    ║   SPV row        : cy=242 top=192 h=110 bot=302                  ║
+    ║   gap            : 302..368                                       ║
+    ║   LP row         : cy=408 top=368 h=80  bot=448                  ║
+    ║                                                                  ║
+    ║  ARROWS:                                                         ║
+    ║   GP→Fund:       x=160 down 120→160                              ║
+    ║   OvsGP→SPV:     x=635 down 120→190                              ║
+    ║   Left track up  (LP→Fund):  x=112 up   368→304                  ║
+    ║   Right track dn (Fund→LP):  x=206 down 304→366   orange         ║
+    ║   LP_us→SPV up:  x=635 up   368→304                              ║
+    ║   Orange horiz:  y=232  x=555→307   (SPV left→Fund right)        ║
+    ║   SpaceX→SPV:    y=242  x=857→723   (SpaceX→SPV right)           ║
+    ║   Diag "/":      (257,448)→(595,370)  Capital Call                ║
+    ║   Diag "\": dashed (596,448)→(308,302)  SWAP                     ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    -->
+    <svg viewBox="0 0 1160 470" xmlns="http://www.w3.org/2000/svg" class="chart-svg">
+      <defs>
+        <!-- Black forward -->
+        <marker id="aB" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#111"/>
+        </marker>
+        <!-- Black reverse (for start) -->
+        <marker id="aBr" markerWidth="9" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#111"/>
+        </marker>
+        <!-- Orange forward -->
+        <marker id="aO" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#c96000"/>
+        </marker>
+        <!-- Green forward -->
+        <marker id="aG" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#1e7a34"/>
+        </marker>
+        <!-- Green reverse -->
+        <marker id="aGr" markerWidth="9" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+          <polygon points="0 0, 9 3.5, 0 7" fill="#1e7a34"/>
+        </marker>
+        <!-- Drop shadow -->
+        <filter id="sh" x="-20%" y="-20%" width="140%" height="160%">
+          <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#00000020"/>
+        </filter>
+      </defs>
 
-    <!-- CHART -->
-    <div class="chart-wrap">
-      <!-- Blue title bar matching original -->
-      <div class="chart-title-bar">Investment Structure</div>
+      <!-- ─── BACKGROUND PANELS ─── -->
+      <rect x="2"   y="2" width="477" height="460" fill="#f7f7f7" stroke="#e0e0e0" stroke-width="1"/>
+      <rect x="480" y="2" width="320" height="460" fill="#edf2f8" stroke="#c5d5e8" stroke-width="1"/>
+      <line x1="480" y1="2" x2="480" y2="462" stroke="#aabbcc" stroke-width="1.5" stroke-dasharray="8,5"/>
 
-      <div class="section-labels">
-        <span class="dom">◀ Domestic (Korea)</span>
-        <span class="ovs">Overseas ▶</span>
-      </div>
-
-      <!--
-        SVG coordinate system:
-        viewBox="0 0 960 530"
-        Domestic panel: x=0..455
-        Overseas panel: x=455..960
-
-        Row layout (generous vertical spacing):
-          Row A (GP/OverseasGP): y center ~95  (box top ~58, height 80)
-          Row B (Fund/SPV):      y center ~255  (box top ~195, height 120 / 100)
-          Row C (LP):            y center ~440  (box top ~396, height 88)
-
-        Horizontal centers:
-          GP_dom:     x=145
-          GP_ovs:     x=670
-          Fund:       x=160
-          SPV:        x=670
-          LP_dom:     x=145
-          LP_us:      x=670
-          SpaceX:     x=848
+      <!-- ─── 1-LAYER STRUCTURE: double-headed green arrow ─────────
+           GP_dom cx=160 → OvsGP cx=635, at y=24
+           midpoint x=397
       -->
-      <!--
-        REVISED COORDINATE SYSTEM — viewBox="0 0 960 535"
-        Domestic panel  : x=1..454
-        Overseas panel  : x=455..958
-        Divider         : x=455
+      <line x1="160" y1="24" x2="635" y2="24"
+            stroke="#1e7a34" stroke-width="2.5"
+            marker-start="url(#aGr)" marker-end="url(#aG)"/>
+      <rect x="334" y="12" width="126" height="22" rx="11" fill="#1e7a34"/>
+      <text x="397" y="27" text-anchor="middle" font-size="11" font-weight="700"
+            fill="white" font-family="Segoe UI, Arial, sans-serif">1-Layer Structure</text>
 
-        Overseas left column (OvsGP / SPV / LP_us): centred at x=618
-          OvsGP : x=538..698  (w=160, cx=618)
-          SPV   : x=538..698  (w=160, cx=618)
-          LP_us : x=528..708  (w=180, cx=618)
-
-        SpaceX: x=740..952 (w=212, cx=846) — sits to right of SPV
-        "Direct to Cap-table" annotation text: x≈720 (between SPV right=698 and SpaceX left=740)
-
-        1-Layer arrow: GP_dom cx=145 → OvsGP cx=618, at y=46
-
-        Y-axis layout:
-          1-Layer arrow    y=46
-          GP/OvsGP row     top=58, h=80, bottom=138, cx_y=98
-          Manages gap      138→205
-          Fund/SPV row     top=205, h=130, bottom=335, cx_y=270
-          LP gap           335→400
-          LP row           top=400, h=88, bottom=488, cx_y=444
-
-        LP ↔ Fund vertical arrows:
-          Left track  (LP Contribution):  x=108  (outside Fund left x=22..268)
-          Right track (Distribution):     x=176  (inside Fund box)
-
-        Orange arrow (SPV→Fund): y=248
-        SpaceX → SPV arrow: SPV right=698, SpaceX left=740, at y=248
-        LP→Fund gap crossings: "/" from (245,488)→(526,402); "\" from (528,488)→(271,337)
+      <!-- ─── ROW A: GP boxes ─────────────────────────────────────
+           GP_dom: cx=160, x=55..275 (w=220), top=36, h=84, bot=120
+           OvsGP:  cx=635, x=550..720 (w=170), top=36, h=84, bot=120
       -->
-      <svg viewBox="0 0 960 535" xmlns="http://www.w3.org/2000/svg"
-           style="width:100%; height:auto; display:block; overflow:visible;">
-        <defs>
-          <marker id="arr-blk" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-            <polygon points="0 0, 8 3, 0 6" fill="#111"/>
-          </marker>
-          <marker id="arr-blk-s" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto-start-reverse">
-            <polygon points="0 0, 8 3, 0 6" fill="#111"/>
-          </marker>
-          <marker id="arr-org" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-            <polygon points="0 0, 8 3, 0 6" fill="#c96000"/>
-          </marker>
-          <marker id="arr-grn" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-            <polygon points="0 0, 8 3, 0 6" fill="#1e7a34"/>
-          </marker>
-          <marker id="arr-grn-s" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto-start-reverse">
-            <polygon points="0 0, 8 3, 0 6" fill="#1e7a34"/>
-          </marker>
-          <filter id="shadow" x="-15%" y="-15%" width="130%" height="145%">
-            <feDropShadow dx="1" dy="2" stdDeviation="2.5" flood-color="#00000022"/>
-          </filter>
-        </defs>
+      <!-- GP Domestic -->
+      <rect x="55" y="36" width="210" height="84" rx="3" fill="white"
+            stroke="#222" stroke-width="2" filter="url(#sh)"/>
+      <text x="160" y="62" text-anchor="middle" font-size="14" font-weight="700"
+            fill="#111" font-family="Segoe UI, Arial, sans-serif">GP</text>
+      <text x="160" y="80" text-anchor="middle" font-size="10" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">Invites Ventures /</text>
+      <text x="160" y="94" text-anchor="middle" font-size="10" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">Spinnaker Asset Mgmt</text>
+      <text x="160" y="109" text-anchor="middle" font-size="9" fill="#888"
+            font-family="Segoe UI, Arial, sans-serif">Seoul, Korea</text>
 
-        <!-- ── BACKGROUND PANELS ── -->
-        <rect x="1"   y="1"   width="453" height="533" rx="3" fill="#f8f8f8" stroke="#ddd" stroke-width="1"/>
-        <rect x="455" y="1"   width="503" height="533" rx="3" fill="#eef3f8" stroke="#c8d8e8" stroke-width="1"/>
-        <line x1="455" y1="1" x2="455" y2="534" stroke="#b0b8c4" stroke-width="1.2" stroke-dasharray="7,4"/>
+      <!-- Overseas GP -->
+      <rect x="550" y="36" width="170" height="84" rx="3" fill="white"
+            stroke="#222" stroke-width="2" filter="url(#sh)"/>
+      <text x="635" y="70" text-anchor="middle" font-size="14" font-weight="700"
+            fill="#111" font-family="Segoe UI, Arial, sans-serif">Overseas GP</text>
+      <text x="635" y="92" text-anchor="middle" font-size="10" fill="#888"
+            font-family="Segoe UI, Arial, sans-serif">(Foreign General Partner)</text>
 
-        <!-- ── 1-LAYER STRUCTURE ARROW: GP_dom(cx=145)→OvsGP(cx=618) at y=46 ── -->
-        <line x1="145" y1="46" x2="618" y2="46"
-              stroke="#1e7a34" stroke-width="2.5"
-              marker-start="url(#arr-grn-s)" marker-end="url(#arr-grn)"/>
-        <!-- Pill centred between 145 and 618: midpoint=381.5 -->
-        <rect x="317" y="33" width="128" height="22" rx="11" fill="#1e7a34"/>
-        <text x="381" y="48" text-anchor="middle" font-size="11" font-weight="700"
-              fill="white" font-family="Segoe UI, Arial, sans-serif">1-Layer Structure</text>
+      <!-- GP → Fund: down y=120→160, "Manages" grey pill right of arrow -->
+      <line x1="160" y1="120" x2="160" y2="160"
+            stroke="#111" stroke-width="2" marker-end="url(#aB)"/>
+      <rect x="170" y="130" width="62" height="17" rx="3" fill="#e6e6e6"/>
+      <text x="201" y="143" text-anchor="middle" font-size="9.5" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">Manages</text>
 
-        <!-- ══════════════════════════════════════════════════════════
-             ROW A — GP (Domestic)  &  Overseas GP
-             top=58, h=80, bottom=138
-             GP_dom cx=145 (x=45..245, w=200)
-             OvsGP  cx=618 (x=538..698, w=160)
-             ══════════════════════════════════════════════════════════ -->
-        <!-- GP Domestic -->
-        <rect x="45" y="58" width="200" height="80" rx="3" fill="white"
-              stroke="#111" stroke-width="2" filter="url(#shadow)"/>
-        <text x="145" y="82"  text-anchor="middle" font-size="13" font-weight="700" fill="#111" font-family="Segoe UI, Arial, sans-serif">GP</text>
-        <text x="145" y="100" text-anchor="middle" font-size="10" fill="#222" font-family="Segoe UI, Arial, sans-serif">Invites Ventures /</text>
-        <text x="145" y="114" text-anchor="middle" font-size="10" fill="#222" font-family="Segoe UI, Arial, sans-serif">Spinnaker Asset Mgmt</text>
-        <text x="145" y="129" text-anchor="middle" font-size="9"  fill="#888" font-family="Segoe UI, Arial, sans-serif">Seoul, Korea</text>
+      <!-- OvsGP → SPV: down y=120→190, "Manages" blue-grey pill right of arrow -->
+      <line x1="635" y1="120" x2="635" y2="188"
+            stroke="#111" stroke-width="2" marker-end="url(#aB)"/>
+      <rect x="645" y="130" width="62" height="17" rx="3" fill="#d6e8f4"/>
+      <text x="676" y="143" text-anchor="middle" font-size="9.5" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">Manages</text>
 
-        <!-- Overseas GP -->
-        <rect x="538" y="58" width="160" height="80" rx="3" fill="white"
-              stroke="#111" stroke-width="2" filter="url(#shadow)"/>
-        <text x="618" y="84"  text-anchor="middle" font-size="13" font-weight="700" fill="#111" font-family="Segoe UI, Arial, sans-serif">Overseas GP</text>
-        <text x="618" y="107" text-anchor="middle" font-size="10" fill="#888" font-family="Segoe UI, Arial, sans-serif">(Foreign General Partner)</text>
+      <!-- ─── ROW B: Fund and SPV ─────────────────────────────────
+           Fund: cx=160, x=25..305 (w=280), top=162, h=140, bot=302
+           SPV:  cx=635, x=552..718 (w=166), top=192, h=110, bot=302
+      -->
+      <!-- Fund box -->
+      <rect x="25" y="162" width="280" height="140" rx="3" fill="white"
+            stroke="#222" stroke-width="2.5" filter="url(#sh)"/>
+      <text x="160" y="192" text-anchor="middle" font-size="15" font-weight="700"
+            fill="#111" font-family="Segoe UI, Arial, sans-serif">Fund</text>
+      <text x="160" y="212" text-anchor="middle" font-size="10.5" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">Invites-Spinnaker New Technology</text>
+      <text x="160" y="228" text-anchor="middle" font-size="10.5" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">Investment Association No. 3</text>
+      <text x="160" y="248" text-anchor="middle" font-size="10" fill="#888"
+            font-family="Segoe UI, Arial, sans-serif">(This Investment Fund)</text>
 
-        <!-- GP → Fund: arrow y=138→205, Manages pill -->
-        <line x1="145" y1="138" x2="145" y2="203"
-              stroke="#111" stroke-width="2" marker-end="url(#arr-blk)"/>
-        <rect x="155" y="158" width="62" height="16" rx="3" fill="#e8e8e8"/>
-        <text x="186" y="170" text-anchor="middle" font-size="9.5" fill="#333" font-family="Segoe UI, Arial, sans-serif">Manages</text>
+      <!-- SPV box -->
+      <rect x="552" y="192" width="166" height="110" rx="3" fill="white"
+            stroke="#222" stroke-width="2.5" filter="url(#sh)"/>
+      <text x="635" y="250" text-anchor="middle" font-size="26" font-weight="700"
+            fill="#111" font-family="Segoe UI, Arial, sans-serif">SPV</text>
+      <text x="635" y="273" text-anchor="middle" font-size="10" fill="#888"
+            font-family="Segoe UI, Arial, sans-serif">Special Purpose Vehicle</text>
 
-        <!-- OvsGP → SPV: arrow x=618, y=138→205, Manages pill -->
-        <line x1="618" y1="138" x2="618" y2="203"
-              stroke="#111" stroke-width="2" marker-end="url(#arr-blk)"/>
-        <rect x="628" y="158" width="62" height="16" rx="3" fill="#d8e8f0"/>
-        <text x="659" y="170" text-anchor="middle" font-size="9.5" fill="#333" font-family="Segoe UI, Arial, sans-serif">Manages</text>
+      <!-- ─── ROW C: LP boxes ──────────────────────────────────────
+           LP_dom: cx=160, x=55..275 (w=220), top=368, h=80, bot=448
+           LP_us:  cx=635, x=548..722 (w=174), top=368, h=80, bot=448
+      -->
+      <!-- LP Domestic -->
+      <rect x="55" y="368" width="210" height="80" rx="3" fill="white"
+            stroke="#222" stroke-width="2" filter="url(#sh)"/>
+      <text x="160" y="394" text-anchor="middle" font-size="14" font-weight="700"
+            fill="#111" font-family="Segoe UI, Arial, sans-serif">LP</text>
+      <text x="160" y="414" text-anchor="middle" font-size="11" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">Domestic Investors</text>
+      <text x="160" y="432" text-anchor="middle" font-size="9.5" fill="#888"
+            font-family="Segoe UI, Arial, sans-serif">Seoul, Korea</text>
 
-        <!-- ══════════════════════════════════════════════════════════
-             ROW B — Fund  &  SPV
-             top=205, h=130, bottom=335
-             Fund cx=145 (x=22..268, w=246)
-             SPV  cx=618 (x=538..698, w=160)
-             ══════════════════════════════════════════════════════════ -->
-        <!-- Fund -->
-        <rect x="22" y="205" width="246" height="130" rx="3" fill="white"
-              stroke="#111" stroke-width="2.5" filter="url(#shadow)"/>
-        <text x="145" y="232" text-anchor="middle" font-size="14" font-weight="700" fill="#111" font-family="Segoe UI, Arial, sans-serif">Fund</text>
-        <text x="145" y="253" text-anchor="middle" font-size="10" fill="#333" font-family="Segoe UI, Arial, sans-serif">Invites-Spinnaker New Technology</text>
-        <text x="145" y="267" text-anchor="middle" font-size="10" fill="#333" font-family="Segoe UI, Arial, sans-serif">Investment Association No. 3</text>
-        <text x="145" y="285" text-anchor="middle" font-size="9.5" fill="#888" font-family="Segoe UI, Arial, sans-serif">(This Investment Fund)</text>
+      <!-- LP US-based -->
+      <rect x="548" y="368" width="174" height="80" rx="3" fill="white"
+            stroke="#222" stroke-width="2" filter="url(#sh)"/>
+      <text x="635" y="394" text-anchor="middle" font-size="14" font-weight="700"
+            fill="#111" font-family="Segoe UI, Arial, sans-serif">LP</text>
+      <text x="635" y="414" text-anchor="middle" font-size="11" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">US-Based Fund</text>
+      <text x="635" y="432" text-anchor="middle" font-size="9.5" fill="#888"
+            font-family="Segoe UI, Arial, sans-serif">CA, United States</text>
 
-        <!-- SPV -->
-        <rect x="538" y="205" width="160" height="130" rx="3" fill="white"
-              stroke="#111" stroke-width="2.5" filter="url(#shadow)"/>
-        <text x="618" y="265" text-anchor="middle" font-size="24" font-weight="700" fill="#111" font-family="Segoe UI, Arial, sans-serif">SPV</text>
-        <text x="618" y="288" text-anchor="middle" font-size="9.5" fill="#888" font-family="Segoe UI, Arial, sans-serif">Special Purpose Vehicle</text>
+      <!-- ─── VERTICAL ARROWS: LP_dom ↔ Fund ──────────────────────
+           Fund bottom=302, LP_dom top=368
+           Left track (LP Contribution, upward black): x=110
+           Right track (① Principal, downward orange): x=210
+      -->
+      <!-- LEFT: LP→Fund upward -->
+      <line x1="110" y1="368" x2="110" y2="304"
+            stroke="#111" stroke-width="2" marker-end="url(#aB)"/>
+      <text x="102" y="330" text-anchor="end" font-size="9.5" font-weight="600"
+            fill="#333" font-family="Segoe UI, Arial, sans-serif">LP</text>
+      <text x="102" y="343" text-anchor="end" font-size="9.5" font-weight="600"
+            fill="#333" font-family="Segoe UI, Arial, sans-serif">Contribution</text>
 
-        <!-- ══════════════════════════════════════════════════════════
-             ROW C — LP Domestic  &  LP US-based
-             top=400, h=88, bottom=488
-             LP_dom cx=145 (x=45..245, w=200)
-             LP_us  cx=618 (x=528..708, w=180)
-             ══════════════════════════════════════════════════════════ -->
-        <!-- LP Domestic -->
-        <rect x="45" y="400" width="200" height="88" rx="3" fill="white"
-              stroke="#111" stroke-width="2" filter="url(#shadow)"/>
-        <text x="145" y="426" text-anchor="middle" font-size="13" font-weight="700" fill="#111" font-family="Segoe UI, Arial, sans-serif">LP</text>
-        <text x="145" y="444" text-anchor="middle" font-size="11" fill="#222" font-family="Segoe UI, Arial, sans-serif">Domestic Investors</text>
-        <text x="145" y="460" text-anchor="middle" font-size="9.5" fill="#888" font-family="Segoe UI, Arial, sans-serif">Seoul, Korea</text>
+      <!-- RIGHT: Fund→LP downward orange -->
+      <line x1="210" y1="304" x2="210" y2="366"
+            stroke="#c96000" stroke-width="2" marker-end="url(#aO)"/>
+      <text x="219" y="320" font-size="9.5" font-weight="700"
+            fill="#c96000" font-family="Segoe UI, Arial, sans-serif">&#9312; Principal</text>
+      <text x="219" y="333" font-size="9.5" font-weight="700"
+            fill="#c96000" font-family="Segoe UI, Arial, sans-serif">Repayment &amp;</text>
+      <text x="219" y="346" font-size="9.5" font-weight="700"
+            fill="#c96000" font-family="Segoe UI, Arial, sans-serif">Distribution</text>
 
-        <!-- LP US-based -->
-        <rect x="528" y="400" width="180" height="88" rx="3" fill="white"
-              stroke="#111" stroke-width="2" filter="url(#shadow)"/>
-        <text x="618" y="426" text-anchor="middle" font-size="13" font-weight="700" fill="#111" font-family="Segoe UI, Arial, sans-serif">LP</text>
-        <text x="618" y="444" text-anchor="middle" font-size="11" fill="#222" font-family="Segoe UI, Arial, sans-serif">US-Based Fund</text>
-        <text x="618" y="460" text-anchor="middle" font-size="9.5" fill="#888" font-family="Segoe UI, Arial, sans-serif">CA, United States</text>
-        <text x="618" y="474" text-anchor="middle" font-size="9" fill="#aaa" font-family="Segoe UI, Arial, sans-serif">(Existing Investors)</text>
+      <!-- LP_us → SPV upward: x=635 -->
+      <line x1="635" y1="368" x2="635" y2="304"
+            stroke="#111" stroke-width="2" marker-end="url(#aB)"/>
+      <text x="648" y="330" font-size="9.5" fill="#555"
+            font-family="Segoe UI, Arial, sans-serif">(Existing</text>
+      <text x="648" y="344" font-size="9.5" fill="#555"
+            font-family="Segoe UI, Arial, sans-serif">Investors)</text>
 
-        <!-- ══════════════════════════════════════════════════════════
-             VERTICAL ARROWS — LP_dom ↔ Fund
-             Fund bottom=335, LP_dom top=400
-             LEFT track (LP Contribution): x=108
-             RIGHT track (Distribution):  x=176
-             ══════════════════════════════════════════════════════════ -->
-        <!-- Left track — upward, black -->
-        <line x1="108" y1="400" x2="108" y2="337"
-              stroke="#111" stroke-width="2" marker-end="url(#arr-blk)"/>
-        <!-- LP Contribution: plain text to left of arrow, matching reference style -->
-        <text x="100" y="363" text-anchor="end" font-size="9" fill="#333" font-weight="600" font-family="Segoe UI, Arial, sans-serif">LP</text>
-        <text x="100" y="375" text-anchor="end" font-size="9" fill="#333" font-weight="600" font-family="Segoe UI, Arial, sans-serif">Contribution</text>
+      <!-- ─── ORANGE HORIZONTAL ARROW: SPV left → Fund right ───────
+           Orange arrow at y=232 going left
+           SPV left=552, Fund right=305
+           Label box between 305..550, centre x=428
+           Box: x=309..547, y=202..240
+      -->
+      <line x1="550" y1="232" x2="307" y2="232"
+            stroke="#c96000" stroke-width="2.5" marker-end="url(#aO)"/>
+      <!-- Orange label box - sits above the arrow line -->
+      <rect x="312" y="202" width="234" height="42" rx="3" fill="#fff5eb" stroke="#e0a060" stroke-width="1.5"/>
+      <text x="429" y="219" text-anchor="middle" font-size="8.5" fill="#c96000" font-weight="600"
+            font-family="Segoe UI, Arial, sans-serif">Post Lock-up (6 mo. est.) Release &amp; Settlement:</text>
+      <text x="429" y="232" text-anchor="middle" font-size="8.5" fill="#c96000" font-weight="600"
+            font-family="Segoe UI, Arial, sans-serif">In-kind Target Co. Share Distribution to Fund</text>
 
-        <!-- Right track — downward, orange -->
-        <line x1="176" y1="337" x2="176" y2="398"
-              stroke="#c96000" stroke-width="2" marker-end="url(#arr-org)"/>
-        <!-- Distribution: orange text to right of arrow -->
-        <text x="183" y="353" font-size="9" fill="#c96000" font-weight="700" font-family="Segoe UI, Arial, sans-serif">① Principal</text>
-        <text x="183" y="365" font-size="9" fill="#c96000" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Repayment &amp;</text>
-        <text x="183" y="377" font-size="9" fill="#c96000" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Distribution</text>
+      <!-- ─── CROSSING DIAGONALS ───────────────────────────────────
+           "/" Capital Call (solid black):
+             FROM LP_dom bottom-right (265,448) → TO LP_us top-left (548,370)
+             Arrow points at LP_us
+           "\" SWAP (dashed black):
+             FROM LP_us bottom-left (549,448) → TO Fund bottom-right (305,302)
+             Arrow points at Fund
 
-        <!-- ══════════════════════════════════════════════════════════
-             VERTICAL ARROW — LP_us → SPV
-             LP_us top=400, SPV bottom=335, both cx=618
-             ══════════════════════════════════════════════════════════ -->
-        <line x1="618" y1="400" x2="618" y2="337"
-              stroke="#111" stroke-width="2" marker-end="url(#arr-blk)"/>
-        <text x="630" y="362" font-size="9.5" fill="#444" font-family="Segoe UI, Arial, sans-serif">(Existing</text>
-        <text x="630" y="375" font-size="9.5" fill="#444" font-family="Segoe UI, Arial, sans-serif">Investors)</text>
+           Intersection calculation:
+             "/" : from (265,448) to (548,370)
+                   slope = (370-448)/(548-265) = -78/283 = -0.276
+                   y = 448 - 0.276*(x-265)
+             "\" : from (549,448) to (305,302)
+                   slope = (302-448)/(305-549) = -146/-244 = 0.598
+                   y = 448 + 0.598*(x-549)
+             Set equal: 448 - 0.276*(x-265) = 448 + 0.598*(x-549)
+               -0.276x + 73.1 = 0.598x - 328.3
+               401.4 = 0.874x → x≈459, y≈448-0.276*(459-265)=448-53.5=394
+           Crossing: ≈ (459, 394)
+      -->
+      <!-- "/" Capital Call: points to LP_us -->
+      <line x1="265" y1="448" x2="546" y2="371"
+            stroke="#111" stroke-width="2" marker-end="url(#aB)"/>
 
-        <!-- ══════════════════════════════════════════════════════════
-             ORANGE ARROW: SPV left (x=538) → Fund right (x=270)
-             at y=248. Orange label box sits above the arrow,
-             centred between x=270 and x=538 → centre x=404
-             ══════════════════════════════════════════════════════════ -->
-        <line x1="536" y1="248" x2="271" y2="248"
-              stroke="#c96000" stroke-width="2" marker-end="url(#arr-org)"/>
-        <!-- Orange label box: centre x=404, y straddles 248 -->
-        <rect x="274" y="228" width="264" height="34" rx="3" fill="#fff8ef" stroke="#e0a060" stroke-width="1.5"/>
-        <text x="406" y="243" text-anchor="middle" font-size="9" fill="#c96000" font-weight="600" font-family="Segoe UI, Arial, sans-serif">Post Lock-up (6 mo. est.) Release &amp; Settlement:</text>
-        <text x="406" y="256" text-anchor="middle" font-size="9" fill="#c96000" font-weight="600" font-family="Segoe UI, Arial, sans-serif">In-kind Target Co. Share Distribution to Fund</text>
+      <!-- "\" SWAP: dashed, points to Fund -->
+      <line x1="550" y1="448" x2="307" y2="304"
+            stroke="#111" stroke-width="2" stroke-dasharray="7,4" marker-end="url(#aB)"/>
 
-        <!-- ══════════════════════════════════════════════════════════
-             TWO CROSSING DIAGONALS — X pattern
+      <!-- Capital Call label: just below the crossing -->
+      <text x="415" y="422" text-anchor="middle" font-size="9.5" font-weight="700"
+            fill="#111" font-family="Segoe UI, Arial, sans-serif">Capital Call: $10mn</text>
+      <text x="415" y="435" text-anchor="middle" font-size="8.5" fill="#666"
+            font-family="Segoe UI, Arial, sans-serif">(subject to change)</text>
 
-             "/" diagonal (Capital Call, solid black):
-               From LP_dom bottom-right (245, 488) → LP_us top-left (526, 402)
+      <!-- SWAP label: just above the crossing, light box -->
+      <rect x="352" y="360" width="168" height="18" rx="3" fill="#f2f2f2" stroke="#ccc" stroke-width="1"/>
+      <text x="436" y="373" text-anchor="middle" font-size="9.5" font-weight="700"
+            fill="#111" font-family="Segoe UI, Arial, sans-serif">&#9313; SPV LP Share SWAP</text>
 
-             "\" diagonal (SWAP, dashed black):
-               From LP_us bottom-left (530, 488) → Fund right-bottom (271, 337)
+      <!-- ─── SPACEX BOX + ANNOTATION + ARROW ──────────────────────
+           SpaceX: x=858..1008 (w=150), y=207..275 (h=68), cx=933
+           SPV right=718, SpaceX left=858
+           Gap between SPV right and SpaceX left: 718..858 = 140px
+           Arrow: SpaceX left (856) → SPV right (720), at y=242
+           "Direct to Cap-table" annotation centred at x=788, above arrow
+      -->
+      <!-- SpaceX box: white, thin border (lighter to match reference) -->
+      <rect x="858" y="207" width="150" height="68" rx="3" fill="white"
+            stroke="#555" stroke-width="1" filter="url(#sh)"/>
+      <!-- SPACEX wordmark: large, heavy, "X" slightly lighter gray -->
+      <text x="933" y="254" text-anchor="middle" font-size="30" font-weight="900"
+            fill="#0d0d0d" letter-spacing="2"
+            font-family="Arial Black, Arial, sans-serif">SPACE<tspan fill="#999">X</tspan></text>
 
-             Approximate crossing: x≈388, y≈452
-             SWAP label: above-right of crossing
-             Capital Call label: below-left of crossing
-             ══════════════════════════════════════════════════════════ -->
+      <!-- Arrow: SpaceX left → SPV right (pointing left = toward SPV) -->
+      <line x1="856" y1="242" x2="720" y2="242"
+            stroke="#111" stroke-width="2.5" marker-end="url(#aB)"/>
 
-        <!-- "/" diagonal — Capital Call -->
-        <line x1="245" y1="488" x2="526" y2="402"
-              stroke="#111" stroke-width="2" marker-end="url(#arr-blk)"/>
+      <!-- "Direct to Cap-table" annotation: orange text between SPV right and SpaceX
+           Centre x = (718+858)/2 = 788
+           Positioned ABOVE the arrow line (arrow at y=242, text above)
+           Lines at y=212, 224, 236 — all above arrow at y=242
+      -->
+      <text x="788" y="212" text-anchor="middle" font-size="9.5" font-weight="600"
+            fill="#c96000" font-family="Segoe UI, Arial, sans-serif">Direct to Cap-table</text>
+      <text x="788" y="225" text-anchor="middle" font-size="8.5" fill="#c96000"
+            font-family="Segoe UI, Arial, sans-serif">(direct equity stake</text>
+      <text x="788" y="237" text-anchor="middle" font-size="8.5" fill="#c96000"
+            font-family="Segoe UI, Arial, sans-serif">in target co.)</text>
 
-        <!-- "\" diagonal — SWAP -->
-        <line x1="530" y1="488" x2="271" y2="337"
-              stroke="#111" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-blk)"/>
+      <!-- ─── NOTES PANEL (dashed box) ─────────────────────────────
+           Positioned to right of overseas panel, slightly overlapping.
+           x=1010..1153, y=10..400
+      -->
+      <rect x="1010" y="10" width="143" height="395" rx="4" fill="#fafafa"
+            stroke="#999" stroke-width="1.5" stroke-dasharray="5,3"/>
 
-        <!-- SWAP label pill — above crossing, along "\" path -->
-        <rect x="324" y="386" width="162" height="18" rx="4" fill="#f0f0f0" stroke="#bbb" stroke-width="1"/>
-        <text x="405" y="399" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111" font-family="Segoe UI, Arial, sans-serif">② SPV LP Share SWAP</text>
+      <!-- Notes title -->
+      <text x="1081" y="34" text-anchor="middle" font-size="9.5" font-weight="700"
+            letter-spacing="1.5" fill="#333" font-family="Segoe UI, Arial, sans-serif">ADDITIONAL NOTES</text>
+      <line x1="1018" y1="40" x2="1145" y2="40" stroke="#ccc" stroke-width="1"/>
 
-        <!-- Capital Call label — below crossing, along "/" path -->
-        <rect x="310" y="450" width="162" height="30" rx="4" fill="white" stroke="#ccc" stroke-width="1"/>
-        <text x="391" y="464" text-anchor="middle" font-size="9.5" font-weight="700" fill="#111" font-family="Segoe UI, Arial, sans-serif">Capital Call: $10mn</text>
-        <text x="391" y="475" text-anchor="middle" font-size="8.5" fill="#888" font-family="Segoe UI, Arial, sans-serif">(subject to change)</text>
+      <!-- Note ① -->
+      <text x="1018" y="58" font-size="10.5" font-weight="700" fill="#c96000"
+            font-family="Segoe UI, Arial, sans-serif">&#9312; Korean Law Firm</text>
+      <text x="1018" y="72" font-size="10.5" font-weight="700" fill="#c96000"
+            font-family="Segoe UI, Arial, sans-serif">(Sejong) Retained</text>
+      <text x="1018" y="88" font-size="9" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">Currently in discussion</text>
+      <text x="1018" y="100" font-size="9" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">regarding:</text>
+      <text x="1020" y="114" font-size="8.5" fill="#444"
+            font-family="Segoe UI, Arial, sans-serif">&#8226; Overseas investment</text>
+      <text x="1020" y="126" font-size="8.5" fill="#444"
+            font-family="Segoe UI, Arial, sans-serif">  regulatory filing</text>
+      <text x="1020" y="140" font-size="8.5" fill="#444"
+            font-family="Segoe UI, Arial, sans-serif">&#8226; Dividend withholding</text>
+      <text x="1020" y="152" font-size="8.5" fill="#444"
+            font-family="Segoe UI, Arial, sans-serif">  tax arrangements</text>
 
-        <!-- ══════════════════════════════════════════════════════════
-             SPACEX BOX + ARROW
+      <!-- Note ② -->
+      <text x="1018" y="174" font-size="10.5" font-weight="700" fill="#c96000"
+            font-family="Segoe UI, Arial, sans-serif">&#9313; Ownership Proof</text>
+      <text x="1018" y="188" font-size="10.5" font-weight="700" fill="#c96000"
+            font-family="Segoe UI, Arial, sans-serif">Verification</text>
+      <text x="1018" y="204" font-size="8.5" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">Share ownership evidence</text>
+      <text x="1018" y="216" font-size="8.5" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">to be confirmed in two</text>
+      <text x="1018" y="228" font-size="8.5" fill="#333"
+            font-family="Segoe UI, Arial, sans-serif">stages:</text>
 
-             SpaceX: x=742..954 (w=212), y=218..284 (h=66), cx=848
-             SPV right edge = 698
-             Arrow: SpaceX left (742) → SPV right (700), at y=251
+      <text x="1018" y="246" font-size="8.5" fill="#444"
+            font-family="Segoe UI, Arial, sans-serif">Stage 1 — Documentation</text>
+      <text x="1018" y="258" font-size="8.5" fill="#444"
+            font-family="Segoe UI, Arial, sans-serif">provided by the seller</text>
 
-             "Direct to Cap-table" annotation:
-               In the reference this appears to the LEFT of SpaceX, as text
-               BETWEEN the arrow and SPV. We place it as two text lines
-               between SPV right (698) and SpaceX left (742) — x≈720.
-               But since that gap is only 44px, we position text below
-               the SpaceX box, left-aligned, offset from the arrow line.
-             ══════════════════════════════════════════════════════════ -->
-        <rect x="742" y="218" width="212" height="66" rx="3" fill="#050505" stroke="#333" stroke-width="1.5" filter="url(#shadow)"/>
-        <text x="848" y="262" text-anchor="middle"
-              font-size="26" font-weight="900" fill="white" letter-spacing="1.5"
-              font-family="Arial Black, Impact, Arial, sans-serif">SPACE<tspan fill="#bbb">X</tspan></text>
+      <text x="1018" y="276" font-size="8.5" fill="#444"
+            font-family="Segoe UI, Arial, sans-serif">Stage 2 — DD and</text>
+      <text x="1018" y="288" font-size="8.5" fill="#444"
+            font-family="Segoe UI, Arial, sans-serif">confirmation by retained</text>
+      <text x="1018" y="300" font-size="8.5" fill="#444"
+            font-family="Segoe UI, Arial, sans-serif">Korean law firm</text>
 
-        <!-- Arrow: SpaceX left → SPV right at y=251 -->
-        <line x1="742" y1="251" x2="700" y2="251"
-              stroke="#111" stroke-width="3" marker-end="url(#arr-blk)"/>
-
-        <!-- "Direct to Cap-table" annotation — centred in gap between SPV(698) and SpaceX(742) -->
-        <!-- Gap centre: (698+742)/2 = 720. Use text-anchor="middle" at x=720 -->
-        <text x="720" y="294" text-anchor="middle" font-size="8.5" font-weight="600" fill="#444" font-family="Segoe UI, Arial, sans-serif">Direct to</text>
-        <text x="720" y="305" text-anchor="middle" font-size="8.5" font-weight="600" fill="#444" font-family="Segoe UI, Arial, sans-serif">Cap-table</text>
-        <text x="720" y="317" text-anchor="middle" font-size="7.5" fill="#777" font-family="Segoe UI, Arial, sans-serif">(Direct equity</text>
-        <text x="720" y="327" text-anchor="middle" font-size="7.5" fill="#777" font-family="Segoe UI, Arial, sans-serif">stake in target co.)</text>
-
-      </svg>
-    </div><!-- end chart-wrap -->
-
-    <!-- NOTES PANEL -->
-    <div class="notes-panel">
-      <h3>Additional Notes</h3>
-
-      <div class="note-item">
-        <div class="note-label">① Korean Law Firm (Sejong) Retained</div>
-        <p>Currently in discussion regarding:</p>
-        <div class="note-sub">
-          • Overseas investment regulatory filing<br>
-          • Dividend withholding tax arrangements
-        </div>
-      </div>
-
-      <div class="note-item">
-        <div class="note-label">② Ownership Proof Verification</div>
-        <p>Share ownership evidence to be confirmed in two stages:</p>
-        <div class="note-sub">
-          <strong>Stage 1 —</strong> Documentation provided by the seller<br><br>
-          <strong>Stage 2 —</strong> DD and confirmation by retained Korean law firm
-        </div>
-      </div>
-    </div>
-
-  </div><!-- end slide-body -->
+    </svg>
+  </div>
 
   <!-- LEGEND -->
   <div class="legend-bar">
-    <span class="leg-title">Legend</span>
-
-    <!-- Black solid -->
     <div class="leg-item">
-      <svg width="48" height="12" viewBox="0 0 48 12">
-        <line x1="0" y1="6" x2="40" y2="6" stroke="#111" stroke-width="2"/>
-        <polygon points="40,3 48,6 40,9" fill="#111"/>
+      <svg width="46" height="12" viewBox="0 0 46 12">
+        <line x1="2" y1="6" x2="37" y2="6" stroke="#111" stroke-width="2"/>
+        <polygon points="37,2.5 46,6 37,9.5" fill="#111"/>
       </svg>
       <span>Relationship / Capital Flow</span>
     </div>
-
-    <!-- Orange solid -->
     <div class="leg-item">
-      <svg width="48" height="12" viewBox="0 0 48 12">
-        <line x1="0" y1="6" x2="40" y2="6" stroke="#c96000" stroke-width="2"/>
-        <polygon points="40,3 48,6 40,9" fill="#c96000"/>
+      <svg width="46" height="12" viewBox="0 0 46 12">
+        <line x1="2" y1="6" x2="37" y2="6" stroke="#c96000" stroke-width="2"/>
+        <polygon points="37,2.5 46,6 37,9.5" fill="#c96000"/>
       </svg>
       <span>Return / Recovery Flow</span>
     </div>
-
-    <!-- Black dashed -->
     <div class="leg-item">
-      <svg width="48" height="12" viewBox="0 0 48 12">
-        <line x1="0" y1="6" x2="40" y2="6" stroke="#111" stroke-width="2" stroke-dasharray="5,3"/>
-        <polygon points="40,3 48,6 40,9" fill="#111"/>
+      <svg width="46" height="12" viewBox="0 0 46 12">
+        <line x1="2" y1="6" x2="37" y2="6" stroke="#111" stroke-width="2" stroke-dasharray="5,3"/>
+        <polygon points="37,2.5 46,6 37,9.5" fill="#111"/>
       </svg>
       <span>SWAP / Interest Exchange</span>
     </div>
-
-    <!-- Green double-headed -->
     <div class="leg-item">
-      <svg width="48" height="12" viewBox="0 0 48 12">
-        <polygon points="0,3 8,6 0,9" fill="#1e7a34"/>
-        <line x1="8" y1="6" x2="40" y2="6" stroke="#1e7a34" stroke-width="2"/>
-        <polygon points="40,3 48,6 40,9" fill="#1e7a34"/>
+      <svg width="46" height="12" viewBox="0 0 46 12">
+        <polygon points="0,2.5 9,6 0,9.5" fill="#1e7a34"/>
+        <line x1="9" y1="6" x2="37" y2="6" stroke="#1e7a34" stroke-width="2"/>
+        <polygon points="37,2.5 46,6 37,9.5" fill="#1e7a34"/>
       </svg>
       <span>1-Layer Investment Structure</span>
     </div>
@@ -594,16 +575,15 @@
   <div class="slide-footer">
     <div class="footer-left">
       <span class="logo-invites"><strong>Invites</strong> Ventures</span>
-      <span style="color:#ccc; font-size:16px; font-weight:100">|</span>
+      <span style="color:#ccc;font-size:18px;font-weight:100;line-height:1">|</span>
       <span class="logo-spinner">Spinnaker Asset Management</span>
     </div>
     <div class="footer-right">
-      <span class="footer-spacex">SPACE<span>X</span></span>
+      <span class="footer-spacex">SPACE<span style="color:#777">X</span></span>
       <span class="page-num">| 7</span>
     </div>
   </div>
 
-</div><!-- end slide -->
-
+</div>
 </body>
 </html>
