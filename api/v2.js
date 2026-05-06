@@ -3781,6 +3781,19 @@ Return ONLY valid JSON in this exact structure:
       return ok(res, { ok: true, day2Sent, day7Sent, checked: wcKeys.length });
     }
 
+    // ─── Production wipe: wipe only, no reseed ───────────────────
+    if (op === 'production-wipe') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      try {
+        const wiped = await wipeAll();
+        return ok(res, { wiped });
+      } catch (e) {
+        console.error('[production-wipe] wipeAll failed:', e?.message || e);
+        return bad(res, 'Wipe failed: ' + (e?.message || 'unknown'), 500);
+      }
+    }
+
     // ─── Bot-test sandbox: destructive wipe + reseed ─────────────
     if (op === 'sandbox-reset') {
       const admin = await getAdmin();

@@ -1568,6 +1568,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       <button id="seed-btn" onclick="runSeed()" style="background:var(--gold);color:#000;border:none;border-radius:var(--r);padding:8px 20px;font-size:11px;font-family:var(--mono);letter-spacing:.1em;cursor:pointer;font-weight:600">LOAD TEST DATA</button>
       <div id="seed-status" style="margin-top:12px;font-size:12px;color:var(--text-3)"></div>
     </div>
+
+    <div style="margin-top:20px;background:var(--surface);border:1px solid #5a1a1a;border-radius:var(--r);padding:24px">
+      <div style="font-size:13px;font-weight:600;color:#f87171;margin-bottom:6px">Wipe Database</div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:16px;line-height:1.6">Permanently deletes all advisors, investors, deals, and platform data. Use before going live to clear test data. Cannot be undone.</div>
+      <button id="wipe-btn" onclick="runWipe()" style="background:#5a1a1a;color:#f87171;border:1px solid #7a2a2a;border-radius:var(--r);padding:8px 20px;font-size:11px;font-family:var(--mono);letter-spacing:.1em;cursor:pointer;font-weight:600">WIPE DATABASE</button>
+      <div id="wipe-status" style="margin-top:12px;font-size:12px;color:var(--text-3)"></div>
+    </div>
   </div>
 </div>
 
@@ -2386,6 +2393,21 @@ function toggleTheme(){
 async function logout(){
   await fetch('/api/logout',{method:'POST',credentials:'include'});
   window.location.href='/login';
+}
+
+async function runWipe(){
+  if(!confirm('WIPE DATABASE — this permanently deletes ALL data. Are you sure?')) return;
+  if(!confirm('Second confirmation: there is no undo. Wipe now?')) return;
+  const btn=document.getElementById('wipe-btn');
+  const status=document.getElementById('wipe-status');
+  btn.disabled=true; btn.textContent='Wiping…'; status.textContent='';
+  try{
+    const r=await fetch('/api/v2?resource=admin&op=production-wipe',{method:'POST',credentials:'include'});
+    const d=await r.json();
+    if(d.ok){ status.style.color='#4ade80'; status.textContent='Done — database wiped. All data deleted.'; }
+    else { status.style.color='#f87171'; status.textContent='Error: '+(d.error||'Unknown'); }
+  }catch(e){ status.style.color='#f87171'; status.textContent='Network error: '+e.message; }
+  btn.disabled=false; btn.textContent='WIPE DATABASE';
 }
 
 async function runSeed(){
