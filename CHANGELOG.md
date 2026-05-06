@@ -4,6 +4,38 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-06] — Sprint 2C–4B: stage labels, DD signals, investor/advisor management, audit fixes
+
+### Sprint 2C — "Pending Confirmation" label rollout (platform-wide)
+- `advisor-portal.html`: renamed review stage to "Pending Confirmation" across STAGES, STAGE_IDX, STAGE_CHIP_CLS, STAGE_LABEL, DOT_CLS; added IOI, Terms, Realized stages which were missing entirely; added CSS chips (.sc-ioi, .sc-terms, .sc-realized, .dot-terms, .dot-realized); added _stageGuides entries for Terms and Realized; updated review guide title/body
+- `admin-portal.html`: STAGE_LABELS.review → "Pending Confirmation"
+- `api/_lib/email.js`: review stage email body updated to "Your deal has been published and is awaiting your confirmation. Log in to your advisor portal and confirm to make the deal visible to investors."
+
+### Sprint 3 — DD signal on dashboard
+- Blue ◆ DD badge on pipeline rows and dashboard deal cards when stage = dd
+- Deal detail panel auto-opens to Dataroom tab when opened for a DD-stage deal
+
+### Sprint 4A — Investor management screen
+- New "Investors" nav tab in admin portal
+- Table: firm, contact, type, geo, status chip, registered date
+- Actions: Approve / Reject / Revoke (with confirmation) / View As (approved only)
+- Wires to existing /api/admin/approve, /api/admin/reject-inst, /api/admin/revoke-inst
+
+### Sprint 4B — Advisor management screen
+- New "Advisors" nav tab in admin portal
+- Table: name, email, firm, status chip, registered date
+- View As button for active advisors
+
+### Audit bug fixes (3 found, 3 patched)
+- `admin-portal.html`: fixed display:flex on <td> elements in both management tables (wrapped in div)
+- `api/v2.js`: wired sendStageChange('review') into send-to-advisor-review op — advisors now receive an email when admin clicks Send to Advisor (previously in-app notification only)
+- `api/_lib/email.js`: added stageDisplayNames map — email subject/meta now shows "Pending Confirmation", "Due Diligence", etc. instead of raw stage ids
+
+### Deferred (backlog)
+- No "deal is now live" email sent to advisor on auto-publish (review→live triggered by advisor confirmation). Advisor gets in-app notification only. Pre-existing gap; low priority since advisor is the one who triggered it.
+
+---
+
 ## [2026-05-05] — Nav avatar with initials; email fixes; magic link; admin dashboard fixes
 
 **admin-portal.html** — Replaced `.role-badge` ("Operator" pill) in the nav with a gold-bordered circular avatar showing the operator's initials. Initials are derived from the admin email stored in localStorage on login (e.g. `admin@aurumprism.com` → "AD"). Falls back to "OP" if no email stored. CSS class `.nav-avatar` was added. Also fixed: TDZ crash on dashboard load (moved `REAL_INVESTORS`/`REAL_ADVISORS` declarations before first render call); replaced hardcoded dummy activity feed with live data; defaulted Action Queue and Team Access sections to open.
