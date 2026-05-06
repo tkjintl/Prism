@@ -47,7 +47,8 @@
     { "source": "/api/marketplace/my-iois",      "destination": "/api/v2?resource=marketplace&op=my-iois" },
     { "source": "/api/marketplace/deal-iois",    "destination": "/api/v2?resource=marketplace&op=deal-iois" },
     { "source": "/api/member/me",                "destination": "/api/v2?resource=member&op=me" },
-    { "source": "/api/_lib/(.*)",                "destination": "/404" }
+    { "source": "/api/_lib/(.*)",                "destination": "/404" },
+    { "source": "/sprint2-preview",             "destination": "/sprint2-preview.html" }
   ],
   "headers": [
     {
