@@ -2799,6 +2799,7 @@ function renderOverview(){
       return `<div class="deal-card-ov" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1]);setTimeout(()=>openDealDetail('${d.id}'),300)" title="${d.name}">
         <div class="deal-card-ov-row1">
           <div class="deal-card-ov-name">${d.name}</div>
+          ${stage==='dd'?'<span style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:2px 6px;border-radius:2px;color:var(--blue);border:1px solid var(--blue-bd);background:var(--blue-bg)">◆ DD</span>':''}
           <span class="deal-stage-chip-ov sc-${stage}">${lbl}</span>
         </div>
         <div class="deal-card-ov-row2">
@@ -3777,7 +3778,7 @@ function renderPipeline(){
       const irrCell=d.target_irr!=null?`${(+d.target_irr).toFixed(1)}%`:'—';
       return`<div class="dp-row" style="animation-delay:${i*50}ms" onclick="openDealDetail('${d.id}')">
         <div>
-          <div class="dp-name">${d.name}</div>
+          <div class="dp-name">${d.name}${d.stage==='dd'?'<span style="margin-left:6px;font-family:var(--mono);font-size:8px;letter-spacing:.1em;padding:2px 6px;border-radius:2px;color:var(--blue);border:1px solid var(--blue-bd);background:var(--blue-bg);vertical-align:middle">◆ DD</span>':''}</div>
           <div class="dp-sub">${d.geography||'—'} · ${irrCell} IRR</div>
         </div>
         <div class="dp-advisor">${d.advisor}</div>
@@ -4158,6 +4159,7 @@ async function openDealDetail(dealId){
   const res=await fetchSilent(`/api/v2?resource=admin&op=deal-detail&dealId=${dealId}`);
   const deal=res?.deal||buildMockDealDetail(dealId);
   content.innerHTML=buildDealDetailHTML(deal);
+  if(deal.stage==='dd')ddpTab('dataroom');
   // Animate allocation bar after paint
   requestAnimationFrame(()=>{
     const fill=document.getElementById('ddp-alloc-fill');
