@@ -4,7 +4,7 @@ import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, kvZadd, kvZre
 import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, bumpIoiCounters, appendAuditEntry, validateDealForPublish } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
-  sendDataRoomAccess, sendAccessApplication, sendAdvisorApplication,
+  sendDataRoomAccess, sendAccessApplication, sendAccessApplicationAck, sendAdvisorApplication,
   sendAdvisorWelcome, sendPasswordReset, sendIoiPackage,
   sendIoiConfirmation, sendIoiRejection, sendDataRoomPackageResponse,
   sendQaQuestionToAdvisor, sendQaAnswerToInvestor,
@@ -1486,6 +1486,7 @@ async function _handler(req, res, resource, op) {
       await kvSet(`inst:${id}`, inst);
       await kvSet(`inst_email:${email}`, id);
       await sendAccessApplication(inst).catch(console.error);
+      await sendAccessApplicationAck(inst).catch(console.error);
       return ok(res, { message: 'Application received. You will be notified by email when reviewed.' });
     }
 
