@@ -208,13 +208,15 @@ export async function sendStageChange(deal, advisor, newStage) {
     close:    { line: 'The deal has advanced to close.', detail: 'Capital calls are in flight. The operator coordinates wire receipt and subscription document execution.' },
     realized: { line: 'The deal has been marked realized.', detail: 'Final distributions and the closing statement will be issued via the investor portal.' },
     killed:   { line: 'The deal has been withdrawn.', detail: 'No further investor activity will be accepted. Please contact the operator if you wish to discuss next steps.' },
-    review:   { line: 'The deal has been returned to review.', detail: 'The operator requires additional information or commentary. See the Messages tab in your portal.' },
+    review:   { line: 'Your deal has been published and is awaiting your confirmation.', detail: 'Log in to your advisor portal and confirm to make the deal visible to investors.' },
   };
+  const stageDisplayNames = { review:'Pending Confirmation', live:'Live', ioi:'IOI', dd:'Due Diligence', terms:'Terms', close:'Close', realized:'Realized', killed:'Withdrawn' };
   const msg = stageMessages[newStage] || { line: `Stage updated to ${newStage}.`, detail: '' };
-  await send(advisor.email, `Aurum Prism — ${deal.name}: stage ${newStage}`,
+  const stageDisplay = stageDisplayNames[newStage] || newStage.toUpperCase();
+  await send(advisor.email, `Aurum Prism — ${deal.name}: ${stageDisplay}`,
     base('Deal Update',
       h(deal.name) +
-      meta(`Stage · ${newStage.toUpperCase()}`) +
+      meta(`Stage · ${stageDisplay}`) +
       rule() +
       p(msg.line) +
       (msg.detail ? p(msg.detail) : '') +

@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aurum Prism · Sprint 2 Preview — Deal Detail Panel</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0908;--bg-2:#100F0D;--bg-3:#161412;--surface:#131210;
+  --border:rgba(255,255,255,0.07);--border-m:rgba(255,255,255,0.13);
+  --text:#EDE8DF;--text-2:#A09A91;--text-3:#6B665E;
+  --gold:#C5A572;--gold-b:#E3C187;--gold-bg:rgba(197,165,114,0.07);--gold-bd:rgba(197,165,114,0.22);
+  --green:#5a9e72;--green-bg:rgba(90,158,114,0.07);--green-bd:rgba(90,158,114,0.25);
+  --amber:#b8833a;--amber-bg:rgba(184,131,58,0.08);--amber-bd:rgba(184,131,58,0.28);
+  --red:#b05e56;--red-bg:rgba(176,94,86,0.07);--red-bd:rgba(176,94,86,0.22);
+  --blue:#5b85b8;--blue-bg:rgba(91,133,184,0.07);--blue-bd:rgba(91,133,184,0.25);
+  --violet:#8B7BC0;--violet-bg:rgba(139,123,192,0.07);--violet-bd:rgba(139,123,192,0.22);
+  --slate:#7B8FA1;--slate-bg:rgba(123,143,161,0.07);--slate-bd:rgba(123,143,161,0.22);
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --r:6px;--ease:cubic-bezier(0.22,1,0.36,1);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideRight{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+
+/* ─── MOCK PIPELINE STRIP (behind panel, gives context) ─── */
+.pipeline-bg{
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+}
+.pipeline-nav{
+  height:56px;background:rgba(10,9,8,0.92);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:16px;flex-shrink:0;
+}
+.nav-wm{display:flex;align-items:center;gap:0}
+.nav-wm-aurum{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
+.nav-wm-rule{display:block;width:1px;height:12px;background:var(--gold-bd);margin:0 10px}
+.nav-wm-prism{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.nav-role{padding:4px 10px;background:rgba(176,94,86,.08);border:1px solid rgba(176,94,86,.22);
+  font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);border-radius:20px;margin-left:auto}
+.pipeline-body{flex:1;overflow:hidden;position:relative;padding:28px clamp(20px,5vw,72px)}
+
+/* ─── DEAL DETAIL PANEL ─── */
+.panel{
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  animation:slideRight .35s var(--ease) both;
+  overflow:hidden;
+}
+.panel-inner{
+  flex:1;
+  display:flex;
+  overflow:hidden;
+}
+
+/* ─── PANEL TOPBAR ─── */
+.panel-topbar{
+  height:56px;flex-shrink:0;
+  background:rgba(10,9,8,0.92);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:16px;
+}
+.back-btn{
+  display:flex;align-items:center;gap:7px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);transition:color .15s;padding:6px 0;
+}
+.back-btn:hover{color:var(--gold)}
+.back-arrow{font-size:14px}
+.panel-breadcrumb{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-left:4px}
+.panel-breadcrumb span{color:var(--text-2)}
+
+/* ─── LEFT COLUMN ─── */
+.panel-left{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  border-right:1px solid var(--border);
+}
+
+/* ─── DEAL HEADER (inside left column) ─── */
+.deal-header{
+  padding:24px 28px 0;
+  flex-shrink:0;
+}
+.deal-name{
+  font-family:var(--serif);font-style:italic;font-size:32px;
+  color:var(--text);line-height:1.15;margin-bottom:14px;
+}
+.deal-tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}
+.tag{
+  padding:4px 11px;border-radius:20px;
+  font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid;white-space:nowrap;
+}
+.tag-gold{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.tag-slate{color:var(--slate);border-color:var(--slate-bd);background:var(--slate-bg)}
+.tag-blue{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.tag-violet{color:var(--violet);border-color:var(--violet-bd);background:var(--violet-bg)}
+
+/* ─── TAB NAV ─── */
+.tab-nav{
+  display:flex;gap:0;padding:0 28px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.tab-nav::-webkit-scrollbar{height:0}
+.tab-btn{
+  padding:12px 16px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);
+  border-bottom:2px solid transparent;
+  transition:color .15s,border-color .15s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.tab-btn:hover:not(.active){color:var(--text-2)}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ─── TAB CONTENT ─── */
+.tab-content{
+  flex:1;overflow-y:auto;
+  padding:24px 28px;
+}
+.tab-pane{display:none;animation:fadeUp .25s var(--ease) both}
+.tab-pane.active{display:block}
+
+/* ─── SUMMARY TAB ─── */
+.metrics-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--border);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;margin-bottom:20px;
+}
+.metric-cell{
+  background:var(--surface);padding:16px 18px;
+}
+.metric-lbl{
+  font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-3);margin-bottom:7px;
+}
+.metric-val{
+  font-family:var(--mono);font-size:22px;font-weight:500;color:var(--text);line-height:1;
+}
+.metric-val.gold{color:var(--gold)}
+.metric-sub{font-size:11px;color:var(--text-3);margin-top:4px}
+
+.alloc-bar-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:20px}
+.alloc-bar-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.alloc-bar-track{height:5px;background:var(--border-m);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.alloc-bar-fill{height:100%;width:68%;background:linear-gradient(90deg,var(--gold),var(--gold-b));border-radius:3px}
+.alloc-bar-meta{font-family:var(--mono);font-size:10px;color:var(--text-2)}
+.alloc-bar-meta strong{color:var(--gold)}
+
+.section-title{
+  font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--text-3);margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.thesis-text{font-size:13px;color:var(--text-2);line-height:1.75}
+.thesis-text p+p{margin-top:10px}
+
+/* ─── IOIs TAB ─── */
+.ioi-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.ioi-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.ioi-stat-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
+.ioi-stat-val{font-family:var(--mono);font-size:26px;font-weight:500;color:var(--text);line-height:1}
+.ioi-stat-val.gold{color:var(--gold)}
+.ioi-stat-val.green{color:var(--green)}
+.ioi-stat-val.amber{color:var(--amber)}
+.ioi-stat-val.red{color:var(--red)}
+
+/* Funnel */
+.funnel{display:flex;align-items:center;gap:0;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.funnel-step{
+  flex:1;padding:14px 12px;text-align:center;
+  border-right:1px solid var(--border);position:relative;
+}
+.funnel-step:last-child{border-right:none}
+.funnel-step-num{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--gold);line-height:1;margin-bottom:4px}
+.funnel-step-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);line-height:1.3}
+.funnel-arrow{
+  position:absolute;right:-8px;top:50%;transform:translateY(-50%);
+  font-size:10px;color:var(--text-3);z-index:1;
+}
+
+.breakdown-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.breakdown-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.breakdown-title{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.breakdown-item{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12px;color:var(--text-2)}
+.breakdown-item+.breakdown-item{border-top:1px solid var(--border)}
+.breakdown-type{color:var(--text)}
+.breakdown-amt{font-family:var(--mono);font-size:11px;color:var(--gold)}
+
+/* IOI Table */
+.ioi-tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ioi-tbl-hdr{
+  display:grid;
+  grid-template-columns:1.8fr 1fr 90px 110px 110px 100px;
+  gap:8px;padding:10px 16px;
+  background:var(--bg-3);border-bottom:1px solid var(--border-m);
+  font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);
+}
+.ioi-tbl-row{
+  display:grid;
+  grid-template-columns:1.8fr 1fr 90px 110px 110px 100px;
+  gap:8px;padding:12px 16px;
+  align-items:center;border-bottom:1px solid var(--border);
+  transition:background .15s;
+}
+.ioi-tbl-row:last-child{border-bottom:none}
+.ioi-tbl-row:hover{background:var(--bg-3)}
+.ioi-inv-name{font-size:13px;font-weight:500;color:var(--text)}
+.ioi-inv-firm{font-size:11px;color:var(--text-3);margin-top:1px}
+.ioi-typegeo{font-size:12px;color:var(--text-2)}
+.ioi-amount{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)}
+.ioi-date{font-family:var(--mono);font-size:10px;color:var(--text-3)}
+.ioi-actions-cell{display:flex;gap:5px;justify-content:flex-end}
+
+.chip{padding:3px 9px;border-radius:20px;font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;border:1px solid;white-space:nowrap}
+.chip-green{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.chip-amber{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.chip-red{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.chip-blue{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.chip-gold{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.chip-slate{color:var(--slate);border-color:var(--slate-bd);background:var(--slate-bg)}
+
+.row-btn{
+  padding:4px 10px;border-radius:3px;font-size:10px;font-weight:500;
+  font-family:var(--mono);letter-spacing:.06em;
+  border:1px solid;transition:all .15s;cursor:pointer;white-space:nowrap;
+}
+.row-btn-approve{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.row-btn-approve:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.row-btn-decline{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.row-btn-decline:hover{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* ─── DATAROOM TAB ─── */
+.dr-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.dr-section-hd-title{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+.upload-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:3px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--gold-bd);color:var(--gold);background:var(--gold-bg);
+  transition:all .15s;
+}
+.upload-btn:hover{background:var(--gold);color:var(--bg)}
+
+.dd-banner{
+  padding:12px 16px;border-left:3px solid var(--gold);
+  background:var(--gold-bg);border-radius:0 var(--r) var(--r) 0;
+  border-top:1px solid var(--gold-bd);border-right:1px solid var(--gold-bd);border-bottom:1px solid var(--gold-bd);
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;
+}
+.dd-banner-icon{font-size:14px;flex-shrink:0;color:var(--gold)}
+.dd-banner-text{font-size:12px;color:var(--text-2)}
+.dd-banner-text strong{color:var(--gold)}
+.dd-banner-days{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--amber);white-space:nowrap}
+
+.file-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.file-row{
+  display:grid;grid-template-columns:44px 1fr 100px 80px 72px;
+  align-items:center;gap:10px;
+  padding:12px 14px;border-bottom:1px solid var(--border);
+  transition:background .15s;
+}
+.file-row:last-child{border-bottom:none}
+.file-row:hover{background:var(--bg-3)}
+.file-badge{
+  padding:4px 7px;border-radius:3px;
+  font-family:var(--mono);font-size:8px;letter-spacing:.08em;font-weight:500;
+  text-transform:uppercase;text-align:center;
+}
+.file-badge-pdf{background:rgba(176,94,86,.12);color:var(--red);border:1px solid var(--red-bd)}
+.file-badge-xls{background:rgba(90,158,114,.10);color:var(--green);border:1px solid var(--green-bd)}
+.file-name{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-folder{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-top:2px}
+.file-views{font-family:var(--mono);font-size:10px;color:var(--text-3);text-align:right}
+.file-view-btn{
+  padding:4px 10px;border-radius:3px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+  border:1px solid var(--border-m);color:var(--text-2);
+  transition:all .15s;text-align:right;
+}
+.file-view-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
+
+/* QA Section */
+.qa-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.qa-hd{padding:12px 16px;background:var(--bg-3);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+.qa-thread{padding:16px;border-bottom:1px solid var(--border)}
+.qa-thread:last-child{border-bottom:none}
+.qa-question{display:flex;gap:10px;margin-bottom:10px}
+.qa-q-avatar{width:26px;height:26px;border-radius:50%;background:var(--blue-bg);border:1px solid var(--blue-bd);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;color:var(--blue);flex-shrink:0}
+.qa-q-body{flex:1}
+.qa-q-meta{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--text-3);margin-bottom:4px}
+.qa-q-text{font-size:12px;color:var(--text-2);line-height:1.5}
+.qa-answer{margin-left:36px;padding:10px 14px;background:var(--bg-3);border-radius:var(--r);border-left:2px solid var(--green-bd)}
+.qa-ans-meta{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--green);margin-bottom:4px}
+.qa-ans-text{font-size:12px;color:var(--text-2);line-height:1.5}
+.awaiting-chip{display:inline-flex;align-items:center;gap:5px;margin-left:36px;margin-top:8px;padding:4px 10px;border-radius:3px;background:var(--amber-bg);border:1px solid var(--amber-bd);font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber)}
+.awaiting-dot{width:5px;height:5px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ─── DOCUMENTS TAB ─── */
+.doc-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.doc-row{
+  display:grid;grid-template-columns:44px 1fr auto 72px;
+  align-items:center;gap:12px;
+  padding:13px 16px;border-bottom:1px solid var(--border);
+  transition:background .15s;
+}
+.doc-row:last-child{border-bottom:none}
+.doc-row:hover{background:var(--bg-3)}
+.doc-label{font-size:13px;font-weight:500;color:var(--text)}
+.doc-filename{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--text-3);margin-top:2px}
+.doc-view-btn{
+  padding:5px 12px;border-radius:3px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid var(--border-m);color:var(--text-2);
+  transition:all .15s;display:flex;align-items:center;gap:5px;
+}
+.doc-view-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
+
+/* ─── ACTIVITY TAB ─── */
+.timeline{display:flex;flex-direction:column;gap:0;position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:6px;top:12px;bottom:12px;width:1px;background:var(--border)}
+.tl-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;position:relative}
+.tl-dot{
+  width:13px;height:13px;border-radius:50%;
+  border:2px solid var(--gold);background:var(--bg);
+  flex-shrink:0;margin-top:4px;position:relative;left:-20px;margin-right:-13px;
+}
+.tl-dot.green{border-color:var(--green)}
+.tl-dot.blue{border-color:var(--blue)}
+.tl-dot.amber{border-color:var(--amber)}
+.tl-dot.red{border-color:var(--red)}
+.tl-content{flex:1;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.tl-action{font-size:13px;color:var(--text-2);line-height:1.5}
+.tl-action strong{color:var(--text);font-weight:500}
+.tl-time{font-family:var(--mono);font-size:10px;color:var(--text-3);white-space:nowrap;margin-top:3px;flex-shrink:0}
+
+/* ─── FINANCIALS TAB ─── */
+.prism-econ-card{
+  background:var(--surface);border:1px solid var(--gold-bd);border-radius:var(--r);
+  padding:18px 20px;margin-bottom:20px;
+  position:relative;overflow:hidden;
+}
+.prism-econ-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent);
+}
+.prism-econ-title{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.econ-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.econ-row:last-child{border-bottom:none;padding-top:12px}
+.econ-label{font-size:12px;color:var(--text-2)}
+.econ-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)}
+.econ-val.gold{color:var(--gold)}
+.econ-val.muted{color:var(--text-3)}
+.econ-subtotal{font-family:var(--mono);font-size:11px;color:var(--text-3);font-style:italic}
+
+.qr-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.qr-title{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:16px}
+.qr-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;gap:8px}
+.qr-empty-icon{font-size:24px;opacity:.25}
+.qr-empty-text{font-size:12px;color:var(--text-3)}
+
+/* ─── RIGHT SIDEBAR ─── */
+.panel-right{
+  width:340px;flex-shrink:0;
+  overflow-y:auto;padding:24px 20px;
+  display:flex;flex-direction:column;gap:14px;
+}
+.sidebar-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.sidebar-card-title{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+
+/* Deal Controls */
+.current-stage-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.current-stage-lbl{font-size:12px;color:var(--text-2)}
+.stage-chip{padding:4px 11px;border-radius:20px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;border:1px solid;white-space:nowrap}
+.stage-chip-dd{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.control-btns{display:flex;flex-direction:column;gap:7px}
+.ctrl-btn{
+  width:100%;padding:10px 14px;border-radius:3px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid;transition:all .15s;text-align:center;font-weight:500;
+}
+.ctrl-advance{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.ctrl-advance:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.ctrl-capital{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.ctrl-capital:hover{background:var(--amber);color:#fff;border-color:var(--amber)}
+.ctrl-kill{color:var(--red);border-color:var(--red-bd);background:transparent}
+.ctrl-kill:hover{background:var(--red-bg)}
+
+/* Advisor card */
+.advisor-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.advisor-firm{font-size:12px;color:var(--text-2);margin-bottom:8px}
+.advisor-email{font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:.04em}
+
+/* AI Card */
+.ai-score-row{display:flex;align-items:flex-end;gap:12px;margin-bottom:14px}
+.ai-score-big{font-family:var(--mono);font-size:44px;font-weight:500;color:var(--gold);line-height:1}
+.ai-score-denom{font-family:var(--mono);font-size:16px;color:var(--text-3);margin-bottom:6px}
+.ai-score-action{
+  padding:5px 12px;border-radius:20px;
+  font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--green);border:1px solid var(--green-bd);background:var(--green-bg);
+  margin-bottom:4px;
+}
+.ai-sub-scores{display:flex;flex-direction:column;gap:8px}
+.ai-sub-row{display:flex;align-items:center;justify-content:space-between}
+.ai-sub-lbl{font-size:11px;color:var(--text-3)}
+.ai-sub-bar-wrap{flex:1;margin:0 10px;height:3px;background:var(--border-m);border-radius:2px;overflow:hidden}
+.ai-sub-bar-fill{height:100%;border-radius:2px}
+.ai-sub-bar-fill.completeness{width:91%;background:var(--gold)}
+.ai-sub-bar-fill.plausibility{width:84%;background:var(--green)}
+.ai-sub-val{font-family:var(--mono);font-size:10px;color:var(--text-2);white-space:nowrap}
+
+/* Sprint 2 label */
+.sprint-badge{
+  position:fixed;top:12px;right:12px;z-index:999;
+  padding:5px 12px;border-radius:20px;
+  background:var(--violet-bg);border:1px solid var(--violet-bd);
+  font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);
+}
+</style>
+</head>
+<body>
+
+<!-- Sprint 2 label -->
+<div class="sprint-badge">Sprint 2 Preview</div>
+
+<!-- Mock nav behind panel (context) -->
+<div class="pipeline-bg">
+  <div class="pipeline-nav">
+    <div class="nav-wm">
+      <span class="nav-wm-aurum">Aurum</span>
+      <span class="nav-wm-rule"></span>
+      <span class="nav-wm-prism">Prism</span>
+    </div>
+    <span class="nav-role">Operator</span>
+  </div>
+</div>
+
+<!-- Deal Detail Panel -->
+<div class="panel">
+  <!-- Top bar -->
+  <div class="panel-topbar">
+    <button class="back-btn">
+      <span class="back-arrow">&#8592;</span>
+      Back to Pipeline
+    </button>
+    <span style="color:var(--border-m);font-size:14px">&#47;</span>
+    <span class="panel-breadcrumb"><span>Orchard Street Credit Partners II</span></span>
+  </div>
+
+  <div class="panel-inner">
+    <!-- LEFT COLUMN -->
+    <div class="panel-left">
+      <!-- Deal header -->
+      <div class="deal-header">
+        <div class="deal-name">Orchard Street Credit Partners II</div>
+        <div class="deal-tags">
+          <span class="tag tag-blue">DD</span>
+          <span class="tag tag-slate">Singapore / SEA</span>
+          <span class="tag tag-violet">Senior Secured Credit</span>
+          <span class="tag tag-gold">Private Credit</span>
+        </div>
+      </div>
+
+      <!-- Tab nav -->
+      <nav class="tab-nav" role="tablist" aria-label="Deal detail sections">
+        <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="pane-summary" data-tab="summary">Summary</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="pane-iois" data-tab="iois">IOIs</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="pane-dataroom" data-tab="dataroom">Dataroom</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="pane-documents" data-tab="documents">Documents</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="pane-activity" data-tab="activity">Activity</button>
+        <button class="tab-btn" role="tab" aria-selected="false" aria-controls="pane-financials" data-tab="financials">Financials</button>
+      </nav>
+
+      <!-- Tab content -->
+      <div class="tab-content">
+
+        <!-- SUMMARY -->
+        <div class="tab-pane active" id="pane-summary" role="tabpanel">
+          <div class="metrics-grid">
+            <div class="metric-cell">
+              <div class="metric-lbl">Target IRR</div>
+              <div class="metric-val gold">14–16%</div>
+              <div class="metric-sub">Net of fees</div>
+            </div>
+            <div class="metric-cell">
+              <div class="metric-lbl">Term</div>
+              <div class="metric-val">5 Yrs</div>
+              <div class="metric-sub">+1yr extension option</div>
+            </div>
+            <div class="metric-cell">
+              <div class="metric-lbl">Min Ticket</div>
+              <div class="metric-val">USD 2M</div>
+              <div class="metric-sub">Per investor</div>
+            </div>
+            <div class="metric-cell">
+              <div class="metric-lbl">Target Raise</div>
+              <div class="metric-val">USD 80M</div>
+              <div class="metric-sub">Hard cap USD 100M</div>
+            </div>
+            <div class="metric-cell">
+              <div class="metric-lbl">Closing Date</div>
+              <div class="metric-val">Dec 2026</div>
+              <div class="metric-sub">Final close</div>
+            </div>
+            <div class="metric-cell">
+              <div class="metric-lbl">Asset Class</div>
+              <div class="metric-val" style="font-size:15px;padding-top:3px">Private Credit</div>
+              <div class="metric-sub">Senior secured</div>
+            </div>
+          </div>
+
+          <div class="alloc-bar-wrap">
+            <div class="alloc-bar-lbl">Subscription Progress</div>
+            <div class="alloc-bar-track"><div class="alloc-bar-fill"></div></div>
+            <div class="alloc-bar-meta"><strong>USD 54.4M</strong> of USD 80M &nbsp;&#xb7;&nbsp; <strong>68% subscribed</strong></div>
+          </div>
+
+          <div class="section-title">Investment Overview</div>
+          <div class="thesis-text">
+            <p>Orchard Street Credit Partners II targets senior secured lending opportunities across Southeast Asian mid-market corporates, focusing on asset-backed structures with strong covenant packages and predictable cash flow profiles. The strategy leverages the manager's proprietary origination network built over a decade of regional private credit deployment.</p>
+            <p>The fund employs a disciplined portfolio construction approach, targeting 18–22 positions across Singapore, Indonesia, and Vietnam, with a maximum single-obligor concentration of 8%. Current pipeline visibility exceeds 3.2x the target raise across identified deal opportunities.</p>
+            <p>Risk mitigation is central to the strategy — all positions require first-priority security, personal guarantees from operating shareholders, and quarterly covenant testing. The prior vintage returned 15.2% net IRR over its 4-year investment period, significantly outperforming regional benchmarks.</p>
+          </div>
+        </div>
+
+        <!-- IOIs -->
+        <div class="tab-pane" id="pane-iois" role="tabpanel">
+          <div class="ioi-stat-row">
+            <div class="ioi-stat-card">
+              <div class="ioi-stat-lbl">Total IOIs</div>
+              <div class="ioi-stat-val gold">12</div>
+            </div>
+            <div class="ioi-stat-card">
+              <div class="ioi-stat-lbl">Approved</div>
+              <div class="ioi-stat-val green">8</div>
+            </div>
+            <div class="ioi-stat-card">
+              <div class="ioi-stat-lbl">Pending</div>
+              <div class="ioi-stat-val amber">3</div>
+            </div>
+            <div class="ioi-stat-card">
+              <div class="ioi-stat-lbl">Declined</div>
+              <div class="ioi-stat-val red">1</div>
+            </div>
+          </div>
+
+          <!-- Funnel -->
+          <div class="funnel">
+            <div class="funnel-step">
+              <div class="funnel-step-num">12</div>
+              <div class="funnel-step-lbl">Submitted</div>
+              <div class="funnel-arrow">&#8250;</div>
+            </div>
+            <div class="funnel-step">
+              <div class="funnel-step-num">8</div>
+              <div class="funnel-step-lbl">Approved</div>
+              <div class="funnel-arrow">&#8250;</div>
+            </div>
+            <div class="funnel-step">
+              <div class="funnel-step-num">3</div>
+              <div class="funnel-step-lbl">Pushed to DD</div>
+              <div class="funnel-arrow">&#8250;</div>
+            </div>
+            <div class="funnel-step">
+              <div class="funnel-step-num">1</div>
+              <div class="funnel-step-lbl">Data Room Active</div>
+            </div>
+          </div>
+
+          <!-- Breakdown -->
+          <div class="breakdown-row">
+            <div class="breakdown-card">
+              <div class="breakdown-title">By Type</div>
+              <div class="breakdown-item">
+                <span class="breakdown-type">Institutional</span>
+                <span>5 investors</span>
+                <span class="breakdown-amt">USD 38M</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-type">Family Office</span>
+                <span>2 investors</span>
+                <span class="breakdown-amt">USD 12M</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-type">HNW</span>
+                <span>1 investor</span>
+                <span class="breakdown-amt">USD 4.4M</span>
+              </div>
+            </div>
+            <div class="breakdown-card">
+              <div class="breakdown-title">By Geography</div>
+              <div class="breakdown-item">
+                <span class="breakdown-type">Singapore</span>
+                <span>4 investors</span>
+                <span class="breakdown-amt">USD 28M</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-type">Hong Kong</span>
+                <span>3 investors</span>
+                <span class="breakdown-amt">USD 18M</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-type">UAE</span>
+                <span>1 investor</span>
+                <span class="breakdown-amt">USD 8.4M</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- IOI Table -->
+          <div class="ioi-tbl-wrap">
+            <div class="ioi-tbl-hdr">
+              <span>Investor</span>
+              <span>Type / Geo</span>
+              <span>Amount</span>
+              <span>Status</span>
+              <span>Submitted</span>
+              <span style="text-align:right">Actions</span>
+            </div>
+            <!-- Row 1 — approved -->
+            <div class="ioi-tbl-row">
+              <div>
+                <div class="ioi-inv-name">GIC Private Limited</div>
+                <div class="ioi-inv-firm">Singapore / Institutional</div>
+              </div>
+              <div class="ioi-typegeo">Institutional &middot; SG</div>
+              <div class="ioi-amount">USD 12M</div>
+              <div><span class="chip chip-green">Approved</span></div>
+              <div class="ioi-date">12 Apr 2026</div>
+              <div class="ioi-actions-cell">
+                <span class="chip chip-blue" style="font-size:7px">DD Active</span>
+              </div>
+            </div>
+            <!-- Row 2 — pending -->
+            <div class="ioi-tbl-row">
+              <div>
+                <div class="ioi-inv-name">Eastspring Family Office</div>
+                <div class="ioi-inv-firm">Hong Kong / Family Office</div>
+              </div>
+              <div class="ioi-typegeo">Family Office &middot; HK</div>
+              <div class="ioi-amount">USD 5M</div>
+              <div><span class="chip chip-amber">Pending</span></div>
+              <div class="ioi-date">18 Apr 2026</div>
+              <div class="ioi-actions-cell">
+                <button class="row-btn row-btn-approve">Approve</button>
+                <button class="row-btn row-btn-decline">Decline</button>
+              </div>
+            </div>
+            <!-- Row 3 — pending -->
+            <div class="ioi-tbl-row">
+              <div>
+                <div class="ioi-inv-name">Al Khobar Capital</div>
+                <div class="ioi-inv-firm">UAE / Family Office</div>
+              </div>
+              <div class="ioi-typegeo">Family Office &middot; UAE</div>
+              <div class="ioi-amount">USD 8.4M</div>
+              <div><span class="chip chip-amber">Pending</span></div>
+              <div class="ioi-date">22 Apr 2026</div>
+              <div class="ioi-actions-cell">
+                <button class="row-btn row-btn-approve">Approve</button>
+                <button class="row-btn row-btn-decline">Decline</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATAROOM -->
+        <div class="tab-pane" id="pane-dataroom" role="tabpanel">
+          <div class="dr-section-hd">
+            <span class="dr-section-hd-title">Virtual Data Room</span>
+            <button class="upload-btn">&#8679; Upload File</button>
+          </div>
+
+          <div class="dd-banner">
+            <span class="dd-banner-icon">&#9200;</span>
+            <span class="dd-banner-text">DD Period closes <strong>14 Nov 2026</strong></span>
+            <span class="dd-banner-days">23 days remaining</span>
+          </div>
+
+          <div class="file-list">
+            <!-- File rows -->
+            <div class="file-row">
+              <div><span class="file-badge file-badge-pdf">PDF</span></div>
+              <div>
+                <div class="file-name">Orchard Street — Management Presentation Q4 2026.pdf</div>
+                <div class="file-folder">Legal</div>
+              </div>
+              <div class="file-views">4 views</div>
+              <button class="file-view-btn">View &#8599;</button>
+            </div>
+            <div class="file-row">
+              <div><span class="file-badge file-badge-xls">XLS</span></div>
+              <div>
+                <div class="file-name">Financial Model v3.xlsx</div>
+                <div class="file-folder">Financials</div>
+              </div>
+              <div class="file-views">7 views</div>
+              <button class="file-view-btn">View &#8599;</button>
+            </div>
+            <div class="file-row">
+              <div><span class="file-badge file-badge-pdf">PDF</span></div>
+              <div>
+                <div class="file-name">Term Sheet Draft.pdf</div>
+                <div class="file-folder">Legal</div>
+              </div>
+              <div class="file-views">2 views</div>
+              <button class="file-view-btn">View &#8599;</button>
+            </div>
+            <div class="file-row">
+              <div><span class="file-badge file-badge-pdf">PDF</span></div>
+              <div>
+                <div class="file-name">Environmental &amp; Social Policy.pdf</div>
+                <div class="file-folder">ESG</div>
+              </div>
+              <div class="file-views">1 view</div>
+              <button class="file-view-btn">View &#8599;</button>
+            </div>
+          </div>
+
+          <!-- Q&A -->
+          <div class="dr-section-hd" style="margin-top:20px">
+            <span class="dr-section-hd-title">Investor Q&amp;A</span>
+          </div>
+          <div class="qa-section">
+            <div class="qa-hd">2 threads &nbsp;&middot;&nbsp; 1 awaiting response</div>
+            <!-- Thread 1 — answered -->
+            <div class="qa-thread">
+              <div class="qa-question">
+                <div class="qa-q-avatar">I1</div>
+                <div class="qa-q-body">
+                  <div class="qa-q-meta">Investor #1 &nbsp;&middot;&nbsp; 2 May 2026, 10:14 SGT</div>
+                  <div class="qa-q-text">Can you clarify the fund's approach to cross-default clauses and how they interact with borrower group structures in the SEA context?</div>
+                </div>
+              </div>
+              <div class="qa-answer">
+                <div class="qa-ans-meta">James Chen (Meridian Capital Partners) &nbsp;&middot;&nbsp; 3 May 2026, 14:30 SGT</div>
+                <div class="qa-ans-text">Each credit facility is structured with borrower-level cross-default provisions rather than group-wide clauses, reflecting the varied holding structures across our target markets. Indonesia and Vietnam positions carry additional structural protections given the regulatory environment.</div>
+              </div>
+            </div>
+            <!-- Thread 2 — unanswered -->
+            <div class="qa-thread">
+              <div class="qa-question">
+                <div class="qa-q-avatar">I2</div>
+                <div class="qa-q-body">
+                  <div class="qa-q-meta">Investor #2 &nbsp;&middot;&nbsp; 5 May 2026, 09:02 SGT</div>
+                  <div class="qa-q-text">What is the fund's policy on PIK interest and how frequently has the prior vintage utilised this mechanism?</div>
+                </div>
+              </div>
+              <div class="awaiting-chip">
+                <span class="awaiting-dot"></span>
+                Awaiting response
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOCUMENTS -->
+        <div class="tab-pane" id="pane-documents" role="tabpanel">
+          <div class="doc-list">
+            <div class="doc-row">
+              <div><span class="file-badge file-badge-pdf">PDF</span></div>
+              <div>
+                <div class="doc-label">NDA Template</div>
+                <div class="doc-filename">NDA-Orchard-Street-v2.pdf</div>
+              </div>
+              <div></div>
+              <button class="doc-view-btn">&#8599; View</button>
+            </div>
+            <div class="doc-row">
+              <div><span class="file-badge file-badge-pdf">PDF</span></div>
+              <div>
+                <div class="doc-label">Management Presentation</div>
+                <div class="doc-filename">Mgmt-Pres-Q4-2026.pdf</div>
+              </div>
+              <div></div>
+              <button class="doc-view-btn">&#8599; View</button>
+            </div>
+            <div class="doc-row">
+              <div><span class="file-badge file-badge-xls">XLS</span></div>
+              <div>
+                <div class="doc-label">Financial Summary</div>
+                <div class="doc-filename">Financial-Summary-v3.xlsx</div>
+              </div>
+              <div></div>
+              <button class="doc-view-btn">&#8599; View</button>
+            </div>
+            <div class="doc-row">
+              <div><span class="file-badge file-badge-pdf">PDF</span></div>
+              <div>
+                <div class="doc-label">Term Sheet</div>
+                <div class="doc-filename">Term-Sheet-Draft-v1.pdf</div>
+              </div>
+              <div></div>
+              <button class="doc-view-btn">&#8599; View</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIVITY -->
+        <div class="tab-pane" id="pane-activity" role="tabpanel">
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-dot blue"></div>
+              <div class="tl-content">
+                <div class="tl-action">Stage advanced to <strong>DD</strong> by <strong>admin@aurumprism.com</strong></div>
+                <div class="tl-time">5 May 2026, 16:44</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot green"></div>
+              <div class="tl-content">
+                <div class="tl-action">IOI approved for <strong>GIC Private Limited</strong> — data room access granted</div>
+                <div class="tl-time">4 May 2026, 11:22</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-content">
+                <div class="tl-action">IOI submitted by <strong>GIC Private Limited</strong> — USD 12M indication</div>
+                <div class="tl-time">12 Apr 2026, 09:15</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot green"></div>
+              <div class="tl-content">
+                <div class="tl-action">Stage advanced to <strong>IOI</strong> — deal published to marketplace</div>
+                <div class="tl-time">8 Apr 2026, 14:03</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot amber"></div>
+              <div class="tl-content">
+                <div class="tl-action">Deal reviewed and approved by <strong>admin@aurumprism.com</strong></div>
+                <div class="tl-time">7 Apr 2026, 10:51</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot"></div>
+              <div class="tl-content">
+                <div class="tl-action">Deal submitted by <strong>James Chen</strong> (Meridian Capital Partners)</div>
+                <div class="tl-time">2 Apr 2026, 08:30</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FINANCIALS -->
+        <div class="tab-pane" id="pane-financials" role="tabpanel">
+          <div class="prism-econ-card">
+            <div class="prism-econ-title">Prism Economics</div>
+            <div class="econ-row">
+              <span class="econ-label">Platform Fee</span>
+              <span class="econ-val">1.5%</span>
+            </div>
+            <div class="econ-row">
+              <span class="econ-label">Carry</span>
+              <span class="econ-val">10% (over 12% hurdle)</span>
+            </div>
+            <div class="econ-row">
+              <span class="econ-label">Mgmt Fee (pass-through)</span>
+              <span class="econ-val muted">0.5% p.a.</span>
+            </div>
+            <div class="econ-row">
+              <span class="econ-label">Projected platform fee revenue</span>
+              <span class="econ-val muted">USD 816K <span class="econ-subtotal">(at USD 54.4M raised)</span></span>
+            </div>
+            <div class="econ-row">
+              <span class="econ-label">Projected carry (est. at 15% net)</span>
+              <span class="econ-val muted">USD 1.02M</span>
+            </div>
+            <div class="econ-row" style="border-top:1px solid var(--gold-bd)">
+              <span class="econ-label" style="color:var(--text);font-weight:500">Total projected revenue</span>
+              <span class="econ-val gold">USD 1.836M</span>
+            </div>
+          </div>
+
+          <div class="qr-section">
+            <div class="qr-title">Quarterly Reports</div>
+            <div class="qr-empty">
+              <div class="qr-empty-icon">&#128196;</div>
+              <div class="qr-empty-text">No quarterly reports uploaded yet.<br>Advisor uploads reports each quarter from their portal.</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-content -->
+    </div><!-- /panel-left -->
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="panel-right">
+
+      <!-- Deal Controls -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">Deal Controls</div>
+        <div class="current-stage-row">
+          <span class="current-stage-lbl">Current Stage</span>
+          <span class="stage-chip stage-chip-dd">DD</span>
+        </div>
+        <div class="control-btns">
+          <button class="ctrl-btn ctrl-advance">Advance to Terms &#8594;</button>
+          <button class="ctrl-btn ctrl-capital">Issue Capital Call</button>
+          <button class="ctrl-btn ctrl-kill">Kill Deal</button>
+        </div>
+      </div>
+
+      <!-- Sourcing Advisor -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">Sourcing Advisor</div>
+        <div class="advisor-name">James Chen</div>
+        <div class="advisor-firm">Meridian Capital Partners</div>
+        <div class="advisor-email">j.chen@meridiancap.sg</div>
+      </div>
+
+      <!-- AI Analysis -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">AI Analysis</div>
+        <div class="ai-score-row">
+          <div>
+            <div class="ai-score-big">87<span class="ai-score-denom">/100</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:4px">
+            <span class="ai-score-action">Strong — Recommend Advance</span>
+          </div>
+        </div>
+        <div class="ai-sub-scores">
+          <div class="ai-sub-row">
+            <span class="ai-sub-lbl">Completeness</span>
+            <div class="ai-sub-bar-wrap"><div class="ai-sub-bar-fill completeness"></div></div>
+            <span class="ai-sub-val">91/100</span>
+          </div>
+          <div class="ai-sub-row">
+            <span class="ai-sub-lbl">Plausibility</span>
+            <div class="ai-sub-bar-wrap"><div class="ai-sub-bar-fill plausibility"></div></div>
+            <span class="ai-sub-val">84/100</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panel-right -->
+  </div><!-- /panel-inner -->
+</div><!-- /panel -->
+
+<script>
+(function(){
+  'use strict';
+
+  const tabs = document.querySelectorAll('.tab-btn');
+  const panes = document.querySelectorAll('.tab-pane');
+
+  function switchTab(targetKey){
+    tabs.forEach(function(btn){
+      const isActive = btn.dataset.tab === targetKey;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    panes.forEach(function(pane){
+      const isActive = pane.id === 'pane-' + targetKey;
+      pane.classList.toggle('active', isActive);
+    });
+  }
+
+  tabs.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      switchTab(btn.dataset.tab);
+    });
+  });
+
+  // Keyboard navigation (left/right arrows within tablist)
+  document.querySelector('.tab-nav').addEventListener('keydown', function(e){
+    const tabArr = Array.from(tabs);
+    const currentIdx = tabArr.findIndex(function(b){ return b.classList.contains('active'); });
+    let nextIdx = currentIdx;
+    if(e.key === 'ArrowRight'){ nextIdx = (currentIdx + 1) % tabArr.length; }
+    else if(e.key === 'ArrowLeft'){ nextIdx = (currentIdx - 1 + tabArr.length) % tabArr.length; }
+    else { return; }
+    e.preventDefault();
+    tabArr[nextIdx].focus();
+    switchTab(tabArr[nextIdx].dataset.tab);
+  });
+
+})();
+</script>
+</body>
+</html>
