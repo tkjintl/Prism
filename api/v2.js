@@ -3023,6 +3023,11 @@ Return ONLY valid JSON in this exact structure:
 
       deal.updated_at = new Date().toISOString();
       await saveDeal(deal);
+      // Email advisor: "Your deal is pending your confirmation"
+      if (deal.advisor_id) {
+        const advObj = await kvGet(`advisor:${deal.advisor_id}`);
+        if (advObj) await sendStageChange(deal, advObj, 'review').catch(console.error);
+      }
       return ok(res, { ok: true });
     }
 

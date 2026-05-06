@@ -210,11 +210,13 @@ export async function sendStageChange(deal, advisor, newStage) {
     killed:   { line: 'The deal has been withdrawn.', detail: 'No further investor activity will be accepted. Please contact the operator if you wish to discuss next steps.' },
     review:   { line: 'Your deal has been published and is awaiting your confirmation.', detail: 'Log in to your advisor portal and confirm to make the deal visible to investors.' },
   };
+  const stageDisplayNames = { review:'Pending Confirmation', live:'Live', ioi:'IOI', dd:'Due Diligence', terms:'Terms', close:'Close', realized:'Realized', killed:'Withdrawn' };
   const msg = stageMessages[newStage] || { line: `Stage updated to ${newStage}.`, detail: '' };
-  await send(advisor.email, `Aurum Prism — ${deal.name}: stage ${newStage}`,
+  const stageDisplay = stageDisplayNames[newStage] || newStage.toUpperCase();
+  await send(advisor.email, `Aurum Prism — ${deal.name}: ${stageDisplay}`,
     base('Deal Update',
       h(deal.name) +
-      meta(`Stage · ${newStage.toUpperCase()}`) +
+      meta(`Stage · ${stageDisplay}`) +
       rule() +
       p(msg.line) +
       (msg.detail ? p(msg.detail) : '') +

@@ -4027,7 +4027,7 @@ async function renderInvestors(){
         <td style="padding:10px;font-size:11px;color:var(--text-2)">${inst.geo||'—'}</td>
         <td style="padding:10px">${statusChip(inst.status)}</td>
         <td style="padding:10px;font-family:var(--mono);font-size:10px;color:var(--text-3)">${fmDate(inst.created_at)}</td>
-        <td style="padding:10px;text-align:right;display:flex;gap:6px;justify-content:flex-end">${actions.join('')}</td>
+        <td style="padding:10px;text-align:right"><div style="display:flex;gap:6px;justify-content:flex-end">${actions.join('')}</div></td>
       </tr>`;
     }).join('')}</tbody>
   </table>`;
@@ -4085,7 +4085,7 @@ async function renderAdvisors(){
         <td style="padding:10px;font-size:11px;color:var(--text-2)">${adv.firm||adv.firm_name||'—'}</td>
         <td style="padding:10px">${statusChip(adv.status)}</td>
         <td style="padding:10px;font-family:var(--mono);font-size:10px;color:var(--text-3)">${fmDate(adv.created_at)}</td>
-        <td style="padding:10px;text-align:right;display:flex;gap:6px;justify-content:flex-end">${actions.join('')}</td>
+        <td style="padding:10px;text-align:right"><div style="display:flex;gap:6px;justify-content:flex-end">${actions.join('')}</div></td>
       </tr>`;
     }).join('')}</tbody>
   </table>`;
