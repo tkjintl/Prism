@@ -1558,6 +1558,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab" onclick="showView('pipeline',this)">Deal Pipeline</button>
     <button class="ntab" onclick="showView('queue',this)">IOI Queue<span class="ntab-badge" id="queue-badge-dot" style="display:none"></span></button>
     <button class="ntab" onclick="showView('aitool',this)">Deal Studio</button>
+    <button class="ntab" onclick="showView('investors',this)">Investors</button>
+    <button class="ntab" onclick="showView('advisors',this)">Advisors</button>
     <button class="ntab" onclick="showView('system',this)">System</button>
     <a class="ntab" href="/bot-driver" title="Sandbox bot driver — for partner demos">Bot Driver</a>
     <a class="ntab" href="/bot-viewer" title="Live bot activity viewer — read-only">Bot Viewer</a>
@@ -1619,6 +1621,22 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 </div>
 
 <!-- ══ VIEW: SYSTEM ══ -->
+<div id="view-investors" class="view">
+  <div class="view-inner">
+    <div class="view-heading">Investors</div>
+    <div class="view-sub">Registered institutional investors — approve, reject, or revoke access.</div>
+    <div id="investors-table-wrap" style="margin-top:24px"></div>
+  </div>
+</div>
+
+<div id="view-advisors" class="view">
+  <div class="view-inner">
+    <div class="view-heading">Advisors</div>
+    <div class="view-sub">Registered deal advisors — manage access and view portal.</div>
+    <div id="advisors-table-wrap" style="margin-top:24px"></div>
+  </div>
+</div>
+
 <div id="view-system" class="view">
   <div class="view-inner" style="max-width:640px">
     <div class="view-heading">System</div>
@@ -2498,6 +2516,8 @@ function showView(name,btn){
   if(name==='queue')renderQueue();
   if(name==='pipeline'){renderPipeline();refreshUnassignedDealsBadge();}
   if(name==='aitool')renderAITool();
+  if(name==='investors')renderInvestors();
+  if(name==='advisors')renderAdvisors();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -3963,6 +3983,113 @@ const _mc=document.getElementById('modal-confirm');if(_mc)_mc.onclick=async func
   toast(`${d.name} advanced to ${STAGE_LABELS[targetStage]}`,'ok');
 };
 const _sm=document.getElementById('stage-modal');if(_sm)_sm.addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+/* ── INVESTOR MANAGEMENT ── */
+async function renderInvestors(){
+  const wrap=document.getElementById('investors-table-wrap');
+  wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:24px 0">Loading…</div>';
+  const res=await fetchSilent('/api/v2?resource=inst&op=list');
+  const insts=(res?.insts||[]);
+  if(!insts.length){wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:24px 0">No investors registered yet.</div>';return;}
+  const statusChip=s=>{
+    const map={approved:'var(--green)',pending:'var(--amber)',rejected:'var(--red)',revoked:'var(--text-3)'};
+    const bdMap={approved:'var(--green-bd)',pending:'var(--amber-bd)',rejected:'rgba(200,60,60,.3)',revoked:'var(--border-m)'};
+    const bgMap={approved:'var(--green-bg)',pending:'var(--amber-bg)',rejected:'rgba(200,60,60,.08)',revoked:'var(--surface)'};
+    return `<span style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:2px;color:${map[s]||'var(--text-3)'};border:1px solid ${bdMap[s]||'var(--border-m)'};background:${bgMap[s]||'var(--surface)'}">${s}</span>`;
+  };
+  const fmDate=s=>s?new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+  wrap.innerHTML=`<table style="width:100%;border-collapse:collapse">
+    <thead><tr style="border-bottom:1px solid var(--border)">
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Firm</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Contact</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Type</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Geo</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Status</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Registered</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>${insts.map(inst=>{
+      const isPending=inst.status==='pending';
+      const isApproved=inst.status==='approved';
+      const actions=[];
+      if(isPending){
+        actions.push(`<button onclick="instApprove('${inst.id}')" style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:4px 10px;border-radius:2px;background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green);cursor:pointer">Approve</button>`);
+        actions.push(`<button onclick="instReject('${inst.id}')" style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:4px 10px;border-radius:2px;background:rgba(200,60,60,.08);border:1px solid rgba(200,60,60,.3);color:var(--red);cursor:pointer">Reject</button>`);
+      }
+      if(isApproved){
+        actions.push(`<button onclick="instRevoke('${inst.id}')" style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:4px 10px;border-radius:2px;background:rgba(200,60,60,.08);border:1px solid rgba(200,60,60,.3);color:var(--red);cursor:pointer">Revoke</button>`);
+        actions.push(`<button onclick="vapMode='inv';vapImpersonate('${inst.id}')" style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:4px 10px;border-radius:2px;background:var(--gold-bg);border:1px solid var(--gold-bd);color:var(--gold);cursor:pointer">View As</button>`);
+      }
+      return `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:10px;font-size:12px;font-weight:500;color:var(--text)">${inst.firm_name||'—'}</td>
+        <td style="padding:10px;font-size:12px;color:var(--text-2)">${inst.contact_name||inst.email||'—'}<br><span style="font-size:10px;color:var(--text-3)">${inst.email||''}</span></td>
+        <td style="padding:10px;font-size:11px;color:var(--text-2)">${inst.institution_type||'—'}</td>
+        <td style="padding:10px;font-size:11px;color:var(--text-2)">${inst.geo||'—'}</td>
+        <td style="padding:10px">${statusChip(inst.status)}</td>
+        <td style="padding:10px;font-family:var(--mono);font-size:10px;color:var(--text-3)">${fmDate(inst.created_at)}</td>
+        <td style="padding:10px;text-align:right;display:flex;gap:6px;justify-content:flex-end">${actions.join('')}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+async function instApprove(id){
+  const r=await api('POST','/api/admin/approve',{inst_id:id});
+  if(r?.ok!==false){toast('Investor approved','ok');renderInvestors();}
+  else toast(r?.error||'Approve failed','err');
+}
+async function instReject(id){
+  if(!confirm('Reject this investor application?'))return;
+  const r=await api('POST','/api/admin/reject-inst',{inst_id:id});
+  if(r?.ok!==false){toast('Application rejected','ok');renderInvestors();}
+  else toast(r?.error||'Reject failed','err');
+}
+async function instRevoke(id){
+  if(!confirm('Revoke this investor\'s access? They will be locked out immediately.'))return;
+  const r=await api('POST','/api/admin/revoke-inst',{inst_id:id});
+  if(r?.ok!==false){toast('Access revoked','ok');renderInvestors();}
+  else toast(r?.error||'Revoke failed','err');
+}
+
+/* ── ADVISOR MANAGEMENT ── */
+async function renderAdvisors(){
+  const wrap=document.getElementById('advisors-table-wrap');
+  wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:24px 0">Loading…</div>';
+  const res=await fetchSilent('/api/v2?resource=advisors');
+  const advisors=(res?.advisors||[]);
+  if(!advisors.length){wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:24px 0">No advisors registered yet.</div>';return;}
+  const statusChip=s=>{
+    const map={active:'var(--green)',pending:'var(--amber)',suspended:'var(--red)'};
+    const bdMap={active:'var(--green-bd)',pending:'var(--amber-bd)',suspended:'rgba(200,60,60,.3)'};
+    const bgMap={active:'var(--green-bg)',pending:'var(--amber-bg)',suspended:'rgba(200,60,60,.08)'};
+    return `<span style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:2px;color:${map[s]||'var(--text-3)'};border:1px solid ${bdMap[s]||'var(--border-m)'};background:${bgMap[s]||'var(--surface)'}">${s||'unknown'}</span>`;
+  };
+  const fmDate=s=>s?new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+  wrap.innerHTML=`<table style="width:100%;border-collapse:collapse">
+    <thead><tr style="border-bottom:1px solid var(--border)">
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Name</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Email</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Firm</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Status</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Registered</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>${advisors.map(adv=>{
+      const isActive=adv.status==='active'||!adv.status;
+      const actions=[];
+      if(isActive){
+        actions.push(`<button onclick="vapMode='adv';vapImpersonate('${adv.id}')" style="font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:4px 10px;border-radius:2px;background:var(--gold-bg);border:1px solid var(--gold-bd);color:var(--gold);cursor:pointer">View As</button>`);
+      }
+      return `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:10px;font-size:12px;font-weight:500;color:var(--text)">${adv.name||adv.contact_name||'—'}</td>
+        <td style="padding:10px;font-size:11px;color:var(--text-2)">${adv.email||'—'}</td>
+        <td style="padding:10px;font-size:11px;color:var(--text-2)">${adv.firm||adv.firm_name||'—'}</td>
+        <td style="padding:10px">${statusChip(adv.status)}</td>
+        <td style="padding:10px;font-family:var(--mono);font-size:10px;color:var(--text-3)">${fmDate(adv.created_at)}</td>
+        <td style="padding:10px;text-align:right;display:flex;gap:6px;justify-content:flex-end">${actions.join('')}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
 
 /* ── AI TOOL ── */
 const AI_DOCS={nda:false,mgmt:false,fin:false,term:false};
