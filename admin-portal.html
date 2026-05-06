@@ -1225,6 +1225,59 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .ov-collapsible-body.closed,
   .ov-collapsible-body.open { max-height: none !important; overflow: visible; }
 }
+/* ── ZONE LAYOUT (dashboard redesign) ── */
+.zone-2{padding:20px 28px 0}
+.zone-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.zone-hd-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2)}
+.zone-hd-count{font-family:var(--mono);font-size:10px;color:var(--text-3)}
+.action-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:20px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.action-scroll .ov-action-card{width:264px;border:1px solid var(--border);border-radius:var(--r);border-bottom:1px solid var(--border)}
+.action-scroll .ov-action-card.pq-high-card{border-left:3px solid var(--red)}
+.action-scroll .ov-action-card.pq-medium-card{border-left:3px solid var(--amber)}
+.act-card{flex-shrink:0;width:264px;background:var(--bg-2);border:1px solid var(--border);border-left-width:3px;border-radius:var(--r);padding:14px 15px;display:flex;flex-direction:column;gap:6px}
+.act-card.brd-red{border-left-color:var(--red)}
+.act-card.brd-amber{border-left-color:var(--amber)}
+.act-card.brd-gold{border-left-color:var(--gold)}
+.act-card.brd-green{border-left-color:var(--green)}
+.act-pill{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:3px;display:inline-block}
+.act-pill.red{color:var(--red);background:var(--red-bg)}
+.act-pill.amber{color:var(--amber);background:var(--amber-bg)}
+.act-pill.gold{color:var(--gold);background:var(--gold-bg)}
+.act-pill.green{color:var(--green);background:var(--green-bg)}
+.act-card-name{font-size:13px;font-weight:500;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-card-sub{font-size:11px;color:var(--text-2);line-height:1.4}
+.act-card-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.act-empty{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text-3);padding:40px 0;text-align:center;width:100%}
+.zone-3{display:grid;grid-template-columns:1fr 1fr;gap:28px;padding:24px 28px}
+@media(max-width:900px){.zone-3{grid-template-columns:1fr}}
+.col-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.col-hd-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2)}
+.stage-grp{margin-bottom:20px}
+.stage-grp-hd{display:flex;align-items:center;gap:8px;padding:6px 0;margin-bottom:6px}
+.stage-dot-ov{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.stage-dot-ov.gold{background:var(--gold)}
+.stage-dot-ov.amber{background:var(--amber)}
+.stage-dot-ov.blue{background:var(--blue)}
+.stage-dot-ov.green{background:var(--green)}
+.stage-dot-ov.slate{background:var(--text-3)}
+.stage-grp-label{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2);flex:1}
+.stage-grp-badge{font-family:var(--mono);font-size:9px;color:var(--text-3);background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:1px 5px}
+.deal-card-ov{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:border-color .15s}
+.deal-card-ov:hover{border-color:var(--border-m)}
+.deal-card-ov-row1{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.deal-card-ov-name{flex:1;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.deal-stage-chip-ov{font-family:var(--mono);font-size:8px;letter-spacing:.08em;padding:2px 6px;border-radius:3px;flex-shrink:0;text-transform:uppercase}
+.deal-stage-chip-ov.sc-dd{background:var(--gold-bg);color:var(--gold)}
+.deal-stage-chip-ov.sc-terms{background:var(--amber-bg);color:var(--amber)}
+.deal-stage-chip-ov.sc-close{background:var(--green-bg);color:var(--green)}
+.deal-stage-chip-ov.sc-live{background:var(--blue-bg);color:var(--blue)}
+.deal-stage-chip-ov.sc-review{background:var(--surface);color:var(--text-3)}
+.deal-card-ov-row2{display:flex;align-items:center;gap:5px;margin-bottom:7px;font-size:10px;color:var(--text-2);white-space:nowrap;overflow:hidden}
+.deal-bar-ov-row{display:flex;align-items:center;gap:8px}
+.deal-bar-ov{flex:1;height:3px;background:var(--surface);border-radius:2px;overflow:hidden}
+.deal-bar-ov-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .6s var(--ease)}
+.deal-bar-ov-pct{font-family:var(--mono);font-size:9px;color:var(--text-3);flex-shrink:0;width:30px;text-align:right}
+.zone-access{padding:20px 28px;border-top:1px solid var(--border)}
 </style>
 <style>
 /* ── CAT A · CTA letter-spacing tighten ── */
@@ -2732,78 +2785,89 @@ function renderOverview(){
     <div class="ov-signup-status ${i.access}">${investorAccessLabel(i.access)}</div>
   </div>`).join('');
 
+  /* ── Stage-grouped pipeline cards (new zone layout) ── */
+  const STAGE_ORDER_OV=['dd','terms','close','live','review'];
+  const stageLanesNew=STAGE_ORDER_OV.map(stage=>{
+    const sDeals=DEALS.filter(d=>d.stage===stage);
+    if(!sDeals.length)return'';
+    const dotCls={live:'blue',dd:'gold',terms:'amber',close:'green',review:'slate'}[stage]||'slate';
+    const lbl=STAGE_LABELS[stage]||stage;
+    const cards=sDeals.map(d=>{
+      const appAmt=d.iois.filter(i=>i.status==='approved').reduce((s,i)=>s+i.amount,0);
+      const pct=d.target_alloc>0?Math.min(Math.round(appAmt/d.target_alloc*100),100):0;
+      const cnt=d.iois.filter(i=>i.status!=='declined').length;
+      return `<div class="deal-card-ov" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2]);setTimeout(()=>openDealDetail('${d.id}'),300)" title="${d.name}">
+        <div class="deal-card-ov-row1">
+          <div class="deal-card-ov-name">${d.name}</div>
+          <span class="deal-stage-chip-ov sc-${stage}">${lbl}</span>
+        </div>
+        <div class="deal-card-ov-row2">
+          <span>${d.advisor||'—'}</span>
+          ${d.asset_class?`<span style="color:var(--border-m)">·</span><span>${d.asset_class}</span>`:''}
+          <span style="color:var(--border-m)">·</span><span>${cnt} IOI${cnt!==1?'s':''}</span>
+        </div>
+        <div class="deal-bar-ov-row">
+          <div class="deal-bar-ov"><div class="deal-bar-ov-fill" style="width:${pct}%"></div></div>
+          <span class="deal-bar-ov-pct">${pct}%</span>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="stage-grp">
+      <div class="stage-grp-hd">
+        <div class="stage-dot-ov ${dotCls}"></div>
+        <span class="stage-grp-label">${lbl}</span>
+        <span class="stage-grp-badge">${sDeals.length}</span>
+      </div>
+      ${cards}
+    </div>`;
+  }).join('');
+
+  const allActionCards=[...submissionCards,...readyToPublishCards,...ioiDecisionCards,...pushCards];
+
   document.getElementById('overview-main').innerHTML=`
     ${headerBar}
-    <div class="ov-collapsible">
-      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s1')">
-        <span>Action Queue</span>
-        <span class="ov-collapsible-arrow" id="ov-s1-arrow">&#9660;</span>
+
+    <!-- Zone 2: Action Queue (horizontal scroll) -->
+    <section class="zone-2">
+      <div class="zone-hd">
+        <span class="zone-hd-title">Action Queue</span>
+        <span class="zone-hd-count">${allActionCards.length>0?allActionCards.length+' item'+(allActionCards.length!==1?'s':''):'All clear'}</span>
       </div>
-      <div class="ov-collapsible-body open" id="ov-s1">
-        <div style="padding:16px 0">
-          <div class="ov-queue-grid">
-            ${queueCol('ov-dot-amber','New Deals',submissionCards)}
-            ${queueCol('ov-dot-green','Ready to Publish',readyToPublishCards)}
-            ${queueCol('ov-dot-gold','Inbound IOI from Investors',ioiDecisionCards)}
-            ${queueCol('ov-dot-violet','Open Due Diligence',pushCards)}
-          </div>
+      <div class="action-scroll">
+        ${allActionCards.length?allActionCards.join(''):'<div class="act-empty">No pending actions — all clear</div>'}
+      </div>
+    </section>
+
+    <!-- Zone 3: Pipeline + Activity (two columns) -->
+    <div class="zone-3">
+      <section>
+        <div class="col-hd">
+          <span class="col-hd-title">Deal Pipeline</span>
+          <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2])">Full View &#8594;</button>
         </div>
-      </div>
+        ${stageLanesNew||'<div class="ov-empty">No active deals</div>'}
+      </section>
+      <section>
+        <div class="col-hd"><span class="col-hd-title">Platform Activity</span><span class="zone-hd-count">${activity.length} events</span></div>
+        <div class="ov-panel-body">${activityHtml||'<div class="ov-empty">No recent activity</div>'}</div>
+        <div class="col-hd" style="margin-top:20px"><span class="col-hd-title">IOI Intelligence</span></div>
+        <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
+      </section>
     </div>
-    <div class="ov-collapsible">
-      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s2')">
-        <span>Deal Pipeline</span>
-        <span class="ov-collapsible-arrow" id="ov-s2-arrow">&#9660;</span>
+
+    <!-- Zone 4: Platform Access -->
+    <div class="zone-access">
+      <div class="col-hd">
+        <span class="col-hd-title">Platform Access</span>
       </div>
-      <div class="ov-collapsible-body closed" id="ov-s2">
-        <div style="padding:16px 0">
-          <div class="ov-stage-section" style="margin-bottom:0">
-            <div class="ov-section-hd">
-              <div class="ov-section-title">Deal Pipeline</div>
-              <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2])">View Full Pipeline &#8594;</button>
-            </div>
-            <div class="ov-stage-lanes">${stageLanes.join('')}</div>
-          </div>
+      <div class="ov-signup-grid" style="margin-top:0">
+        <div class="ov-panel">
+          <div class="ov-panel-hd"><span>Advisors</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length}</span></div>
+          <div class="ov-panel-body" style="max-height:220px">${advisorRows||'<div class="ov-empty">No advisors yet</div>'}</div>
         </div>
-      </div>
-    </div>
-    <div class="ov-collapsible">
-      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s3')">
-        <span>Team Access</span>
-        <span class="ov-collapsible-arrow" id="ov-s3-arrow">&#9660;</span>
-      </div>
-      <div class="ov-collapsible-body open" id="ov-s3">
-        <div style="padding:16px 0">
-          <div class="ov-signup-grid" style="margin-top:0">
-            <div class="ov-panel">
-              <div class="ov-panel-hd"><span>Advisor Access</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length} advisors</span></div>
-              <div class="ov-panel-body" style="max-height:220px">${advisorRows}</div>
-            </div>
-            <div class="ov-panel">
-              <div class="ov-panel-hd"><span>Investor Access</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length} investors</span></div>
-              <div class="ov-panel-body" style="max-height:220px">${investorRows}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="ov-collapsible">
-      <div class="ov-collapsible-hd" onclick="toggleOvSection('ov-s4')">
-        <span>Activity</span>
-        <span class="ov-collapsible-arrow" id="ov-s4-arrow">&#9660;</span>
-      </div>
-      <div class="ov-collapsible-body closed" id="ov-s4">
-        <div style="padding:16px 0">
-          <div class="ov-bottom-grid">
-            <div class="ov-panel">
-              <div class="ov-panel-hd"><span>Platform Activity</span><span class="ov-panel-hd-sub">${activity.length} recent events</span></div>
-              <div class="ov-panel-body">${activityHtml}</div>
-            </div>
-            <div class="ov-panel">
-              <div class="ov-panel-hd"><span>IOI Intelligence</span><span class="ov-panel-hd-sub">by deal</span></div>
-              <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
-            </div>
-          </div>
+        <div class="ov-panel">
+          <div class="ov-panel-hd"><span>Investors</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length}</span></div>
+          <div class="ov-panel-body" style="max-height:220px">${investorRows||'<div class="ov-empty">No investors yet</div>'}</div>
         </div>
       </div>
     </div>`;
