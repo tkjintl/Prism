@@ -4,7 +4,8 @@ import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, kvZadd, kvZre
 import { createDeal, updateDeal, getDeal, saveDeal, listDeals, seedDeals, seedIois, bumpIoiCounters, appendAuditEntry, validateDealForPublish } from './_lib/deal-storage.js';
 import {
   sendAccessCode, sendDealReceived, sendStageChange,
-  sendDataRoomAccess, sendAccessApplication, sendAccessApplicationAck, sendAdvisorApplication,
+  sendDataRoomAccess, sendAccessApplication, sendAccessApplicationAck, sendAccessApplicationDeclined,
+  sendAdvisorApplication, sendAdvisorApplicationDeclined,
   sendAdvisorWelcome, sendPasswordReset, sendIoiPackage,
   sendIoiConfirmation, sendIoiRejection, sendDataRoomPackageResponse,
   sendQaQuestionToAdvisor, sendQaAnswerToInvestor,
@@ -2216,6 +2217,7 @@ async function _handler(req, res, resource, op) {
       inst.rejected_by = admin.email;
       inst.rejection_reason = reason || '';
       await kvSet(`inst:${inst_id}`, inst);
+      await sendAccessApplicationDeclined(inst).catch(console.error);
       return ok(res);
     }
 

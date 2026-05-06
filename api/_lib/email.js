@@ -71,7 +71,7 @@ p{font-size:13px;color:#a89f94;line-height:1.7;margin:0 0 12px}
 <div class="wrap">
 <div class="hdr"><div class="seal" style="font-family:Georgia,serif">P</div><div class="brand">Aurum Prism · Private Deal Platform</div></div>
 <div class="body">${content}</div>
-<div class="ft">Aurum Prism · prism.theaurumcc.com · TACC Pte Ltd Singapore<br>This is a transactional email. Do not reply to this address.</div>
+<div class="ft">Aurum Prism · prism.theaurumcc.com · Aurum Prism Ltd · Singapore<br>This is a transactional email. Do not reply to this address.</div>
 </div></body></html>`;
 }
 
@@ -389,7 +389,7 @@ export async function sendIoiPackage(data) {
         <td style="padding:14px 28px;border-top:1px solid rgba(255,255,255,0.06)">
           <div style="font-family:monospace;font-size:8px;color:#3a3530;line-height:1.7">
             Package ID: ${data.package_id}<br>
-            Aurum Prism &middot; prism.theaurumcc.com &middot; TACC Pte Ltd Singapore<br>
+            Aurum Prism &middot; prism.theaurumcc.com &middot; Aurum Prism Ltd · Singapore<br>
             This is a transactional email. Do not reply to this address.
           </div>
         </td>
