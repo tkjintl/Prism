@@ -2696,7 +2696,7 @@ function renderOverview(){
     const hasPendingIoi = deals.some(d => d.iois.some(i => i.status === 'pending'));
     const chips = deals.map(d => {
       const ticker = d.name.replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase();
-      return `<div class="ov-deal-chip" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2]);setTimeout(()=>openDealDetail('${d.id}'),300)" title="${d.name}">
+      return `<div class="ov-deal-chip" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1]);setTimeout(()=>openDealDetail('${d.id}'),300)" title="${d.name}">
         <div class="ov-dc-ticker">${ticker}</div>
         <div class="ov-dc-name">${d.name}</div>
         <div class="ov-dc-amt">${fmU(d.ioi_agg)}</div>
@@ -2750,7 +2750,7 @@ function renderOverview(){
       return `<div class="ov-spark-bar" style="height:${h}px;background:var(--gold);width:4px"></div>`;
     }).join('');
     const sparkHtml=ioiAmounts.length>0?`<div class="ov-spark">${sparkBars}</div>`:'';
-    return `<div class="ov-intel-row" style="cursor:pointer" onclick="showView('queue',document.querySelectorAll('.ntab')[1]);setTimeout(()=>{ const el=document.getElementById('iqi-${d.iois.filter(i=>i.status!=='declined')[0]?.id}'); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },400)">
+    return `<div class="ov-intel-row" style="cursor:pointer" onclick="showView('queue',document.querySelectorAll('.ntab')[2]);setTimeout(()=>{ const el=document.getElementById('iqi-${d.iois.filter(i=>i.status!=='declined')[0]?.id}'); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },400)">
       <div class="ov-intel-deal" title="${d.name}">${d.name}</div>
       <div class="ov-intel-bar-wrap">
         <div class="ov-intel-track"><div class="ov-intel-fill" style="width:${pct}%"></div></div>
@@ -2796,7 +2796,7 @@ function renderOverview(){
       const appAmt=d.iois.filter(i=>i.status==='approved').reduce((s,i)=>s+i.amount,0);
       const pct=d.target_alloc>0?Math.min(Math.round(appAmt/d.target_alloc*100),100):0;
       const cnt=d.iois.filter(i=>i.status!=='declined').length;
-      return `<div class="deal-card-ov" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2]);setTimeout(()=>openDealDetail('${d.id}'),300)" title="${d.name}">
+      return `<div class="deal-card-ov" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1]);setTimeout(()=>openDealDetail('${d.id}'),300)" title="${d.name}">
         <div class="deal-card-ov-row1">
           <div class="deal-card-ov-name">${d.name}</div>
           <span class="deal-stage-chip-ov sc-${stage}">${lbl}</span>
@@ -2843,7 +2843,7 @@ function renderOverview(){
       <section>
         <div class="col-hd">
           <span class="col-hd-title">Deal Pipeline</span>
-          <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[2])">Full View &#8594;</button>
+          <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1])">Full View &#8594;</button>
         </div>
         ${stageLanesNew||'<div class="ov-empty">No active deals</div>'}
       </section>
@@ -4558,11 +4558,13 @@ function buildDealDetailHTML(deal){
           <span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">Current Stage</span>
         </div>
         <div class="ddp-ctrl-btns">
-          ${(()=>{
+          ${deal.stage==='review'?`
+            <button class="ddp-ctrl-btn" style="border-color:var(--blue-bd);color:var(--blue)" onclick="closeDealDetail();loadDocsAndGenerate('${deal.id}');showView('aitool',document.querySelectorAll('.ntab')[3])">✦ Generate AI Profile</button>
+            <button class="ddp-ctrl-btn" onclick="closeDealDetail();sendToAdvisorReview('${deal.id}',this)">→ Send to Advisor</button>
+            <button class="ddp-ctrl-btn advance" onclick="openModal('${deal.id}','live');closeDealDetail()">→ Publish to Live</button>
+          `:(()=>{
             const a=nextStageActionFor(deal.stage);
             if(!a)return '';
-            // push-package has its own modal/preview path; advance-stage and
-            // publish-deal go through openModal which routes to the right endpoint.
             if(a.endpoint==='push-package')return `<button class="ddp-ctrl-btn push" onclick="pushPackage('${deal.id}');closeDealDetail()">✦ ${a.label}</button>`;
             return `<button class="ddp-ctrl-btn advance" onclick="openModal('${deal.id}','${a.target}');closeDealDetail()">→ ${a.label}</button>`;
           })()}
