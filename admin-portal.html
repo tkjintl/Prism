@@ -5892,16 +5892,20 @@ async function vapImpersonate(id) {
   const op = vapMode === 'adv' ? 'view-as-advisor' : 'view-as-investor';
   const idField = vapMode === 'adv' ? 'advisor_id' : 'inst_id';
   const portal = vapMode === 'adv' ? '/advisor-portal' : '/investor-portal';
+  // Open window synchronously (user gesture context) to avoid popup blocker
+  const win = window.open('about:blank', '_blank');
+  if (!win) { alert('Popup blocked — allow popups for this site and try again.'); return; }
+  win.document.write('<html><body style="background:#0a0908;color:#C5A572;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;margin:0"><div>Opening portal…</div></body></html>');
   try {
     const r = await fetch('/api/v2?resource=admin&op='+op, {
       method: 'POST', headers: {'Content-Type':'application/json'}, credentials:'include',
       body: JSON.stringify({ [idField]: id })
     });
     const d = await r.json();
-    if (!d.ok) { alert('Failed: ' + (d.error || 'unknown')); return; }
-    window.open(portal, '_blank');
+    if (!d.ok) { win.close(); alert('Failed: ' + (d.error || 'unknown')); return; }
+    win.location.href = portal;
     vapClose();
-  } catch (e) { alert('Network error: ' + e.message); }
+  } catch (e) { win.close(); alert('Network error: ' + e.message); }
 }
 </script>
 
