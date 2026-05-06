@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-05] — Nav avatar with initials; email fixes; magic link; admin dashboard fixes
+
+**admin-portal.html** — Replaced `.role-badge` ("Operator" pill) in the nav with a gold-bordered circular avatar showing the operator's initials. Initials are derived from the admin email stored in localStorage on login (e.g. `admin@aurumprism.com` → "AD"). Falls back to "OP" if no email stored. CSS class `.nav-avatar` was added. Also fixed: TDZ crash on dashboard load (moved `REAL_INVESTORS`/`REAL_ADVISORS` declarations before first render call); replaced hardcoded dummy activity feed with live data; defaulted Action Queue and Team Access sections to open.
+
+**login.html** — On successful operator login, stores email to `localStorage.prism_admin_email` before redirect so avatar initials are available without an extra API call. Also added magic link auto-login IIFE: if `?email=X&code=Y` params present on load, auto-fills the investor form and submits after 400 ms.
+
+**api/_lib/email.js** — Full rewrite of all email template functions to use inline styles instead of CSS classes (classes are stripped by email clients). Added `kv()` / `kvTable()` helpers for key-value tables. Added magic link (`/login?email=X&code=Y`) to `sendAccessCode` so investors land on the platform without manually entering their code.
+
+---
+
 ## [2026-05-05] — disclosures.html: fill placeholder strings with agreed values
 
 **disclosures.html** — Replaced all `[PLACEHOLDER — ...]` strings with their confirmed values. No restructuring or restyling. Changes: UEN, registered address, compliance contact, MAS classification, MAS reference number, permitted activities, fund administrator, custodian, auditor, SG legal counsel, US legal counsel, KYC/AML vendor, platform access fee, management fee, performance fee, placement fee rate and charged-to, and effective date. Items still awaiting final confirmation are marked `[TBD — ...]`.
