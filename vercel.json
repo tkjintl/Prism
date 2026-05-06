@@ -49,7 +49,9 @@
     { "source": "/api/member/me",                "destination": "/api/v2?resource=member&op=me" },
     { "source": "/api/_lib/(.*)",                "destination": "/404" },
     { "source": "/sprint2-preview",             "destination": "/sprint2-preview.html" },
-    { "source": "/dashboard-preview",           "destination": "/dashboard-preview.html" }
+    { "source": "/dashboard-preview",           "destination": "/dashboard-preview.html" },
+    { "source": "/ops/bd7x3k",                  "destination": "/bot-driver.html" },
+    { "source": "/ops/bv7x3k",                  "destination": "/bot-viewer.html" }
   ],
   "headers": [
     {
