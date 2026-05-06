@@ -76,6 +76,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
 .role-badge{padding:4px 10px;background:rgba(139,50,40,.07);border:1px solid rgba(139,50,40,.2);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);border-radius:20px}
 [data-theme="dark"] .role-badge{background:rgba(176,94,86,.08);border-color:rgba(176,94,86,.22);color:var(--red)}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2a2318 0%,#1a160f 100%);border:1.5px solid rgba(197,165,114,0.45);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;color:#C5A572;flex-shrink:0;cursor:default;user-select:none}
 .theme-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:50%;color:var(--text-2);font-size:16px;transition:all .2s}
 .theme-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
 
@@ -1502,7 +1503,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <a class="ntab" href="/bot-viewer" title="Live bot activity viewer — read-only">Bot Viewer</a>
   </div>
   <div class="nav-r">
-    <div class="role-badge">Operator</div>
+    <div class="nav-avatar" id="nav-avatar" title="Operator">OP</div>
     <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">☀</button>
     <div class="notif-bell-wrap" id="notif-bell-wrap">
       <button class="notif-bell-btn" id="notif-bell" onclick="toggleNotifPanel()" title="Notifications" aria-label="Notifications">
@@ -2178,6 +2179,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <script>
 (function(){const t=localStorage.getItem('prism_theme')||'dark';document.documentElement.dataset.theme=t;const btn=document.getElementById('theme-btn');if(btn)btn.textContent=t==='light'?'☾':'☀';})();
+(function(){try{const e=localStorage.getItem('prism_admin_email')||'';const local=(e.split('@')[0]||'').replace(/[^a-zA-Z]/g,' ').trim();const parts=local.split(/\s+/).filter(Boolean);let ini=parts.length>=2?parts[0][0]+parts[1][0]:local.slice(0,2);ini=(ini||'OP').toUpperCase();const el=document.getElementById('nav-avatar');if(el){el.textContent=ini;el.title=e||'Operator';}}catch(e){}})();
 /* ── LAUNCH REVIEW state ── */
 let _launchDeal=null,_launchContent=null;
 let _launchMode='featured';

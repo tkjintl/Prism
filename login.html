@@ -364,6 +364,7 @@ async function loginOperator() {
     const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({email,password}) });
     const d = await r.json();
     if (!d.ok) { showErr('op-error', d.error || 'Invalid credentials'); setLoading('op-btn',false); return; }
+    try { localStorage.setItem('prism_admin_email', email); } catch(e) {}
     window.location.href = '/admin-portal';
   } catch { showErr('op-error','Connection error — try again'); setLoading('op-btn',false); }
 }
