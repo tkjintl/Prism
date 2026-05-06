@@ -118,6 +118,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .sc-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .sc-dd{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
 .sc-close{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.sc-ioi{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.sc-terms{color:var(--violet);border-color:var(--violet-bd);background:var(--violet-bg)}
+.sc-realized{color:var(--text-2);border-color:var(--border-m);background:var(--surface)}
+.dot-terms{background:var(--violet)}
+.dot-realized{background:var(--text-3)}
 .action-required-tag{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);border:1px solid var(--amber-bd);background:var(--amber-bg)}
 .deal-name{font-family:var(--serif);font-style:italic;font-size:clamp(26px,4vw,46px);font-weight:400;line-height:1.08;color:var(--text);margin-bottom:6px;animation:fadeUp .6s var(--ease) both}
 .deal-meta{font-size:12px;color:var(--text-3)}
@@ -1361,16 +1366,18 @@ let QA_THREAD = [
 const STAGES=[
   {id:'setup',label:'Setup'},
   {id:'docs',label:'Documents'},
-  {id:'review',label:'In Review'},
+  {id:'review',label:'Pending Confirmation'},
   {id:'live',label:'Live & IOI'},
   {id:'dd',label:'Due Diligence'},
+  {id:'terms',label:'Terms'},
   {id:'close',label:'Close'},
+  {id:'realized',label:'Realized'},
 ];
-const STAGE_IDX={setup:0,docs:1,review:2,live:3,dd:4,close:5};
+const STAGE_IDX={setup:0,docs:1,review:2,live:3,ioi:3,dd:4,terms:5,close:6,realized:7};
 const CLASS_CHIP={infra:'cc-infra',credit:'cc-credit',pe:'cc-pe',re:'cc-re'};
-const STAGE_CHIP_CLS={live:'sc-live',review:'sc-review',dd:'sc-dd',close:'sc-close'};
-const STAGE_LABEL={live:'Live & IOI',review:'In Review',dd:'Due Diligence',close:'Close'};
-const DOT_CLS={live:'dot-live',review:'dot-review',dd:'dot-dd',close:'dot-dd'};
+const STAGE_CHIP_CLS={live:'sc-live',ioi:'sc-ioi',review:'sc-review',dd:'sc-dd',terms:'sc-terms',close:'sc-close',realized:'sc-realized'};
+const STAGE_LABEL={live:'Live & IOI',ioi:'Live & IOI',review:'Pending Confirmation',dd:'Due Diligence',terms:'Terms',close:'Close',realized:'Realized'};
+const DOT_CLS={live:'dot-live',ioi:'dot-ioi',review:'dot-review',dd:'dot-dd',terms:'dot-terms',close:'dot-dd',realized:'dot-realized'};
 
 let currentDealIdx=0;
 let wStep=1;
@@ -1640,10 +1647,11 @@ function renderOverview(){
 
   /* next step guide */
   const _stageGuides={
-    review:{icon:'⏳',col:'var(--amber)',bg:'var(--amber-bg)',bd:'var(--amber-bd)',title:'Under Admin Review',body:'The Aurum team is reviewing your deal profile. You will be notified when it goes live on the investor portal.'},
+    review:{icon:'⏳',col:'var(--amber)',bg:'var(--amber-bg)',bd:'var(--amber-bd)',title:'Pending Your Confirmation',body:'Your deal has been published by the Aurum team. Log in and confirm to make it live and visible to investors on the investor portal.'},
     live_ioi:{icon:'⚡',col:'var(--gold)',bg:'var(--gold-bg)',bd:'var(--gold-bd)',title:'IOI Awaiting Your Decision',body:'Admin has forwarded an investor IOI for your review. Accept to open Due Diligence for this investor — or decline. This is your deal, your call.'},
     live:{icon:'●',col:'var(--green)',bg:'var(--green-bg)',bd:'var(--green-bd)',title:'Deal Live — Collecting Interest',body:'Investors can view your deck and submit expressions of interest. Admin screens all IOIs before forwarding approved ones to you for a decision.'},
     dd:{icon:'◆',col:'var(--blue)',bg:'var(--blue-bg)',bd:'var(--blue-bd)',title:'Due Diligence Active',body:'Approved investors have access to your data room. Upload closing documents in the Materials tab when ready. Answer investor questions in the Dataroom tab.'},
+    terms:{icon:'📋',col:'var(--violet)',bg:'var(--violet-bg)',bd:'var(--violet-bd)',title:'Term Sheet Stage',body:'The operator is issuing term sheets to allocated investors. You will be notified when the deal advances to close. No direct investor contact permitted at this stage.'},
     close:{icon:'✦',col:'var(--gold)',bg:'var(--gold-bg)',bd:'var(--gold-bd)',title:'Closing Stage',body:'Upload fund documents, PPM, and wire instructions in Materials → Closing Documents. Confirm banking details so Aurum can deploy committed capital.'},
     realized:{icon:'✓',col:'var(--green)',bg:'var(--green-bg)',bd:'var(--green-bd)',title:'Deal Realized',body:'This deal has been successfully closed and realized. All documents are archived.'},
   };

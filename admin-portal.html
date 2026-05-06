@@ -2413,7 +2413,7 @@ let NEW_SUBMISSIONS=[
 // Server-side lifecycle: review → live → ioi → dd → terms → close → realized.
 // killed is a terminal divergence reachable from any pre-realized stage.
 const STAGE_ORDER=['review','live','ioi','dd','terms','close','realized'];
-const STAGE_LABELS={review:'Review',live:'Live',ioi:'IOI',dd:'Due Diligence',terms:'Terms',close:'Close',realized:'Realized',killed:'Killed'};
+const STAGE_LABELS={review:'Pending Confirmation',live:'Live',ioi:'IOI',dd:'Due Diligence',terms:'Terms',close:'Close',realized:'Realized',killed:'Killed'};
 // Per-stage advance action: which API endpoint moves a deal forward.
 function nextStageActionFor(stage){
   if(stage==='review')return {label:'Publish to Live',target:'live',endpoint:'publish-deal'};
