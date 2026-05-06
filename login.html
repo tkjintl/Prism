@@ -306,6 +306,24 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
 const DEMO = document.cookie.includes('prism_demo=1') || new URLSearchParams(location.search).has('demo');
 if (DEMO) document.getElementById('demo-bar').classList.add('on');
 
+// Magic link auto-login — triggered by access code email button
+(function() {
+  const params = new URLSearchParams(location.search);
+  const mlEmail = params.get('email');
+  const mlCode = params.get('code');
+  if (!mlEmail || !mlCode) return;
+  // Pre-fill both fields
+  const emailEl = document.getElementById('inv-email');
+  const codeEl = document.getElementById('inv-code');
+  if (!emailEl || !codeEl) return;
+  emailEl.value = mlEmail;
+  codeEl.value = mlCode.toUpperCase();
+  // Show a brief "signing you in" state before firing
+  const btn = document.getElementById('inv-btn');
+  if (btn) { btn.textContent = 'Signing you in…'; btn.disabled = true; }
+  setTimeout(loginInvestor, 400);
+})();
+
 function showErr(id, msg){ const el = document.getElementById(id); el.textContent = msg; el.classList.add('on'); }
 function clearErr(id){ const el = document.getElementById(id); el.classList.remove('on'); }
 function setLoading(btnId, loading){ const btn = document.getElementById(btnId); btn.classList.toggle('loading', loading); btn.disabled = loading; }

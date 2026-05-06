@@ -2648,16 +2648,19 @@ function renderOverview(){
     </div>`;
   });
 
-  /* ── Activity Feed ── */
-  const activity=[
-    {type:'push',  text:'<strong>Whitmore Family Office</strong> IOI pushed to Sarah Chen for review',time:'1h ago'},
-    {type:'ioi',   text:'<strong>D. Ashford</strong> indicated $1.5M in SunBelt Residential Fund IV',time:'2h ago'},
-    {type:'ioi',   text:'<strong>Sterling Family Office</strong> indicated $4.0M in Clearwater Credit II',time:'4h ago'},
-    {type:'submit',text:'<strong>David Park</strong> submitted Meridian Financial Corp for review',time:'1d ago'},
-    {type:'stage', text:'Vantage Analytics Series C advanced to <strong>Due Diligence</strong>',time:'2d ago'},
-    {type:'review',text:'Pacific Bridge Infrastructure <strong>featured</strong> on investor portal',time:'3d ago'},
-    {type:'ioi',   text:'<strong>Stonegate Family Office</strong> indicated $4.0M in SunBelt IV',time:'3d ago'},
-  ];
+  /* ── Activity Feed — built from live data ── */
+  const activity=[];
+  // IOI events
+  DEALS.forEach(d=>{
+    d.iois.forEach(ioi=>{
+      if(ioi.status==='approved') activity.push({type:'ioi',text:`An investor indicated <strong>${fmU(ioi.amount)}</strong> in ${d.name}`,time:ioi.date||''});
+      if(ioi.status==='declined') activity.push({type:'stage',text:`IOI declined on ${d.name}`,time:ioi.date||''});
+    });
+    if(d.stage&&d.stage!=='review') activity.push({type:'stage',text:`<strong>${d.name}</strong> advanced to <strong>${STAGE_LABELS[d.stage]||d.stage}</strong>`,time:''});
+  });
+  NEW_SUBMISSIONS.forEach(s=>activity.push({type:'submit',text:`<strong>${s.advisor}</strong> submitted ${s.name} for review`,time:s.submitted||''}));
+  // Most recent 8
+  activity.splice(8);
   const atIcon={ioi:'ov-at-ioi',submit:'ov-at-submit',push:'ov-at-push',stage:'ov-at-stage',review:'ov-at-review'};
   const atEmoji={ioi:'↑',submit:'+',push:'✦',stage:'→',review:'✓'};
   const activityHtml=activity.map(a=>`<div class="ov-at-item ov-at-type-${a.type}">
@@ -2722,7 +2725,7 @@ function renderOverview(){
         <span>Action Queue</span>
         <span class="ov-collapsible-arrow" id="ov-s1-arrow">&#9660;</span>
       </div>
-      <div class="ov-collapsible-body closed" id="ov-s1">
+      <div class="ov-collapsible-body open" id="ov-s1">
         <div style="padding:16px 0">
           <div class="ov-queue-grid">
             ${queueCol('ov-dot-amber','New Deals',submissionCards)}
@@ -2755,7 +2758,7 @@ function renderOverview(){
         <span>Team Access</span>
         <span class="ov-collapsible-arrow" id="ov-s3-arrow">&#9660;</span>
       </div>
-      <div class="ov-collapsible-body closed" id="ov-s3">
+      <div class="ov-collapsible-body open" id="ov-s3">
         <div style="padding:16px 0">
           <div class="ov-signup-grid" style="margin-top:0">
             <div class="ov-panel">
@@ -5472,11 +5475,11 @@ async function confirmPublish(){
 }
 
 /* ── INIT ── */
+let REAL_INVESTORS=[];
+let REAL_ADVISORS=[];
 renderKPIs();renderOverview();updateQueueBadge();
 try{refreshUnassignedDealsBadge();}catch(e){}
 
-let REAL_INVESTORS=[];
-let REAL_ADVISORS=[];
 
 async function load(){
   const me=await fetchSilent('/api/me');

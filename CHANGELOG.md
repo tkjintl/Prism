@@ -4,6 +4,12 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-05] — disclosures.html: fill placeholder strings with agreed values
+
+**disclosures.html** — Replaced all `[PLACEHOLDER — ...]` strings with their confirmed values. No restructuring or restyling. Changes: UEN, registered address, compliance contact, MAS classification, MAS reference number, permitted activities, fund administrator, custodian, auditor, SG legal counsel, US legal counsel, KYC/AML vendor, platform access fee, management fee, performance fee, placement fee rate and charged-to, and effective date. Items still awaiting final confirmation are marked `[TBD — ...]`.
+
+---
+
 ## [2026-05-05] — Production hardening: bot page redirect + notification dead-click fix
 
 **vercel.json** — Added `redirects` block before `rewrites`. `/bot-driver` and `/bot-viewer` now redirect to `/` (302) in all deployments. Bot pages remain reachable by admin directly via Vercel preview URL or by temporarily removing the redirect — they are not permanently deleted.
