@@ -1226,12 +1226,27 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   .ov-collapsible-body.closed,
   .ov-collapsible-body.open { max-height: none !important; overflow: visible; }
 }
+/* ── DEAL LIFECYCLE RAIL ── */
+.dlr{display:flex;align-items:center;gap:0;margin-bottom:14px;padding:10px 0 8px}
+.dlr-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;position:relative;min-width:0}
+.dlr-step:not(:last-child)::after{content:'';position:absolute;top:7px;left:calc(50% + 9px);right:calc(-50% + 9px);height:1px;background:var(--border-m)}
+.dlr-step.done::after{background:var(--gold)}
+.dlr-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border-m);background:var(--bg-2);position:relative;z-index:1;flex-shrink:0;transition:all .2s}
+.dlr-step.done .dlr-dot{background:var(--gold);border-color:var(--gold)}
+.dlr-step.current .dlr-dot{background:var(--blue);border-color:var(--blue);box-shadow:0 0 0 3px rgba(91,133,184,.2)}
+.dlr-lbl{font-family:var(--mono);font-size:7px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);text-align:center;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px}
+.dlr-step.done .dlr-lbl{color:var(--gold)}
+.dlr-step.current .dlr-lbl{color:var(--blue)}
 /* ── ZONE LAYOUT (dashboard redesign) ── */
 .zone-2{padding:20px 28px 0}
 .zone-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .zone-hd-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2)}
 .zone-hd-count{font-family:var(--mono);font-size:10px;color:var(--text-3)}
-.action-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:20px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.action-scroll{display:flex;gap:14px;overflow-x:scroll;padding-bottom:16px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--border-m) transparent;cursor:grab;user-select:none}
+.action-scroll:active{cursor:grabbing}
+.action-scroll::-webkit-scrollbar{height:4px}
+.action-scroll::-webkit-scrollbar-track{background:transparent}
+.action-scroll::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
 .action-scroll .ov-action-card{width:264px;border:1px solid var(--border);border-radius:var(--r);border-bottom:1px solid var(--border)}
 .action-scroll .ov-action-card.pq-high-card{border-left:3px solid var(--red)}
 .action-scroll .ov-action-card.pq-medium-card{border-left:3px solid var(--amber)}
@@ -4683,6 +4698,16 @@ function buildDealDetailHTML(deal){
       <!-- Deal Controls -->
       <div class="ddp-ctrl-card">
         <div class="ddp-ctrl-title">Deal Controls</div>
+        ${(()=>{
+          const RAIL=['review','live','dd','terms','close'];
+          const RAIL_LABELS={review:'Pending\nConfirmation',live:'Live',dd:'Due\nDiligence',terms:'Terms\n& Conditions',close:'Close'};
+          const curIdx=RAIL.indexOf(deal.stage);
+          const steps=RAIL.map((s,i)=>{
+            const cls=i<curIdx?'done':i===curIdx?'current':'';
+            return `<div class="dlr-step ${cls}"><div class="dlr-dot"></div><div class="dlr-lbl">${RAIL_LABELS[s]}</div></div>`;
+          }).join('');
+          return `<div class="dlr">${steps}</div>`;
+        })()}
         <div class="ddp-ctrl-stage">
           <span class="dp-stage-chip ${badgeCls}">${STAGE_LABELS[deal.stage]||deal.stage}</span>
           <span style="font-family:var(--mono);font-size:10px;color:var(--text-3)">Current Stage</span>
@@ -5946,6 +5971,25 @@ async function confirmPushFromPopup(dealId, btn) {
   toast('Due diligence opened — advisor notified', 'ok');
   api('POST', '/api/v2?resource=admin&op=push-package', { dealId, ioiId: (d.iois.find(i => i.pushed) || {}).id }).catch(() => {});
 }
+
+// ── Drag-to-scroll for action queue ──────────────────────────
+(function(){
+  function enableDragScroll(el){
+    let isDown=false,startX,scrollLeft;
+    el.addEventListener('mousedown',e=>{isDown=true;startX=e.pageX-el.offsetLeft;scrollLeft=el.scrollLeft;});
+    el.addEventListener('mouseleave',()=>{isDown=false;});
+    el.addEventListener('mouseup',()=>{isDown=false;});
+    el.addEventListener('mousemove',e=>{if(!isDown)return;e.preventDefault();const x=e.pageX-el.offsetLeft;el.scrollLeft=scrollLeft-(x-startX)*1.2;});
+  }
+  // Wire on load and re-wire whenever renderOverview runs (action-scroll is recreated)
+  const orig=window.renderOverview;
+  window.renderOverview=function(){
+    orig&&orig.apply(this,arguments);
+    requestAnimationFrame(()=>{const s=document.querySelector('.action-scroll');if(s)enableDragScroll(s);});
+  };
+  // Also wire on initial page load
+  document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{const s=document.querySelector('.action-scroll');if(s)enableDragScroll(s);},500);});
+})();
 
 </script>
 <div id="investors-popup" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(10,9,8,.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeInvestorsPopup()">

@@ -4,6 +4,24 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-06] — Deal lifecycle rail + action queue scroll fix
+
+### Admin portal — Deal Controls
+- Added lifecycle progress rail above Current Stage chip in Deal Controls: 5 dots (Pending Confirmation → Live → Due Diligence → Terms & Conditions → Close), completed stages gold, current stage blue with glow, upcoming stages dim
+- Killed/realized deals: rail stops at the last active stage
+
+### Advisor portal — Deal detail
+- Added simplified 5-step lifecycle rail above the Next Step guide in each deal's detail view, using the same visual language (gold = done, blue = current)
+- IOI stage maps to "Live" step since it's still the live collection phase from the advisor's perspective
+
+### Action Queue scroll fix
+- `overflow-x:scroll` (was `auto`) so scrollbar always renders
+- Styled scrollbar (4px height, subtle gold-border thumb)
+- `cursor:grab` / `cursor:grabbing` visual affordance
+- JS drag-to-scroll added — mouse click-drag now scrolls the queue left/right on desktop
+
+---
+
 ## [2026-05-06] — Security hardening + sprint failure fixes + XSS sweep
 
 ### Security
