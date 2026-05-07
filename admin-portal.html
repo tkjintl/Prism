@@ -2792,25 +2792,7 @@ function renderOverview(){
     </div>`
   );
 
-  // Column 2: Inbound IOI from Investors (pending approvals)
-  const ioiDecisionCards = DEALS.flatMap(d =>
-    d.iois.filter(i => i.status === 'pending').map(ioi => `<div class="ov-action-card pq-medium-card">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
-        <span class="pq-priority-badge pq-medium">MEDIUM</span>
-        <span class="pq-item-icon">↑</span>
-        <div class="ov-ac-tag gold" style="margin:0">${d.name.length>20?d.name.substring(0,20)+'…':d.name}</div>
-        <span class="pq-age">${ioi.isNew?'just now':ioi.date||''}</span>
-      </div>
-      <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${ioi.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
-      <div class="ov-ac-meta">${ioi.type} · ${ioi.geo} · <strong>${fmU(ioi.amount)}</strong>${ioi.isNew?' · <span style="color:var(--amber)">New</span>':''}</div>
-      <div class="ov-ac-actions">
-        <button class="att-btn att-approve" onclick="actIoi('${d.id}','${ioi.id}','approved');renderOverview();renderKPIs()">Approve</button>
-        <button class="att-btn att-decline" onclick="actIoi('${d.id}','${ioi.id}','declined');renderOverview();renderKPIs()">Decline</button>
-      </div>
-    </div>`)
-  );
-
-  // Column 3: Deploy Capital — one card per deal, sorted highest % funded first
+  // Column 2: Deploy Capital — one card per deal, sorted highest % funded first
   const _dcGroups = [];
   DEALS.forEach(d => {
     const readyIois = d.iois.filter(i => i.status === 'approved' && !i.pushed);
