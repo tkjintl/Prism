@@ -2581,6 +2581,7 @@ function renderKPIs(){
 
 /* ── OVERVIEW ── */
 function renderOverview(){
+  const _prevActionScroll=document.querySelector('.action-scroll')?.scrollLeft||0;
 
   /* ── Real data from API ── */
   const MOCK_ADVISORS=REAL_ADVISORS.map(a=>({name:a.name||a.email,firm:a.firm_name||'',joined:a.created_at?new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'',status:a.status}));
@@ -2908,6 +2909,7 @@ function renderOverview(){
       </div>
     </div>`;
   updateNotifBell();
+  if(_prevActionScroll>0)requestAnimationFrame(()=>{const s=document.querySelector('.action-scroll');if(s)s.scrollLeft=_prevActionScroll;});
 }
 
 /* ── COLLAPSIBLE OVERVIEW SECTIONS ── */
