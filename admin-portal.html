@@ -145,6 +145,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .sc-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .sc-close{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 .sc-terms{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.sc-killed{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
 .dp-actions{display:flex;gap:6px;flex-wrap:wrap}
 .dp-btn{padding:5px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--border-m);color:var(--text-2);transition:all .15s;white-space:nowrap;cursor:pointer;font-family:inherit}
 .dp-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
@@ -3904,7 +3905,7 @@ function renderPipeline(){
             </div>
             <div class="ds-card-footer">
               <div class="ds-advisor">From ${s.advisor} · ${s.advisor_firm} · Submitted ${s.submitted}</div>
-              <button class="att-btn" onclick="viewUploaded('${s.id}')" style="background:rgba(91,133,184,.07);border:1px solid rgba(91,133,184,.28);color:#5b85b8">📁 View Uploaded</button>
+              <button class="att-btn att-review" onclick="viewUploaded('${s.id}')">📁 View Uploaded</button>
               <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
               <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}')">✦ Generate AI Profile →</button>
             </div>
@@ -3938,7 +3939,7 @@ function renderPipeline(){
                 </div>
                 <div class="dp-advisor">${d.advisor||''}</div>
                 <div><div class="dp-amount">${fmU(d.ioi_agg||0)}</div></div>
-                <span class="dp-stage-chip sc-killed" style="background:rgba(220,38,38,.08);color:#ef4444;border-color:rgba(220,38,38,.2)">Killed</span>
+                <span class="dp-stage-chip sc-killed">Killed</span>
                 <div style="font-family:var(--mono);font-size:10px;color:var(--text-3)">${d.killed_at?new Date(d.killed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</div>
                 <div></div>
               </div>`).join('')}
