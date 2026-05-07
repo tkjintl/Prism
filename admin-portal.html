@@ -300,8 +300,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ai-slot-status.empty{color:var(--text-3)}
 .ai-slot-status.loaded{color:var(--green)}
 .ai-deal-select{width:100%;padding:10px 12px;font-size:14px;margin-bottom:4px}
-.ai-process-btn{width:100%;padding:13px;background:linear-gradient(135deg,#5B3E8A,#2B5C8A);color:#fff;font-size:13px;font-weight:600;border-radius:var(--r);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px;margin-top:6px;border:none;cursor:pointer;font-family:inherit}
-.ai-process-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,62,138,.3)}
+.ai-process-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;font-size:13px;font-weight:600;border-radius:var(--r);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px;margin-top:6px;border:none;cursor:pointer;font-family:inherit}
+.ai-process-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px);box-shadow:0 8px 24px var(--violet-bg)}
 .ai-process-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .ai-process-icon{font-size:16px}
 .ai-output-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;min-height:360px;display:flex;flex-direction:column}
@@ -331,6 +331,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ai-stat-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)}
 .ai-apply-btn{width:100%;padding:11px;background:var(--gold);font-size:13px;font-weight:600;border-radius:2px;color:#1A1410;transition:all .2s;border:none;cursor:pointer;font-family:inherit;margin-top:4px}
 .ai-apply-btn:hover{background:var(--gold-b);transform:translateY(-1px)}
+.ai-launch-btn{padding:12px 20px;border:1px solid var(--border-m);color:var(--text-2);font-size:12px;border-radius:2px;background:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.ai-launch-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
+.ai-action-row{display:flex;gap:10px;flex-wrap:wrap}
+.ai-select-label{font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-family:var(--mono)}
+.ai-slot-info{flex:1}
 
 /* NOTIFICATION BELL */
 .notif-bell-wrap{position:relative;flex-shrink:0}
@@ -1815,7 +1820,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       <div class="ai-layout">
         <div class="ai-input-panel">
           <div>
-            <div style="font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Apply Output To Deal</div>
+            <div class="ai-select-label">Apply Output To Deal</div>
             <select class="ai-deal-select" id="ai-deal-select">
               <option value="">Select deal…</option>
             </select>
@@ -1823,7 +1828,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
           <div id="ai-slot-nda" class="ai-doc-slot" onclick="aiLoadDoc('nda')">
             <div class="ai-slot-row">
               <div class="ai-slot-icon">🔑</div>
-              <div style="flex:1">
+              <div class="ai-slot-info">
                 <div class="ai-slot-label">NDA Template</div>
                 <div class="ai-slot-meta">Investor NDA for this deal</div>
               </div>
@@ -1833,7 +1838,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
           <div id="ai-slot-mgmt" class="ai-doc-slot" onclick="aiLoadDoc('mgmt')">
             <div class="ai-slot-row">
               <div class="ai-slot-icon">📄</div>
-              <div style="flex:1">
+              <div class="ai-slot-info">
                 <div class="ai-slot-label">Management Presentation</div>
                 <div class="ai-slot-meta">Primary advisor deck</div>
               </div>
@@ -1843,7 +1848,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
           <div id="ai-slot-fin" class="ai-doc-slot" onclick="aiLoadDoc('fin')">
             <div class="ai-slot-row">
               <div class="ai-slot-icon">📊</div>
-              <div style="flex:1">
+              <div class="ai-slot-info">
                 <div class="ai-slot-label">Financial Summary</div>
                 <div class="ai-slot-meta">Revenue, EBITDA, cap structure</div>
               </div>
@@ -1853,7 +1858,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
           <div id="ai-slot-term" class="ai-doc-slot" onclick="aiLoadDoc('term')">
             <div class="ai-slot-row">
               <div class="ai-slot-icon">📋</div>
-              <div style="flex:1">
+              <div class="ai-slot-info">
                 <div class="ai-slot-label">Term Sheet</div>
                 <div class="ai-slot-meta">Deal terms and structure overview</div>
               </div>
@@ -4436,9 +4441,9 @@ function showAIOutput(deal,generated){
       </div>
     </div>
     <div class="ai-out-section" style="animation-delay:.45s">
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="ai-action-row">
         <button class="ai-apply-btn" id="ai-send-advisor-btn" onclick="(()=>{const d=_launchDeal;if(d){const s=NEW_SUBMISSIONS.find(x=>x.id===d.id);if(s){s.thesis=document.querySelector('.ai-out-thesis')?.textContent||s.thesis||'';s.generated=true;}sendToAdvisorReview(d?.id,document.getElementById('ai-send-advisor-btn'));}})()">Send to Advisor →</button>
-        <button style="padding:12px 20px;border:1px solid var(--border-m);color:var(--text-2);font-size:12px;border-radius:2px;background:none;cursor:pointer" onclick="openLaunchReview(_launchDeal,_launchContent)">Review &amp; Launch →</button>
+        <button class="ai-launch-btn" onclick="openLaunchReview(_launchDeal,_launchContent)">Review &amp; Launch →</button>
       </div>
     </div>
   </div>`;
