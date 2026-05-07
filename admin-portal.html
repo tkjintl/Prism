@@ -1243,7 +1243,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .zone-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .zone-hd-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-2)}
 .zone-hd-count{font-family:var(--mono);font-size:10px;color:var(--text-3)}
-.action-scroll{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:380px;overflow-y:auto;overflow-x:hidden;padding-right:4px;min-width:0;width:100%;box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--border-m) var(--bg-2)}
+.action-scroll{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:380px;overflow-y:auto;overflow-x:hidden;padding-right:4px;min-width:0;width:100%;box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--border-m) var(--bg-2)}
 .action-scroll::-webkit-scrollbar{width:4px}
 .action-scroll::-webkit-scrollbar-track{background:transparent}
 .action-scroll::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
@@ -2882,7 +2882,7 @@ function renderOverview(){
         <span class="zone-hd-title">Action Queue</span>
         <span class="zone-hd-count">${allActionCards.length>0?allActionCards.length+' item'+(allActionCards.length!==1?'s':''):'All clear'}</span>
       </div>
-      <div class="action-scroll">
+      <div class="action-scroll" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:380px;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;width:100%">
         ${allActionCards.length?allActionCards.join(''):'<div class="act-empty">No pending actions — all clear</div>'}
       </div>
     </section>
