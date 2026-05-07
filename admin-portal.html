@@ -1679,15 +1679,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 <div id="notif-backdrop" onclick="closeNotifPanel()"></div>
 <nav class="nav">
-  <div class="nav-wordmark">
-    <div class="nav-wm-tacc">A TACC Platform</div>
-    <div class="nav-wm-name">
-      <span class="nav-wm-aurum">Aurum</span>
-      <span class="nav-wm-rule" aria-hidden="true"></span>
-      <span class="nav-wm-prism">Prism</span>
-    </div>
+  <div class="nav-logo">
+    <span class="logo-mark">Aurum</span>
+    <span class="logo-rule" aria-hidden="true"></span>
+    <span class="logo-prism">Prism</span>
   </div>
-  <div class="nav-div"></div>
   <div class="nav-tabs">
     <button class="ntab on" onclick="showView('overview',this)">Overview</button>
     <button class="ntab" onclick="showView('pipeline',this)">Deal Pipeline</button>
@@ -1696,8 +1692,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab" onclick="showView('investors',this)">Investors</button>
     <button class="ntab" onclick="showView('advisors',this)">Advisors</button>
     <button class="ntab" onclick="showView('system',this)">System</button>
-    <a class="ntab" href="/ops/bd7x3k" title="Sandbox bot driver — for partner demos">Bot Driver</a>
-    <a class="ntab" href="/ops/bv7x3k" title="Live bot activity viewer — read-only">Bot Viewer</a>
+    <a class="ntab" href="/ops/bd7x3k" title="Sandbox bot driver — for partner demos">Bot Driver ↗</a>
+    <a class="ntab" href="/ops/bv7x3k" title="Live bot activity viewer — read-only">Bot Viewer ↗</a>
   </div>
   <div class="nav-r">
     <div class="nav-avatar" id="nav-avatar" title="Operator">OP</div>
@@ -1708,7 +1704,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
     </div>
-    <button onclick="logout()" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:6px 10px;transition:color .15s;min-height:36px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
+    <button class="nav-signout" onclick="logout()">Sign out</button>
   </div>
 </nav>
 
