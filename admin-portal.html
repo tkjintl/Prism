@@ -2625,7 +2625,7 @@ function renderOverview(){
     const generated = !!(s.thesis || s.tagline || s.ai_content || s.generated);
     const aiRef=s.aiScore?.operator_brief?`<div class="pq-ai-brief">AI: ${s.aiScore.operator_brief}</div>`:'';
     const age=relAge(s.submitted_at||s.submitted);
-    return `<div class="ov-action-card pq-high-card">
+    return `<div class="ov-action-card pq-high-card" onclick="viewUploaded('${s.id}')" style="cursor:pointer">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
         <span class="pq-priority-badge pq-high">HIGH</span>
         <span class="pq-item-icon">📄</span>
@@ -2636,15 +2636,14 @@ function renderOverview(){
       <div class="ov-ac-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''}<br>${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
       ${aiRef}
       <div class="ov-ac-actions" style="flex-wrap:wrap">
-        <button class="att-btn" onclick="viewUploaded('${s.id}')" style="background:rgba(91,133,184,.07);border:1px solid rgba(91,133,184,.28);color:#5b85b8" title="View original files the advisor uploaded">📁 View Uploaded</button>
-        <button class="att-btn" onclick="loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])" style="background:rgba(197,165,114,.07);border:1px solid rgba(197,165,114,.28);color:var(--gold)" title="Generate AI deal profile from uploaded docs">✦ Generate AI Profile</button>
+        <button class="att-btn" onclick="event.stopPropagation();loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])" style="background:rgba(197,165,114,.07);border:1px solid rgba(197,165,114,.28);color:var(--gold)" title="Generate AI deal profile from uploaded docs">✦ Generate AI Profile</button>
         ${!generated ?
           `<span style="font-family:var(--mono);font-size:8px;color:var(--text-3);letter-spacing:.08em;padding:6px 0">no AI yet</span>` :
           s.advisor_review_status === 'pending' ?
             `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.08em;padding:4px 0">&#x23F3; Awaiting Advisor Review</span>` :
-            `<button class="att-btn att-review" onclick="sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
+            `<button class="att-btn att-review" onclick="event.stopPropagation();sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
         }
-        <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
+        <button class="att-btn att-decline" onclick="event.stopPropagation();declineDeal('${s.id}',this)">Decline</button>
       </div>
     </div>`;
   });
@@ -6065,6 +6064,20 @@ function viewUploaded(dealId) {
   ];
 
   let html = '';
+
+  // AI-generated content section
+  const aiText = s.aiScore?.operator_brief || s.aiScore?.brief || '';
+  const thesisText = s.thesis || '';
+  const taglineText = s.tagline || '';
+  if (aiText || thesisText || taglineText) {
+    html += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#857d72;margin-bottom:10px">Company Background</div>';
+    html += '<div style="background:rgba(197,165,114,.05);border:1px solid rgba(197,165,114,.18);border-radius:3px;padding:14px 16px;margin-bottom:22px">';
+    if (taglineText) html += '<div style="font-size:12px;color:#e8dfd0;font-style:italic;margin-bottom:8px">' + taglineText + '</div>';
+    if (thesisText) html += '<div style="font-size:12px;color:#c8bfb4;line-height:1.65;margin-bottom:' + (aiText ? '10px' : '0') + '">' + thesisText + '</div>';
+    if (aiText) html += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#857d72;line-height:1.6;border-top:' + (thesisText ? '1px solid rgba(255,255,255,.06);padding-top:8px' : 'none') + '"><span style="color:var(--gold,#C5A572)">AI Analysis:</span> ' + aiText + '</div>';
+    html += '</div>';
+  }
+
   html += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#857d72;margin-bottom:10px">Uploaded Documents (4 slots)</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px">';
   for (const sl of slots) {
