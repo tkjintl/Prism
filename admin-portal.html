@@ -1614,7 +1614,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .bc-meta{font-family:var(--mono);font-size:10px;color:var(--text-3);display:flex;flex-wrap:wrap;gap:10px;line-height:1.6}
 .bc-ai-brief{font-size:12px;color:var(--text-2);line-height:1.5;border-left:2px solid var(--gold-bd);padding-left:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .bc-funded{margin:4px 0}
-.bc-funded-label{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-bottom:4px}
+.bc-funded-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.bc-funded-label{font-family:var(--mono);font-size:9px;color:var(--text-3)}
+.bc-funded-pct{font-family:var(--mono);font-size:12px;font-weight:600}
 .bc-bar-track{height:3px;background:var(--border-m);border-radius:2px;overflow:hidden}
 .bc-bar-fill{height:100%;background:var(--amber);border-radius:2px}
 .bc-investors{display:flex;flex-direction:column;gap:3px}
@@ -2734,44 +2736,40 @@ function renderOverview(){
   // Column 1: New Deals (advisor submissions awaiting AI generation + review, exclude approved)
   const submissionCards = NEW_SUBMISSIONS.filter(s => s.advisor_review_status !== 'approved').map(s => {
     const generated = !!(s.thesis || s.tagline || s.ai_content || s.generated);
-    const aiRef=s.aiScore?.operator_brief?`<div class="pq-ai-brief">AI: ${s.aiScore.operator_brief}</div>`:'';
+    const aiRef=s.aiScore?.operator_brief?`<div class="bc-ai-brief">AI: ${s.aiScore.operator_brief}</div>`:'';
     const age=relAge(s.submitted_at||s.submitted);
-    return `<div class="ov-action-card pq-high-card" onclick="viewUploaded('${s.id}')" style="cursor:pointer">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
-        <span class="pq-priority-badge pq-high">HIGH</span>
-        <span class="pq-item-icon">📄</span>
-        <div class="ov-ac-tag amber" style="margin:0">Deal Submission</div>
+    return `<div class="brief-card high" onclick="viewUploaded('${s.id}')" style="cursor:pointer">
+      <div class="bc-top">
+        <span class="bc-priority pri-high">HIGH PRIORITY</span>
         <span class="pq-age">${age}</span>
       </div>
-      <div class="ov-ac-name">${s.name}</div>
-      <div class="ov-ac-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''}<br>${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
+      <div class="bc-deal-name">${s.name}</div>
+      <div class="bc-meta">${s.advisor}${s.advisor_firm?' · '+s.advisor_firm:''} · ${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
       ${aiRef}
-      <div class="ov-ac-actions" style="flex-wrap:wrap">
-        <button class="att-btn" onclick="event.stopPropagation();loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])" style="background:rgba(197,165,114,.07);border:1px solid rgba(197,165,114,.28);color:var(--gold)" title="Generate AI deal profile from uploaded docs">✦ Generate AI Profile</button>
+      <div class="bc-actions">
+        <button class="bc-btn bc-btn-ai" onclick="event.stopPropagation();loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])">✦ Generate AI</button>
         ${!generated ?
-          `<span style="font-family:var(--mono);font-size:8px;color:var(--text-3);letter-spacing:.08em;padding:6px 0">no AI yet</span>` :
+          `<span style="font-family:var(--mono);font-size:8px;color:var(--text-3);letter-spacing:.08em">no AI yet</span>` :
           s.advisor_review_status === 'pending' ?
-            `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.08em;padding:4px 0">&#x23F3; Awaiting Advisor Review</span>` :
-            `<button class="att-btn att-review" onclick="event.stopPropagation();sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
+            `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.08em">⏳ Awaiting Advisor</span>` :
+            `<button class="bc-btn bc-btn-adv" onclick="event.stopPropagation();sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
         }
-        <button class="att-btn att-decline" onclick="event.stopPropagation();declineDeal('${s.id}',this)">Decline</button>
+        <button class="bc-btn bc-btn-dec" onclick="event.stopPropagation();declineDeal('${s.id}',this)">Decline</button>
       </div>
     </div>`;
   });
 
   // Column 1b: Ready to Publish (advisor-approved, awaiting admin publish)
   const readyToPublishCards = NEW_SUBMISSIONS.filter(s => s.advisor_review_status === 'approved').map(s =>
-    `<div class="ov-action-card" style="border-left:3px solid var(--green)">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
-        <span class="pq-priority-badge pq-high">HIGH</span>
-        <span class="pq-item-icon">✓</span>
-        <div class="ov-ac-tag" style="color:var(--green);margin:0">Ready to Publish</div>
+    `<div class="brief-card ready">
+      <div class="bc-top">
+        <span class="bc-priority pri-ready">READY TO PUBLISH</span>
         <span class="pq-age">${relAge(s.submitted_at||s.submitted)}</span>
       </div>
-      <div class="ov-ac-name">${s.name}</div>
-      <div class="ov-ac-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''}<br>${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
-      <div class="ov-ac-actions">
-        <button class="att-btn att-approve" onclick="previewBeforePublish('${s.id}',this)">Publish Live →</button>
+      <div class="bc-deal-name">${s.name}</div>
+      <div class="bc-meta">${s.advisor}${s.advisor_firm?' · '+s.advisor_firm:''} · ${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
+      <div class="bc-actions">
+        <button class="bc-btn bc-btn-pub" onclick="previewBeforePublish('${s.id}',this)">Publish Live →</button>
       </div>
     </div>`
   );
@@ -2806,30 +2804,30 @@ function renderOverview(){
   });
   _dcGroups.sort((a, b) => b.pct - a.pct);
   const pushCards = _dcGroups.map(({ pct, pctColor, d, readyIois }) => {
-    const investorRows = readyIois.map(ioi =>
-      `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px solid var(--border)">
-        <div style="flex:1;min-width:0;font-size:11px;color:var(--text-2);font-family:var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ioi.name} · <strong>${fmU(ioi.amount)}</strong></div>
-        <button class="att-btn att-push" style="padding:2px 7px;font-size:10px;flex-shrink:0" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview →</button>
+    const ioiInvestorRows = readyIois.map(ioi =>
+      `<div class="bc-inv-row">
+        <span class="bc-inv-name">${ioi.name}</span>
+        <span class="bc-inv-amt">${fmU(ioi.amount)}</span>
+        <button class="bc-btn bc-btn-inv" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview →</button>
       </div>`
     ).join('');
-    return `<div class="ov-action-card" style="display:flex;padding:0;gap:0">
-      <div style="flex:1;min-width:0;padding:12px 16px">
-        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
-          <span class="pq-priority-badge pq-medium">MEDIUM</span>
-          <span class="pq-item-icon">✦</span>
-        </div>
-        <div class="ov-ac-tag violet" style="margin-bottom:4px">Open Due Diligence</div>
-        <div class="ov-ac-name">${d.name}</div>
-        <div class="ov-ac-meta">${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}</div>
-        ${investorRows}
-        <div class="ov-ac-actions" style="margin-top:8px">
-          <button class="att-btn att-review" onclick="openInvestorsPopup('${d.id}')">See Investors →</button>
-          <button class="att-btn att-decline" onclick="killDeal('${d.id}',this)" style="background:rgba(220,38,38,.12);color:#ef4444;border-color:rgba(220,38,38,.25)">Kill Deal</button>
-        </div>
+    return `<div class="brief-card medium">
+      <div class="bc-top">
+        <span class="bc-priority pri-med">OPEN DD</span>
       </div>
-      <div style="width:64px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--border);gap:2px;background:var(--surface)">
-        <div style="font-size:20px;font-weight:700;font-family:var(--mono);color:${pctColor};line-height:1;letter-spacing:-.02em">${pct}%</div>
-        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">Funded</div>
+      <div class="bc-deal-name">${d.name}</div>
+      <div class="bc-meta">${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}</div>
+      <div class="bc-funded">
+        <div class="bc-funded-row">
+          <span class="bc-funded-label">Funded</span>
+          <span class="bc-funded-pct" style="color:${pctColor}">${pct}%</span>
+        </div>
+        <div class="bc-bar-track"><div class="bc-bar-fill" style="width:${pct}%;background:${pctColor}"></div></div>
+      </div>
+      <div class="bc-investors">${ioiInvestorRows}</div>
+      <div class="bc-actions">
+        <button class="bc-btn bc-btn-adv" onclick="openInvestorsPopup('${d.id}')">See Investors →</button>
+        <button class="bc-btn bc-btn-kill" onclick="killDeal('${d.id}',this)">Kill Deal</button>
       </div>
     </div>`;
   });
@@ -2887,12 +2885,11 @@ function renderOverview(){
   NEW_SUBMISSIONS.forEach(s=>activity.push({type:'submit',text:`<strong>${s.advisor}</strong> submitted ${s.name} for review`,time:s.submitted||''}));
   // Most recent 8
   activity.splice(8);
-  const atIcon={ioi:'ov-at-ioi',submit:'ov-at-submit',push:'ov-at-push',stage:'ov-at-stage',review:'ov-at-review'};
-  const atEmoji={ioi:'↑',submit:'+',push:'✦',stage:'→',review:'✓'};
-  const activityHtml=activity.map(a=>`<div class="ov-at-item ov-at-type-${a.type}">
-    <div class="ov-at-icon ${atIcon[a.type]}">${atEmoji[a.type]}</div>
-    <div class="ov-at-body">${a.text}</div>
-    <div class="ov-at-time">${a.time}</div>
+  const afDotCls={ioi:'gold',submit:'blue',push:'green',stage:'amber',review:'green'};
+  const activityHtml=activity.map(a=>`<div class="af-item">
+    <div class="af-dot ${afDotCls[a.type]||''}"></div>
+    <div class="af-body">${a.text}</div>
+    <div class="af-time">${a.time}</div>
   </div>`).join('');
 
   /* ── IOI Intel per deal (with CSS sparkline) ── */
@@ -2926,22 +2923,16 @@ function renderOverview(){
 
   /* ── Sign-up access cycle panel ── */
   const advisorStatusLabel=s=>s==='active'?'Active':'Pending Setup';
-  const advisorRows=MOCK_ADVISORS.map(a=>`<div class="ov-signup-row">
-    <div class="ov-signup-dot ${a.status}"></div>
-    <div class="ov-signup-info">
-      <div class="ov-signup-name">${a.name}</div>
-      <div class="ov-signup-sub">${a.firm} · Joined ${a.joined}</div>
-    </div>
-    <div class="ov-signup-status ${a.status}">${advisorStatusLabel(a.status)}</div>
+  const advisorRows=MOCK_ADVISORS.map(a=>`<div class="al-row">
+    <div class="al-name">${a.name}</div>
+    <div class="al-sub">${a.firm} · Joined ${a.joined}</div>
+    <div class="al-status ${a.status==='active'?'al-active':'al-pending'}">${advisorStatusLabel(a.status)}</div>
   </div>`).join('');
   const investorAccessLabel=s=>s==='active'?'Active':s==='invite_sent'?'Invite Sent':'Pending Setup';
-  const investorRows=MOCK_INVESTORS.map(i=>`<div class="ov-signup-row">
-    <div class="ov-signup-dot ${i.access}"></div>
-    <div class="ov-signup-info">
-      <div class="ov-signup-name">${i.name}</div>
-      <div class="ov-signup-sub">${i.type} · Added ${i.added}</div>
-    </div>
-    <div class="ov-signup-status ${i.access}">${investorAccessLabel(i.access)}</div>
+  const investorRows=MOCK_INVESTORS.map(i=>`<div class="al-row">
+    <div class="al-name">${i.name}</div>
+    <div class="al-sub">${i.type} · Added ${i.added}</div>
+    <div class="al-status ${i.access==='active'?'al-active':'al-pending'}">${investorAccessLabel(i.access)}</div>
   </div>`).join('');
 
   /* ── Stage-grouped pipeline cards (new zone layout) ── */
@@ -2985,52 +2976,50 @@ function renderOverview(){
   const allActionCards=[...submissionCards,...readyToPublishCards,...pushCards];
 
   document.getElementById('overview-main').innerHTML=`
-    ${headerBar}
-
-    <!-- Zone 2: Action Queue (horizontal scroll) -->
-    <section class="zone-2">
-      <div class="zone-hd">
-        <span class="zone-hd-title">Action Queue</span>
-        <span class="zone-hd-count">${allActionCards.length>0?allActionCards.length+' item'+(allActionCards.length!==1?'s':''):'All clear'}</span>
-      </div>
-      <div class="action-scroll" style="display:flex;flex-wrap:wrap;gap:10px;max-height:380px;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;width:100%">
-        ${allActionCards.length?allActionCards.join(''):'<div class="act-empty">No pending actions — all clear</div>'}
-      </div>
-    </section>
-
-    <!-- Zone 3: Pipeline + Activity (two columns) -->
-    <div class="zone-3">
-      <section>
-        <div class="col-hd">
-          <span class="col-hd-title">Deal Pipeline</span>
-          <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1])">Full View &#8594;</button>
-        </div>
-        ${stageLanesNew||'<div class="ov-empty">No active deals</div>'}
-      </section>
-      <section>
-        <div class="col-hd"><span class="col-hd-title">Platform Activity</span><span class="zone-hd-count">${activity.length} events</span></div>
-        <div class="ov-panel-body">${activityHtml||'<div class="ov-empty">No recent activity</div>'}</div>
-        <div class="col-hd" style="margin-top:20px"><span class="col-hd-title">IOI Intelligence</span></div>
-        <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
-      </section>
+    <div class="brief-date">
+      <div class="brief-date-line">${dateStr.toUpperCase()}</div>
+      <div class="brief-heading">Operator Overview</div>
     </div>
 
-    <!-- Zone 4: Platform Access -->
-    <div class="zone-access">
-      <div class="col-hd">
-        <span class="col-hd-title">Platform Access</span>
-      </div>
-      <div class="ov-signup-grid" style="margin-top:0">
-        <div class="ov-panel">
-          <div class="ov-panel-hd"><span>Advisors</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length}</span></div>
-          <div class="ov-panel-body" style="max-height:220px">${advisorRows||'<div class="ov-empty">No advisors yet</div>'}</div>
-        </div>
-        <div class="ov-panel">
-          <div class="ov-panel-hd"><span>Investors</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length}</span></div>
-          <div class="ov-panel-body" style="max-height:220px">${investorRows||'<div class="ov-empty">No investors yet</div>'}</div>
-        </div>
-      </div>
-    </div>`;
+    <div class="section-rule">
+      <div class="rule-line"></div>
+      <span class="rule-label ${allActionCards.length>0?'rule-red':'rule-blue'}">Action Queue${allActionCards.length>0?' · '+allActionCards.length:' · All Clear'}</span>
+      <div class="rule-line"></div>
+    </div>
+    ${allActionCards.length
+      ? `<div class="action-grid">${allActionCards.join('')}</div>`
+      : `<div style="padding:20px 0;text-align:center;color:var(--text-3);font-family:var(--mono);font-size:11px;letter-spacing:.08em">No pending actions</div>`
+    }
+
+    ${intelRows?`
+    <div class="section-rule">
+      <div class="rule-line"></div>
+      <span class="rule-label rule-gold">IOI Intelligence</span>
+      <div class="rule-line"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1px">${intelRows}</div>
+    `:''}
+
+    ${stageLanesNew?`
+    <div class="section-rule">
+      <div class="rule-line"></div>
+      <span class="rule-label rule-blue">Pipeline <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1])" style="margin-left:8px">Full View →</button></span>
+      <div class="rule-line"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:16px 0">${stageLanesNew}</div>
+    `:''}
+  `;
+
+  document.getElementById('overview-sidebar').innerHTML=`
+    ${activityHtml?`
+    <div class="sidebar-section-title">Activity</div>
+    <div class="activity-feed">${activityHtml}</div>
+    `:''}
+    <div class="sidebar-section-title">Advisors · ${MOCK_ADVISORS.length}</div>
+    <div class="access-list">${advisorRows||'<div style="padding:12px 0;color:var(--text-3);font-size:12px;font-family:var(--mono)">No advisors yet</div>'}</div>
+    <div class="sidebar-section-title">Investors · ${MOCK_INVESTORS.length}</div>
+    <div class="access-list">${investorRows||'<div style="padding:12px 0;color:var(--text-3);font-size:12px;font-family:var(--mono)">No investors yet</div>'}</div>
+  `;
   updateNotifBell();
 }
 
