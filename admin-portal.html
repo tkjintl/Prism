@@ -87,9 +87,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .view-inner{padding:clamp(24px,4vh,44px) clamp(20px,5vw,72px)}
 
 /* KPI STRIP */
-.kpi-strip{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
-@media(min-width:640px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:1024px){.kpi-strip{grid-template-columns:repeat(5,1fr)}}
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);overflow:hidden}
+@media(max-width:900px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:540px){.kpi-strip{grid-template-columns:repeat(2,1fr)}}
 .kpi-card{padding:18px clamp(16px,3vw,28px);background:var(--bg);transition:background .15s}
 .kpi-card:hover{background:var(--bg-3)}
 .kpi-lbl{font-size:10px;color:var(--text-3);letter-spacing:.06em;margin-bottom:7px}
@@ -1717,8 +1717,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <!-- ══ VIEW: OVERVIEW ══ -->
 <div id="view-overview" class="view active">
   <div class="kpi-strip" id="kpi-strip"></div>
-  <div class="view-inner">
-    <div style="display:grid;grid-template-columns:1fr;gap:32px" id="overview-main"></div>
+  <div class="ov-layout">
+    <div class="ov-main" id="overview-main"></div>
+    <div class="ov-sidebar" id="overview-sidebar"></div>
   </div>
 </div>
 
@@ -2680,7 +2681,7 @@ function renderKPIs(){
     {lbl:'Actions Required',val:actionsRequired>0?actionsRequired:'All clear',rawNum:actionsRequired,sub:'total open items',cls:actionsRequired>0?'kpi-alert':'kpi-green'},
   ];
   const strip=document.getElementById('kpi-strip');
-  strip.innerHTML=tiles.map((k,i)=>`<div class="kpi-card ${k.cls}" style="animation:fadeUp .4s var(--ease) ${i*60}ms both">
+  strip.innerHTML=tiles.map((k,i)=>`<div class="kpi-cell" style="animation:fadeUp .4s var(--ease) ${i*60}ms both">
     <div class="kpi-lbl">${k.lbl}</div>
     <div class="kpi-val ${k.cls==='kpi-alert'?'amber':k.cls==='kpi-gold'?'gold':k.cls==='kpi-green'?'green':''}" data-countup="${k.rawNum}">${k.val}</div>
     <div class="kpi-sub">${k.sub}</div>
