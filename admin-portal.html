@@ -1641,9 +1641,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 /* Overview layout with right sidebar */
 .ov-layout{display:flex;align-items:flex-start;gap:0}
 .ov-main{flex:1;min-width:0;padding:32px 36px}
-.ov-sidebar{width:320px;flex-shrink:0;border-left:1px solid var(--border);padding:28px 24px;display:flex;flex-direction:column;gap:28px;background:var(--bg-2);min-height:calc(100vh - var(--nav-h));position:sticky;top:var(--nav-h);align-self:flex-start;max-height:calc(100vh - var(--nav-h));overflow-y:auto}
+.ov-sidebar{width:320px;flex-shrink:0;border-left:1px solid var(--border);padding:28px 24px;display:flex;flex-direction:column;gap:0;background:var(--bg-2);min-height:calc(100vh - var(--nav-h));position:sticky;top:var(--nav-h);align-self:flex-start;max-height:calc(100vh - var(--nav-h));overflow-y:auto}
 @media(max-width:1100px){.ov-sidebar{display:none}}
-.sidebar-section-title{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px}
+.sidebar-section-title{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;margin-top:28px}
+.sidebar-section-title:first-child{margin-top:0}
 
 /* Activity feed */
 .activity-feed{display:flex;flex-direction:column;gap:0}
@@ -1660,9 +1661,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 /* Access list (sidebar advisors/investors) */
 .access-list{display:flex;flex-direction:column;gap:0}
-.al-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.al-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
 .al-row:last-child{border-bottom:none}
-.al-name{font-size:12px;color:var(--text);font-weight:500}
+.al-info{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.al-name{font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .al-sub{font-size:10px;color:var(--text-3)}
 .al-status{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid}
 .al-active{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
@@ -2924,14 +2926,18 @@ function renderOverview(){
   /* ── Sign-up access cycle panel ── */
   const advisorStatusLabel=s=>s==='active'?'Active':'Pending Setup';
   const advisorRows=MOCK_ADVISORS.map(a=>`<div class="al-row">
-    <div class="al-name">${a.name}</div>
-    <div class="al-sub">${a.firm} · Joined ${a.joined}</div>
+    <div class="al-info">
+      <div class="al-name">${a.name}</div>
+      <div class="al-sub">${a.firm} · Joined ${a.joined}</div>
+    </div>
     <div class="al-status ${a.status==='active'?'al-active':'al-pending'}">${advisorStatusLabel(a.status)}</div>
   </div>`).join('');
   const investorAccessLabel=s=>s==='active'?'Active':s==='invite_sent'?'Invite Sent':'Pending Setup';
   const investorRows=MOCK_INVESTORS.map(i=>`<div class="al-row">
-    <div class="al-name">${i.name}</div>
-    <div class="al-sub">${i.type} · Added ${i.added}</div>
+    <div class="al-info">
+      <div class="al-name">${i.name}</div>
+      <div class="al-sub">${i.type} · Added ${i.added}</div>
+    </div>
     <div class="al-status ${i.access==='active'?'al-active':'al-pending'}">${investorAccessLabel(i.access)}</div>
   </div>`).join('');
 
@@ -3003,7 +3009,8 @@ function renderOverview(){
     ${stageLanesNew?`
     <div class="section-rule">
       <div class="rule-line"></div>
-      <span class="rule-label rule-blue">Pipeline <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1])" style="margin-left:8px">Full View →</button></span>
+      <span class="rule-label rule-blue">Pipeline</span>
+      <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1])">Full View →</button>
       <div class="rule-line"></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;padding:16px 0">${stageLanesNew}</div>
