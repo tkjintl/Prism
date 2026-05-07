@@ -4,6 +4,16 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-06] — Two-dashboard flash fix + action card height cap
+
+### Admin portal — data load
+- Cleared hardcoded `DEALS` and `NEW_SUBMISSIONS` seed arrays (renamed to `_SEED_DEALS` / `_SEED_SUBMISSIONS`, not used) — eliminates the flash of fake data before real API data loads
+- `renderOverview()` now shows a spinner ("Loading platform data…") on first render when arrays are empty, then real data paints once after `load()` completes — no more two-dashboard effect
+- Action cards in scroll context capped at `max-height:220px; overflow-y:auto` — bot-seeded cards with long AI briefs no longer explode the card height and break horizontal scroll layout
+- Added `@keyframes spin` for the loading spinner
+
+---
+
 ## [2026-05-06] — Deal lifecycle rail + action queue scroll fix
 
 ### Admin portal — Deal Controls

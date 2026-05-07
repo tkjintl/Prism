@@ -49,6 +49,7 @@ input,select,textarea{font-family:inherit;color:inherit;background:var(--surface
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes shimmer{from{opacity:.5}to{opacity:1}}
@@ -1246,7 +1247,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .action-scroll::-webkit-scrollbar{height:4px}
 .action-scroll::-webkit-scrollbar-track{background:transparent}
 .action-scroll::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
-.action-scroll .ov-action-card{width:264px;border:1px solid var(--border);border-radius:var(--r);border-bottom:1px solid var(--border)}
+.action-scroll .ov-action-card{width:264px;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);border-bottom:1px solid var(--border)}
 .action-scroll .ov-action-card.pq-high-card{border-left:3px solid var(--red)}
 .action-scroll .ov-action-card.pq-medium-card{border-left:3px solid var(--amber)}
 .act-card{flex-shrink:0;width:264px;background:var(--bg-2);border:1px solid var(--border);border-left-width:3px;border-radius:var(--r);padding:14px 15px;display:flex;flex-direction:column;gap:6px}
@@ -2290,7 +2291,8 @@ function adaptDeal(d,allIois){const di=(allIois||[]).filter(i=>i.deal_id===d.id)
 
 /* ─── DATA ─── */
 let KILLED_DEALS=[];
-let DEALS=[
+let DEALS=[];
+let _SEED_DEALS=[
   {
     id:'d1',name:'Pacific Bridge Infrastructure',asset_class:'infra',stage:'live',
     geography:'Asia-Pacific · N. America',structure:'Senior Secured',target_irr:11,
@@ -2404,7 +2406,8 @@ let DEALS=[
   },
 ];
 
-let NEW_SUBMISSIONS=[
+let NEW_SUBMISSIONS=[];
+let _SEED_SUBMISSIONS=[
   {id:'ns1',name:'Meridian Financial Corp',asset_class:'credit',geography:'United States',structure:'Mezzanine',target_irr:15,target_alloc:22000000,term:30,min_ticket:200000,advisor:'David Park',advisor_firm:'Park Capital',submitted:'Apr 28',advisor_review_status:'approved',thesis:'Mid-market mezzanine credit targeting the US SME gap. Proven origination team with $800M deployed.'},
   {
     id:'sub3',name:'Horizon Renewable Energy Fund',asset_class:'infra',stage:'review',
@@ -2582,6 +2585,12 @@ function renderKPIs(){
 /* ── OVERVIEW ── */
 function renderOverview(){
   const _prevActionScroll=document.querySelector('.action-scroll')?.scrollLeft||0;
+
+  /* ── Loading state before API responds ── */
+  if(!DEALS.length&&!NEW_SUBMISSIONS.length&&!REAL_ADVISORS.length&&!REAL_INVESTORS.length){
+    document.getElementById('overview-main').innerHTML=`<div style="display:flex;align-items:center;gap:12px;padding:48px 0;color:var(--text-3);font-size:13px;font-family:var(--mono)"><div style="width:16px;height:16px;border:2px solid var(--gold);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>Loading platform data…</div>`;
+    return;
+  }
 
   /* ── Real data from API ── */
   const MOCK_ADVISORS=REAL_ADVISORS.map(a=>({name:a.name||a.email,firm:a.firm_name||'',joined:a.created_at?new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'',status:a.status}));
