@@ -5974,21 +5974,19 @@ async function confirmPushFromPopup(dealId, btn) {
 
 // ── Drag-to-scroll for action queue ──────────────────────────
 (function(){
+  const wired=new WeakSet();
   function enableDragScroll(el){
+    if(wired.has(el))return;
+    wired.add(el);
     let isDown=false,startX,scrollLeft;
     el.addEventListener('mousedown',e=>{isDown=true;startX=e.pageX-el.offsetLeft;scrollLeft=el.scrollLeft;});
     el.addEventListener('mouseleave',()=>{isDown=false;});
     el.addEventListener('mouseup',()=>{isDown=false;});
     el.addEventListener('mousemove',e=>{if(!isDown)return;e.preventDefault();const x=e.pageX-el.offsetLeft;el.scrollLeft=scrollLeft-(x-startX)*1.2;});
   }
-  // Wire on load and re-wire whenever renderOverview runs (action-scroll is recreated)
-  const orig=window.renderOverview;
-  window.renderOverview=function(){
-    orig&&orig.apply(this,arguments);
-    requestAnimationFrame(()=>{const s=document.querySelector('.action-scroll');if(s)enableDragScroll(s);});
-  };
-  // Also wire on initial page load
-  document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{const s=document.querySelector('.action-scroll');if(s)enableDragScroll(s);},500);});
+  // Watch for action-scroll being injected into the DOM
+  const obs=new MutationObserver(()=>{const s=document.querySelector('.action-scroll');if(s)enableDragScroll(s);});
+  document.addEventListener('DOMContentLoaded',()=>{obs.observe(document.body,{childList:true,subtree:true});});
 })();
 
 </script>

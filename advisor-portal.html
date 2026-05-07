@@ -1656,32 +1656,6 @@ function renderOverview(){
     close:{icon:'✦',col:'var(--gold)',bg:'var(--gold-bg)',bd:'var(--gold-bd)',title:'Closing Stage',body:'Upload fund documents, PPM, and wire instructions in Materials → Closing Documents. Confirm banking details so Aurum can deploy committed capital.'},
     realized:{icon:'✓',col:'var(--green)',bg:'var(--green-bg)',bd:'var(--green-bd)',title:'Deal Realized',body:'This deal has been successfully closed and realized. All documents are archived.'},
   };
-  // Lifecycle rail — simplified 5-step graphic
-  const _railSteps=[
-    {key:'review',label:'Pending\nConfirmation'},
-    {key:'live',label:'Live'},
-    {key:'dd',label:'Due\nDiligence'},
-    {key:'terms',label:'Terms &\nConditions'},
-    {key:'close',label:'Close'},
-  ];
-  const _railMap={review:0,live:1,ioi:1,dd:2,terms:3,close:4,realized:4};
-  const _curRailIdx=_railMap[d.stage]??-1;
-  const _railHtml=_railSteps.map((s,i)=>{
-    const done=i<_curRailIdx,cur=i===_curRailIdx;
-    const dotCol=cur?'var(--blue)':done?'var(--gold)':'var(--border-m)';
-    const lineCol=done?'var(--gold)':'var(--border-m)';
-    const lblCol=cur?'var(--blue)':done?'var(--gold)':'var(--text-3)';
-    const connector=i<_railSteps.length-1?`<div style="flex:1;height:1px;background:${lineCol};margin-top:-7px"></div>`:'';
-    return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0">
-      <div style="width:100%;display:flex;align-items:center">
-        <div style="width:12px;height:12px;border-radius:50%;background:${dotCol};flex-shrink:0;${cur?'box-shadow:0 0 0 3px rgba(91,133,184,.2)':''}"></div>
-        ${connector}
-      </div>
-      <div style="font-family:var(--mono);font-size:7px;letter-spacing:.06em;text-transform:uppercase;color:${lblCol};line-height:1.3;white-space:pre-line;text-align:left;width:100%">${s.label}</div>
-    </div>`;
-  }).join('');
-  html+=`<div style="display:flex;align-items:flex-start;gap:0;padding:10px 0 14px">${_railHtml}</div>`;
-
   const _guideKey=d.stage==='live'&&d.pushed_ioi&&d.pushed_ioi.status==='pending'?'live_ioi':d.stage;
   const _guide=_stageGuides[_guideKey];
   if(_guide)html+=`<div style="border:1px solid ${_guide.bd};border-left:3px solid ${_guide.col};border-radius:var(--r);padding:14px 16px;background:${_guide.bg};margin-bottom:4px;display:flex;gap:12px;align-items:flex-start">
