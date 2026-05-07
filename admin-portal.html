@@ -1250,7 +1250,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .action-scroll .ov-action-card{min-width:0;width:auto;overflow:hidden;padding:8px 12px;border:1px solid var(--border);border-radius:var(--r);border-bottom:1px solid var(--border)}
 .action-scroll .ov-action-card.pq-high-card{border-left:3px solid var(--red)}
 .action-scroll .ov-action-card.pq-medium-card{border-left:3px solid var(--amber)}
-.action-scroll .pq-ai-brief{margin:1px 0 3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%}
+.action-scroll .pq-ai-brief{display:block;margin:1px 0 3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%}
 .action-scroll .ov-ac-actions{margin-top:5px;gap:5px}
 .action-scroll .ov-ac-name{margin-bottom:1px;font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%}
 .action-scroll .ov-ac-meta{font-size:10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%}
@@ -2882,7 +2882,7 @@ function renderOverview(){
         <span class="zone-hd-title">Action Queue</span>
         <span class="zone-hd-count">${allActionCards.length>0?allActionCards.length+' item'+(allActionCards.length!==1?'s':''):'All clear'}</span>
       </div>
-      <div class="action-scroll" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:380px;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;width:50%">
+      <div class="action-scroll" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:380px;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;width:100%">
         ${allActionCards.length?allActionCards.join(''):'<div class="act-empty">No pending actions — all clear</div>'}
       </div>
     </section>
