@@ -184,12 +184,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ioi-deal-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg-3);transition:background .15s}
 .ioi-deal-hd:hover{background:var(--bg-2)}
 .iqg-chip{font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:2px;letter-spacing:.06em}
-.chip-amber{background:rgba(202,138,4,.12);color:var(--amber);border:1px solid rgba(202,138,4,.2)}
-.chip-gold{background:rgba(197,165,114,.1);color:var(--gold);border:1px solid rgba(197,165,114,.2)}
-.chip-violet{background:rgba(139,92,246,.1);color:var(--violet,#8b5cf6);border:1px solid rgba(139,92,246,.2)}
-.ioi-deal-hd-left{flex:1;min-width:0}
+.chip-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.chip-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-bd)}
+.chip-violet{background:var(--violet-bg);color:var(--violet);border:1px solid var(--violet-bd)}
+.ioi-deal-hd-left{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
 .ioi-deal-title{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text);margin-bottom:3px}
-.ioi-deal-advisor{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
+.ioi-deal-advisor{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ioi-chip-row{display:inline-flex;gap:4px;margin-left:2px}
 .ioi-deal-hd-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
 .ioi-sub-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;width:180px}
 .ioi-sub-label{font-family:var(--mono);font-size:10px;color:var(--text-2);white-space:nowrap}
@@ -202,7 +203,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 /* IOI table rows */
 .ioi-table{display:flex;flex-direction:column}
-.ioi-row{display:grid;grid-template-columns:minmax(160px,1.8fr) 140px 100px 80px auto;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s;animation:rowSlide .35s var(--ease) both}
+.ioi-row{display:grid;grid-template-columns:minmax(160px,1.8fr) 140px 100px 80px 90px auto;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s;animation:rowSlide .35s var(--ease) both}
 .ioi-row:last-child{border-bottom:none}
 .ioi-row:hover{background:var(--bg-3)}
 .ioi-row.hdr{background:var(--bg-3);border-bottom:1px solid var(--border-m)}
@@ -3281,11 +3282,11 @@ function buildDealGroup(g,gi=0){
 
   return`<div class="ioi-deal-group" id="iqg-${g.dealId}" style="animation-delay:${gi*60}ms">
     <div class="ioi-deal-hd" style="cursor:pointer" onclick="toggleIoiGroup('${g.dealId}')">
-      <div class="ioi-deal-hd-left" style="display:flex;align-items:center;gap:10px">
+      <div class="ioi-deal-hd-left">
         <div class="ds-chevron" id="iqg-chev-${g.dealId}">›</div>
         <div>
           <div class="ioi-deal-title">${g.dealName}</div>
-          <div class="ioi-deal-advisor" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${g.advisor}${summaryChips?'<span style="display:inline-flex;gap:4px;margin-left:2px">'+summaryChips+'</span>':''}</div>
+          <div class="ioi-deal-advisor">${g.advisor}${summaryChips?'<span class="ioi-chip-row">'+summaryChips+'</span>':''}</div>
         </div>
       </div>
       <div class="ioi-deal-hd-right">
