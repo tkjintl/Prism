@@ -2872,25 +2872,18 @@ function renderOverview(){
   }).join('');
 
   const allActionCards=[...submissionCards,...readyToPublishCards,...pushCards];
-  const actionRows=[];
-  for(let i=0;i<allActionCards.length;i+=2){
-    actionRows.push(`<div style="display:flex;gap:10px;width:100%;box-sizing:border-box">
-      <div style="flex:0 0 calc(50% - 5px);min-width:0;overflow:hidden">${allActionCards[i]}</div>
-      ${allActionCards[i+1]?`<div style="flex:0 0 calc(50% - 5px);min-width:0;overflow:hidden">${allActionCards[i+1]}</div>`:'<div style="flex:0 0 calc(50% - 5px)"></div>'}
-    </div>`);
-  }
 
   document.getElementById('overview-main').innerHTML=`
     ${headerBar}
 
-    <!-- Zone 2: Action Queue -->
+    <!-- Zone 2: Action Queue (horizontal scroll) -->
     <section class="zone-2">
       <div class="zone-hd">
         <span class="zone-hd-title">Action Queue</span>
         <span class="zone-hd-count">${allActionCards.length>0?allActionCards.length+' item'+(allActionCards.length!==1?'s':''):'All clear'}</span>
       </div>
-      <div class="action-scroll" style="display:flex;flex-direction:column;gap:10px;max-height:380px;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;width:100%">
-        ${actionRows.length?actionRows.join(''):'<div class="act-empty">No pending actions — all clear</div>'}
+      <div class="action-scroll" style="display:flex;flex-wrap:wrap;gap:10px;max-height:380px;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;width:100%">
+        ${allActionCards.length?allActionCards.join(''):'<div class="act-empty">No pending actions — all clear</div>'}
       </div>
     </section>
 
