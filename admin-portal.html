@@ -1670,6 +1670,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .al-active{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 .al-pending{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 
+/* Pipeline tab — header action buttons */
+.pl-btn-add{padding:10px 20px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.pl-btn-add:hover{background:var(--gold-b)}
+.pl-btn-unassigned{padding:10px 16px;background:transparent;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:1px solid var(--gold-bd);border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.pl-btn-unassigned:hover{background:var(--gold-bg)}
+/* Pipeline submissions doc slot buttons */
+.ds-doc-btn{font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid var(--green-bd);background:var(--green-bg);color:var(--green);border-radius:2px;cursor:pointer;transition:background .15s}
+.ds-doc-btn:hover{background:rgba(90,158,114,.18)}
+
 /* Pipeline summary rows (sidebar) */
 .pipeline-summary{display:flex;flex-direction:column;gap:6px}
 .ps-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:background .15s}
@@ -1745,12 +1754,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
         <div class="view-sub">All active deals across all advisors. Stage advances are controlled by admin.</div>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;margin-top:4px;align-items:center">
-        <button id="unassigned-deals-btn" onclick="openUnassignedDealsModal()" style="display:none;padding:10px 16px;background:transparent;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:1px solid var(--gold-bd);border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.background='var(--gold-bg)'" onmouseout="this.style.background='transparent'">Unassigned deals (<span id="unassigned-deals-count">0</span>)</button>
-        <button onclick="openAdminDealPanel()" style="padding:10px 20px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.background='var(--gold-b)'" onmouseout="this.style.background='var(--gold)'">+ Add Deal</button>
+        <button id="unassigned-deals-btn" class="pl-btn-unassigned" onclick="openUnassignedDealsModal()" style="display:none">Unassigned deals (<span id="unassigned-deals-count">0</span>)</button>
+        <button class="pl-btn-add" onclick="openAdminDealPanel()">+ Add Deal</button>
       </div>
     </div>
     <div id="deal-submissions-wrap"></div>
-    <div class="section-hd"><div class="section-hd-title">Active Deals</div><span class="section-hd-count" id="active-deals-count"></span></div>
+    <div class="section-rule"><div class="rule-line"></div><span class="rule-label rule-gold">Active Deals · <span id="active-deals-count"></span></span><div class="rule-line"></div></div>
     <div class="deal-pipeline" id="deal-pipeline-table"></div>
     <div id="deal-archive-wrap"></div>
   </div>
@@ -3017,10 +3026,34 @@ function renderOverview(){
     `:''}
   `;
 
+  // Pipeline summary for sidebar — compact by stage
+  const psStageStyle={
+    live:'color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)',
+    dd:'color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)',
+    terms:'color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)',
+    close:'color:var(--green);border-color:var(--green-bd);background:var(--green-bg)',
+    review:'color:var(--text-3);border-color:var(--border-m);background:transparent'
+  };
+  const pipelineSummaryHtml=STAGE_ORDER_OV.map(stage=>{
+    const sDeals=DEALS.filter(d=>d.stage===stage);
+    if(!sDeals.length)return'';
+    const lbl=STAGE_LABELS[stage]||stage;
+    const stl=psStageStyle[stage]||'color:var(--text-3);border-color:var(--border-m)';
+    return sDeals.map(d=>`<div class="ps-row" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1]);setTimeout(()=>openDealDetail('${d.id}'),300)">
+      <span class="ps-stage" style="${stl}">${lbl}</span>
+      <span class="ps-name">${d.name}</span>
+      <span class="ps-ioi">${d.iois.filter(i=>i.status!=='declined').length} IOI</span>
+    </div>`).join('');
+  }).join('');
+
   document.getElementById('overview-sidebar').innerHTML=`
     ${activityHtml?`
     <div class="sidebar-section-title">Activity</div>
     <div class="activity-feed">${activityHtml}</div>
+    `:''}
+    ${pipelineSummaryHtml?`
+    <div class="sidebar-section-title">Pipeline</div>
+    <div class="pipeline-summary">${pipelineSummaryHtml}</div>
     `:''}
     <div class="sidebar-section-title">Advisors · ${MOCK_ADVISORS.length}</div>
     <div class="access-list">${advisorRows||'<div style="padding:12px 0;color:var(--text-3);font-size:12px;font-family:var(--mono)">No advisors yet</div>'}</div>
@@ -3803,7 +3836,7 @@ function toggleSubmission(id){
 function renderPipeline(){
   if(NEW_SUBMISSIONS.length>0){
     document.getElementById('deal-submissions-wrap').innerHTML=`
-      <div class="section-hd"><div class="section-hd-title">Pending Submissions</div><span class="section-hd-count">${NEW_SUBMISSIONS.length} New</span></div>
+      <div class="section-rule" style="margin-top:8px"><div class="rule-line"></div><span class="rule-label rule-amber">Pending Submissions · ${NEW_SUBMISSIONS.length}</span><div class="rule-line"></div></div>
       <div class="deal-submissions">${NEW_SUBMISSIONS.map(s=>`
         <div class="ds-card ds-card-collapsed" id="dsc-${s.id}">
           <div class="ds-card-header" style="cursor:pointer" onclick="toggleSubmission('${s.id}')">
@@ -3865,7 +3898,7 @@ function renderPipeline(){
                 const doc = (s.docs||[]).find(d=>d.slot===slot);
                 const labels = {nda:'NDA',mgmt:'Deck',fin:'Financials',term:'Term Sheet'};
                 return doc
-                  ? `<button onclick="viewDoc('${s.id}','${slot}')" title="View ${labels[slot]}" style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72;border-radius:2px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(90,158,114,.18)'" onmouseout="this.style.background='rgba(90,158,114,.07)'">↗ ${labels[slot]}</button>`
+                  ? `<button class="ds-doc-btn" onclick="viewDoc('${s.id}','${slot}')" title="View ${labels[slot]}">↗ ${labels[slot]}</button>`
                   : `<span style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid var(--border);color:var(--text-3);border-radius:2px">${labels[slot]}</span>`;
               }).join('')}
             </div>
@@ -3887,10 +3920,10 @@ function renderPipeline(){
   if(archiveWrap){
     if(KILLED_DEALS.length>0){
       archiveWrap.innerHTML=`
-        <div class="section-hd" style="margin-top:24px;cursor:pointer;user-select:none" onclick="toggleArchive()">
-          <div class="section-hd-title" style="color:var(--text-3)">Archived / Killed</div>
-          <span class="section-hd-count" id="archive-badge">${KILLED_DEALS.length}</span>
-          <span id="archive-chevron" style="font-family:var(--mono);font-size:12px;color:var(--text-3);margin-left:auto">›</span>
+        <div class="section-rule" style="cursor:pointer;user-select:none;margin-top:24px" onclick="toggleArchive()">
+          <div class="rule-line"></div>
+          <span class="rule-label" style="color:var(--text-3);border-color:var(--border-m);background:transparent">Archived · ${KILLED_DEALS.length} <span id="archive-chevron">›</span></span>
+          <div class="rule-line"></div>
         </div>
         <div id="archive-body" style="display:none">
           <div class="deal-pipeline" style="opacity:.7">
