@@ -205,6 +205,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 /* ACTIVITY FEED */
 .activity-feed{display:flex;flex-direction:column;gap:0}
+.ns-card{transition:opacity .15s,box-shadow .15s}
+.ns-card[onclick]{cursor:pointer}
+.ns-card[onclick]:hover{opacity:.85;box-shadow:0 4px 16px rgba(0,0,0,.18)}
 .activity-item{display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid var(--border);animation:fadeUp .4s var(--ease) both}
 .activity-item:last-child{border-bottom:none}
 .act-icon-wrap{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
@@ -1558,14 +1561,6 @@ function renderOverview(){
         <div class="cb-text-sub">Review the indication below. Accepting advances your deal to Due Diligence and notifies the investor.</div>
       </div>
     </div>`;
-  } else if(isLive){
-    html+=`<div class="context-banner cb-live">
-      <div class="cb-icon">●</div>
-      <div>
-        <div class="cb-text-main">Your deal is live and collecting investor interest</div>
-        <div class="cb-text-sub">Investors can view your deck and submit expressions of interest. Admin reviews all IOIs before forwarding to you.</div>
-      </div>
-    </div>`;
   } else if(d.stage==='dd'){
     html+=`<div class="context-banner cb-live" style="background:var(--blue-bg);border-color:var(--blue-bd)">
       <div class="cb-icon" style="color:var(--blue)">◆</div>
@@ -1658,10 +1653,16 @@ function renderOverview(){
   };
   const _guideKey=d.stage==='live'&&d.pushed_ioi&&d.pushed_ioi.status==='pending'?'live_ioi':d.stage;
   const _guide=_stageGuides[_guideKey];
-  if(_guide)html+=`<div style="border:1px solid ${_guide.bd};border-left:3px solid ${_guide.col};border-radius:var(--r);padding:14px 16px;background:${_guide.bg};margin-bottom:4px;display:flex;gap:12px;align-items:flex-start">
+  const _guideActions={
+    live_ioi:`document.querySelector('.activity-feed')?.scrollIntoView({behavior:'smooth',block:'center'})`,
+    dd:`showTab('dataroom',document.getElementById('ctab-dataroom'))`,
+    close:`showTab('materials',document.querySelectorAll('.ctab')[1])`,
+  };
+  const _guideAction=_guideActions[_guideKey]||'';
+  if(_guide)html+=`<div class="ns-card" ${_guideAction?`onclick="${_guideAction}"`:''}style="border:1px solid ${_guide.bd};border-left:3px solid ${_guide.col};border-radius:var(--r);padding:14px 16px;background:${_guide.bg};margin-bottom:4px;display:flex;gap:12px;align-items:flex-start">
     <div style="font-size:15px;flex-shrink:0;margin-top:1px;color:${_guide.col}">${_guide.icon}</div>
-    <div><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:${_guide.col};margin-bottom:4px">Next Step</div>
-    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${_guide.title}</div>
+    <div style="flex:1"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:${_guide.col};margin-bottom:4px">Next Step</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${_guide.title}${_guideAction?'<span style="float:right;font-size:11px;opacity:.5">→</span>':''}</div>
     <div style="font-size:12px;color:var(--text-2);line-height:1.65">${_guide.body}</div></div>
   </div>`;
 
