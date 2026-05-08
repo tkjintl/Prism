@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { verifyToken, signToken, signResetCode, verifyResetToken, cookieOpts, clearCookieOpts } from './_lib/auth.js';
 import { ok, bad, unauth, getCookie, setCookieHeader } from './_lib/http.js';
 import { kvGet, kvSet, kvDel, kvKeys, kvSetnx, kvIncrby, kvZrange, kvZadd, kvZrem, healthCheck, isKvUnavailable } from './_lib/storage.js';
@@ -1317,14 +1318,24 @@ async function _handler(req, res, resource, op) {
     }
 
     if (op === 'tacc-feed') {
-      // TACC integration endpoint — HMAC-signed read-only
+      // TACC integration endpoint — HMAC-SHA256 signed (matches TACC prism-bridge.js)
+      // TACC sends: X-TACC-Ts (unix seconds) + X-TACC-Sig (HMAC-SHA256(secret, ts))
       const bridgeSecret = process.env.PRISM_TACC_BRIDGE_SECRET;
       if (!bridgeSecret) return res.status(503).json({ error: 'Feed not configured' });
-      const sig = req.headers['x-tacc-signature'];
-      if (sig !== bridgeSecret) return unauth(res, 'Invalid bridge signature');
+      const ts  = req.headers['x-tacc-ts']  || '';
+      const sig = req.headers['x-tacc-sig'] || '';
+      if (!ts || !sig) return unauth(res, 'Invalid bridge signature');
+      const ageSec = Math.abs(Math.floor(Date.now() / 1000) - Number(ts));
+      if (ageSec > 300) return unauth(res, 'Request expired');
+      const expectedHex = createHmac('sha256', bridgeSecret).update(ts).digest('hex');
+      const expectedBuf = Buffer.from(expectedHex);
+      const sigBuf      = Buffer.from(sig);
+      const valid = expectedBuf.length === sigBuf.length && timingSafeEqual(expectedBuf, sigBuf);
+      if (!valid) return unauth(res, 'Invalid bridge signature');
       const deals = await listDeals({ live: true });
       const feed = deals.map(d => ({
         id: d.id, name: d.name, asset_class: d.asset_class,
+        deal_structure: d.deal_structure || '',
         geography: d.geography, target_irr: d.target_irr,
         term_months: d.term_months, target_alloc_usd: d.target_alloc_usd,
         ioi_count: d.ioi_count, ioi_agg_usd: d.ioi_agg_usd,
@@ -4030,6 +4041,16 @@ Rules:
         console.error('[sandbox-reset] seedHighVolume failed:', e?.message || e);
         return bad(res, 'Reset failed during high-volume seed: ' + (e?.message || 'unknown'), 500);
       }
+      let curatedDeals = [];
+      try {
+        await seedAdvisors();
+        await seedInvestors();
+        curatedDeals = await seedDeals(true);
+        await seedIois(true);
+      } catch (e) {
+        console.error('[sandbox-reset] seedDeals failed:', e?.message || e);
+        // non-fatal — bot deals are still seeded
+      }
       // Bust all caches so next polls compute fresh
       try {
         await kvDel('bot:status:cache');
@@ -4041,7 +4062,7 @@ Rules:
         wiped,
         advisors: volume.advisors_created + 1,
         investors: volume.investors_created + 1,
-        deals: volume.deals_created,
+        deals: volume.deals_created + curatedDeals.length,
         iois: volume.iois_created,
         bot_accounts: accounts,
       });
