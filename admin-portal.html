@@ -4368,13 +4368,13 @@ function repRenderTable(){
     return `<span style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;color:${map[s]||'var(--text-3)'};border:1px solid currentColor;opacity:.85">${lbl[s]||s}</span>`;
   };
   const extraCols={
-    credit:[{k:'target_irr',h:'Target IRR'},{k:'_yield',h:'Yield'},{k:'_dscr',h:'DSCR'},{k:'_spread',h:'Spread'}],
-    infra:[{k:'target_irr',h:'Target IRR'},{k:'_dscr',h:'DSCR'},{k:'_dist',h:'Distributions'}],
-    pe:[{k:'_moic',h:'MOIC'},{k:'_arr',h:'ARR'},{k:'_round',h:'Last Round'}],
-    re:[{k:'target_irr',h:'Target IRR'},{k:'_ltv',h:'LTV'},{k:'_caprate',h:'Cap Rate'}],
+    credit:[{k:'target_irr',h:'Target IRR',fmt:v=>v?v+'%':'—'},{k:'_yield',h:'Yield',fmt:v=>v?v+'%':'—'},{k:'_dscr',h:'DSCR',fmt:()=>'—'},{k:'_spread',h:'Spread/WAL',fmt:()=>'—'}],
+    infra:[{k:'target_irr',h:'Target IRR',fmt:v=>v?v+'%':'—'},{k:'_dscr',h:'DSCR',fmt:()=>'—'},{k:'_dist',h:'Distributions',fmt:()=>'—'}],
+    pe:[{k:'moic',h:'MOIC',fmt:v=>v?v.toFixed(2)+'x':'—'},{k:'_arr',h:'ARR',fmt:()=>'—'},{k:'_round',h:'Last Round',fmt:()=>'—'}],
+    re:[{k:'target_irr',h:'Target IRR',fmt:v=>v?v+'%':'—'},{k:'_ltv',h:'LTV',fmt:()=>'—'},{k:'_caprate',h:'Cap Rate',fmt:()=>'—'}],
   };
   const cols=repClass!=='all'?(extraCols[repClass]||[]):[];
-  const hdExtra=cols.map(c=>`<th class="rep-tbl" style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:right">${c.h}</th>`).join('');
+  const hdExtra=cols.map(c=>`<th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border)">${c.h}</th>`).join('');
   wrap.innerHTML=`<table class="rep-tbl">
     <thead><tr>
       <th>Deal / Advisor</th>
@@ -4395,7 +4395,7 @@ function repRenderTable(){
       const moicStr=d.moic?d.moic.toFixed(2)+'x':'—';
       const overdueDot=d.overdue?`<span class="rep-overdue-dot"></span>`:'';
       const nudgeBtn=d.overdue?`<button onclick="repNudge('${d.id}','${d.name}')" style="font-family:var(--mono);font-size:8px;padding:3px 8px;border-radius:2px;background:var(--amber-bg);border:1px solid var(--amber-bd);color:var(--amber);cursor:pointer;margin-left:6px">Nudge</button>`:'';
-      const tdExtra=cols.map(c=>`<td style="text-align:right;font-family:var(--mono);font-size:10px">—</td>`).join('');
+      const tdExtra=cols.map(c=>`<td style="text-align:right;font-family:var(--mono);font-size:10px;white-space:nowrap">${c.fmt(d[c.k])}</td>`).join('');
       return `<tr onclick="repToggleRow('rep-exp-${i}')" style="cursor:pointer">
         <td><div style="font-weight:500;color:var(--text)">${d.name}</div><div style="font-size:10px;color:var(--text-3);font-family:var(--mono)">${d.advisor_id||'—'}</div></td>
         <td>${stageChip(d.stage)}</td>
