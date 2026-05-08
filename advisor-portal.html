@@ -2861,8 +2861,10 @@ function animatePerf(){
   const pct=Math.round(d.ioi_agg/d.target_alloc*100);
   const days=Math.round((new Date(d.closing)-new Date())/86400000);
   document.getElementById('perf-pct').textContent=pct+'%';
-  document.getElementById('perf-ring-title').textContent=`${pct}% Indicated · ${fmU(d.ioi_agg)}`;
-  document.getElementById('perf-ring-detail').innerHTML=`<strong>${fmU(d.ioi_agg)}</strong> of ${fmU(d.target_alloc)} target<br>${d.ioi_count} investors have expressed interest`;
+  const _gap=Math.max(0,d.target_alloc-d.ioi_agg);
+  const _avgTicket=d.ioi_count>0?Math.round(d.ioi_agg/d.ioi_count):0;
+  document.getElementById('perf-ring-title').textContent=_gap>0?`${fmU(_gap)} remaining to target`:`Target reached`;
+  document.getElementById('perf-ring-detail').innerHTML=_avgTicket>0?`Avg ticket ${fmU(_avgTicket)} · ~${Math.ceil(_gap/_avgTicket)} more needed`:`No IOIs yet`;
   const r=document.getElementById('perf-ring');
   r.style.transition='stroke-dashoffset 1.6s var(--ease)';
   r.style.strokeDashoffset=364*(1-pct/100);
