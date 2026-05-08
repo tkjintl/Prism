@@ -1686,7 +1686,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .rep-kpi-val{font-size:22px;font-weight:600;font-family:var(--serif);color:var(--text)}
 .rep-kpi-sub{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:3px}
 .rep-tbl{width:100%;border-collapse:collapse}
-.rep-tbl th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.rep-tbl th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
 .rep-tbl td{padding:10px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-2);vertical-align:top}
 .rep-tbl tr:hover td{background:var(--surface)}
 .rep-expand-row td{padding:0;background:var(--bg)}
@@ -4360,7 +4360,7 @@ function repRenderTable(){
   if(repView==='live') deals=deals.filter(d=>d.stage==='close');
   else if(repView==='realized') deals=deals.filter(d=>d.stage==='realized');
   if(!deals.length){wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:24px 0">No deals match the current filter.</div>';return;}
-  const fmM=v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':v?'$'+v:'—';
+  const fmM=v=>{const a=Math.abs(v),s=v<0?'-':'';return a>=1e6?s+'$'+(a/1e6).toFixed(1)+'M':a>=1e3?s+'$'+(a/1e3).toFixed(0)+'K':v?s+'$'+a:'—';};
   const fmDate=s=>s?new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';
   const stageChip=s=>{
     const map={close:'var(--green)',realized:'var(--violet)',review:'var(--amber)',live:'var(--blue)',ioi:'var(--blue)',dd:'var(--amber)',terms:'var(--amber)',killed:'var(--red)'};
@@ -4403,7 +4403,7 @@ function repRenderTable(){
         <td style="text-align:right;font-family:var(--mono);font-size:11px">${fmM(d.currentNav)}</td>
         <td style="text-align:right;font-family:var(--mono);font-size:11px;color:${gainColor}">${gainStr}</td>
         <td style="text-align:right;font-family:var(--mono);font-size:11px">${moicStr}</td>
-        <td style="font-family:var(--mono);font-size:10px">${overdueDot}${fmDate(d.lastNavUpdate)}${nudgeBtn}</td>
+        <td style="font-family:var(--mono);font-size:10px;white-space:nowrap">${overdueDot}${fmDate(d.lastNavUpdate)}${nudgeBtn}</td>
         ${tdExtra}
         <td style="text-align:right;font-family:var(--mono);font-size:10px;color:var(--text-3)">▾</td>
       </tr>
