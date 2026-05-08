@@ -1994,6 +1994,11 @@ async function _handler(req, res, resource, op) {
           irr: null, // requires full cash flow series — not yet implemented
           distributions: distributionList,
           navAsOf: deal.navAsOf || null,
+          navHistory: Array.isArray(deal.navHistory) ? deal.navHistory.map(e => ({
+            asOfDate: e.asOfDate,
+            totalNavUsd: e.totalNavUsd,
+            notes: e.notes || '',
+          })) : [],
         });
       }
 
