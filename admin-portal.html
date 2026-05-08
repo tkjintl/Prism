@@ -3310,7 +3310,7 @@ function openPackagePreview(dealId, ioiId){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px">
       <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r);padding:16px">
         <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:var(--mono);margin-bottom:10px">Deal Economics</div>
-        ${[['Target IRR',d.target_irr+'%'],['Allocation',fmU(d.target_alloc)],['Min Ticket',fmU(d.min_ticket)],['Term',d.term+'mo'],['Structure',d.structure||'—']].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text-2)">${l}</span><span style="font-family:var(--mono);color:var(--text-1)">${v}</span></div>`).join('')}
+        ${[['Target IRR',d.target_irr+'%'],['Allocation',fmU(d.target_alloc||d.target_alloc_usd)],['Min Ticket',fmU(d.min_ticket||d.min_ticket_usd)],['Term',(d.term||d.term_months||'—')+'mo'],['Structure',d.structure||d.deal_structure||'—']].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text-2)">${l}</span><span style="font-family:var(--mono);color:var(--text-1)">${v}</span></div>`).join('')}
       </div>
       <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--r);padding:16px">
         <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:var(--mono);margin-bottom:10px">Investor IOI</div>
@@ -4754,8 +4754,8 @@ function showAIOutput(deal,generated){
     highlights:generated.highlights||[],
     stats:{
       irr:generated.stats?.irr||(deal?deal.target_irr+'%':'—'),
-      ...((!deal||deal.asset_class!=='Equity')?{term:generated.stats?.term||(deal?deal.term+'mo':'—')}:{}),
-      ticket:generated.stats?.min_ticket||(deal?fmU(deal.min_ticket):'—'),
+      ...((!deal||deal.asset_class!=='Equity')?{term:generated.stats?.term||(deal?(deal.term||deal.term_months)+'mo':'—')}:{}),
+      ticket:generated.stats?.min_ticket||(deal?fmU(deal.min_ticket||deal.min_ticket_usd):'—'),
       geo:generated.stats?.structure||generated.geography||(deal?(deal.geography||'').split('·')[0].trim():'—')
     }
   }:deal?{

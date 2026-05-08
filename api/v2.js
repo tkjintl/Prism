@@ -2384,7 +2384,7 @@ async function _handler(req, res, resource, op) {
         title: d.name,
         citations: { enabled: false },
       }));
-      const systemPrompt = `You are an investment analyst generating structured deal profile content for a private capital marketplace platform called Aurum Prism. Analyze the provided documents and generate concise, professional investor-facing content. Be factual, data-driven, and use the tone of a private bank — not a startup pitch.`;
+      const systemPrompt = `You are an investment analyst generating structured deal profile content for a private capital marketplace platform called Aurum Prism. Analyze the provided documents and generate concise, professional investor-facing content. Be factual, data-driven, and use the tone of a private bank — not a startup pitch. Never begin the thesis or tagline with the company or fund name. Never repeat the deal name within the thesis body.`;
       const userPrompt = `Based on the uploaded deal documents, generate a complete deal profile for the Aurum Prism investor marketplace.
 
 Return ONLY valid JSON in this exact structure:
@@ -2477,7 +2477,7 @@ Return ONLY valid JSON in this exact structure:
         return [{ type: 'text', text: `=== ${d.name} ===\n${text}` }];
       });
 
-      const systemPrompt = `You are an investment analyst at a private capital marketplace called Aurum Prism. Extract deal data from uploaded documents and generate investor-ready content. Be factual and precise — extract numbers directly from the documents. Use institutional private bank tone, not startup pitch language.`;
+      const systemPrompt = `You are an investment analyst at a private capital marketplace called Aurum Prism. Extract deal data from uploaded documents and generate investor-ready content. Be factual and precise — extract numbers directly from the documents. Use institutional private bank tone, not startup pitch language. Never begin the thesis or tagline with the company or fund name. Never repeat the deal name within the thesis body.`;
       const userPrompt = `Analyze the uploaded deal documents and return a complete deal profile as valid JSON only — no markdown, no preamble.
 
 Required JSON structure:
