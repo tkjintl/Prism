@@ -30,9 +30,9 @@
   --r:6px;--nav-h:56px;--ease:cubic-bezier(0.22,1,0.36,1);
 }
 [data-theme="dark"]{
-  --bg:#0A0908;--bg-2:#100F0D;--bg-3:#161412;--surface:#131210;
-  --border:rgba(255,255,255,0.07);--border-m:rgba(255,255,255,0.13);
-  --text:#EDE8DF;--text-2:#A09A91;--text-3:#6B665E;
+  --bg:#0a0a0a;--bg-2:#111111;--bg-3:#1a1a1a;--surface:#141414;
+  --border:rgba(255,255,255,0.08);--border-m:rgba(255,255,255,0.14);
+  --text:#f0ece4;--text-2:#a09880;--text-3:#5a5548;
   --gold:#C5A572;--gold-b:#E3C187;--gold-bg:rgba(197,165,114,0.07);--gold-bd:rgba(197,165,114,0.22);
   --green:#5a9e72;--green-bg:rgba(90,158,114,0.07);--green-bd:rgba(90,158,114,0.25);
   --amber:#b8833a;--amber-bg:rgba(184,131,58,0.08);--amber-bd:rgba(184,131,58,0.28);
@@ -87,9 +87,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .view-inner{padding:clamp(24px,4vh,44px) clamp(20px,5vw,72px)}
 
 /* KPI STRIP */
-.kpi-strip{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
-@media(min-width:640px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:1024px){.kpi-strip{grid-template-columns:repeat(5,1fr)}}
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);overflow:hidden}
+@media(max-width:900px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:540px){.kpi-strip{grid-template-columns:repeat(2,1fr)}}
 .kpi-card{padding:18px clamp(16px,3vw,28px);background:var(--bg);transition:background .15s}
 .kpi-card:hover{background:var(--bg-3)}
 .kpi-lbl{font-size:10px;color:var(--text-3);letter-spacing:.06em;margin-bottom:7px}
@@ -145,6 +145,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .sc-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 .sc-close{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 .sc-terms{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.sc-killed{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
 .dp-actions{display:flex;gap:6px;flex-wrap:wrap}
 .dp-btn{padding:5px 10px;border-radius:3px;font-size:11px;font-weight:500;border:1px solid var(--border-m);color:var(--text-2);transition:all .15s;white-space:nowrap;cursor:pointer;font-family:inherit}
 .dp-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
@@ -183,12 +184,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ioi-deal-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg-3);transition:background .15s}
 .ioi-deal-hd:hover{background:var(--bg-2)}
 .iqg-chip{font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:2px;letter-spacing:.06em}
-.chip-amber{background:rgba(202,138,4,.12);color:var(--amber);border:1px solid rgba(202,138,4,.2)}
-.chip-gold{background:rgba(197,165,114,.1);color:var(--gold);border:1px solid rgba(197,165,114,.2)}
-.chip-violet{background:rgba(139,92,246,.1);color:var(--violet,#8b5cf6);border:1px solid rgba(139,92,246,.2)}
-.ioi-deal-hd-left{flex:1;min-width:0}
+.chip-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.chip-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-bd)}
+.chip-violet{background:var(--violet-bg);color:var(--violet);border:1px solid var(--violet-bd)}
+.ioi-deal-hd-left{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
 .ioi-deal-title{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text);margin-bottom:3px}
-.ioi-deal-advisor{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
+.ioi-deal-advisor{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ioi-chip-row{display:inline-flex;gap:4px;margin-left:2px}
 .ioi-deal-hd-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
 .ioi-sub-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;width:180px}
 .ioi-sub-label{font-family:var(--mono);font-size:10px;color:var(--text-2);white-space:nowrap}
@@ -201,7 +203,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 
 /* IOI table rows */
 .ioi-table{display:flex;flex-direction:column}
-.ioi-row{display:grid;grid-template-columns:minmax(160px,1.8fr) 140px 100px 80px auto;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s;animation:rowSlide .35s var(--ease) both}
+.ioi-row{display:grid;grid-template-columns:minmax(160px,1.8fr) 140px 100px 80px 90px auto;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);transition:background .15s;animation:rowSlide .35s var(--ease) both}
 .ioi-row:last-child{border-bottom:none}
 .ioi-row:hover{background:var(--bg-3)}
 .ioi-row.hdr{background:var(--bg-3);border-bottom:1px solid var(--border-m)}
@@ -298,8 +300,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ai-slot-status.empty{color:var(--text-3)}
 .ai-slot-status.loaded{color:var(--green)}
 .ai-deal-select{width:100%;padding:10px 12px;font-size:14px;margin-bottom:4px}
-.ai-process-btn{width:100%;padding:13px;background:linear-gradient(135deg,#5B3E8A,#2B5C8A);color:#fff;font-size:13px;font-weight:600;border-radius:var(--r);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px;margin-top:6px;border:none;cursor:pointer;font-family:inherit}
-.ai-process-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,62,138,.3)}
+.ai-process-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;font-size:13px;font-weight:600;border-radius:var(--r);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:9px;margin-top:6px;border:none;cursor:pointer;font-family:inherit}
+.ai-process-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px);box-shadow:0 8px 24px var(--violet-bg)}
 .ai-process-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .ai-process-icon{font-size:16px}
 .ai-output-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;min-height:360px;display:flex;flex-direction:column}
@@ -329,6 +331,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ai-stat-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)}
 .ai-apply-btn{width:100%;padding:11px;background:var(--gold);font-size:13px;font-weight:600;border-radius:2px;color:#1A1410;transition:all .2s;border:none;cursor:pointer;font-family:inherit;margin-top:4px}
 .ai-apply-btn:hover{background:var(--gold-b);transform:translateY(-1px)}
+.ai-launch-btn{padding:12px 20px;border:1px solid var(--border-m);color:var(--text-2);font-size:12px;border-radius:2px;background:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.ai-launch-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
+.ai-action-row{display:flex;gap:10px;flex-wrap:wrap}
+.ai-select-label{font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-family:var(--mono)}
+.ai-slot-info{flex:1}
 
 /* NOTIFICATION BELL */
 .notif-bell-wrap{position:relative;flex-shrink:0}
@@ -1559,21 +1566,144 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
   body { padding-bottom: env(safe-area-inset-bottom); }
   input, select, textarea { font-size: 16px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   V1 DESIGN LAYER — additive classes for admin portal v2 redesign
+═══════════════════════════════════════════════════════════════════ */
+
+/* Nav refinements */
+.nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;margin-right:24px}
+.logo-mark{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--text)}
+.logo-rule{width:1px;height:14px;background:var(--gold-bd);flex-shrink:0}
+.logo-prism{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.nav-signout{padding:5px 14px;border:1px solid var(--border-m);border-radius:2px;font-size:11px;font-family:var(--mono);letter-spacing:.08em;color:var(--text-3);transition:all .15s;cursor:pointer;background:none}
+.nav-signout:hover{color:var(--red);border-color:rgba(239,68,68,0.3)}
+
+/* Brief date header */
+.brief-date{margin-bottom:28px}
+.brief-date-line{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
+.brief-heading{font-family:var(--serif);font-style:italic;font-size:clamp(26px,3.5vw,42px);color:var(--text);line-height:1.1}
+.brief-heading em{color:var(--gold)}
+
+/* KPI cell — v1 style with serif value */
+.kpi-cell{padding:18px 20px;background:var(--surface);transition:background .15s}
+.kpi-cell:hover{background:var(--bg-3)}
+.kpi-cell .kpi-val{font-family:var(--serif);font-size:34px;font-weight:400}
+.kpi-cell .kpi-lbl{font-family:var(--mono)}
+.kpi-cell .kpi-sub{font-family:var(--mono);font-size:9px}
+
+/* Section rules */
+.section-rule{display:flex;align-items:center;gap:14px;margin-bottom:16px;margin-top:32px}
+.section-rule:first-child{margin-top:0}
+.rule-line{flex:1;height:1px;background:var(--border)}
+.rule-label{font-family:var(--mono);font-size:8px;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap;flex-shrink:0;padding:3px 10px;border:1px solid;border-radius:2px}
+.rule-red{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.rule-amber{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.rule-gold{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.rule-blue{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+
+/* Action grid — strict 2-column */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+@media(max-width:700px){.action-grid{grid-template-columns:1fr}}
+
+/* Brief cards */
+.brief-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;border-left:3px solid var(--border);padding:16px 18px;display:flex;flex-direction:column;gap:10px;transition:background .15s}
+.brief-card:hover{background:var(--bg-3)}
+.brief-card.high{border-left-color:var(--red)}
+.brief-card.medium{border-left-color:var(--amber)}
+.brief-card.ready{border-left-color:var(--green)}
+.bc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.bc-priority{font-family:var(--mono);font-size:7px;letter-spacing:.18em;text-transform:uppercase;padding:2px 7px;border-radius:1px;border:1px solid;flex-shrink:0}
+.pri-high{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.pri-med{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.pri-ready{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.bc-deal-name{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--text);line-height:1.2}
+.bc-meta{font-family:var(--mono);font-size:10px;color:var(--text-3);display:flex;flex-wrap:wrap;gap:10px;line-height:1.6}
+.bc-ai-brief{font-size:12px;color:var(--text-2);line-height:1.5;border-left:2px solid var(--gold-bd);padding-left:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bc-funded{margin:4px 0}
+.bc-funded-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.bc-funded-label{font-family:var(--mono);font-size:9px;color:var(--text-3)}
+.bc-funded-pct{font-family:var(--mono);font-size:12px;font-weight:600}
+.bc-bar-track{height:3px;background:var(--border-m);border-radius:2px;overflow:hidden}
+.bc-bar-fill{height:100%;background:var(--amber);border-radius:2px}
+.bc-investors{display:flex;flex-direction:column;gap:3px}
+.bc-inv-row{display:flex;justify-content:space-between;font-size:11px}
+.bc-inv-name{color:var(--text-2)}
+.bc-inv-amt{font-family:var(--mono);color:var(--text)}
+.bc-actions{display:flex;gap:6px;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--border);margin-top:auto}
+.bc-btn{padding:5px 11px;border-radius:2px;font-size:10px;font-weight:500;border:1px solid;transition:all .15s;white-space:nowrap;font-family:var(--mono);letter-spacing:.04em;cursor:pointer;background:none}
+.bc-btn-ai{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.bc-btn-ai:hover{background:var(--gold);color:#000;border-color:var(--gold)}
+.bc-btn-adv{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.bc-btn-adv:hover{background:var(--blue);color:#fff}
+.bc-btn-pub{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.bc-btn-pub:hover{background:var(--green);color:#000}
+.bc-btn-dec{color:var(--text-3);border-color:var(--border-m);background:transparent}
+.bc-btn-dec:hover{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.bc-btn-kill{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.bc-btn-kill:hover{background:var(--red);color:#fff}
+.bc-btn-inv{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.bc-btn-inv:hover{background:var(--blue);color:#fff}
+
+/* Overview layout with right sidebar */
+.ov-layout{display:flex;align-items:flex-start;gap:0}
+.ov-main{flex:1;min-width:0;padding:32px 36px}
+.ov-sidebar{width:320px;flex-shrink:0;border-left:1px solid var(--border);padding:28px 24px;display:flex;flex-direction:column;gap:0;background:var(--bg-2);min-height:calc(100vh - var(--nav-h));position:sticky;top:var(--nav-h);align-self:flex-start;max-height:calc(100vh - var(--nav-h));overflow-y:auto}
+@media(max-width:1100px){.ov-sidebar{display:none}}
+.sidebar-section-title{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;margin-top:28px}
+.sidebar-section-title:first-child{margin-top:0}
+
+/* Activity feed */
+.activity-feed{display:flex;flex-direction:column;gap:0}
+.af-item{padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
+.af-item:last-child{border-bottom:none}
+.af-dot{width:6px;height:6px;border-radius:50%;margin-top:6px;flex-shrink:0}
+.af-dot.gold{background:var(--gold)}
+.af-dot.green{background:var(--green)}
+.af-dot.blue{background:var(--blue)}
+.af-dot.amber{background:var(--amber)}
+.af-body{flex:1;font-size:12px;color:var(--text-2);line-height:1.5}
+.af-body strong{color:var(--text);font-weight:500}
+.af-time{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:2px}
+
+/* Access list (sidebar advisors/investors) */
+.access-list{display:flex;flex-direction:column;gap:0}
+.al-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)}
+.al-row:last-child{border-bottom:none}
+.al-info{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.al-name{font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.al-sub{font-size:10px;color:var(--text-3)}
+.al-status{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid}
+.al-active{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.al-pending{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+
+/* Pipeline tab — header action buttons */
+.pl-btn-add{padding:10px 20px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.pl-btn-add:hover{background:var(--gold-b)}
+.pl-btn-unassigned{padding:10px 16px;background:transparent;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:1px solid var(--gold-bd);border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.pl-btn-unassigned:hover{background:var(--gold-bg)}
+/* Pipeline submissions doc slot buttons */
+.ds-doc-btn{font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid var(--green-bd);background:var(--green-bg);color:var(--green);border-radius:2px;cursor:pointer;transition:background .15s}
+.ds-doc-btn:hover{background:rgba(90,158,114,.18)}
+
+/* Pipeline summary rows (sidebar) */
+.pipeline-summary{display:flex;flex-direction:column;gap:6px}
+.ps-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:background .15s}
+.ps-row:hover{background:var(--bg-3)}
+.ps-stage{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid;flex-shrink:0;min-width:52px;text-align:center}
+.ps-name{font-size:12px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps-ioi{font-family:var(--mono);font-size:10px;color:var(--gold);flex-shrink:0}
 </style>
 </head>
 <body>
 
 <div id="notif-backdrop" onclick="closeNotifPanel()"></div>
 <nav class="nav">
-  <div class="nav-wordmark">
-    <div class="nav-wm-tacc">A TACC Platform</div>
-    <div class="nav-wm-name">
-      <span class="nav-wm-aurum">Aurum</span>
-      <span class="nav-wm-rule" aria-hidden="true"></span>
-      <span class="nav-wm-prism">Prism</span>
-    </div>
+  <div class="nav-logo">
+    <span class="logo-mark">Aurum</span>
+    <span class="logo-rule" aria-hidden="true"></span>
+    <span class="logo-prism">Prism</span>
   </div>
-  <div class="nav-div"></div>
   <div class="nav-tabs">
     <button class="ntab on" onclick="showView('overview',this)">Overview</button>
     <button class="ntab" onclick="showView('pipeline',this)">Deal Pipeline</button>
@@ -1582,8 +1712,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab" onclick="showView('investors',this)">Investors</button>
     <button class="ntab" onclick="showView('advisors',this)">Advisors</button>
     <button class="ntab" onclick="showView('system',this)">System</button>
-    <a class="ntab" href="/ops/bd7x3k" title="Sandbox bot driver — for partner demos">Bot Driver</a>
-    <a class="ntab" href="/ops/bv7x3k" title="Live bot activity viewer — read-only">Bot Viewer</a>
+    <a class="ntab" href="/ops/bd7x3k" title="Sandbox bot driver — for partner demos">Bot Driver ↗</a>
+    <a class="ntab" href="/ops/bv7x3k" title="Live bot activity viewer — read-only">Bot Viewer ↗</a>
   </div>
   <div class="nav-r">
     <div class="nav-avatar" id="nav-avatar" title="Operator">OP</div>
@@ -1594,7 +1724,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
     </div>
-    <button onclick="logout()" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-3);background:none;border:none;cursor:pointer;padding:6px 10px;transition:color .15s;min-height:36px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
+    <button class="nav-signout" onclick="logout()">Sign out</button>
   </div>
 </nav>
 
@@ -1607,8 +1737,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 <!-- ══ VIEW: OVERVIEW ══ -->
 <div id="view-overview" class="view active">
   <div class="kpi-strip" id="kpi-strip"></div>
-  <div class="view-inner">
-    <div style="display:grid;grid-template-columns:1fr;gap:32px" id="overview-main"></div>
+  <div class="ov-layout">
+    <div class="ov-main" id="overview-main"></div>
+    <div class="ov-sidebar" id="overview-sidebar"></div>
   </div>
 </div>
 
@@ -1630,12 +1761,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
         <div class="view-sub">All active deals across all advisors. Stage advances are controlled by admin.</div>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;margin-top:4px;align-items:center">
-        <button id="unassigned-deals-btn" onclick="openUnassignedDealsModal()" style="display:none;padding:10px 16px;background:transparent;color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:1px solid var(--gold-bd);border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.background='var(--gold-bg)'" onmouseout="this.style.background='transparent'">Unassigned deals (<span id="unassigned-deals-count">0</span>)</button>
-        <button onclick="openAdminDealPanel()" style="padding:10px 20px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.background='var(--gold-b)'" onmouseout="this.style.background='var(--gold)'">+ Add Deal</button>
+        <button id="unassigned-deals-btn" class="pl-btn-unassigned" onclick="openUnassignedDealsModal()" style="display:none">Unassigned deals (<span id="unassigned-deals-count">0</span>)</button>
+        <button class="pl-btn-add" onclick="openAdminDealPanel()">+ Add Deal</button>
       </div>
     </div>
     <div id="deal-submissions-wrap"></div>
-    <div class="section-hd"><div class="section-hd-title">Active Deals</div><span class="section-hd-count" id="active-deals-count"></span></div>
+    <div class="section-rule"><div class="rule-line"></div><span class="rule-label rule-gold">Active Deals · <span id="active-deals-count"></span></span><div class="rule-line"></div></div>
     <div class="deal-pipeline" id="deal-pipeline-table"></div>
     <div id="deal-archive-wrap"></div>
   </div>
@@ -1689,7 +1820,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       <div class="ai-layout">
         <div class="ai-input-panel">
           <div>
-            <div style="font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Apply Output To Deal</div>
+            <div class="ai-select-label">Apply Output To Deal</div>
             <select class="ai-deal-select" id="ai-deal-select">
               <option value="">Select deal…</option>
             </select>
@@ -1697,7 +1828,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
           <div id="ai-slot-nda" class="ai-doc-slot" onclick="aiLoadDoc('nda')">
             <div class="ai-slot-row">
               <div class="ai-slot-icon">🔑</div>
-              <div style="flex:1">
+              <div class="ai-slot-info">
                 <div class="ai-slot-label">NDA Template</div>
                 <div class="ai-slot-meta">Investor NDA for this deal</div>
               </div>
@@ -1707,7 +1838,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
           <div id="ai-slot-mgmt" class="ai-doc-slot" onclick="aiLoadDoc('mgmt')">
             <div class="ai-slot-row">
               <div class="ai-slot-icon">📄</div>
-              <div style="flex:1">
+              <div class="ai-slot-info">
                 <div class="ai-slot-label">Management Presentation</div>
                 <div class="ai-slot-meta">Primary advisor deck</div>
               </div>
@@ -1717,7 +1848,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
           <div id="ai-slot-fin" class="ai-doc-slot" onclick="aiLoadDoc('fin')">
             <div class="ai-slot-row">
               <div class="ai-slot-icon">📊</div>
-              <div style="flex:1">
+              <div class="ai-slot-info">
                 <div class="ai-slot-label">Financial Summary</div>
                 <div class="ai-slot-meta">Revenue, EBITDA, cap structure</div>
               </div>
@@ -1727,7 +1858,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
           <div id="ai-slot-term" class="ai-doc-slot" onclick="aiLoadDoc('term')">
             <div class="ai-slot-row">
               <div class="ai-slot-icon">📋</div>
-              <div style="flex:1">
+              <div class="ai-slot-info">
                 <div class="ai-slot-label">Term Sheet</div>
                 <div class="ai-slot-meta">Deal terms and structure overview</div>
               </div>
@@ -2570,7 +2701,7 @@ function renderKPIs(){
     {lbl:'Actions Required',val:actionsRequired>0?actionsRequired:'All clear',rawNum:actionsRequired,sub:'total open items',cls:actionsRequired>0?'kpi-alert':'kpi-green'},
   ];
   const strip=document.getElementById('kpi-strip');
-  strip.innerHTML=tiles.map((k,i)=>`<div class="kpi-card ${k.cls}" style="animation:fadeUp .4s var(--ease) ${i*60}ms both">
+  strip.innerHTML=tiles.map((k,i)=>`<div class="kpi-cell" style="animation:fadeUp .4s var(--ease) ${i*60}ms both">
     <div class="kpi-lbl">${k.lbl}</div>
     <div class="kpi-val ${k.cls==='kpi-alert'?'amber':k.cls==='kpi-gold'?'gold':k.cls==='kpi-green'?'green':''}" data-countup="${k.rawNum}">${k.val}</div>
     <div class="kpi-sub">${k.sub}</div>
@@ -2623,67 +2754,45 @@ function renderOverview(){
   // Column 1: New Deals (advisor submissions awaiting AI generation + review, exclude approved)
   const submissionCards = NEW_SUBMISSIONS.filter(s => s.advisor_review_status !== 'approved').map(s => {
     const generated = !!(s.thesis || s.tagline || s.ai_content || s.generated);
-    const aiRef=s.aiScore?.operator_brief?`<div class="pq-ai-brief">AI: ${s.aiScore.operator_brief}</div>`:'';
+    const aiRef=s.aiScore?.operator_brief?`<div class="bc-ai-brief">AI: ${s.aiScore.operator_brief}</div>`:'';
     const age=relAge(s.submitted_at||s.submitted);
-    return `<div class="ov-action-card pq-high-card" onclick="viewUploaded('${s.id}')" style="cursor:pointer">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
-        <span class="pq-priority-badge pq-high">HIGH</span>
-        <span class="pq-item-icon">📄</span>
-        <div class="ov-ac-tag amber" style="margin:0">Deal Submission</div>
+    return `<div class="brief-card high" onclick="viewUploaded('${s.id}')" style="cursor:pointer">
+      <div class="bc-top">
+        <span class="bc-priority pri-high">HIGH PRIORITY</span>
         <span class="pq-age">${age}</span>
       </div>
-      <div class="ov-ac-name">${s.name}</div>
-      <div class="ov-ac-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''}<br>${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
+      <div class="bc-deal-name">${s.name}</div>
+      <div class="bc-meta">${s.advisor}${s.advisor_firm?' · '+s.advisor_firm:''} · ${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
       ${aiRef}
-      <div class="ov-ac-actions" style="flex-wrap:wrap">
-        <button class="att-btn" onclick="event.stopPropagation();loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])" style="background:rgba(197,165,114,.07);border:1px solid rgba(197,165,114,.28);color:var(--gold)" title="Generate AI deal profile from uploaded docs">✦ Generate AI Profile</button>
+      <div class="bc-actions">
+        <button class="bc-btn bc-btn-ai" onclick="event.stopPropagation();loadDocsAndGenerate('${s.id}');showView('aitool',document.querySelectorAll('.ntab')[3])">✦ Generate AI</button>
         ${!generated ?
-          `<span style="font-family:var(--mono);font-size:8px;color:var(--text-3);letter-spacing:.08em;padding:6px 0">no AI yet</span>` :
+          `<span style="font-family:var(--mono);font-size:8px;color:var(--text-3);letter-spacing:.08em">no AI yet</span>` :
           s.advisor_review_status === 'pending' ?
-            `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.08em;padding:4px 0">&#x23F3; Awaiting Advisor Review</span>` :
-            `<button class="att-btn att-review" onclick="event.stopPropagation();sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
+            `<span style="font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:.08em">⏳ Awaiting Advisor</span>` :
+            `<button class="bc-btn bc-btn-adv" onclick="event.stopPropagation();sendToAdvisorReview('${s.id}',this)">Send to Advisor →</button>`
         }
-        <button class="att-btn att-decline" onclick="event.stopPropagation();declineDeal('${s.id}',this)">Decline</button>
+        <button class="bc-btn bc-btn-dec" onclick="event.stopPropagation();declineDeal('${s.id}',this)">Decline</button>
       </div>
     </div>`;
   });
 
   // Column 1b: Ready to Publish (advisor-approved, awaiting admin publish)
   const readyToPublishCards = NEW_SUBMISSIONS.filter(s => s.advisor_review_status === 'approved').map(s =>
-    `<div class="ov-action-card" style="border-left:3px solid var(--green)">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
-        <span class="pq-priority-badge pq-high">HIGH</span>
-        <span class="pq-item-icon">✓</span>
-        <div class="ov-ac-tag" style="color:var(--green);margin:0">Ready to Publish</div>
+    `<div class="brief-card ready">
+      <div class="bc-top">
+        <span class="bc-priority pri-ready">READY TO PUBLISH</span>
         <span class="pq-age">${relAge(s.submitted_at||s.submitted)}</span>
       </div>
-      <div class="ov-ac-name">${s.name}</div>
-      <div class="ov-ac-meta">From <strong>${s.advisor}</strong>${s.advisor_firm?' · '+s.advisor_firm:''}<br>${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
-      <div class="ov-ac-actions">
-        <button class="att-btn att-approve" onclick="previewBeforePublish('${s.id}',this)">Publish Live →</button>
+      <div class="bc-deal-name">${s.name}</div>
+      <div class="bc-meta">${s.advisor}${s.advisor_firm?' · '+s.advisor_firm:''} · ${s.target_irr!=null?(+s.target_irr).toFixed(1)+'%':'—'} IRR · ${fmU(s.target_alloc)} · ${s.asset_class?.toUpperCase()||'—'}</div>
+      <div class="bc-actions">
+        <button class="bc-btn bc-btn-pub" onclick="previewBeforePublish('${s.id}',this)">Publish Live →</button>
       </div>
     </div>`
   );
 
-  // Column 2: Inbound IOI from Investors (pending approvals)
-  const ioiDecisionCards = DEALS.flatMap(d =>
-    d.iois.filter(i => i.status === 'pending').map(ioi => `<div class="ov-action-card pq-medium-card">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
-        <span class="pq-priority-badge pq-medium">MEDIUM</span>
-        <span class="pq-item-icon">↑</span>
-        <div class="ov-ac-tag gold" style="margin:0">${d.name.length>20?d.name.substring(0,20)+'…':d.name}</div>
-        <span class="pq-age">${ioi.isNew?'just now':ioi.date||''}</span>
-      </div>
-      <div class="ov-ac-name" style="cursor:pointer" onclick="openIoiDetail('${d.id}','${ioi.id}')">${ioi.name} <span style="font-size:10px;color:var(--text-3)">↗</span></div>
-      <div class="ov-ac-meta">${ioi.type} · ${ioi.geo} · <strong>${fmU(ioi.amount)}</strong>${ioi.isNew?' · <span style="color:var(--amber)">New</span>':''}</div>
-      <div class="ov-ac-actions">
-        <button class="att-btn att-approve" onclick="actIoi('${d.id}','${ioi.id}','approved');renderOverview();renderKPIs()">Approve</button>
-        <button class="att-btn att-decline" onclick="actIoi('${d.id}','${ioi.id}','declined');renderOverview();renderKPIs()">Decline</button>
-      </div>
-    </div>`)
-  );
-
-  // Column 3: Deploy Capital — one card per deal, sorted highest % funded first
+  // Column 2: Deploy Capital — one card per deal, sorted highest % funded first
   const _dcGroups = [];
   DEALS.forEach(d => {
     const readyIois = d.iois.filter(i => i.status === 'approved' && !i.pushed);
@@ -2695,30 +2804,30 @@ function renderOverview(){
   });
   _dcGroups.sort((a, b) => b.pct - a.pct);
   const pushCards = _dcGroups.map(({ pct, pctColor, d, readyIois }) => {
-    const investorRows = readyIois.map(ioi =>
-      `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px solid var(--border)">
-        <div style="flex:1;min-width:0;font-size:11px;color:var(--text-2);font-family:var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ioi.name} · <strong>${fmU(ioi.amount)}</strong></div>
-        <button class="att-btn att-push" style="padding:2px 7px;font-size:10px;flex-shrink:0" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview →</button>
+    const ioiInvestorRows = readyIois.map(ioi =>
+      `<div class="bc-inv-row">
+        <span class="bc-inv-name">${ioi.name}</span>
+        <span class="bc-inv-amt">${fmU(ioi.amount)}</span>
+        <button class="bc-btn bc-btn-inv" onclick="openPackagePreview('${d.id}','${ioi.id}')">Preview →</button>
       </div>`
     ).join('');
-    return `<div class="ov-action-card" style="display:flex;padding:0;gap:0">
-      <div style="flex:1;min-width:0;padding:12px 16px">
-        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
-          <span class="pq-priority-badge pq-medium">MEDIUM</span>
-          <span class="pq-item-icon">✦</span>
-        </div>
-        <div class="ov-ac-tag violet" style="margin-bottom:4px">Open Due Diligence</div>
-        <div class="ov-ac-name">${d.name}</div>
-        <div class="ov-ac-meta">${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}</div>
-        ${investorRows}
-        <div class="ov-ac-actions" style="margin-top:8px">
-          <button class="att-btn att-review" onclick="openInvestorsPopup('${d.id}')">See Investors →</button>
-          <button class="att-btn att-decline" onclick="killDeal('${d.id}',this)" style="background:rgba(220,38,38,.12);color:#ef4444;border-color:rgba(220,38,38,.25)">Kill Deal</button>
-        </div>
+    return `<div class="brief-card medium">
+      <div class="bc-top">
+        <span class="bc-priority pri-med">OPEN DD</span>
       </div>
-      <div style="width:64px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-left:1px solid var(--border);gap:2px;background:var(--surface)">
-        <div style="font-size:20px;font-weight:700;font-family:var(--mono);color:${pctColor};line-height:1;letter-spacing:-.02em">${pct}%</div>
-        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)">Funded</div>
+      <div class="bc-deal-name">${d.name}</div>
+      <div class="bc-meta">${d.advisor}${d.advisor_firm?' · '+d.advisor_firm:''}</div>
+      <div class="bc-funded">
+        <div class="bc-funded-row">
+          <span class="bc-funded-label">Funded</span>
+          <span class="bc-funded-pct" style="color:${pctColor}">${pct}%</span>
+        </div>
+        <div class="bc-bar-track"><div class="bc-bar-fill" style="width:${pct}%;background:${pctColor}"></div></div>
+      </div>
+      <div class="bc-investors">${ioiInvestorRows}</div>
+      <div class="bc-actions">
+        <button class="bc-btn bc-btn-adv" onclick="openInvestorsPopup('${d.id}')">See Investors →</button>
+        <button class="bc-btn bc-btn-kill" onclick="killDeal('${d.id}',this)">Kill Deal</button>
       </div>
     </div>`;
   });
@@ -2776,12 +2885,11 @@ function renderOverview(){
   NEW_SUBMISSIONS.forEach(s=>activity.push({type:'submit',text:`<strong>${s.advisor}</strong> submitted ${s.name} for review`,time:s.submitted||''}));
   // Most recent 8
   activity.splice(8);
-  const atIcon={ioi:'ov-at-ioi',submit:'ov-at-submit',push:'ov-at-push',stage:'ov-at-stage',review:'ov-at-review'};
-  const atEmoji={ioi:'↑',submit:'+',push:'✦',stage:'→',review:'✓'};
-  const activityHtml=activity.map(a=>`<div class="ov-at-item ov-at-type-${a.type}">
-    <div class="ov-at-icon ${atIcon[a.type]}">${atEmoji[a.type]}</div>
-    <div class="ov-at-body">${a.text}</div>
-    <div class="ov-at-time">${a.time}</div>
+  const afDotCls={ioi:'gold',submit:'blue',push:'green',stage:'amber',review:'green'};
+  const activityHtml=activity.map(a=>`<div class="af-item">
+    <div class="af-dot ${afDotCls[a.type]||''}"></div>
+    <div class="af-body">${a.text}</div>
+    <div class="af-time">${a.time}</div>
   </div>`).join('');
 
   /* ── IOI Intel per deal (with CSS sparkline) ── */
@@ -2815,22 +2923,20 @@ function renderOverview(){
 
   /* ── Sign-up access cycle panel ── */
   const advisorStatusLabel=s=>s==='active'?'Active':'Pending Setup';
-  const advisorRows=MOCK_ADVISORS.map(a=>`<div class="ov-signup-row">
-    <div class="ov-signup-dot ${a.status}"></div>
-    <div class="ov-signup-info">
-      <div class="ov-signup-name">${a.name}</div>
-      <div class="ov-signup-sub">${a.firm} · Joined ${a.joined}</div>
+  const advisorRows=MOCK_ADVISORS.map(a=>`<div class="al-row">
+    <div class="al-info">
+      <div class="al-name">${a.name}</div>
+      <div class="al-sub">${a.firm} · Joined ${a.joined}</div>
     </div>
-    <div class="ov-signup-status ${a.status}">${advisorStatusLabel(a.status)}</div>
+    <div class="al-status ${a.status==='active'?'al-active':'al-pending'}">${advisorStatusLabel(a.status)}</div>
   </div>`).join('');
   const investorAccessLabel=s=>s==='active'?'Active':s==='invite_sent'?'Invite Sent':'Pending Setup';
-  const investorRows=MOCK_INVESTORS.map(i=>`<div class="ov-signup-row">
-    <div class="ov-signup-dot ${i.access}"></div>
-    <div class="ov-signup-info">
-      <div class="ov-signup-name">${i.name}</div>
-      <div class="ov-signup-sub">${i.type} · Added ${i.added}</div>
+  const investorRows=MOCK_INVESTORS.map(i=>`<div class="al-row">
+    <div class="al-info">
+      <div class="al-name">${i.name}</div>
+      <div class="al-sub">${i.type} · Added ${i.added}</div>
     </div>
-    <div class="ov-signup-status ${i.access}">${investorAccessLabel(i.access)}</div>
+    <div class="al-status ${i.access==='active'?'al-active':'al-pending'}">${investorAccessLabel(i.access)}</div>
   </div>`).join('');
 
   /* ── Stage-grouped pipeline cards (new zone layout) ── */
@@ -2874,52 +2980,75 @@ function renderOverview(){
   const allActionCards=[...submissionCards,...readyToPublishCards,...pushCards];
 
   document.getElementById('overview-main').innerHTML=`
-    ${headerBar}
-
-    <!-- Zone 2: Action Queue (horizontal scroll) -->
-    <section class="zone-2">
-      <div class="zone-hd">
-        <span class="zone-hd-title">Action Queue</span>
-        <span class="zone-hd-count">${allActionCards.length>0?allActionCards.length+' item'+(allActionCards.length!==1?'s':''):'All clear'}</span>
-      </div>
-      <div class="action-scroll" style="display:flex;flex-wrap:wrap;gap:10px;max-height:380px;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;width:100%">
-        ${allActionCards.length?allActionCards.join(''):'<div class="act-empty">No pending actions — all clear</div>'}
-      </div>
-    </section>
-
-    <!-- Zone 3: Pipeline + Activity (two columns) -->
-    <div class="zone-3">
-      <section>
-        <div class="col-hd">
-          <span class="col-hd-title">Deal Pipeline</span>
-          <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1])">Full View &#8594;</button>
-        </div>
-        ${stageLanesNew||'<div class="ov-empty">No active deals</div>'}
-      </section>
-      <section>
-        <div class="col-hd"><span class="col-hd-title">Platform Activity</span><span class="zone-hd-count">${activity.length} events</span></div>
-        <div class="ov-panel-body">${activityHtml||'<div class="ov-empty">No recent activity</div>'}</div>
-        <div class="col-hd" style="margin-top:20px"><span class="col-hd-title">IOI Intelligence</span></div>
-        <div class="ov-panel-body">${intelRows||'<div class="ov-empty">No active IOIs</div>'}</div>
-      </section>
+    <div class="brief-date">
+      <div class="brief-date-line">${dateStr.toUpperCase()}</div>
+      <div class="brief-heading">Operator Overview</div>
     </div>
 
-    <!-- Zone 4: Platform Access -->
-    <div class="zone-access">
-      <div class="col-hd">
-        <span class="col-hd-title">Platform Access</span>
-      </div>
-      <div class="ov-signup-grid" style="margin-top:0">
-        <div class="ov-panel">
-          <div class="ov-panel-hd"><span>Advisors</span><span class="ov-panel-hd-sub">${MOCK_ADVISORS.length}</span></div>
-          <div class="ov-panel-body" style="max-height:220px">${advisorRows||'<div class="ov-empty">No advisors yet</div>'}</div>
-        </div>
-        <div class="ov-panel">
-          <div class="ov-panel-hd"><span>Investors</span><span class="ov-panel-hd-sub">${MOCK_INVESTORS.length}</span></div>
-          <div class="ov-panel-body" style="max-height:220px">${investorRows||'<div class="ov-empty">No investors yet</div>'}</div>
-        </div>
-      </div>
-    </div>`;
+    <div class="section-rule">
+      <div class="rule-line"></div>
+      <span class="rule-label ${allActionCards.length>0?'rule-red':'rule-blue'}">Action Queue${allActionCards.length>0?' · '+allActionCards.length:' · All Clear'}</span>
+      <div class="rule-line"></div>
+    </div>
+    ${allActionCards.length
+      ? `<div class="action-grid">${allActionCards.join('')}</div>`
+      : `<div style="padding:20px 0;text-align:center;color:var(--text-3);font-family:var(--mono);font-size:11px;letter-spacing:.08em">No pending actions</div>`
+    }
+
+    ${intelRows?`
+    <div class="section-rule">
+      <div class="rule-line"></div>
+      <span class="rule-label rule-gold">IOI Intelligence</span>
+      <div class="rule-line"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1px">${intelRows}</div>
+    `:''}
+
+    ${stageLanesNew?`
+    <div class="section-rule">
+      <div class="rule-line"></div>
+      <span class="rule-label rule-blue">Pipeline</span>
+      <button class="ov-section-link" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1])">Full View →</button>
+      <div class="rule-line"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:16px 0">${stageLanesNew}</div>
+    `:''}
+  `;
+
+  // Pipeline summary for sidebar — compact by stage
+  const psStageStyle={
+    live:'color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)',
+    dd:'color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)',
+    terms:'color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)',
+    close:'color:var(--green);border-color:var(--green-bd);background:var(--green-bg)',
+    review:'color:var(--text-3);border-color:var(--border-m);background:transparent'
+  };
+  const pipelineSummaryHtml=STAGE_ORDER_OV.map(stage=>{
+    const sDeals=DEALS.filter(d=>d.stage===stage);
+    if(!sDeals.length)return'';
+    const lbl=STAGE_LABELS[stage]||stage;
+    const stl=psStageStyle[stage]||'color:var(--text-3);border-color:var(--border-m)';
+    return sDeals.map(d=>`<div class="ps-row" onclick="showView('pipeline',document.querySelectorAll('.ntab')[1]);setTimeout(()=>openDealDetail('${d.id}'),300)">
+      <span class="ps-stage" style="${stl}">${lbl}</span>
+      <span class="ps-name">${d.name}</span>
+      <span class="ps-ioi">${d.iois.filter(i=>i.status!=='declined').length} IOI</span>
+    </div>`).join('');
+  }).join('');
+
+  document.getElementById('overview-sidebar').innerHTML=`
+    ${activityHtml?`
+    <div class="sidebar-section-title">Activity</div>
+    <div class="activity-feed">${activityHtml}</div>
+    `:''}
+    ${pipelineSummaryHtml?`
+    <div class="sidebar-section-title">Pipeline</div>
+    <div class="pipeline-summary">${pipelineSummaryHtml}</div>
+    `:''}
+    <div class="sidebar-section-title">Advisors · ${MOCK_ADVISORS.length}</div>
+    <div class="access-list">${advisorRows||'<div style="padding:12px 0;color:var(--text-3);font-size:12px;font-family:var(--mono)">No advisors yet</div>'}</div>
+    <div class="sidebar-section-title">Investors · ${MOCK_INVESTORS.length}</div>
+    <div class="access-list">${investorRows||'<div style="padding:12px 0;color:var(--text-3);font-size:12px;font-family:var(--mono)">No investors yet</div>'}</div>
+  `;
   updateNotifBell();
 }
 
@@ -3140,11 +3269,11 @@ function buildDealGroup(g,gi=0){
 
   return`<div class="ioi-deal-group" id="iqg-${g.dealId}" style="animation-delay:${gi*60}ms">
     <div class="ioi-deal-hd" style="cursor:pointer" onclick="toggleIoiGroup('${g.dealId}')">
-      <div class="ioi-deal-hd-left" style="display:flex;align-items:center;gap:10px">
+      <div class="ioi-deal-hd-left">
         <div class="ds-chevron" id="iqg-chev-${g.dealId}">›</div>
         <div>
           <div class="ioi-deal-title">${g.dealName}</div>
-          <div class="ioi-deal-advisor" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${g.advisor}${summaryChips?'<span style="display:inline-flex;gap:4px;margin-left:2px">'+summaryChips+'</span>':''}</div>
+          <div class="ioi-deal-advisor">${g.advisor}${summaryChips?'<span class="ioi-chip-row">'+summaryChips+'</span>':''}</div>
         </div>
       </div>
       <div class="ioi-deal-hd-right">
@@ -3696,7 +3825,7 @@ function toggleSubmission(id){
 function renderPipeline(){
   if(NEW_SUBMISSIONS.length>0){
     document.getElementById('deal-submissions-wrap').innerHTML=`
-      <div class="section-hd"><div class="section-hd-title">Pending Submissions</div><span class="section-hd-count">${NEW_SUBMISSIONS.length} New</span></div>
+      <div class="section-rule" style="margin-top:8px"><div class="rule-line"></div><span class="rule-label rule-amber">Pending Submissions · ${NEW_SUBMISSIONS.length}</span><div class="rule-line"></div></div>
       <div class="deal-submissions">${NEW_SUBMISSIONS.map(s=>`
         <div class="ds-card ds-card-collapsed" id="dsc-${s.id}">
           <div class="ds-card-header" style="cursor:pointer" onclick="toggleSubmission('${s.id}')">
@@ -3758,13 +3887,13 @@ function renderPipeline(){
                 const doc = (s.docs||[]).find(d=>d.slot===slot);
                 const labels = {nda:'NDA',mgmt:'Deck',fin:'Financials',term:'Term Sheet'};
                 return doc
-                  ? `<button onclick="viewDoc('${s.id}','${slot}')" title="View ${labels[slot]}" style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid rgba(90,158,114,.28);background:rgba(90,158,114,.07);color:#5a9e72;border-radius:2px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(90,158,114,.18)'" onmouseout="this.style.background='rgba(90,158,114,.07)'">↗ ${labels[slot]}</button>`
+                  ? `<button class="ds-doc-btn" onclick="viewDoc('${s.id}','${slot}')" title="View ${labels[slot]}">↗ ${labels[slot]}</button>`
                   : `<span style="font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid var(--border);color:var(--text-3);border-radius:2px">${labels[slot]}</span>`;
               }).join('')}
             </div>
             <div class="ds-card-footer">
               <div class="ds-advisor">From ${s.advisor} · ${s.advisor_firm} · Submitted ${s.submitted}</div>
-              <button class="att-btn" onclick="viewUploaded('${s.id}')" style="background:rgba(91,133,184,.07);border:1px solid rgba(91,133,184,.28);color:#5b85b8">📁 View Uploaded</button>
+              <button class="att-btn att-review" onclick="viewUploaded('${s.id}')">📁 View Uploaded</button>
               <button class="att-btn att-decline" onclick="declineDeal('${s.id}',this)">Decline</button>
               <button class="att-btn att-review" onclick="loadDocsAndGenerate('${s.id}')">✦ Generate AI Profile →</button>
             </div>
@@ -3780,10 +3909,10 @@ function renderPipeline(){
   if(archiveWrap){
     if(KILLED_DEALS.length>0){
       archiveWrap.innerHTML=`
-        <div class="section-hd" style="margin-top:24px;cursor:pointer;user-select:none" onclick="toggleArchive()">
-          <div class="section-hd-title" style="color:var(--text-3)">Archived / Killed</div>
-          <span class="section-hd-count" id="archive-badge">${KILLED_DEALS.length}</span>
-          <span id="archive-chevron" style="font-family:var(--mono);font-size:12px;color:var(--text-3);margin-left:auto">›</span>
+        <div class="section-rule" style="cursor:pointer;user-select:none;margin-top:24px" onclick="toggleArchive()">
+          <div class="rule-line"></div>
+          <span class="rule-label" style="color:var(--text-3);border-color:var(--border-m);background:transparent">Archived · ${KILLED_DEALS.length} <span id="archive-chevron">›</span></span>
+          <div class="rule-line"></div>
         </div>
         <div id="archive-body" style="display:none">
           <div class="deal-pipeline" style="opacity:.7">
@@ -3798,7 +3927,7 @@ function renderPipeline(){
                 </div>
                 <div class="dp-advisor">${d.advisor||''}</div>
                 <div><div class="dp-amount">${fmU(d.ioi_agg||0)}</div></div>
-                <span class="dp-stage-chip sc-killed" style="background:rgba(220,38,38,.08);color:#ef4444;border-color:rgba(220,38,38,.2)">Killed</span>
+                <span class="dp-stage-chip sc-killed">Killed</span>
                 <div style="font-family:var(--mono);font-size:10px;color:var(--text-3)">${d.killed_at?new Date(d.killed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</div>
                 <div></div>
               </div>`).join('')}
@@ -4294,9 +4423,9 @@ function showAIOutput(deal,generated){
       </div>
     </div>
     <div class="ai-out-section" style="animation-delay:.45s">
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div class="ai-action-row">
         <button class="ai-apply-btn" id="ai-send-advisor-btn" onclick="(()=>{const d=_launchDeal;if(d){const s=NEW_SUBMISSIONS.find(x=>x.id===d.id);if(s){s.thesis=document.querySelector('.ai-out-thesis')?.textContent||s.thesis||'';s.generated=true;}sendToAdvisorReview(d?.id,document.getElementById('ai-send-advisor-btn'));}})()">Send to Advisor →</button>
-        <button style="padding:12px 20px;border:1px solid var(--border-m);color:var(--text-2);font-size:12px;border-radius:2px;background:none;cursor:pointer" onclick="openLaunchReview(_launchDeal,_launchContent)">Review &amp; Launch →</button>
+        <button class="ai-launch-btn" onclick="openLaunchReview(_launchDeal,_launchContent)">Review &amp; Launch →</button>
       </div>
     </div>
   </div>`;
