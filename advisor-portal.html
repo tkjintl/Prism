@@ -305,9 +305,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .banking-save-btn:hover{opacity:.88}
 
 /* PERFORMANCE */
-.perf-layout{display:grid;grid-template-columns:1fr;gap:28px}
+.perf-layout{display:grid;grid-template-columns:1fr;gap:28px;align-items:stretch}
 @media(min-width:900px){.perf-layout{grid-template-columns:1fr 1fr}}
-.ring-card{padding:28px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;gap:16px}
+.perf-layout>div{display:flex;flex-direction:column}
+.ring-card{padding:28px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;gap:16px;flex:1}
 .perf-ring-wrap{position:relative;width:160px;height:160px}
 .perf-ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
 .pr-track{fill:none;stroke:var(--border);stroke-width:6}
