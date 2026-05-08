@@ -2468,12 +2468,14 @@ Return ONLY valid JSON in this exact structure:
         return ok(res, { ok: true, extracted: mockExtracted, mock: true });
       }
 
-      const docBlocks = docContent.map(d => ({
-        type: 'document',
-        source: { type: 'base64', media_type: d.type === 'application/pdf' ? 'application/pdf' : 'text/plain', data: d.data },
-        title: d.name,
-        citations: { enabled: false },
-      }));
+      const docBlocks = docContent.flatMap(d => {
+        const isPdf = d.type === 'application/pdf' || d.name?.toLowerCase().endsWith('.pdf');
+        if (isPdf) {
+          return [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.data }, title: d.name, citations: { enabled: false } }];
+        }
+        const text = Buffer.from(d.data, 'base64').toString('utf-8');
+        return [{ type: 'text', text: `=== ${d.name} ===\n${text}` }];
+      });
 
       const systemPrompt = `You are an investment analyst at a private capital marketplace called Aurum Prism. Extract deal data from uploaded documents and generate investor-ready content. Be factual and precise — extract numbers directly from the documents. Use institutional private bank tone, not startup pitch language.`;
       const userPrompt = `Analyze the uploaded deal documents and return a complete deal profile as valid JSON only — no markdown, no preamble.
