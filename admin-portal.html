@@ -859,6 +859,23 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .adp-cancel-btn{padding:12px 20px;background:none;border:1px solid var(--border-m);border-radius:2px;color:var(--text-2);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s}
 .adp-cancel-btn:hover{border-color:var(--gold-bd);color:var(--gold)}
 .adp-hint{font-size:11px;color:var(--text-3);font-family:var(--sans);line-height:1.5}
+/* ── Admin Add Deal — doc-upload phase ── */
+.adp-doc-slot{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-3);border:1px solid var(--border-m);border-radius:var(--r);cursor:pointer;transition:border-color .15s,background .15s;margin-bottom:8px}
+.adp-doc-slot:hover{border-color:var(--gold-bd);background:var(--gold-bg)}
+.adp-doc-slot.uploaded{border-color:var(--green-bd);background:var(--green-bg)}
+.adp-doc-slot.uploading{border-color:var(--amber-bd);opacity:.8;cursor:not-allowed}
+.adp-doc-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.adp-doc-info{flex:1;min-width:0}
+.adp-doc-label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--text-2);font-weight:500}
+.adp-doc-meta{font-size:11px;color:var(--text-3);margin-top:2px}
+.adp-doc-status{font-family:var(--mono);font-size:10px;letter-spacing:.06em;flex-shrink:0}
+.adp-doc-status.empty{color:var(--text-3)}
+.adp-doc-status.ok{color:var(--green)}
+.adp-doc-status.busy{color:var(--amber);animation:pulse 1s infinite}
+.adp-phase{transition:opacity .2s}
+.adp-phase.hidden{display:none}
+.adp-ai-output{background:var(--bg-3);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:20px;font-size:12px;color:var(--text-2);line-height:1.6}
+.adp-ai-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
 /* ── IOI DETAIL PANEL ── */
 #ioi-detail-panel{position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1)}
 #ioi-detail-panel.idp-open{transform:translateX(0)}
@@ -2297,97 +2314,167 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div style="width:120px"></div>
   </div>
   <div class="adp-body">
-    <div class="adp-section">
-      <div class="adp-section-title">Company</div>
-      <div class="adp-grid-2">
-        <div class="adp-field">
-          <label class="adp-label">Company / Deal Name <span style="color:var(--red)">*</span></label>
-          <input class="adp-input" id="adp-name" type="text" placeholder="e.g. Meridian Bridge Finance II">
-        </div>
-        <div class="adp-field">
-          <label class="adp-label">Asset Class <span style="color:var(--red)">*</span></label>
-          <select class="adp-select" id="adp-asset-class">
-            <option value="">Select…</option>
-            <option value="infra">Infrastructure</option>
-            <option value="credit">Private Credit</option>
-            <option value="pe">Equity</option>
-            <option value="re">Real Estate</option>
-          </select>
-        </div>
-        <div class="adp-field">
-          <label class="adp-label">Deal Structure</label>
-          <input class="adp-input" id="adp-structure" type="text" placeholder="e.g. Senior Secured Bridge">
-        </div>
-        <div class="adp-field">
-          <label class="adp-label">Geography</label>
-          <input class="adp-input" id="adp-geography" type="text" placeholder="e.g. Southeast US">
-        </div>
+
+    <!-- Phase 1: Upload docs -->
+    <div id="adp-phase1" class="adp-phase">
+      <div style="margin-bottom:20px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Step 1 of 2</div>
+        <div style="font-size:14px;color:var(--text);font-weight:500;margin-bottom:4px">Upload deal documents</div>
+        <div style="font-size:12px;color:var(--text-3);line-height:1.6">Upload up to 4 documents. Claude will read them and auto-fill the deal profile. At least one document required.</div>
       </div>
-      <div class="adp-field" style="margin-top:12px">
-        <label class="adp-label">Tagline *</label>
-        <input class="adp-input" id="adp-tagline" type="text" maxlength="120" placeholder="One-line headline used on the investor card">
+
+      <input type="file" id="adp-file-nda" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="adpHandleFile('nda',this)">
+      <input type="file" id="adp-file-mgmt" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="adpHandleFile('mgmt',this)">
+      <input type="file" id="adp-file-fin" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="adpHandleFile('fin',this)">
+      <input type="file" id="adp-file-term" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="adpHandleFile('term',this)">
+
+      <div class="adp-doc-slot" id="adp-slot-nda" onclick="document.getElementById('adp-file-nda').click()">
+        <div class="adp-doc-icon">🔑</div>
+        <div class="adp-doc-info">
+          <div class="adp-doc-label">NDA / Investor Agreement</div>
+          <div class="adp-doc-meta">Investor NDA or subscription agreement</div>
+        </div>
+        <div class="adp-doc-status empty" id="adp-stat-nda">Click to upload</div>
       </div>
-      <div class="adp-field" style="margin-top:12px">
-        <label class="adp-label">Company Overview * <span style="color:var(--text-3);font-size:10px">(min 50 chars)</span></label>
-        <textarea class="adp-textarea" id="adp-overview" rows="2" placeholder="2–3 sentence company description for investor materials…"></textarea>
+      <div class="adp-doc-slot" id="adp-slot-mgmt" onclick="document.getElementById('adp-file-mgmt').click()">
+        <div class="adp-doc-icon">📄</div>
+        <div class="adp-doc-info">
+          <div class="adp-doc-label">Management Presentation</div>
+          <div class="adp-doc-meta">Primary advisor or sponsor deck</div>
+        </div>
+        <div class="adp-doc-status empty" id="adp-stat-mgmt">Click to upload</div>
       </div>
-      <div class="adp-field" style="margin-top:12px">
-        <label class="adp-label">Investment Thesis * <span style="color:var(--text-3);font-size:10px">(min 50 chars)</span></label>
-        <textarea class="adp-textarea" id="adp-thesis" rows="3" placeholder="Investor-facing thesis paragraph — why this deal, what makes it compelling…"></textarea>
+      <div class="adp-doc-slot" id="adp-slot-fin" onclick="document.getElementById('adp-file-fin').click()">
+        <div class="adp-doc-icon">📊</div>
+        <div class="adp-doc-info">
+          <div class="adp-doc-label">Financial Summary</div>
+          <div class="adp-doc-meta">Revenue, cap structure, projections</div>
+        </div>
+        <div class="adp-doc-status empty" id="adp-stat-fin">Click to upload</div>
       </div>
-      <div class="adp-field" style="margin-top:12px">
-        <label class="adp-label">Investment Highlights * <span style="color:var(--text-3);font-size:10px">(one per line, min 2)</span></label>
-        <textarea class="adp-textarea" id="adp-highlights" rows="4" placeholder="Floating-rate paper · 3-month SOFR + 650bps&#10;Senior secured first lien · 1.5x asset coverage&#10;Sponsor-backed by tier-1 PE, $400M EBITDA portfolio"></textarea>
+      <div class="adp-doc-slot" id="adp-slot-term" onclick="document.getElementById('adp-file-term').click()">
+        <div class="adp-doc-icon">📋</div>
+        <div class="adp-doc-info">
+          <div class="adp-doc-label">Term Sheet</div>
+          <div class="adp-doc-meta">Deal terms and structure overview</div>
+        </div>
+        <div class="adp-doc-status empty" id="adp-stat-term">Click to upload</div>
+      </div>
+
+      <div id="adp-thinking" style="display:none;padding:20px;text-align:center;color:var(--gold);font-family:var(--mono);font-size:12px;letter-spacing:.08em">
+        <span id="adp-thinking-text">✦ Claude is reading your documents…</span>
+      </div>
+
+      <div class="adp-submit-row" style="margin-top:20px">
+        <button class="adp-submit-btn" id="adp-process-btn" onclick="adpRunGenerate()" disabled>✦ Generate with Claude</button>
+        <button class="adp-cancel-btn" onclick="closeAdminDealPanel()">Cancel</button>
       </div>
     </div>
-    <div class="adp-section">
-      <div class="adp-section-title">Deal Economics</div>
-      <div class="adp-grid-3">
-        <div class="adp-field">
-          <label class="adp-label">Target IRR (%)</label>
-          <input class="adp-input" id="adp-irr" type="number" step="0.5" placeholder="e.g. 14">
-        </div>
-        <div class="adp-field">
-          <label class="adp-label">Hurdle Rate (%)</label>
-          <input class="adp-input" id="adp-hurdle" type="number" step="0.5" placeholder="e.g. 8">
-        </div>
-        <div class="adp-field">
-          <label class="adp-label">Term (months)</label>
-          <input class="adp-input" id="adp-term" type="number" placeholder="e.g. 36">
-        </div>
+
+    <!-- Phase 2: Review AI-filled form -->
+    <div id="adp-phase2" class="adp-phase hidden">
+      <div style="margin-bottom:20px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Step 2 of 2</div>
+        <div style="font-size:14px;color:var(--text);font-weight:500;margin-bottom:4px">Review &amp; confirm</div>
+        <div style="font-size:12px;color:var(--text-3);line-height:1.6">Claude has filled out the deal profile from your documents. Review and edit any fields before creating the deal.</div>
+        <div class="adp-ai-badge" style="margin-top:10px">✦ AI-generated — review before saving</div>
       </div>
-      <div class="adp-grid-2" style="margin-top:12px">
-        <div class="adp-field">
-          <label class="adp-label">Target Allocation (USD)</label>
-          <div class="adp-prefix-wrap">
-            <span class="adp-prefix">$</span>
-            <input class="adp-input" id="adp-alloc" type="text" inputmode="numeric" placeholder="30,000,000" oninput="fmtAmtInput(this)">
+
+      <div class="adp-section">
+        <div class="adp-section-title">Company</div>
+        <div class="adp-grid-2">
+          <div class="adp-field">
+            <label class="adp-label">Deal Name <span style="color:var(--red)">*</span></label>
+            <input class="adp-input" id="adp-name" type="text" placeholder="e.g. Meridian Bridge Finance II">
+          </div>
+          <div class="adp-field">
+            <label class="adp-label">Asset Class <span style="color:var(--red)">*</span></label>
+            <select class="adp-select" id="adp-asset-class">
+              <option value="">Select…</option>
+              <option value="infra">Infrastructure</option>
+              <option value="credit">Private Credit</option>
+              <option value="pe">Equity</option>
+              <option value="re">Real Estate</option>
+            </select>
+          </div>
+          <div class="adp-field">
+            <label class="adp-label">Deal Structure</label>
+            <input class="adp-input" id="adp-structure" type="text" placeholder="e.g. Senior Secured Bridge">
+          </div>
+          <div class="adp-field">
+            <label class="adp-label">Geography</label>
+            <input class="adp-input" id="adp-geography" type="text" placeholder="e.g. Southeast Asia">
           </div>
         </div>
-        <div class="adp-field">
-          <label class="adp-label">Minimum Ticket (USD)</label>
-          <div class="adp-prefix-wrap">
-            <span class="adp-prefix">$</span>
-            <input class="adp-input" id="adp-ticket" type="text" inputmode="numeric" placeholder="500,000" oninput="fmtAmtInput(this)">
+        <div class="adp-field" style="margin-top:12px">
+          <label class="adp-label">Originator / Sponsor</label>
+          <input class="adp-input" id="adp-source" type="text" placeholder="e.g. TACC Singapore">
+        </div>
+        <div class="adp-field" style="margin-top:12px">
+          <label class="adp-label">Tagline *</label>
+          <input class="adp-input" id="adp-tagline" type="text" maxlength="120" placeholder="One-line headline used on the investor card">
+        </div>
+        <div class="adp-field" style="margin-top:12px">
+          <label class="adp-label">Company Overview *</label>
+          <textarea class="adp-textarea" id="adp-overview" rows="3" placeholder="2–3 sentence company description…"></textarea>
+        </div>
+        <div class="adp-field" style="margin-top:12px">
+          <label class="adp-label">Investment Thesis *</label>
+          <textarea class="adp-textarea" id="adp-thesis" rows="5" placeholder="Investor-facing thesis…"></textarea>
+        </div>
+        <div class="adp-field" style="margin-top:12px">
+          <label class="adp-label">Investment Highlights * <span style="color:var(--text-3);font-size:10px">(one per line, min 2)</span></label>
+          <textarea class="adp-textarea" id="adp-highlights" rows="4" placeholder="Senior secured first lien · 1.5x asset coverage&#10;Floating-rate instrument · SOFR + 650bps"></textarea>
+        </div>
+      </div>
+
+      <div class="adp-section">
+        <div class="adp-section-title">Deal Economics</div>
+        <div class="adp-grid-3">
+          <div class="adp-field">
+            <label class="adp-label">Target IRR (%)</label>
+            <input class="adp-input" id="adp-irr" type="number" step="0.5" placeholder="e.g. 14">
+          </div>
+          <div class="adp-field">
+            <label class="adp-label">Hurdle Rate (%)</label>
+            <input class="adp-input" id="adp-hurdle" type="number" step="0.5" placeholder="e.g. 8">
+          </div>
+          <div class="adp-field">
+            <label class="adp-label">Term (months)</label>
+            <input class="adp-input" id="adp-term" type="number" placeholder="e.g. 36">
+          </div>
+        </div>
+        <div class="adp-grid-2" style="margin-top:12px">
+          <div class="adp-field">
+            <label class="adp-label">Target Allocation (USD)</label>
+            <div class="adp-prefix-wrap">
+              <span class="adp-prefix">$</span>
+              <input class="adp-input" id="adp-alloc" type="text" inputmode="numeric" placeholder="30,000,000" oninput="fmtAmtInput(this)">
+            </div>
+          </div>
+          <div class="adp-field">
+            <label class="adp-label">Minimum Ticket (USD)</label>
+            <div class="adp-prefix-wrap">
+              <span class="adp-prefix">$</span>
+              <input class="adp-input" id="adp-ticket" type="text" inputmode="numeric" placeholder="500,000" oninput="fmtAmtInput(this)">
+            </div>
+          </div>
+        </div>
+        <div class="adp-grid-2" style="margin-top:12px">
+          <div class="adp-field">
+            <label class="adp-label">Closing Date</label>
+            <input class="adp-input" id="adp-closing" type="date">
           </div>
         </div>
       </div>
-      <div class="adp-grid-2" style="margin-top:12px">
-        <div class="adp-field">
-          <label class="adp-label">Closing Date</label>
-          <input class="adp-input" id="adp-closing" type="date">
-        </div>
-        <div class="adp-field">
-          <label class="adp-label">Source / Origin</label>
-          <input class="adp-input" id="adp-source" type="text" placeholder="e.g. Aurum Prism Proprietary" value="Aurum Prism Proprietary">
-        </div>
+
+      <div class="adp-submit-row">
+        <button class="adp-submit-btn" onclick="submitAdminDeal()">Create Deal →</button>
+        <button class="adp-cancel-btn" onclick="adpShowPhase(1)">← Re-upload Docs</button>
+        <button class="adp-cancel-btn" onclick="closeAdminDealPanel()">Cancel</button>
       </div>
     </div>
-    <div class="adp-submit-row">
-      <button class="adp-submit-btn" onclick="submitAdminDeal()">Save &amp; Open in Deal Studio →</button>
-      <button class="adp-cancel-btn" onclick="closeAdminDealPanel()">Cancel</button>
-      <span class="adp-hint">Deal will be added to Pending Review. Use Deal Studio to generate AI content and publish to the marketplace.</span>
-    </div>
+
   </div>
 </div>
 
@@ -5496,7 +5583,19 @@ function closeLaunchReview(){
   panel.classList.remove('lrp-open');
   setTimeout(()=>{panel.style.display='none';},320);
 }
+let _adpTempId=null;
+let _adpDocs={};
 function openAdminDealPanel(){
+  _adpTempId='adm-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
+  _adpDocs={};
+  ['nda','mgmt','fin','term'].forEach(slot=>{
+    const sl=document.getElementById('adp-slot-'+slot);
+    if(sl){sl.classList.remove('uploaded','uploading');const lbl=sl.querySelector('.adp-doc-label');if(lbl)lbl.textContent={nda:'NDA / Subscription Agreement',mgmt:'Management Presentation',fin:'Financial Statements',term:'Term Sheet'}[slot];}
+    const fi=document.getElementById('adp-file-'+slot);
+    if(fi)fi.value='';
+  });
+  adpCheckReady();
+  adpShowPhase(1);
   const panel=document.getElementById('admin-deal-panel');
   panel.style.display='block';
   requestAnimationFrame(()=>panel.classList.add('adp-open'));
@@ -5506,6 +5605,67 @@ function closeAdminDealPanel(){
   const panel=document.getElementById('admin-deal-panel');
   panel.classList.remove('adp-open');
   setTimeout(()=>{panel.style.display='none';},320);
+}
+function adpShowPhase(n){
+  document.getElementById('adp-phase1').classList.toggle('hidden',n!==1);
+  document.getElementById('adp-phase2').classList.toggle('hidden',n!==2);
+}
+function adpCheckReady(){
+  const btn=document.getElementById('adp-process-btn');
+  if(btn)btn.disabled=Object.keys(_adpDocs).length===0;
+}
+async function adpHandleFile(slot,input){
+  const file=input.files[0];
+  if(!file)return;
+  const sl=document.getElementById('adp-slot-'+slot);
+  const lbl=sl?.querySelector('.adp-doc-label');
+  sl?.classList.add('uploading');
+  if(lbl)lbl.textContent='Uploading…';
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const b64=e.target.result.split(',')[1];
+    const r=await fetch('/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slot,name:file.name,type:file.type||'application/octet-stream',data:b64,tempId:_adpTempId})});
+    const j=await r.json().catch(()=>({}));
+    sl?.classList.remove('uploading');
+    if(j.ok){
+      sl?.classList.add('uploaded');
+      if(lbl)lbl.textContent=file.name;
+      _adpDocs[slot]=file.name;
+    } else {
+      if(lbl)lbl.textContent={nda:'NDA / Subscription Agreement',mgmt:'Management Presentation',fin:'Financial Statements',term:'Term Sheet'}[slot];
+      toast(j.error||'Upload failed','err');
+    }
+    adpCheckReady();
+  };
+  reader.readAsDataURL(file);
+}
+async function adpRunGenerate(){
+  const btn=document.getElementById('adp-process-btn');
+  if(btn){btn.disabled=true;btn.textContent='✦ Reading documents…';}
+  const r=await fetch('/api/v2?resource=admin&op=admin-create-from-docs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tempId:_adpTempId})}).catch(()=>null);
+  const j=r?await r.json().catch(()=>({})):{};
+  if(btn){btn.disabled=false;btn.textContent='✦ Generate with Claude';}
+  if(!j.ok){toast(j.error||'Generation failed','err');return;}
+  adpFillForm(j.extracted||{});
+  adpShowPhase(2);
+}
+function adpFillForm(x){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
+  set('adp-name',x.name);
+  if(x.asset_class){const s=document.getElementById('adp-asset-class');if(s){const o=[...s.options].find(o=>o.value===x.asset_class||o.text.toLowerCase()===String(x.asset_class).toLowerCase());if(o)s.value=o.value;}}
+  if(x.deal_structure){const s=document.getElementById('adp-structure');if(s){const o=[...s.options].find(o=>o.value===x.deal_structure||o.text.toLowerCase()===String(x.deal_structure).toLowerCase());if(o)s.value=o.value;}}
+  set('adp-geography',x.geography);
+  set('adp-source',x.originator);
+  set('adp-tagline',x.tagline);
+  set('adp-overview',x.company_overview);
+  set('adp-thesis',x.thesis);
+  if(Array.isArray(x.highlights))set('adp-highlights',x.highlights.join('\n'));
+  set('adp-irr',x.target_irr);
+  set('adp-hurdle',x.hurdle_rate);
+  set('adp-term',x.term_months);
+  if(x.target_alloc_usd){const el=document.getElementById('adp-alloc');if(el)el.value=fmU(x.target_alloc_usd).replace(/[^0-9.]/g,'');}
+  if(x.min_ticket_usd){const el=document.getElementById('adp-ticket');if(el)el.value=fmU(x.min_ticket_usd).replace(/[^0-9.]/g,'');}
+  if(x.closing_date)set('adp-closing',x.closing_date.slice(0,10));
 }
 async function submitAdminDeal(){
   const name=(document.getElementById('adp-name')?.value||'').trim();
@@ -5530,7 +5690,6 @@ async function submitAdminDeal(){
   if(!assetClass) missing.push('Asset Class');
   if(!structure) missing.push('Deal Structure');
   if(!geography) missing.push('Geography');
-  if(!source) missing.push('Source / Origin');
   if(!tagline) missing.push('Tagline');
   if(!overview||overview.length<50) missing.push('Company Overview (min 50 chars)');
   if(!thesis||thesis.length<50) missing.push('Investment Thesis (min 50 chars)');
@@ -5546,40 +5705,30 @@ async function submitAdminDeal(){
     return;
   }
 
-  const id='admin-'+Date.now().toString(36);
-  const deal={
-    id,name,asset_class:assetClass,structure,geography,
-    tagline,company_overview:overview,thesis,highlights,
-    target_irr:targetIrr,hurdle_rate:hurdle,term,
-    target_alloc:targetAlloc,min_ticket:minTicket,closing,
-    advisor:'Aurum Prism',advisor_firm:source,
-    submitted:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
-    stage:'review',iois:[],ioi_agg:0,
-    docs:[],
-    _admin_created:true,
-  };
-  // Also POST to API — server enforces same gates and returns missing list
-  const apiResp=await api('POST','/api/advisor/deals',{
-    name,asset_class:assetClass,deal_structure:structure,geography,originator:source,
+  const dealData={
+    name,asset_class:assetClass,deal_structure:structure,geography,originator:source||'Aurum Prism',
     tagline,company_overview:overview,thesis,highlights,
     target_alloc_usd:targetAlloc,target_irr:targetIrr,term_months:term,
     hurdle_rate:hurdle,min_ticket_usd:minTicket,closing_date:closing,
-  }).catch(e=>e);
-  if(apiResp&&apiResp.ok===false){
-    const apiMissing=apiResp.missing||[];
-    toast('Server rejected — '+(apiMissing.length?apiMissing.slice(0,3).join(', '):apiResp.error||'unknown'),'err');
+  };
+  const btn=document.querySelector('#adp-phase2 .adp-submit-btn');
+  if(btn){btn.disabled=true;btn.textContent='Creating…';}
+  const apiResp=await fetch('/api/v2?resource=admin&op=admin-confirm-new-deal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tempId:_adpTempId,dealData})}).then(r=>r.json()).catch(e=>({ok:false,error:String(e)}));
+  if(btn){btn.disabled=false;btn.textContent='Create Deal →';}
+  if(!apiResp||apiResp.ok===false){
+    toast(apiResp?.error||'Server error','err');
     return;
   }
+  const deal=apiResp.deal;
   NEW_SUBMISSIONS.unshift(deal);
   closeAdminDealPanel();
   renderKPIs();
   renderOverview();
-  // Navigate to Deal Studio and load this deal
   setTimeout(()=>{
-    loadDocsAndGenerate(id);
+    loadDocsAndGenerate(deal.id);
     showView('aitool',document.querySelectorAll('.ntab')[3]);
   },350);
-  toast(`${name} added — opening Deal Studio`,'ok');
+  toast(`${name} created — opening Deal Studio`,'ok');
 }
 let _ioiDetailDeal=null,_ioiDetailIoi=null;
 
