@@ -85,6 +85,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .view{display:none;padding-top:var(--nav-h);min-height:100vh}
 .view.active{display:block}
 .view-inner{padding:clamp(24px,4vh,44px) clamp(20px,5vw,72px)}
+.mstab{padding:8px 18px;font-size:12px;font-weight:500;font-family:var(--mono);letter-spacing:.06em;color:var(--text-3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;white-space:nowrap}
+.mstab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.mstab:hover:not(.on){color:var(--text-2)}
 
 /* KPI STRIP */
 .kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);overflow:hidden}
@@ -1726,8 +1729,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab" onclick="showView('pipeline',this)">Deal Pipeline</button>
     <button class="ntab" onclick="showView('queue',this)">IOI Queue<span class="ntab-badge" id="queue-badge-dot" style="display:none"></span></button>
     <button class="ntab" onclick="showView('aitool',this)">Deal Studio</button>
-    <button class="ntab" onclick="showView('investors',this)">Investors</button>
-    <button class="ntab" onclick="showView('advisors',this)">Advisors</button>
+    <button class="ntab" onclick="showView('members',this)">Members</button>
     <button class="ntab" onclick="showView('system',this)">System</button>
     <button class="ntab" onclick="showView('reporting',this)">Reporting</button>
     <a class="ntab" href="/ops/bd7x3k" title="Sandbox bot driver — for partner demos">Bot Driver ↗</a>
@@ -1791,19 +1793,20 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 </div>
 
 <!-- ══ VIEW: SYSTEM ══ -->
-<div id="view-investors" class="view">
+<div id="view-members" class="view">
   <div class="view-inner">
-    <div class="view-heading">Investors</div>
-    <div class="view-sub">Registered institutional investors — approve, reject, or revoke access.</div>
-    <div id="investors-table-wrap" style="margin-top:24px"></div>
-  </div>
-</div>
-
-<div id="view-advisors" class="view">
-  <div class="view-inner">
-    <div class="view-heading">Advisors</div>
-    <div class="view-sub">Registered deal advisors — manage access and view portal.</div>
-    <div id="advisors-table-wrap" style="margin-top:24px"></div>
+    <div class="view-heading">Members</div>
+    <div class="view-sub">Manage investors and advisors on the platform.</div>
+    <div class="members-subtabs" style="display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:28px">
+      <button class="mstab on" id="mstab-investors" onclick="showMembersTab('investors',this)">Investors</button>
+      <button class="mstab" id="mstab-advisors" onclick="showMembersTab('advisors',this)">Advisors</button>
+    </div>
+    <div id="members-panel-investors">
+      <div id="investors-table-wrap"></div>
+    </div>
+    <div id="members-panel-advisors" style="display:none">
+      <div id="advisors-table-wrap"></div>
+    </div>
   </div>
 </div>
 
@@ -2723,10 +2726,17 @@ function showView(name,btn){
   if(name==='queue')renderQueue();
   if(name==='pipeline'){renderPipeline();refreshUnassignedDealsBadge();}
   if(name==='aitool')renderAITool();
-  if(name==='investors')renderInvestors();
-  if(name==='advisors')renderAdvisors();
+  if(name==='members'){renderInvestors();}
   if(name==='reporting')renderReporting();
   window.scrollTo({top:0,behavior:'smooth'});
+}
+function showMembersTab(sub,btn){
+  document.querySelectorAll('.mstab').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  document.getElementById('members-panel-investors').style.display=sub==='investors'?'':'none';
+  document.getElementById('members-panel-advisors').style.display=sub==='advisors'?'':'none';
+  if(sub==='investors')renderInvestors();
+  if(sub==='advisors')renderAdvisors();
 }
 
 /* ── KPI ── */
