@@ -833,6 +833,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab" onclick="showView('deal',this)">My Deals</button>
     <button class="ntab" onclick="showView('submit',this)">Submit New Deal</button>
     <button class="ntab" onclick="showView('earnings',this)">Earnings</button>
+    <button class="ntab" onclick="showView('nav',this)">NAV &amp; Reporting</button>
   </div>
   <div class="nav-r">
     <div class="nav-user">
@@ -1097,6 +1098,24 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <div class="submit-sub">Reviewed by the Aurum team before going live to investors.</div>
     <div class="wizard-steps" id="wizard-steps"></div>
     <div class="wizard-form" id="wizard-form"></div>
+  </div>
+</div>
+
+<!-- ══ VIEW: NAV & REPORTING ══ -->
+<div id="view-nav" class="view">
+  <div class="view-inner" style="max-width:1100px;margin:0 auto;padding:32px 24px">
+    <div style="margin-bottom:28px">
+      <div style="font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">NAV &amp; Reporting</div>
+      <div style="font-size:26px;font-family:var(--serif);font-style:italic;color:var(--text)">Portfolio Performance</div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:4px">Quarterly net asset value updates for your active mandates. Investors in each deal are notified when you post.</div>
+    </div>
+    <div id="nav-kpi-strip" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:32px"></div>
+    <div id="nav-deal-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;margin-bottom:32px"></div>
+    <div id="nav-empty" style="display:none;text-align:center;padding:48px 24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)">
+      <div style="font-size:22px;margin-bottom:12px">◆</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No active mandates</div>
+      <div style="font-size:12px;color:var(--text-3)">NAV tracking becomes available once a deal reaches the close stage.</div>
+    </div>
   </div>
 </div>
 
@@ -1454,6 +1473,7 @@ function showView(name,btn){
   if(name==='overview')renderDashboard();
   if(name==='submit'){if(wStep>4)wStep=1;renderWizard();}
   if(name==='earnings')loadEarnings();
+  if(name==='nav')loadNavTab();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -4112,6 +4132,183 @@ async function loadEarnings() {
   renderEarnings(data);
 }
 
+
+load();
+
+/* ── NAV & REPORTING TAB ── */
+let NAV_LOADED = false;
+
+async function loadNavTab() {
+  if(NAV_LOADED) return;
+  NAV_LOADED = true;
+  const res = await fetchSilent('/api/v2?resource=advisor&op=deals');
+  const deals = (res?.deals || []).filter(d => ['close','realized'].includes(d.stage));
+  renderNavKPIs(deals);
+  renderNavCards(deals);
+}
+
+function renderNavKPIs(deals) {
+  const strip = document.getElementById('nav-kpi-strip');
+  const holdDeals = deals.filter(d => d.stage === 'close');
+  const realizedDeals = deals.filter(d => d.stage === 'realized');
+  const totalAUM = deals.reduce((s,d) => s + (d.totalNavUsd || d.ioi_agg_usd || 0), 0);
+  const unrealised = deals.reduce((s,d) => s + ((d.totalNavUsd || 0) - (d.ioi_agg_usd || 0)), 0);
+  const now = Date.now();
+  const overdue = holdDeals.filter(d => {
+    const lu = d.lastNavUpdate || (Array.isArray(d.navHistory) && d.navHistory.length ? d.navHistory[d.navHistory.length-1].postedAt : null);
+    return !lu || (now - new Date(lu).getTime()) > 90*24*60*60*1000;
+  }).length;
+  const fmM = v => v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(0)+'K' : '$'+v;
+  const cells = [
+    {lbl:'Total AUM',val:fmM(totalAUM),sub:`${holdDeals.length} active mandate${holdDeals.length!==1?'s':''}`},
+    {lbl:'Unrealised Gain',val:(unrealised>=0?'+':'')+fmM(unrealised),sub:'vs deployed capital',color:unrealised>=0?'var(--green)':'var(--red)'},
+    {lbl:'Deals in Hold',val:holdDeals.length,sub:`${realizedDeals.length} realized`},
+    {lbl:'Updates Due',val:overdue,sub:'90+ days since last mark',color:overdue>0?'var(--amber)':null},
+  ];
+  strip.innerHTML = cells.map(c => `<div style="background:var(--surface);padding:20px 24px">
+    <div style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">${c.lbl}</div>
+    <div style="font-size:22px;font-weight:600;font-family:var(--serif);color:${c.color||'var(--text)'}">${c.val}</div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:3px">${c.sub}</div>
+  </div>`).join('');
+}
+
+function renderNavCards(deals) {
+  const wrap = document.getElementById('nav-deal-cards');
+  const empty = document.getElementById('nav-empty');
+  if(!deals.length) { wrap.style.display='none'; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  const now = Date.now();
+  const fmM = v => v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(0)+'K' : v ? '$'+v : '—';
+  const fmDate = s => s ? new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '—';
+  wrap.innerHTML = deals.map((d,i) => {
+    const deployed = d.ioi_agg_usd || 0;
+    const nav = d.totalNavUsd || deployed;
+    const gain = nav - deployed;
+    const moic = deployed > 0 ? (nav/deployed).toFixed(2)+'x' : '—';
+    const holdMs = d.close_date ? now - new Date(d.close_date).getTime() : 0;
+    const holdDays = holdMs > 0 ? Math.floor(holdMs/86400000) : 0;
+    const hist = Array.isArray(d.navHistory) ? d.navHistory : [];
+    const lastUpd = d.lastNavUpdate || (hist.length ? hist[hist.length-1].postedAt : null);
+    const overdue = d.stage === 'close' && (!lastUpd || (now - new Date(lastUpd).getTime()) > 90*24*60*60*1000);
+    const isRealized = d.stage === 'realized';
+    const stageChip = isRealized
+      ? `<span style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:2px;color:var(--violet);border:1px solid var(--violet);opacity:.85">Realized</span>`
+      : `<span style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:2px;color:var(--green);border:1px solid var(--green-bd);opacity:.85">Active</span>`;
+    const overdueDot = overdue ? `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);margin-right:5px;animation:pulse 1.4s ease-in-out infinite"></span>` : '';
+    const spark = navBuildSparkline(hist, 180, 48);
+    const updateForm = isRealized ? '' : `
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">Post Quarterly Update</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div><label style="font-family:var(--mono);font-size:9px;color:var(--text-3);display:block;margin-bottom:3px">As of Date</label>
+            <input id="nav-date-${d.id}" type="date" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:2px;color:var(--text);padding:6px 8px;font-family:var(--mono);font-size:11px;box-sizing:border-box"></div>
+          <div><label style="font-family:var(--mono);font-size:9px;color:var(--text-3);display:block;margin-bottom:3px">Total NAV (USD)</label>
+            <input id="nav-total-${d.id}" type="number" placeholder="${(nav/1e6).toFixed(1)}M" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:2px;color:var(--text);padding:6px 8px;font-family:var(--mono);font-size:11px;box-sizing:border-box" oninput="navCalcGain('${d.id}',${deployed})"></div>
+        </div>
+        <div style="margin-bottom:8px"><label style="font-family:var(--mono);font-size:9px;color:var(--text-3);display:block;margin-bottom:3px">Notes</label>
+          <input id="nav-notes-${d.id}" type="text" placeholder="e.g. Q1 2026 — income on track, no credit events" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:2px;color:var(--text);padding:6px 8px;font-family:var(--mono);font-size:11px;box-sizing:border-box"></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button onclick="navPostUpdate('${d.id}')" style="flex:1;padding:9px;background:var(--gold);border:none;border-radius:2px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:#1A1410;cursor:pointer">Post Update</button>
+          <div id="nav-gain-${d.id}" style="font-family:var(--mono);font-size:10px;color:var(--text-3)"></div>
+        </div>
+      </div>`;
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:0">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">${esc(d.name)}</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text-3)">${d.asset_class?.toUpperCase()||''} · ${d.geography||''}</div>
+        </div>
+        ${stageChip}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--bg);border-radius:4px;overflow:hidden;margin-bottom:14px">
+        ${[
+          {l:'Deployed',v:fmM(deployed)},
+          {l:'Current NAV',v:fmM(nav),gold:true},
+          {l:'Gain',v:(gain>=0?'+':'')+fmM(gain),color:gain>=0?'var(--green)':'var(--red)'},
+          {l:'Hold Days',v:holdDays||'—'},
+        ].map(c=>`<div style="padding:10px 8px;border-right:1px solid var(--border)">
+          <div style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:3px">${c.l}</div>
+          <div style="font-family:var(--mono);font-size:11px;font-weight:600;color:${c.color||(c.gold?'var(--gold)':'var(--text)')}">${c.v}</div>
+        </div>`).join('')}
+      </div>
+      ${hist.length >= 2 ? `<div style="margin-bottom:12px">${spark}</div>` : ''}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text-3)">${overdueDot}Last updated: ${fmDate(lastUpd)}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text-3)">MOIC ${moic}</div>
+      </div>
+      ${hist.length ? `<details style="margin-top:8px"><summary style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);cursor:pointer;padding:6px 0">History (${hist.length})</summary>
+        <table style="width:100%;border-collapse:collapse;margin-top:8px">
+          ${[...hist].reverse().map(h=>`<tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:5px 0;font-family:var(--mono);font-size:9px;color:var(--text-3)">${fmDate(h.asOfDate)}</td>
+            <td style="padding:5px 0;font-family:var(--mono);font-size:10px;color:var(--gold);text-align:right">${fmM(h.totalNavUsd)}</td>
+            <td style="padding:5px 6px;font-size:10px;color:var(--text-3)">${h.notes||'—'}</td>
+          </tr>`).join('')}
+        </table>
+      </details>` : ''}
+      ${updateForm}
+    </div>`;
+  }).join('');
+}
+
+function navCalcGain(dealId, deployed) {
+  const navEl = document.getElementById('nav-total-'+dealId);
+  const gainEl = document.getElementById('nav-gain-'+dealId);
+  if(!navEl || !gainEl) return;
+  const nav = parseFloat(navEl.value) || 0;
+  const gain = nav - deployed;
+  if(nav > 0) {
+    const sign = gain >= 0 ? '+' : '';
+    gainEl.textContent = sign + (gain >= 1e6 ? '$'+(gain/1e6).toFixed(2)+'M' : gain >= 1e3 ? '$'+(gain/1e3).toFixed(0)+'K' : '$'+gain);
+    gainEl.style.color = gain >= 0 ? 'var(--green)' : 'var(--red)';
+  } else {
+    gainEl.textContent = '';
+  }
+}
+
+async function navPostUpdate(dealId) {
+  const dateEl  = document.getElementById('nav-date-'+dealId);
+  const totalEl = document.getElementById('nav-total-'+dealId);
+  const notesEl = document.getElementById('nav-notes-'+dealId);
+  if(!dateEl?.value || !totalEl?.value) { toast('Date and Total NAV required','err'); return; }
+  const btn = document.querySelector(`[onclick="navPostUpdate('${dealId}')"]`);
+  if(btn) { btn.disabled=true; btn.textContent='Posting…'; }
+  const r = await fetchSilent('/api/v2?resource=advisor&op=post-nav-update','POST',{
+    dealId,
+    navPerUnit: parseFloat(totalEl.value) / 1000000,
+    totalNavUsd: parseFloat(totalEl.value),
+    asOfDate: dateEl.value,
+    notes: notesEl?.value || '',
+  });
+  if(r?.ok !== false) {
+    toast('NAV update posted','ok');
+    NAV_LOADED = false;
+    loadNavTab();
+  } else {
+    toast(r?.error || 'Post failed','err');
+    if(btn) { btn.disabled=false; btn.textContent='Post Update'; }
+  }
+}
+
+function navBuildSparkline(history, w, h) {
+  if(!history || history.length < 2) return '';
+  const vals = history.map(e => e.totalNavUsd || 0);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = max - min || 1;
+  const pad = 4;
+  const pts = vals.map((v,i) => {
+    const x = pad + (i/(vals.length-1))*(w-2*pad);
+    const y = h - pad - ((v-min)/range)*(h-2*pad);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const firstX = pts.split(' ')[0].split(',')[0];
+  const lastPt = pts.split(' ').pop();
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:${h}px">
+    <defs><linearGradient id="nsg${w}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--gold)" stop-opacity=".2"/><stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/></linearGradient></defs>
+    <path d="M ${pts.split(' ').map((p,i)=>i===0?`M ${p}`:`L ${p}`).join(' ')} L ${lastPt.split(',')[0]},${h} L ${firstX},${h} Z" fill="url(#nsg${w})"/>
+    <polyline points="${pts}" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
 
 load();
 </script>
