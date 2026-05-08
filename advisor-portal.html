@@ -1716,7 +1716,8 @@ function renderOverview(){
     </div>
   </div>`;
 
-  /* NAV update section */
+  /* NAV update section — only shown post-close */
+  if(['close','realized'].includes(d.stage)){
   const navHistory=(d.navHistory||[]).slice().reverse();
   const navHistoryHTML=navHistory.length
     ?`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse">
@@ -1769,6 +1770,7 @@ function renderOverview(){
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
     ${navHistoryHTML}
   </div>`;
+  } // end post-close NAV block
 
   document.getElementById('tab-overview').innerHTML=html;
   setTimeout(()=>animatePerf(),50);
