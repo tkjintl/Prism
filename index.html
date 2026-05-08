@@ -530,8 +530,10 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
   /* Stack footer bottom row */
   .foot-bottom{flex-direction:column;gap:14px}
   .foot-sg{text-align:left}
-  /* Member-tier <a> tap target safety (if/when used) */
-  a.tier-cta{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  /* Footer link tap targets — was 22px, Apple HIG min 44px */
+  .foot-link{padding:14px 0;display:flex;align-items:center}
+  /* Member-tier tap target safety */
+  .tier-cta{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
 
   /* ── TIER CARDS → SWIPEABLE CAROUSEL (mobile only) ── */
   .tiers-grid{
@@ -603,8 +605,8 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
     font-size:10px!important;
     letter-spacing:.12em!important;
     padding:8px 12px!important;
-    min-height:38px!important;
-    height:38px;
+    min-height:44px!important;
+    height:44px;
     color:var(--goldD)!important;
     border-color:var(--goldBd)!important;
     background:transparent!important;
@@ -615,7 +617,7 @@ footer::after{content:'';position:absolute;top:0;left:0;right:0;height:40px;back
 }
 /* Override the global ≤768px tap-target rule that forces 44px on .btn-nav */
 @media (max-width:768px) and (hover:none) and (pointer:coarse){
-  .btn-nav.ghost{min-height:38px!important}
+  .btn-nav.ghost{min-height:44px!important}
 }
 
 /* Mobile body CTA reduction (≤768px) — operator brief:
