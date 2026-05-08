@@ -5653,7 +5653,7 @@ function adpFillForm(x){
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
   set('adp-name',x.name);
   if(x.asset_class){const s=document.getElementById('adp-asset-class');if(s){const o=[...s.options].find(o=>o.value===x.asset_class||o.text.toLowerCase()===String(x.asset_class).toLowerCase());if(o)s.value=o.value;}}
-  if(x.deal_structure){const s=document.getElementById('adp-structure');if(s){const o=[...s.options].find(o=>o.value===x.deal_structure||o.text.toLowerCase()===String(x.deal_structure).toLowerCase());if(o)s.value=o.value;}}
+  set('adp-structure',x.deal_structure);
   set('adp-geography',x.geography);
   set('adp-source',x.originator);
   set('adp-tagline',x.tagline);
