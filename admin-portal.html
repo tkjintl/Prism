@@ -5722,8 +5722,8 @@ async function submitAdminDeal(){
     toast(apiResp?.error||'Server error','err');
     return;
   }
-  const deal=apiResp.deal;
-  NEW_SUBMISSIONS.unshift(deal);
+  const deal=adaptDeal(apiResp.deal,[]);
+  DEALS.unshift(deal);
   closeAdminDealPanel();
   renderKPIs();
   renderOverview();

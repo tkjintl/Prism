@@ -2550,12 +2550,18 @@ Rules:
       if (tempId) {
         for (const slot of ['nda', 'mgmt', 'fin', 'term']) {
           const doc = await kvGet(`pdoc_admin:${tempId}:${slot}`);
-          if (doc?.data) {
+          if (doc) {
             await kvSet(`deal_doc:${deal.id}:${slot}`, doc);
             await kvDel(`pdoc_admin:${tempId}:${slot}`);
           }
         }
       }
+
+      // Admin-created deals skip the review queue — advance straight to live
+      deal.stage = 'live';
+      deal.member_visible = false;
+      deal.updated_at = new Date().toISOString();
+      await saveDeal(deal);
 
       return ok(res, { ok: true, deal });
     }
