@@ -10,7 +10,7 @@ import {
   sendIoiConfirmation, sendIoiRejection, sendDataRoomPackageResponse,
   sendQaQuestionToAdvisor, sendQaAnswerToInvestor,
   sendCapitalCallNotice, sendDistributionNotice, sendQaReminder,
-  sendNavUpdate, sendStatementAvailable, sendDistributionNoticeWithAmount,
+  sendNavUpdate, sendNavNudge, sendStatementAvailable, sendDistributionNoticeWithAmount,
   sendWelcomeDay2, sendWelcomeDay7,
 } from './_lib/email.js';
 import { captureException, captureMessage } from './_lib/sentry.js';
@@ -2088,6 +2088,78 @@ async function _handler(req, res, resource, op) {
         .filter(a => a && a.status === 'pending')
         .map(sanitizeAdvisor);
       return ok(res, { advisors });
+    }
+
+    // ── nav-summary ───────────────────────────────────────────────
+    // GET resource=admin&op=nav-summary
+    // Returns all deals (all stages, never filtered) with navHistory,
+    // computed overdue flag, holdDays, and moic. Admin read-only.
+    if (op === 'nav-summary') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const allDeals = await listDeals();
+      const now = Date.now();
+      const OVERDUE_MS = 90 * 24 * 60 * 60 * 1000; // 90 days
+      const summary = allDeals.map(d => {
+        const navHistory = Array.isArray(d.navHistory) ? d.navHistory : [];
+        const lastEntry = navHistory.length ? navHistory[navHistory.length - 1] : null;
+        const lastNavUpdate = d.lastNavUpdate || (lastEntry ? lastEntry.postedAt : null);
+        const deployed = d.ioi_agg_usd || 0;
+        const currentNav = d.totalNavUsd || deployed || 0;
+        const moic = deployed > 0 ? currentNav / deployed : null;
+        const closeDate = d.close_date || d.closing_date || null;
+        const holdStart = closeDate ? new Date(closeDate).getTime() : null;
+        const holdDays = holdStart ? Math.floor((now - holdStart) / 86400000) : null;
+        const isHoldStage = ['close', 'realized'].includes(d.stage);
+        const overdue = isHoldStage && d.stage === 'close' && (
+          !lastNavUpdate
+            ? (holdDays !== null && holdDays > 90)
+            : (now - new Date(lastNavUpdate).getTime()) > OVERDUE_MS
+        );
+        return {
+          id: d.id,
+          name: d.name,
+          stage: d.stage,
+          asset_class: d.asset_class,
+          advisor_id: d.advisor_id,
+          deployed,
+          currentNav,
+          moic,
+          holdDays,
+          lastNavUpdate,
+          overdue,
+          navHistory,
+          target_irr: d.target_irr,
+          target_alloc_usd: d.target_alloc_usd,
+          geography: d.geography,
+          created_at: d.created_at,
+        };
+      });
+      return ok(res, { deals: summary });
+    }
+
+    // ── iois ─────────────────────────────────────────────────────
+    // GET resource=admin&op=iois — all IOI records, admin only
+    if (op === 'iois') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const iois = await getAllIois();
+      return ok(res, { iois });
+    }
+
+    // ── nudge-nav ─────────────────────────────────────────────────
+    // POST resource=admin&op=nudge-nav — email advisor to post overdue NAV
+    if (op === 'nudge-nav') {
+      const admin = await getAdmin();
+      if (!admin) return unauth(res);
+      const { dealId } = req.body || {};
+      if (!dealId) return bad(res, 'dealId required');
+      const deal = await getDeal(dealId);
+      if (!deal) return bad(res, 'Deal not found', 404);
+      const adv = await kvGet(`advisor:${deal.advisor_id}`);
+      if (!adv) return bad(res, 'Advisor not found', 404);
+      await sendNavNudge(adv, deal.name).catch(console.error);
+      return ok(res, { ok: true, nudged: adv.email });
     }
 
     if (op === 'advance-stage') {
