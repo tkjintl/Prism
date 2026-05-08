@@ -4,6 +4,41 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-08] — Add Deal: AI doc-upload flow replaces manual entry
+
+### Admin portal ([aurumprism.com/admin-portal](https://www.aurumprism.com/admin-portal))
+- Replaced manual "+ Add Deal" form with a 2-phase AI-powered flow
+- Phase 1: operator uploads up to 4 documents (NDA, Management Presentation, Financials, Term Sheet) — each stored to a temp KV key (`pdoc_admin:{tempId}:{slot}`) with 1hr TTL
+- Phase 2: Claude reads uploaded docs via `admin-create-from-docs` and pre-fills the full deal form; operator reviews/edits then confirms
+- `submitAdminDeal()` now POSTs to `admin-confirm-new-deal` which calls `createDeal()` and moves temp doc keys to permanent `deal_doc:{dealId}:{slot}` keys
+- Advisors retain manual entry in their portal — AI flow is admin-only
+
+### Backend ([api/v2.js](file:///C:/Users/thoma/prism/api/v2.js))
+- `admin-create-from-docs` op: reads staged docs, calls Claude with PDF extraction prompt, returns structured deal JSON
+- `admin-confirm-new-deal` op: creates deal via `createDeal()`, migrates temp doc KV keys to permanent, deletes temp keys
+
+---
+
+## [2026-05-08] — Consolidate Investors + Advisors into Members tab
+
+### Admin portal ([aurumprism.com/admin-portal](https://www.aurumprism.com/admin-portal))
+- Removed separate "Investors" and "Advisors" top-nav tabs
+- Added single "Members" tab with "Investors" / "Advisors" sub-tabs rendered beneath the heading
+- Sub-tabs styled to match nav aesthetic (gold underline on active, hover state)
+- `renderInvestors()` fires on Members tab open (default to Investors sub-tab); `renderAdvisors()` fires on switch
+- Existing `investors-table-wrap` and `advisors-table-wrap` IDs unchanged
+
+---
+
+## [2026-05-08] — Fix action queue age display (relAge year-stripping bug)
+
+### Admin portal ([admin-portal.html](file:///C:/Users/thoma/prism/admin-portal.html))
+- `NEW_SUBMISSIONS` map now also sets `submitted_at` to the raw ISO `created_at` string
+- Fixes action queue cards showing "9137d ago" — Chrome was parsing the short date string `"Apr 26"` (no year) as April 26, 2001, making every freshly seeded review deal appear 25 years old
+- `relAge()` now receives a real ISO timestamp via `submitted_at` and renders correctly (e.g. "3d ago", "47d ago")
+
+---
+
 ## [2026-05-08] — NAV & Reporting system — backend + admin + investor wired
 
 ### Backend (api/v2.js)
