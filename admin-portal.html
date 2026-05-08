@@ -6224,7 +6224,7 @@ async function load(){
       const allAdapted=dealsR.deals.map(d=>adaptDeal(d,allIois));
       KILLED_DEALS=allAdapted.filter(d=>d.stage==='killed');
       const active=allAdapted.filter(d=>d.stage!=='killed');
-      NEW_SUBMISSIONS=active.filter(d=>d.stage==='review').map(d=>({...d,submitted:new Date(d.created_at||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric'})}));
+      NEW_SUBMISSIONS=active.filter(d=>d.stage==='review').map(d=>({...d,submitted_at:d.created_at||new Date().toISOString(),submitted:new Date(d.created_at||Date.now()).toLocaleDateString('en-US',{month:'short',day:'numeric'})}));
       DEALS=active.filter(d=>d.stage!=='review');
     }
     REAL_INVESTORS=instsR?.insts||[];
