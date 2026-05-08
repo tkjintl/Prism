@@ -4,6 +4,31 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-08] — NAV & Reporting system — backend + admin + investor wired
+
+### Backend (api/v2.js)
+- `nav-summary` op: admin GET, returns all deals (all stages, never filtered) with navHistory, computed overdue flag, MOIC, holdDays
+- `iois` op: admin GET, returns all IOI records for investor lens
+- `nudge-nav` op: admin POST, emails advisor re: overdue quarterly NAV update
+- `performance` op: now includes navHistory array per investor position
+- `sendNavNudge()` email function added to email.js — operator-to-advisor nudge
+
+### Admin portal — Reporting tab
+- New "Reporting" tab in admin nav
+- 5-cell KPI strip: Total Platform AUM, Active Mandates, Blended Unrealised Gain, Overdue Updates, Realized Deals
+- Asset class switcher: All / Private Credit / Infrastructure / Growth Equity / Real Estate
+- Live / Realized / All view toggle
+- Deal table with expandable rows: sparkline + NAV history table (read-only)
+- Amber overdue indicator + Nudge button fires email to advisor
+- Investor lens: select investor → see all their positions + NAV history, printable
+
+### Investor portal — Performance tab
+- Fixed `loadPerfDashboard` data mapping bug (was checking `res.performance`, API returns `res` directly — always fell back to mock 1.12x hardcoded value)
+- Portfolio summary strip now shows real committed/NAV/TVPI from API instead of hardcoded multiplier
+- NAV History accordion per deal — shows advisor-posted quarterly marks, read-only
+
+---
+
 ## [2026-05-06] — Two-dashboard flash fix + action card height cap
 
 ### Admin portal — data load
