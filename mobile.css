@@ -194,3 +194,114 @@ body {
 @media (max-width: 480px) {
   .nav-wm-tacc { display: none; }
 }
+
+/* ─── 10. CARD CONTENT ALIGNMENT (universal — desktop + mobile) ─────────── */
+.deal-card,
+.dash-deal-card,
+.earn-stat-card,
+.kpi-card,
+.pos-card,
+.notice-card,
+[class*="-card"]:not(.nav-avatar):not(.role-badge) {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Content area fills available space, pushing footer to bottom */
+.dc-body,
+.dash-dc-body,
+.notice-card-body,
+[class*="-card"] > [class*="-body"] {
+  flex: 1;
+}
+
+/* Ensure footer/CTA stays pinned at bottom */
+.dc-footer,
+.dash-dc-footer,
+[class*="-card"] > [class*="-footer"],
+[class*="-card"] > [class*="-cta"] {
+  margin-top: auto;
+}
+
+/* ─── 11. KPI GRID EQUAL HEIGHT ─────────────────────────────────────────── */
+.kpi-grid,
+.dash-kpi-grid,
+[class*="kpi-grid"] {
+  align-items: stretch;
+}
+
+.kpi-grid > *,
+.dash-kpi-grid > *,
+[class*="kpi-grid"] > * {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* ─── 12. SAFE-AREA-INSET (notched iPhone support) ──────────────────────── */
+@media (max-width:768px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .nav {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+}
+
+/* ─── 13. FIELD LABEL ALIGNMENT IN CARDS ────────────────────────────────── */
+@media (max-width:768px) {
+  .field-row,
+  [class*="-field-row"],
+  [class*="-form-row"] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .field-label,
+  [class*="-field-label"],
+  [class*="-form-label"] {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* ─── 14. SECTION HEADERS WRAP ON MOBILE ────────────────────────────────── */
+@media (max-width:768px) {
+  [class*="-section-header"],
+  [class*="-view-header"],
+  [class*="-tab-header"],
+  .section-header,
+  .view-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+/* ─── 15. SPACING RHYTHM — SAFE-AREA-AWARE INNER PADDING ────────────────── */
+@media (max-width:480px) {
+  .view-inner, [class*="-inner"] {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+}
+
+/* ─── 16. TABLE HORIZONTAL SCROLL ON MOBILE ─────────────────────────────── */
+@media (max-width:768px) {
+  table:not([class]) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+}
+
+/* ─── 17. NOTIFICATION / OVERLAY PANELS — CONSTRAIN TO VIEWPORT ─────────── */
+@media (max-width:768px) {
+  .notif-panel,
+  [class*="-panel"]:not([class*="nav"]) {
+    width: calc(100vw - 24px) !important;
+    max-width: 340px;
+    right: 12px !important;
+  }
+}

@@ -93,6 +93,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);overflow:hidden}
 @media(max-width:900px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:540px){.kpi-strip{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:380px){.kpi-strip{grid-template-columns:repeat(2,1fr)}}
 .kpi-card{padding:18px clamp(16px,3vw,28px);background:var(--bg);transition:background .15s}
 .kpi-card:hover{background:var(--bg-3)}
 .kpi-lbl{font-size:10px;color:var(--text-3);letter-spacing:.06em;margin-bottom:7px}
@@ -1730,6 +1731,35 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .ps-stage{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid;flex-shrink:0;min-width:52px;text-align:center}
 .ps-name{font-size:12px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ps-ioi{font-family:var(--mono);font-size:10px;color:var(--gold);flex-shrink:0}
+
+/* ── B3: Admin deal list/table horizontal overflow ── */
+@media (max-width:768px) {
+  .table-wrap,
+  [class*="-table-wrap"],
+  .admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table,
+  [class*="-table"] {
+    min-width: 500px;
+  }
+}
+
+/* ── B4: Admin view inner padding on mobile ── */
+@media (max-width:480px) {
+  .view-inner { padding: 16px 12px; }
+}
+
+/* ── B5: Safe-area-inset for admin portal ── */
+@media (max-width:768px) {
+  body {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
 </style>
 </head>
 <body>

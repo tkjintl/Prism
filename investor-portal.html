@@ -245,7 +245,7 @@ a{color:inherit;text-decoration:none}
 .deal-grid{display:grid;grid-template-columns:1fr;gap:14px}
 @media(min-width:600px){.deal-grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1100px){.deal-grid{grid-template-columns:repeat(4,1fr)}}
-.deal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .22s var(--ease);position:relative;opacity:0;transform:translateY(18px)}
+.deal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .22s var(--ease);position:relative;opacity:0;transform:translateY(18px);display:flex;flex-direction:column}
 .deal-card.revealed{animation:cardReveal .55s var(--ease) forwards}
 .deal-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.4);border-color:var(--border-m)}
 .deal-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;transition:opacity .2s}
@@ -262,7 +262,7 @@ a{color:inherit;text-decoration:none}
 .dc-irr span{font-size:9px;color:var(--text-3);font-weight:400}
 .dc-name{font-family:var(--serif);font-style:italic;font-size:20px;line-height:1.2;color:var(--text);margin-bottom:5px}
 .dc-meta{font-size:12px;color:var(--text-3);margin-bottom:14px;font-family:var(--sans)}
-.dc-body{padding:0 18px 16px}
+.dc-body{padding:0 18px 16px;flex:1}
 .dc-bar-track{height:2px;background:var(--border);border-radius:1px;overflow:hidden;margin-bottom:5px}
 .dc-bar-fill{height:100%;border-radius:1px;width:0;transition:width 1s var(--ease)}
 .dc-bar-row{display:flex;justify-content:space-between}
@@ -3797,6 +3797,43 @@ load();
   .nav { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
   .dd-inner { padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
   body { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* ── ISSUE 1: Nav width guard — plain media (no touch gate) ── */
+@media (max-width: 768px) {
+  .nav { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); width: 100%; }
+}
+
+/* ── ISSUE 3: Hero dots — expanded tap target via padding ── */
+@media (max-width: 768px) {
+  .hero-dot {
+    padding: 20px 10px;
+    margin: -20px -10px;
+  }
+}
+
+/* ── ISSUE 4: Safe-area-inset on body top/sides + nav top (no touch gate) ── */
+@media (max-width: 768px) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .nav {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ── ISSUE 5: Asset class badge contrast in dark mode ── */
+[data-theme="dark"] .dc-class-tag,
+[data-theme="dark"] [class*="dct-"] {
+  background: var(--bg-2) !important;
+  border-color: currentColor !important;
+  opacity: 1;
+}
+
+/* ── ISSUE 6: Timeline inner — remove min-width on small phones ── */
+@media (max-width: 480px) {
+  .tl-inner { min-width: 0 !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 </style>
 </body>

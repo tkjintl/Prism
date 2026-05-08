@@ -188,6 +188,17 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
   body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); padding-top: max(0px, env(safe-area-inset-top)); }
   html, body { overflow-x: hidden; }
 }
+
+/* ── FIX C4: small inline links need 44px tap target on mobile ── */
+@media (max-width: 768px) {
+  .ts-back, .l-forgot, .l-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
 </style>
 </head>
 <body>
@@ -251,6 +262,7 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
         <input id="inv-email" type="email" placeholder="you@institution.com" autocomplete="email">
         <label class="l-lbl">Access Code</label>
         <input id="inv-code" type="text" placeholder="INST-XXXXXXXX" style="font-size:13px;letter-spacing:.08em;text-transform:uppercase"
+               autocomplete="one-time-code"
                onkeydown="if(event.key==='Enter')loginInvestor()" oninput="this.value=this.value.toUpperCase()">
         <div class="l-error" id="inv-error"></div>
         <button class="l-btn ghost" id="inv-btn" onclick="loginInvestor()">Enter Marketplace →</button>
@@ -277,7 +289,7 @@ main::after{content:'';position:absolute;inset:0;background:radial-gradient(elli
         </div>
         <div>
           <label class="l-lbl">Password</label>
-          <input id="op-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')loginOperator()">
+          <input id="op-password" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginOperator()">
         </div>
       </div>
       <div class="l-error" id="op-error"></div>

@@ -4,6 +4,64 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-08] — Comprehensive mobile + desktop card alignment overhaul
+
+### mobile.css (universal — all portals)
+- Section 10: Universal card flex-column layout — `.deal-card`, `.dash-deal-card`, `.kpi-card`, `.earn-stat-card`, `[class*="-card"]` — applies desktop + mobile; fixes ragged card rows
+- Section 10: `.dc-body`, `[class*="-body"]` → `flex:1` (fills available height, pushes footer to bottom)
+- Section 10: `.dc-footer`, `[class*="-footer"]` → `margin-top:auto` (pins footer to card bottom on both desktop and mobile)
+- Section 11: KPI grid equal height — `align-items:stretch` on grid containers, `flex-direction:column; justify-content:space-between` on cells
+- Section 12: Safe-area-inset — `body` bottom padding + `.nav` top padding for notched iPhones
+- Section 13: Field label alignment on mobile — flex-column + full-width labels in card forms
+- Section 14: Section headers wrap on mobile with 8px gap
+- Section 15: Safe-area-aware inner padding at ≤480px for `.view-inner` and `[class*="-inner"]`
+- Section 16: `table:not([class])` horizontal scroll block
+- Section 17: Notification/overlay panel viewport constraint — prevents 300–340px panels clipping narrow phones
+- FIX: Removed `--nav-h: calc(56px + ...)` override from Section 12 that was overwriting the two-row nav 88px value — caused content overlap on all mobile devices
+
+### investor-portal.html
+- Nav horizontal overflow guard (`max(16px, env(...))` padding, `width:100%`) in `@media(max-width:768px)` without touch gate
+- `.deal-card` → `display:flex;flex-direction:column` (universal desktop+mobile)
+- `.dc-body` → `flex:1` (footer push-to-bottom)
+- Hero dots tap target expanded via `padding:20px 10px; margin:-20px -10px` (hit area ≥44px without visual change)
+- Safe-area-inset added to `.nav` and `body` left/right
+- Asset class badge contrast fix in dark mode: `.dc-class-tag`, `[class*="dct-"]` → `background:var(--bg-2)` to break color=bg contrast failure
+- Timeline `min-width:0 !important; overflow-x:auto` at ≤480px
+- FIX: Removed `--nav-h: calc(56px + ...)` that was overwriting the 88px two-row nav value
+
+### advisor-portal.html
+- `.dash-pipe-node` → `44×44px` at ≤768px (was 42×42, below Apple HIG minimum)
+- `.dash-pipe-stage` → `min-height:44px` at ≤768px
+- `.dash-deal-card` → `display:flex;flex-direction:column` (universal)
+- `.ddc-body` → `flex:1` (footer push-to-bottom)
+- Safe-area-inset added to `.nav` and `body` left/right at ≤768px
+- Category badge contrast fix: `[class*="-badge"]`, `.ds-ioi-banner` → `background:var(--bg-3)` in dark theme
+- `.ddc-name` → `color:var(--text)` in dark theme (was ratio 1.91)
+- FIX: Removed `--nav-h: calc(56px + ...)` that was overwriting the 96px deal-switcher nav value
+
+### admin-portal.html
+- `@media(max-width:380px)` → kpi-strip stays 2-col at very small screens
+- Table wrap horizontal overflow block at ≤768px
+- `.view-inner` → `padding:16px 12px` at ≤480px
+- Safe-area-inset left/right/bottom on body at ≤768px
+
+## [2026-05-08] — Mobile UX quality scrub: touch targets, autocomplete, mobile.css link, polish
+
+### login.html
+- FIX C4: Added `@media(max-width:768px)` rule giving `.ts-back`, `.l-forgot`, `.l-link` `min-height:44px` with `14px` top/bottom padding (Apple HIG touch target compliance)
+- FIX E3: Added `autocomplete="one-time-code"` to `#inv-code` input (was missing)
+- FIX E3: Added `autocomplete="current-password"` to `#op-password` input (was missing)
+
+### index.html
+- FIX B2/C1: Added `<link rel="stylesheet" href="/mobile.css">` to `<head>` — index.html was the only portal not loading the universal mobile foundation (16px input rule, 44px touch targets)
+
+### mobile.css
+- Section 15: Added safe-area-aware inner padding rule for `.view-inner` / `[class*="-inner"]` at ≤480px
+- Section 16: Added `table:not([class])` horizontal scroll rule for unclassed tables at ≤768px
+- Section 17: Added notification/overlay panel width constraint rule (`.notif-panel`, `[class*="-panel"]:not([class*="nav"])`) at ≤768px — prevents 300–340px fixed panels from clipping on narrow phones
+
+---
+
 ## [2026-05-08] — Add Deal: AI doc-upload flow replaces manual entry
 
 ### Admin portal ([aurumprism.com/admin-portal](https://www.aurumprism.com/admin-portal))

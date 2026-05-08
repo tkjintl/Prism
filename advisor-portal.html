@@ -4412,7 +4412,7 @@ load();
 .dash-deal-grid{display:grid;grid-template-columns:1fr;gap:14px}
 @media(min-width:600px){.dash-deal-grid{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1000px){.dash-deal-grid{grid-template-columns:repeat(4,1fr)}}
-.dash-deal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .22s var(--ease);animation:fadeUp .5s var(--ease) both;position:relative}
+.dash-deal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .22s var(--ease);animation:fadeUp .5s var(--ease) both;position:relative;display:flex;flex-direction:column}
 .dash-deal-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
 .dash-dc-gold::before{background:var(--gold)}.dash-dc-blue::before{background:var(--blue)}.dash-dc-green::before{background:var(--green)}.dash-dc-slate::before{background:#4A5E6E}
 .dash-deal-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.35);border-color:var(--border-m)}
@@ -4427,7 +4427,7 @@ load();
 .ddc-s-text-3{color:var(--text-3);border-color:var(--border);background:var(--bg-3)}
 .ddc-name{font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.25;color:var(--text);margin-bottom:4px}
 .ddc-meta{font-size:11px;color:var(--text-3);font-family:var(--sans)}
-.ddc-body{padding:0 16px 12px 20px}
+.ddc-body{padding:0 16px 12px 20px;flex:1}
 .ddc-bar-track{height:2px;background:var(--border);border-radius:1px;overflow:hidden;margin-bottom:5px}
 .ddc-bar-fill{height:100%;border-radius:1px;width:0;background:var(--gold)}
 .ddc-bar-row{display:flex;justify-content:space-between}
@@ -5029,6 +5029,35 @@ load();
   html, body { overflow-x: hidden; }
   body { padding-bottom: env(safe-area-inset-bottom); }
   input, select, textarea { font-size: 16px; }
+}
+
+/* ── ISSUE 1: dash-pipe-node tap targets (42×42 → 44×44 minimum) ── */
+@media (max-width: 768px) {
+  .dash-pipe-node { width: 44px; height: 44px; }
+  .dash-pipe-stage { min-height: 44px; }
+}
+
+/* ── ISSUE 5: Safe-area-inset for notched iPhones ── */
+@media (max-width: 768px) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .nav {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ── ISSUE 6: Category badge contrast — neutral dark background in dark theme ── */
+[data-theme="dark"] .stage-badge,
+[data-theme="dark"] [class*="-badge"]:not(.notif-badge):not(.ntab-badge),
+[data-theme="dark"] .ds-ioi-banner {
+  background: var(--bg-3) !important;
+}
+
+/* ── ISSUE 6b: Deal title contrast in dark theme ── */
+[data-theme="dark"] .ddc-name {
+  color: var(--text) !important;
 }
 </style>
 </body>
