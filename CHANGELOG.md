@@ -4,6 +4,19 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-08] — Final tap-target sweep: forgot-password + index (331355d)
+
+### forgot-password.html
+- `.btn` → `min-height:44px` (was rendering at ~41px, 3px short of Apple HIG)
+- `.back` → `padding:18px 12px; display:inline-flex; align-items:center; width:100%` (was rendering at ~9px — link was essentially untappable on mobile)
+
+### index.html
+- `.btn-nav.ghost` height fixed at both override sites: 38px → 44px (lines 606+618 — two `!important` sites, both updated)
+- `.tier-cta` selector broadened from `a.tier-cta` to `.tier-cta` — covers `<button>` elements in tier carousel (were measuring 43px)
+- `.foot-link` mobile override: `padding:4px 0` → `padding:14px 0; display:flex; align-items:center` (was rendering ~22px, now ≥44px)
+
+---
+
 ## [2026-05-08] — Comprehensive mobile + desktop card alignment overhaul
 
 ### mobile.css (universal — all portals)
