@@ -1628,18 +1628,6 @@ function renderOverview(){
     </div>`;
   }
 
-  /* stat cards */
-  html+=`<div class="overview-grid">${[
-    {lbl:'Total Indicated',val:fmU(d.ioi_agg),cls:'gold',sub:`of ${fmU(d.target_alloc)} target`},
-    {lbl:'Active Investors',val:d.ioi_count,cls:'',sub:'expressions of interest'},
-    {lbl:'Days to Close',val:days,cls:days>90?'green':days>45?'amber':'amber',sub:new Date(d.closing).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})},
-    {lbl:'Min Ticket',val:fmU(d.min_ticket),cls:'',sub:`${d.target_irr}% target IRR`},
-  ].map((c,i)=>`<div class="ov-card" style="animation-delay:${i*60}ms">
-    <div class="ov-lbl">${c.lbl}</div>
-    <div class="ov-val ${c.cls}">${c.val}</div>
-    <div class="ov-sub">${c.sub}</div>
-  </div>`).join('')}</div>`;
-
   /* next step guide */
   const _stageGuides={
     review:{icon:'⏳',col:'var(--amber)',bg:'var(--amber-bg)',bd:'var(--amber-bd)',title:'Pending Your Confirmation',body:'Your deal has been published by the Aurum team. Log in and confirm to make it live and visible to investors on the investor portal.'},
@@ -1659,12 +1647,24 @@ function renderOverview(){
     close:`showTab('materials',document.querySelectorAll('.ctab')[1])`,
   };
   const _guideAction=_guideActions[_guideKey]||'';
-  if(_guide)html+=`<div class="ns-card" ${_guideAction?`onclick="${_guideAction}"`:''}style="border:1px solid ${_guide.bd};border-left:3px solid ${_guide.col};border-radius:var(--r);padding:14px 16px;background:${_guide.bg};margin-bottom:4px;display:flex;gap:12px;align-items:flex-start">
+  if(_guide)html+=`<div class="ns-card" ${_guideAction?`onclick="${_guideAction}"`:''}style="border:1px solid ${_guide.bd};border-left:3px solid ${_guide.col};border-radius:var(--r);padding:14px 16px;background:${_guide.bg};margin-bottom:16px;display:flex;gap:12px;align-items:flex-start">
     <div style="font-size:15px;flex-shrink:0;margin-top:1px;color:${_guide.col}">${_guide.icon}</div>
     <div style="flex:1"><div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:${_guide.col};margin-bottom:4px">Next Step</div>
     <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${_guide.title}${_guideAction?'<span style="float:right;font-size:11px;opacity:.5">→</span>':''}</div>
     <div style="font-size:12px;color:var(--text-2);line-height:1.65">${_guide.body}</div></div>
   </div>`;
+
+  /* stat cards */
+  html+=`<div class="overview-grid" style="margin-bottom:24px">${[
+    {lbl:'Total Indicated',val:fmU(d.ioi_agg),cls:'gold',sub:`of ${fmU(d.target_alloc)} target`},
+    {lbl:'Active Investors',val:d.ioi_count,cls:'',sub:'expressions of interest'},
+    {lbl:'Days to Close',val:days,cls:days>90?'green':days>45?'amber':'amber',sub:new Date(d.closing).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})},
+    {lbl:'Min Ticket',val:fmU(d.min_ticket),cls:'',sub:`${d.target_irr}% target IRR`},
+  ].map((c,i)=>`<div class="ov-card" style="animation-delay:${i*60}ms">
+    <div class="ov-lbl">${c.lbl}</div>
+    <div class="ov-val ${c.cls}">${c.val}</div>
+    <div class="ov-sub">${c.sub}</div>
+  </div>`).join('')}</div>`;
 
   /* activity */
   const actIcons={ioi:'act-ioi',access:'act-access',stage:'act-stage',admin:'act-admin',publish:'act-stage',review:'act-admin'};
@@ -1680,19 +1680,31 @@ function renderOverview(){
   html+=`<div class="section-title" style="margin-top:28px;margin-bottom:16px">Raise Progress</div>
   <div class="perf-layout">
     <div>
-      <div class="ring-card">
-        <div class="perf-ring-wrap">
-          <svg viewBox="0 0 140 140" width="160" height="160">
-            <circle class="pr-track" cx="70" cy="70" r="58"/>
-            <circle class="pr-fill" id="perf-ring" cx="70" cy="70" r="58" style="stroke-dasharray:364;stroke-dashoffset:364"/>
-          </svg>
-          <div class="pr-label">
-            <div class="pr-pct" id="perf-pct">—</div>
-            <div class="pr-sub">Subscribed</div>
-          </div>
-        </div>
-        <div class="ring-card-title" id="perf-ring-title">—</div>
-        <div class="ring-card-detail" id="perf-ring-detail"></div>
+      <div class="ring-card" style="align-items:stretch;gap:0;padding:20px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px">Expressions of Interest</div>
+        ${(()=>{
+          const iois=d.iois||[];
+          if(!iois.length)return`<div style="font-size:12px;color:var(--text-3);font-style:italic;padding:16px 0;text-align:center">No IOIs received yet</div>`;
+          const statusStyle={approved:'color:var(--green)',pending:'color:var(--amber)',declined:'color:var(--text-3);text-decoration:line-through'};
+          const statusLabel={approved:'Approved',pending:'Pending',declined:'Declined'};
+          return`<table style="width:100%;border-collapse:collapse">
+            <thead><tr>
+              <th style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:0 0 8px;text-align:left;border-bottom:1px solid var(--border)">Type · Geo</th>
+              <th style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:0 8px 8px;text-align:right;border-bottom:1px solid var(--border)">Amount</th>
+              <th style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:0 0 8px;text-align:right;border-bottom:1px solid var(--border)">Status</th>
+            </tr></thead>
+            <tbody>${iois.map((ioi,i)=>`<tr style="animation:fadeUp .3s ${i*40}ms both">
+              <td style="font-size:11px;color:var(--text-2);padding:9px 0;border-bottom:1px solid var(--border)">${esc(ioi.type||'—')} · ${esc(ioi.geo||'—')}</td>
+              <td style="font-family:var(--mono);font-size:11px;font-weight:500;color:var(--gold);padding:9px 8px;border-bottom:1px solid var(--border);text-align:right">${fmU(ioi.amount)}</td>
+              <td style="font-family:var(--mono);font-size:9px;padding:9px 0;border-bottom:1px solid var(--border);text-align:right;${statusStyle[ioi.status]||''}">${statusLabel[ioi.status]||ioi.status}</td>
+            </tr>`).join('')}</tbody>
+            <tfoot><tr>
+              <td style="font-family:var(--mono);font-size:9px;color:var(--text-3);padding:10px 0 0;text-transform:uppercase;letter-spacing:.08em">Total</td>
+              <td style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--gold);padding:10px 8px 0;text-align:right">${fmU(iois.reduce((s,i)=>s+(i.status!=='declined'?i.amount:0),0))}</td>
+              <td></td>
+            </tr></tfoot>
+          </table>`;
+        })()}
       </div>
     </div>
     <div class="perf-stats-col">
