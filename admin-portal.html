@@ -5659,12 +5659,15 @@ function adpFillForm(x){
   set('adp-tagline',x.tagline);
   set('adp-overview',x.company_overview);
   set('adp-thesis',x.thesis);
-  if(Array.isArray(x.highlights))set('adp-highlights',x.highlights.join('\n'));
+  if(Array.isArray(x.highlights)){
+    const lines=x.highlights.map(h=>typeof h==='string'?h:((h.s||'')+(h.b?' — '+h.b:'')));
+    set('adp-highlights',lines.join('\n'));
+  }
   set('adp-irr',x.target_irr);
   set('adp-hurdle',x.hurdle_rate);
   set('adp-term',x.term_months);
-  if(x.target_alloc_usd){const el=document.getElementById('adp-alloc');if(el)el.value=fmU(x.target_alloc_usd).replace(/[^0-9.]/g,'');}
-  if(x.min_ticket_usd){const el=document.getElementById('adp-ticket');if(el)el.value=fmU(x.min_ticket_usd).replace(/[^0-9.]/g,'');}
+  if(x.target_alloc_usd){const el=document.getElementById('adp-alloc');if(el)el.value=String(Math.round(x.target_alloc_usd));}
+  if(x.min_ticket_usd){const el=document.getElementById('adp-ticket');if(el)el.value=String(Math.round(x.min_ticket_usd));}
   if(x.closing_date)set('adp-closing',x.closing_date.slice(0,10));
 }
 async function submitAdminDeal(){
