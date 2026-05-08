@@ -600,6 +600,18 @@ export async function sendNavUpdate(investor, data) {
     ), 'nav-update');
 }
 
+// ── NAV nudge (operator → advisor) ─────────────────────────────
+export async function sendNavNudge(advisor, dealName) {
+  await send(advisor.email, `Aurum Prism — NAV update overdue: ${dealName}`,
+    base('NAV Update Overdue',
+      h(dealName) +
+      p(`A quarterly NAV update is overdue for <strong style="color:#ede8df">${dealName}</strong>. Please log in to your advisor portal and post the current net asset value.`) +
+      p('Investors holding positions in this deal are awaiting updated valuations.') +
+      btn('Post NAV Update', `${SITE}/advisor-portal`) +
+      sig()
+    ), 'nav-nudge');
+}
+
 // ── Quarterly statement available ──────────────────────────────
 export async function sendStatementAvailable(investor, data) {
   await send(investor.email, `Aurum Prism — ${data.period} statement: ${data.dealName}`,

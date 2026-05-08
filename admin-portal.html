@@ -1677,6 +1677,23 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 .al-active{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
 .al-pending{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
 
+/* Reporting tab */
+.rep-pill{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:2px;background:var(--surface);border:1px solid var(--border);color:var(--text-3);cursor:pointer;transition:all .15s}
+.rep-pill:hover{border-color:var(--gold-bd);color:var(--gold)}
+.rep-pill.on{background:var(--gold-bg);border-color:var(--gold-bd);color:var(--gold)}
+.rep-kpi-cell{background:var(--surface);padding:20px 24px}
+.rep-kpi-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
+.rep-kpi-val{font-size:22px;font-weight:600;font-family:var(--serif);color:var(--text)}
+.rep-kpi-sub{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-top:3px}
+.rep-tbl{width:100%;border-collapse:collapse}
+.rep-tbl th{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.rep-tbl td{padding:10px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-2);vertical-align:top}
+.rep-tbl tr:hover td{background:var(--surface)}
+.rep-expand-row td{padding:0;background:var(--bg)}
+.rep-expand-inner{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.rep-overdue-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);margin-right:5px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
 /* Pipeline tab — header action buttons */
 .pl-btn-add{padding:10px 20px;background:var(--gold);color:#1A1410;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:none;border-radius:2px;cursor:pointer;white-space:nowrap;transition:all .15s}
 .pl-btn-add:hover{background:var(--gold-b)}
@@ -1712,6 +1729,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
     <button class="ntab" onclick="showView('investors',this)">Investors</button>
     <button class="ntab" onclick="showView('advisors',this)">Advisors</button>
     <button class="ntab" onclick="showView('system',this)">System</button>
+    <button class="ntab" onclick="showView('reporting',this)">Reporting</button>
     <a class="ntab" href="/ops/bd7x3k" title="Sandbox bot driver — for partner demos">Bot Driver ↗</a>
     <a class="ntab" href="/ops/bv7x3k" title="Live bot activity viewer — read-only">Bot Viewer ↗</a>
   </div>
@@ -1806,6 +1824,41 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
       <button id="wipe-btn" onclick="runWipe()" style="background:#5a1a1a;color:#f87171;border:1px solid #7a2a2a;border-radius:var(--r);padding:8px 20px;font-size:11px;font-family:var(--mono);letter-spacing:.1em;cursor:pointer;font-weight:600">WIPE DATABASE</button>
       <div id="wipe-status" style="margin-top:12px;font-size:12px;color:var(--text-3)"></div>
     </div>
+  </div>
+</div>
+
+<!-- ══ VIEW: REPORTING ══ -->
+<div id="view-reporting" class="view">
+  <div class="view-inner">
+    <div class="view-heading">Reporting</div>
+    <div class="view-sub">NAV history, portfolio performance, and overdue update tracking across all deals.</div>
+    <div id="rep-kpi-strip" style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:24px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:28px;margin-bottom:16px">
+      <div style="display:flex;gap:6px" id="rep-class-pills">
+        <button class="rep-pill on" onclick="repSetClass('all',this)">All Deals</button>
+        <button class="rep-pill" onclick="repSetClass('credit',this)">Private Credit</button>
+        <button class="rep-pill" onclick="repSetClass('infra',this)">Infrastructure</button>
+        <button class="rep-pill" onclick="repSetClass('pe',this)">Growth Equity</button>
+        <button class="rep-pill" onclick="repSetClass('re',this)">Real Estate</button>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="rep-pill" id="rep-view-live" onclick="repSetView('live',this)" style="border-color:var(--green);color:var(--green)">Live</button>
+        <button class="rep-pill" id="rep-view-realized" onclick="repSetView('realized',this)">Realized</button>
+        <button class="rep-pill on" id="rep-view-all" onclick="repSetView('all',this)">All</button>
+      </div>
+    </div>
+    <div id="rep-table-wrap"></div>
+    <div id="rep-investor-lens" style="margin-top:32px;display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)">Investor Lens</div>
+        <select id="rep-investor-select" onchange="repRenderInvestorLens()" style="background:var(--surface);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--mono);font-size:11px;padding:4px 8px">
+          <option value="">Select investor…</option>
+        </select>
+        <button onclick="repPrintInvestorLens()" style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:4px 12px;border-radius:2px;background:var(--surface);border:1px solid var(--border);color:var(--text-2);cursor:pointer">Print / Export</button>
+      </div>
+      <div id="rep-investor-output"></div>
+    </div>
+    <button onclick="document.getElementById('rep-investor-lens').style.display=document.getElementById('rep-investor-lens').style.display==='none'?'block':'none';repLoadInvestors()" style="margin-top:20px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:6px 14px;border-radius:2px;background:var(--surface);border:1px solid var(--border);color:var(--text-3);cursor:pointer">Investor Lens ↓</button>
   </div>
 </div>
 
@@ -2672,6 +2725,7 @@ function showView(name,btn){
   if(name==='aitool')renderAITool();
   if(name==='investors')renderInvestors();
   if(name==='advisors')renderAdvisors();
+  if(name==='reporting')renderReporting();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -4246,6 +4300,239 @@ async function renderAdvisors(){
       </tr>`;
     }).join('')}</tbody>
   </table>`;
+}
+
+/* ── REPORTING ── */
+let REP_DATA=[];
+let repClass='all';
+let repView='all';
+
+async function renderReporting(){
+  const wrap=document.getElementById('rep-table-wrap');
+  const kpiStrip=document.getElementById('rep-kpi-strip');
+  wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:24px 0">Loading…</div>';
+  const res=await fetchSilent('/api/v2?resource=admin&op=nav-summary');
+  REP_DATA=res?.deals||[];
+  repRenderKPIs();
+  repRenderTable();
+}
+
+function repSetClass(cls,btn){
+  repClass=cls;
+  document.querySelectorAll('#rep-class-pills .rep-pill').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  repRenderTable();
+}
+
+function repSetView(v,btn){
+  repView=v;
+  document.querySelectorAll('#rep-view-live,#rep-view-realized,#rep-view-all').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  repRenderTable();
+}
+
+function repRenderKPIs(){
+  const strip=document.getElementById('rep-kpi-strip');
+  const holdDeals=REP_DATA.filter(d=>d.stage==='close');
+  const realizedDeals=REP_DATA.filter(d=>d.stage==='realized');
+  const totalAUM=holdDeals.reduce((s,d)=>s+(d.currentNav||0),0);
+  const blendedGain=holdDeals.length?holdDeals.reduce((s,d)=>s+((d.currentNav||0)-(d.deployed||0)),0):0;
+  const overdue=REP_DATA.filter(d=>d.overdue).length;
+  const fmM=v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v;
+  const cells=[
+    {lbl:'Total Platform AUM',val:fmM(totalAUM),sub:`${holdDeals.length} active mandates`},
+    {lbl:'Active Mandates',val:holdDeals.length,sub:`${realizedDeals.length} realized`},
+    {lbl:'Blended Unrealised Gain',val:blendedGain>=0?'+'+fmM(blendedGain):fmM(blendedGain),sub:'vs deployed capital'},
+    {lbl:'Overdue Updates',val:overdue,sub:'90+ days since last NAV',alert:overdue>0},
+    {lbl:'Realized Deals',val:realizedDeals.length,sub:'fully exited'},
+  ];
+  strip.innerHTML=cells.map(c=>`<div class="rep-kpi-cell">
+    <div class="rep-kpi-lbl">${c.lbl}</div>
+    <div class="rep-kpi-val" style="${c.alert?'color:var(--amber)':''}">${c.val}</div>
+    <div class="rep-kpi-sub">${c.sub}</div>
+  </div>`).join('');
+}
+
+function repRenderTable(){
+  const wrap=document.getElementById('rep-table-wrap');
+  let deals=REP_DATA;
+  if(repClass!=='all') deals=deals.filter(d=>d.asset_class===repClass);
+  if(repView==='live') deals=deals.filter(d=>d.stage==='close');
+  else if(repView==='realized') deals=deals.filter(d=>d.stage==='realized');
+  if(!deals.length){wrap.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:24px 0">No deals match the current filter.</div>';return;}
+  const fmM=v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':v?'$'+v:'—';
+  const fmDate=s=>s?new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';
+  const stageChip=s=>{
+    const map={close:'var(--green)',realized:'var(--violet)',review:'var(--amber)',live:'var(--blue)',ioi:'var(--blue)',dd:'var(--amber)',terms:'var(--amber)',killed:'var(--red)'};
+    const lbl={close:'Active',realized:'Realized',review:'Review',live:'Live',ioi:'IOI',dd:'DD',terms:'Terms',killed:'Killed'};
+    return `<span style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;color:${map[s]||'var(--text-3)'};border:1px solid currentColor;opacity:.85">${lbl[s]||s}</span>`;
+  };
+  const extraCols={
+    credit:[{k:'target_irr',h:'Target IRR'},{k:'_yield',h:'Yield'},{k:'_dscr',h:'DSCR'},{k:'_spread',h:'Spread'}],
+    infra:[{k:'target_irr',h:'Target IRR'},{k:'_dscr',h:'DSCR'},{k:'_dist',h:'Distributions'}],
+    pe:[{k:'_moic',h:'MOIC'},{k:'_arr',h:'ARR'},{k:'_round',h:'Last Round'}],
+    re:[{k:'target_irr',h:'Target IRR'},{k:'_ltv',h:'LTV'},{k:'_caprate',h:'Cap Rate'}],
+  };
+  const cols=repClass!=='all'?(extraCols[repClass]||[]):[];
+  const hdExtra=cols.map(c=>`<th class="rep-tbl" style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:right">${c.h}</th>`).join('');
+  wrap.innerHTML=`<table class="rep-tbl">
+    <thead><tr>
+      <th>Deal / Advisor</th>
+      <th>Stage</th>
+      <th style="text-align:right">Deployed</th>
+      <th style="text-align:right">Current NAV</th>
+      <th style="text-align:right">Gain</th>
+      <th style="text-align:right">MOIC</th>
+      <th>Last Updated</th>
+      ${hdExtra}
+      <th></th>
+    </tr></thead>
+    <tbody id="rep-tbody">
+    ${deals.map((d,i)=>{
+      const gain=(d.currentNav||0)-(d.deployed||0);
+      const gainStr=gain>0?'+'+fmM(gain):gain<0?fmM(gain):'—';
+      const gainColor=gain>0?'var(--green)':gain<0?'var(--red)':'var(--text-3)';
+      const moicStr=d.moic?d.moic.toFixed(2)+'x':'—';
+      const overdueDot=d.overdue?`<span class="rep-overdue-dot"></span>`:'';
+      const nudgeBtn=d.overdue?`<button onclick="repNudge('${d.id}','${d.name}')" style="font-family:var(--mono);font-size:8px;padding:3px 8px;border-radius:2px;background:var(--amber-bg);border:1px solid var(--amber-bd);color:var(--amber);cursor:pointer;margin-left:6px">Nudge</button>`:'';
+      const tdExtra=cols.map(c=>`<td style="text-align:right;font-family:var(--mono);font-size:10px">—</td>`).join('');
+      return `<tr onclick="repToggleRow('rep-exp-${i}')" style="cursor:pointer">
+        <td><div style="font-weight:500;color:var(--text)">${d.name}</div><div style="font-size:10px;color:var(--text-3);font-family:var(--mono)">${d.advisor_id||'—'}</div></td>
+        <td>${stageChip(d.stage)}</td>
+        <td style="text-align:right;font-family:var(--mono);font-size:11px">${fmM(d.deployed)}</td>
+        <td style="text-align:right;font-family:var(--mono);font-size:11px">${fmM(d.currentNav)}</td>
+        <td style="text-align:right;font-family:var(--mono);font-size:11px;color:${gainColor}">${gainStr}</td>
+        <td style="text-align:right;font-family:var(--mono);font-size:11px">${moicStr}</td>
+        <td style="font-family:var(--mono);font-size:10px">${overdueDot}${fmDate(d.lastNavUpdate)}${nudgeBtn}</td>
+        ${tdExtra}
+        <td style="text-align:right;font-family:var(--mono);font-size:10px;color:var(--text-3)">▾</td>
+      </tr>
+      <tr id="rep-exp-${i}" class="rep-expand-row" style="display:none">
+        <td colspan="100"><div class="rep-expand-inner">
+          <div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px">NAV History</div>
+            ${repBuildHistTable(d.navHistory||[])}
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px">Trajectory</div>
+            ${repBuildSparkline(d.navHistory||[],200,60)}
+          </div>
+        </div></td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function repToggleRow(id){
+  const row=document.getElementById(id);
+  if(!row)return;
+  row.style.display=row.style.display==='none'?'table-row':'none';
+}
+
+function repBuildHistTable(history){
+  if(!history.length) return '<div style="font-size:11px;color:var(--text-3)">No updates posted yet.</div>';
+  const fmM=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v;
+  const fmDate=s=>s?new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';
+  const rows=[...history].reverse().map(h=>`<tr>
+    <td style="padding:5px 8px;font-family:var(--mono);font-size:9px;color:var(--text-3)">${fmDate(h.asOfDate||h.postedAt)}</td>
+    <td style="padding:5px 8px;font-family:var(--mono);font-size:10px;color:var(--text)">${fmM(h.totalNavUsd||0)}</td>
+    <td style="padding:5px 8px;font-size:10px;color:var(--text-3)">${h.notes||'—'}</td>
+  </tr>`).join('');
+  return `<table style="width:100%;border-collapse:collapse">
+    <thead><tr>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)">Date</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)">NAV</th>
+      <th style="font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);padding:4px 8px;text-align:left;border-bottom:1px solid var(--border)">Notes</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function repBuildSparkline(history,w,h){
+  if(history.length<2) return '<div style="font-size:11px;color:var(--text-3)">Insufficient data for chart.</div>';
+  const vals=history.map(e=>e.totalNavUsd||0);
+  const min=Math.min(...vals);
+  const max=Math.max(...vals);
+  const range=max-min||1;
+  const pad=6;
+  const pts=vals.map((v,i)=>{
+    const x=pad+(i/(vals.length-1))*(w-2*pad);
+    const y=h-pad-((v-min)/range)*(h-2*pad);
+    return `${x},${y}`;
+  }).join(' ');
+  const first=pts.split(' ')[0];
+  const last=pts.split(' ').pop();
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="display:block">
+    <defs><linearGradient id="rsg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--gold)" stop-opacity=".25"/><stop offset="100%" stop-color="var(--gold)" stop-opacity="0"/></linearGradient></defs>
+    <path d="M ${first} L ${pts.split(' ').join(' L ')} L ${last.split(',')[0]},${h} L ${first.split(',')[0]},${h} Z" fill="url(#rsg)"/>
+    <polyline points="${pts}" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+async function repNudge(dealId,dealName){
+  const r=await api('POST','/api/v2?resource=admin&op=nudge-nav',{dealId});
+  if(r?.ok!==false) toast(`Reminder sent re: ${dealName}`,'ok');
+  else toast(r?.error||'Send failed','err');
+}
+
+async function repLoadInvestors(){
+  const sel=document.getElementById('rep-investor-select');
+  if(sel.options.length>1) return;
+  const res=await fetchSilent('/api/v2?resource=inst&op=list');
+  (res?.insts||[]).filter(i=>i.status==='approved').forEach(i=>{
+    const o=document.createElement('option');
+    o.value=i.id; o.textContent=`${i.firm_name||i.email} — ${i.contact_name||''}`;
+    sel.appendChild(o);
+  });
+}
+
+async function repRenderInvestorLens(){
+  const instId=document.getElementById('rep-investor-select').value;
+  const out=document.getElementById('rep-investor-output');
+  if(!instId){out.innerHTML='';return;}
+  const ioisRes=await fetchSilent('/api/v2?resource=admin&op=iois');
+  const allIois=ioisRes?.iois||[];
+  const investorIois=allIois.filter(i=>i.investor_id===instId&&i.status==='approved');
+  if(!investorIois.length){out.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:16px 0">No approved IOIs for this investor.</div>';return;}
+  const fmM=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':v?'$'+v:'—';
+  const myDeals=REP_DATA.filter(d=>investorIois.some(i=>i.deal_id===d.id));
+  const rows=myDeals.map(d=>{
+    const ioi=investorIois.find(i=>i.deal_id===d.id);
+    const alloc=ioi?.amount||0;
+    const share=d.deployed>0?alloc/d.deployed:0;
+    const navShare=d.currentNav*share;
+    const gain=navShare-alloc;
+    const moic=alloc>0?navShare/alloc:null;
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px;font-weight:500;color:var(--text);font-size:12px">${d.name}</td>
+      <td style="padding:10px;font-family:var(--mono);font-size:10px">${fmM(alloc)}</td>
+      <td style="padding:10px;font-family:var(--mono);font-size:10px">${fmM(navShare)}</td>
+      <td style="padding:10px;font-family:var(--mono);font-size:10px;color:${gain>=0?'var(--green)':'var(--red)'}">${gain>=0?'+'+fmM(gain):fmM(gain)}</td>
+      <td style="padding:10px;font-family:var(--mono);font-size:10px">${moic?moic.toFixed(2)+'x':'—'}</td>
+    </tr>`;
+  }).join('');
+  out.innerHTML=`<div id="rep-lens-printable" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Deal</th>
+        <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Committed</th>
+        <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">NAV Share</th>
+        <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">Gain</th>
+        <th style="font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:8px 10px;text-align:left">MOIC</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function repPrintInvestorLens(){
+  const el=document.getElementById('rep-lens-printable');
+  if(!el) return;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Investor Report</title><style>body{font-family:Georgia,serif;padding:40px;background:#fff;color:#111}table{width:100%;border-collapse:collapse}th,td{padding:8px 12px;border-bottom:1px solid #ddd;text-align:left;font-size:12px}th{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#666}</style></head><body>${el.innerHTML}</body></html>`);
+  w.document.close();
+  w.print();
 }
 
 /* ── AI TOOL ── */
