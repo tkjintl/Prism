@@ -4,6 +4,20 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-16] — Pre-launch hardening: bot pages gated, Blob installed, gitignore tightened
+
+### vercel.json
+- Added redirects: `/bot-driver` and `/bot-viewer` → `/` (302). Direct paths no longer publicly accessible.
+- Rewrote `/ops/bd7x3k` and `/ops/bv7x3k` destinations from `/bot-driver`/`/bot-viewer` to `/bot-driver.html`/`/bot-viewer.html` so the unlisted operator paths bypass the new redirects.
+
+### package.json
+- Installed `@vercel/blob@^2.3.3`. Health check `blob.connected` was failing with `Cannot find package '@vercel/blob'`; now resolves. Unblocks VDR uploads >1MB which were silently truncating in Redis.
+
+### .gitignore
+- Added `node_modules/`, `.claude/worktrees/`, `.claude/scheduled_tasks.lock`.
+
+---
+
 ## [2026-05-08] — Final tap-target sweep: forgot-password + index (331355d)
 
 ### forgot-password.html

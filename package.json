@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Aurum Prism — Private Deal Platform by TACC",
   "type": "module",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@upstash/redis": "^1.28.0",
+    "@vercel/blob": "^2.3.3",
     "bcryptjs": "^2.4.3",
     "jose": "^5.2.0",
     "nanoid": "^5.0.4",
