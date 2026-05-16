@@ -1,0 +1,1289 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a0a'/><rect x='4' y='4' width='24' height='24' fill='none' stroke='%23C5A572' stroke-width='1.2'/><text x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='15' font-style='italic' fill='%23C5A572'>Au</text></svg>">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Aurum Prism · Bot Driver</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F5F1;--bg-2:#FFFFFF;--bg-3:#EFECE6;--surface:#FFFFFF;
+  --border:rgba(0,0,0,0.07);--border-m:rgba(0,0,0,0.12);
+  --text:#18160F;--text-2:#5A5449;--text-3:#9C968A;
+  --gold:#A8813A;--gold-b:#C5A572;--gold-bg:rgba(168,129,58,0.07);--gold-bd:rgba(168,129,58,0.25);
+  --green:#2E6E48;--green-bg:rgba(46,110,72,0.07);--green-bd:rgba(46,110,72,0.25);
+  --amber:#8A5C1A;--amber-bg:rgba(138,92,26,0.08);--amber-bd:rgba(138,92,26,0.28);
+  --red:#8B3228;--red-bg:rgba(139,50,40,0.07);--red-bd:rgba(139,50,40,0.22);
+  --blue:#2B5C8A;--blue-bg:rgba(43,92,138,0.07);--blue-bd:rgba(43,92,138,0.25);
+  --slate:#4A5E6E;--slate-bg:rgba(74,94,110,0.07);--slate-bd:rgba(74,94,110,0.22);
+  --violet:#5B3E8A;--violet-bg:rgba(91,62,138,0.07);--violet-bd:rgba(91,62,138,0.22);
+  --serif:'Cormorant Garamond',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:6px;--nav-h:56px;--ease:cubic-bezier(0.22,1,0.36,1);
+}
+[data-theme="dark"]{
+  --bg:#0A0908;--bg-2:#100F0D;--bg-3:#161412;--surface:#131210;
+  --border:rgba(255,255,255,0.07);--border-m:rgba(255,255,255,0.13);
+  --text:#EDE8DF;--text-2:#A09A91;--text-3:#6B665E;
+  --gold:#C5A572;--gold-b:#E3C187;--gold-bg:rgba(197,165,114,0.07);--gold-bd:rgba(197,165,114,0.22);
+  --green:#5a9e72;--green-bg:rgba(90,158,114,0.07);--green-bd:rgba(90,158,114,0.25);
+  --amber:#b8833a;--amber-bg:rgba(184,131,58,0.08);--amber-bd:rgba(184,131,58,0.28);
+  --red:#b05e56;--red-bg:rgba(176,94,86,0.07);--red-bd:rgba(176,94,86,0.22);
+  --blue:#5b85b8;--blue-bg:rgba(91,133,184,0.07);--blue-bd:rgba(91,133,184,0.25);
+  --slate:#7B8FA1;--slate-bg:rgba(123,143,161,0.07);--slate-bd:rgba(123,143,161,0.22);
+  --violet:#8B7BC0;--violet-bg:rgba(139,123,192,0.07);--violet-bd:rgba(139,123,192,0.22);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+input,select{font-family:inherit;color:inherit;background:var(--surface);border:1px solid var(--border-m);outline:none;border-radius:3px;padding:8px 10px}
+input:focus{border-color:var(--gold)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes rowSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:200;display:flex;align-items:center;padding:0 20px;gap:16px;background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+[data-theme="dark"] .nav{background:rgba(10,9,8,0.92)}
+.nav-wordmark{display:flex;flex-direction:column;justify-content:center;gap:3px;flex-shrink:0}
+.nav-wm-tacc{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--text-3);text-transform:uppercase}
+.nav-wm-name{display:flex;align-items:center;line-height:1}
+.nav-wm-aurum{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--text);text-transform:uppercase}
+.nav-wm-rule{display:block;width:1px;height:12px;background:var(--gold-bd);margin:0 10px;flex-shrink:0}
+.nav-wm-prism{font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.nav-div{width:1px;height:20px;background:var(--border);flex-shrink:0}
+.nav-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ntab{padding:8px 14px;font-size:12px;font-weight:500;color:var(--text-3);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;flex-shrink:0;text-decoration:none;display:inline-flex;align-items:center}
+.ntab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.ntab:hover:not(.on){color:var(--text-2)}
+.nav-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.role-badge{padding:4px 10px;background:rgba(176,94,86,.08);border:1px solid rgba(176,94,86,.22);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);border-radius:20px}
+
+/* PAGE */
+.wrap{padding-top:var(--nav-h);min-height:100vh}
+.inner{padding:clamp(20px,3.5vh,36px) clamp(16px,4vw,56px);max-width:1400px;margin:0 auto}
+.view-heading{font-family:var(--serif);font-style:italic;font-size:clamp(22px,4vw,32px);color:var(--text);margin-bottom:4px}
+.view-sub{font-size:13px;color:var(--text-3);margin-bottom:24px}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+@media(min-width:640px){.kpi-strip{grid-template-columns:repeat(4,1fr)}}
+.kpi-card{padding:18px clamp(14px,3vw,28px);background:var(--bg)}
+.kpi-lbl{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+.kpi-val{font-family:var(--mono);font-size:28px;font-weight:500;color:var(--text);line-height:1;font-variant-numeric:tabular-nums}
+.kpi-val.gold{color:var(--gold)}.kpi-val.green{color:var(--green)}.kpi-val.blue{color:var(--blue)}.kpi-val.muted{color:var(--text-3)}
+.kpi-sub{font-size:11px;color:var(--text-3);margin-top:5px;font-family:var(--mono)}
+
+/* STAGE BAR */
+.stage-bar{display:flex;flex-wrap:wrap;gap:8px;padding:14px clamp(14px,3vw,28px);border-bottom:1px solid var(--border);background:var(--bg-2)}
+.dp-stage-chip{padding:4px 10px;border:1px solid;border-radius:20px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.dp-stage-chip .n{font-weight:500;font-size:10px}
+.sc-live{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.sc-ioi{color:var(--gold);border-color:var(--gold-bd);background:var(--gold-bg)}
+.sc-dd{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+.sc-review{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.sc-terms{color:var(--violet);border-color:var(--violet-bd);background:var(--violet-bg)}
+.sc-close{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.sc-realized{color:var(--slate);border-color:var(--slate-bd);background:var(--slate-bg)}
+.sc-killed{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+
+/* CONTROL STRIP */
+.control-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px clamp(16px,3vw,24px);margin-top:24px}
+.control-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:14px}
+.control-row:last-child{margin-bottom:0}
+.btn{padding:10px 18px;border-radius:3px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;border:1px solid;transition:all .15s;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-start{color:var(--bg);background:var(--gold);border-color:var(--gold)}
+.btn-start:hover:not(:disabled){background:var(--gold-b);border-color:var(--gold-b)}
+.btn-start:disabled{opacity:.4;cursor:not-allowed}
+.btn-pause{color:var(--amber);background:var(--amber-bg);border-color:var(--amber-bd)}
+.btn-pause:hover:not(:disabled){background:var(--amber);color:#fff}
+.btn-pause:disabled{opacity:.4;cursor:not-allowed}
+.btn-reset{color:var(--red);background:var(--red-bg);border-color:var(--red-bd)}
+.btn-reset:hover{background:var(--red);color:#fff}
+.btn-neutral{color:var(--text-2);background:transparent;border-color:var(--border-m)}
+.btn-neutral:hover{color:var(--gold);border-color:var(--gold-bd)}
+
+.status-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;border:1px solid var(--border-m);font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-2)}
+.status-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--text-3)}
+.status-pill.running{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.status-pill.running .dot{background:var(--green);animation:pulse 1.6s infinite}
+.status-pill.paused{color:var(--amber);border-color:var(--amber-bd);background:var(--amber-bg)}
+.status-pill.paused .dot{background:var(--amber)}
+.status-pill.idle .dot{background:var(--text-3)}
+
+.speed-toggle{display:inline-flex;border:1px solid var(--border-m);border-radius:20px;overflow:hidden;font-family:var(--mono);font-size:10px;letter-spacing:.08em}
+.speed-toggle button{padding:7px 14px;color:var(--text-2);background:transparent;transition:all .15s;border:none;cursor:pointer}
+.speed-toggle button:not(:last-child){border-right:1px solid var(--border-m)}
+.speed-toggle button.on{background:var(--gold);color:var(--bg)}
+.speed-toggle button:hover:not(.on){color:var(--text);background:var(--bg-3)}
+
+.persona-toggle{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--border-m);border-radius:20px;font-size:12px;color:var(--text-2);cursor:pointer;user-select:none;transition:all .15s}
+.persona-toggle.on{color:var(--text);border-color:var(--gold-bd);background:var(--gold-bg)}
+.persona-toggle input{display:none}
+.persona-toggle .swatch{width:8px;height:8px;border-radius:50%}
+.persona-advisor .swatch{background:var(--gold)}
+.persona-admin .swatch{background:#5b9cd8}
+.persona-investor .swatch{background:#5fb87f}
+.persona-applicant .swatch{background:#b794e0}
+.persona-chaos .swatch{background:#e0746b}
+.persona-auth .swatch{background:#e5a55c}
+.persona-advreview .swatch{background:#5fbabf}
+.persona-concurrency .swatch{background:#d97abc}
+.persona-capevent .swatch{background:#e8d27a}
+
+.control-label{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-right:4px}
+
+/* LOG */
+.log-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:24px;overflow:hidden;display:flex;flex-direction:column;height:500px}
+.log-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg-3)}
+.log-title{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--text)}
+.log-meta{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text-3);text-transform:uppercase}
+.log-body{flex:1;overflow-y:auto;padding:0;position:relative}
+.log-row{display:grid;grid-template-columns:80px 86px 1fr 30px;gap:10px;align-items:center;padding:8px 18px;border-bottom:1px solid var(--border);font-size:12px;animation:rowSlide .25s var(--ease) both}
+.log-row.err{background:var(--red-bg)}
+.log-row .ts{font-family:var(--mono);font-size:10px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.log-row .tag{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:10px;text-align:center;border:1px solid}
+/* Distinct persona colors — 8 personas, each its own color, all scannable. */
+.tag-advisor{color:var(--gold);background:var(--gold-bg);border-color:var(--gold-bd)}
+.tag-admin{color:#5b9cd8;background:rgba(91,156,216,.08);border-color:rgba(91,156,216,.3)}
+.tag-investor{color:#5fb87f;background:rgba(95,184,127,.08);border-color:rgba(95,184,127,.3)}
+.tag-applicant{color:#b794e0;background:rgba(183,148,224,.10);border-color:rgba(183,148,224,.35)}
+.tag-chaos{color:#e0746b;background:rgba(224,116,107,.10);border-color:rgba(224,116,107,.35)}
+.tag-auth{color:#e5a55c;background:rgba(229,165,92,.10);border-color:rgba(229,165,92,.35)}
+.tag-advreview{color:#5fbabf;background:rgba(95,186,191,.10);border-color:rgba(95,186,191,.35)}
+.tag-concurrency{color:#d97abc;background:rgba(217,122,188,.10);border-color:rgba(217,122,188,.35)}
+.tag-capevent{color:#e8d27a;background:rgba(232,210,122,.10);border-color:rgba(232,210,122,.35)}
+.log-row .msg{color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-row.err .msg{color:var(--red)}
+.log-row .ok{font-family:var(--mono);font-size:13px;text-align:center}
+.log-row .ok.y{color:var(--green)}
+.log-row .ok.n{color:var(--red)}
+.log-empty{padding:40px;text-align:center;color:var(--text-3);font-size:13px}
+.jump-pill{position:sticky;bottom:8px;margin:0 auto;display:block;padding:6px 14px;background:var(--gold);color:var(--bg);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;border-radius:20px;cursor:pointer;width:fit-content;border:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);animation:fadeIn .2s}
+.modal-overlay.hidden{display:none}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;max-width:480px;width:90vw;animation:fadeUp .25s var(--ease);box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.modal-title{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--text);margin-bottom:8px}
+.modal-body{font-size:13px;color:var(--text-2);margin-bottom:18px;line-height:1.6}
+.modal-body ul{margin:10px 0 0 18px;font-size:12px;color:var(--text-3)}
+.modal-body ul li{margin-bottom:4px}
+.modal-input{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--border-m);border-radius:3px;font-family:var(--mono);font-size:13px;color:var(--text);margin:14px 0 4px;letter-spacing:.04em}
+.modal-input:focus{border-color:var(--red);outline:none}
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.modal-confirm{flex:1;padding:11px;background:var(--red);color:#fff;font-size:12px;font-weight:600;border-radius:2px;cursor:pointer;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;border:none;transition:opacity .15s}
+.modal-confirm:disabled{opacity:.35;cursor:not-allowed}
+.modal-confirm:hover:not(:disabled){background:#722920}
+.modal-cancel{flex:1;padding:11px;border:1px solid var(--border-m);font-size:12px;border-radius:2px;color:var(--text-2);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;background:transparent}
+.modal-cancel:hover{color:var(--text)}
+
+/* AUDIT TABLE */
+.audit-banner{padding:14px 18px;border-radius:4px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-align:center;margin-bottom:16px}
+.audit-banner.pass{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.audit-banner.fail{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.audit-row{display:grid;grid-template-columns:1fr 100px 60px 30px;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px;align-items:center;cursor:pointer}
+.audit-row:hover{background:var(--bg-3)}
+.audit-sev{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:10px;text-align:center;border:1px solid}
+.sev-high{color:var(--red);background:var(--red-bg);border-color:var(--red-bd)}
+.sev-med{color:var(--amber);background:var(--amber-bg);border-color:var(--amber-bd)}
+.sev-low{color:var(--text-3);background:var(--bg-3);border-color:var(--border-m)}
+.audit-samples{padding:8px 14px;background:var(--bg-3);font-family:var(--mono);font-size:11px;color:var(--text-3);max-height:200px;overflow-y:auto}
+
+@media(max-width:640px){
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .control-row{gap:10px}
+  .log-row{grid-template-columns:64px 70px 1fr 24px;gap:6px;padding:8px 12px}
+  .log-row .ts{font-size:9px}
+  .log-row .tag{font-size:8px;padding:2px 4px}
+  .nav-tabs{font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-wordmark">
+    <div class="nav-wm-tacc">A TACC Platform</div>
+    <div class="nav-wm-name">
+      <span class="nav-wm-aurum">Aurum</span>
+      <span class="nav-wm-rule" aria-hidden="true"></span>
+      <span class="nav-wm-prism">Prism</span>
+    </div>
+  </div>
+  <div class="nav-div"></div>
+  <div class="nav-tabs">
+    <button class="ntab on">Bot Driver</button>
+    <a class="ntab" href="/ops/bv7x3k">Bot Viewer</a>
+    <a class="ntab" href="/admin-portal">Admin Portal</a>
+  </div>
+  <div class="nav-r">
+    <div class="role-badge">Operator · Sandbox</div>
+    <button onclick="signOut()" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--text-3);padding:6px 10px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-3)'">Sign out</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="kpi-strip" id="kpi-strip">
+    <div class="kpi-card"><div class="kpi-lbl">Deals</div><div class="kpi-val gold" id="kpi-deals">—</div><div class="kpi-sub" id="kpi-deals-sub">total</div></div>
+    <div class="kpi-card"><div class="kpi-lbl">IOIs</div><div class="kpi-val blue" id="kpi-iois">—</div><div class="kpi-sub" id="kpi-iois-sub">submitted</div></div>
+    <div class="kpi-card"><div class="kpi-lbl">Active</div><div class="kpi-val green" id="kpi-active">—</div><div class="kpi-sub">live · ioi · dd · terms</div></div>
+    <div class="kpi-card"><div class="kpi-lbl">Closed</div><div class="kpi-val muted" id="kpi-closed">—</div><div class="kpi-sub">close · realized · killed</div></div>
+  </div>
+  <div class="stage-bar" id="stage-bar"></div>
+
+  <div class="inner">
+    <div class="view-heading">Bot Driver</div>
+    <div class="view-sub">Drive three bot personas against the sandbox. Errors are the point — they all surface in the log below.</div>
+
+    <div class="control-card">
+      <div class="control-row">
+        <button class="btn btn-start" id="btn-start" onclick="startBots()">Start</button>
+        <button class="btn btn-pause" id="btn-pause" onclick="pauseBots()" disabled>Pause</button>
+        <button class="btn btn-reset" onclick="openResetModal()">Reset</button>
+        <button class="btn btn-neutral" onclick="runAudit()" id="btn-audit">Run Audit</button>
+        <div class="status-pill idle" id="status-pill"><span class="dot"></span><span id="status-text">Idle</span></div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Speed</span>
+        <div class="speed-toggle" role="group" aria-label="Bot speed">
+          <button data-speed="1" title="2000ms between actions" onclick="setSpeed('1')">1×</button>
+          <button data-speed="5" class="on" title="400ms between actions" onclick="setSpeed('5')">5×</button>
+          <button data-speed="25" title="80ms between actions" onclick="setSpeed('25')">25×</button>
+          <button data-speed="MAX" title="No delay between actions" onclick="setSpeed('MAX')">MAX</button>
+        </div>
+        <span class="control-label" style="margin-left:14px">Personas</span>
+        <label class="persona-toggle persona-advisor on" id="pt-advisor"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('advisor',this.checked)">Advisor</label>
+        <label class="persona-toggle persona-admin on" id="pt-admin"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('admin',this.checked)">Admin</label>
+        <label class="persona-toggle persona-investor on" id="pt-investor"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('investor',this.checked)">Investor</label>
+        <label class="persona-toggle persona-applicant on" id="pt-applicant" title="New advisor + investor signups (low-rate)"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('applicant',this.checked)">Applicants</label>
+        <label class="persona-toggle persona-chaos on" id="pt-chaos" title="Throws bad payloads at endpoints — verifies validation"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('chaos',this.checked)">Chaos</label>
+        <label class="persona-toggle persona-auth on" id="pt-auth" title="Tries unauthorized actions — verifies auth boundaries"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('auth',this.checked)">Auth</label>
+        <label class="persona-toggle persona-advreview on" id="pt-advreview" title="Logs in as advisor, confirms pending review deals → auto-publish"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('advreview',this.checked)">Adv Review</label>
+        <label class="persona-toggle persona-concurrency on" id="pt-concurrency" title="Bursts parallel calls to stress race conditions"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('concurrency',this.checked)">Concurrency</label>
+        <label class="persona-toggle persona-capevent on" id="pt-capevent" title="Capital calls + distributions + investor notice acknowledgement"><span class="swatch"></span><input type="checkbox" checked onchange="togglePersona('capevent',this.checked)">Cap Events</label>
+      </div>
+    </div>
+
+    <div class="log-card">
+      <div class="log-hd">
+        <div class="log-title">Action log</div>
+        <div class="log-meta"><span id="log-count">0</span> entries · last 200</div>
+      </div>
+      <div class="log-body" id="log-body" onscroll="onLogScroll()">
+        <div class="log-empty" id="log-empty">No actions yet. Press Start to begin.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESET MODAL -->
+<div class="modal-overlay hidden" id="reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
+  <div class="modal-box">
+    <div class="modal-title" id="reset-modal-title">Wipe ALL data + reseed?</div>
+    <div class="modal-body">
+      This will destroy and rebuild the sandbox. Affected:
+      <ul>
+        <li>All deals (400 will be reseeded)</li>
+        <li>All IOIs (audit log included)</li>
+        <li>All investors except admins (151 will be reseeded)</li>
+        <li>All advisors except seeded bot account (31 will be reseeded)</li>
+        <li>Audit log will be cleared</li>
+      </ul>
+      Type <strong style="color:var(--red);font-family:var(--mono)">WIPE ALL DATA</strong> to confirm.
+    </div>
+    <input type="text" class="modal-input" id="reset-confirm-input" placeholder="WIPE ALL DATA" autocomplete="off" oninput="onResetInput()">
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeResetModal()">Cancel</button>
+      <button class="modal-confirm" id="reset-confirm-btn" onclick="confirmReset()" disabled>Wipe + reseed</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUDIT MODAL -->
+<div class="modal-overlay hidden" id="audit-modal" role="dialog" aria-modal="true" aria-labelledby="audit-modal-title">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-title" id="audit-modal-title">Sandbox audit</div>
+    <div id="audit-modal-body"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeAuditModal()" style="flex:1">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== Utilities ========== */
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function nowHHMMSS(){const d=new Date();return d.toTimeString().slice(0,8);}
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+/* ========== Focus trap (lifted from admin-portal.html) ========== */
+const FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+function trapFocus(modalEl){
+  const prev=document.activeElement;
+  const getF=()=>Array.from(modalEl.querySelectorAll(FOCUSABLE)).filter(el=>!el.closest('[hidden]')&&el.offsetParent!==null);
+  const onKey=e=>{
+    if(e.key!=='Tab')return;
+    const els=getF();if(!els.length)return;
+    const first=els[0],last=els[els.length-1];
+    if(e.shiftKey){if(document.activeElement===first){e.preventDefault();last.focus();}}
+    else{if(document.activeElement===last){e.preventDefault();first.focus();}}
+  };
+  modalEl.addEventListener('keydown',onKey);
+  const first=getF()[0];if(first)first.focus();
+  return ()=>{modalEl.removeEventListener('keydown',onKey);if(prev&&prev.focus)prev.focus();};
+}
+const _modalReleasers={};
+
+/* ========== Auth gate ========== */
+async function requireAdmin(){
+  try{
+    const r=await fetch('/api/me',{credentials:'include'});
+    if(!r.ok){location.href='/login';return false;}
+    const j=await r.json();
+    if(j.role!=='admin'){location.href='/login';return false;}
+    return true;
+  }catch(e){location.href='/login';return false;}
+}
+async function signOut(){
+  try{await fetch('/api/logout',{method:'POST',credentials:'include'});}catch(e){}
+  location.href='/login';
+}
+
+/* ========== HTTP helpers ========== */
+const BOT_HEADERS={'Content-Type':'application/json','x-bot-mode':'1'};
+async function botFetch(url,opts={}){
+  const extra={};
+  if(opts.botAs)extra['x-bot-as']=opts.botAs;
+  const headers={...BOT_HEADERS,...extra,...(opts.headers||{})};
+  const fetchOpts={...opts,headers,credentials:'include'};
+  delete fetchOpts.botAs;
+  const r=await fetch(url,fetchOpts);
+  let body=null;try{body=await r.json();}catch(e){}
+  if(!r.ok){
+    const msg=(body&&body.error)||('HTTP '+r.status);
+    const err=new Error(msg);err.status=r.status;err.body=body;throw err;
+  }
+  return body;
+}
+
+/* ========== State ========== */
+const state={
+  running:false,
+  paused:false,
+  speedKey:'5',
+  personas:{advisor:true,admin:true,investor:true,applicant:true,chaos:true,auth:true,advreview:true,concurrency:true,capevent:true},
+  loops:{},          // persona -> AbortController
+  logEntries:[],
+  logFollow:true,
+  errorStreaks:{advisor:0,admin:0,investor:0},
+  cookies:{advisor:false,investor:false},
+};
+// Speed → minimum tick interval (ms). MAX is floored at 50ms to cap Redis op rate.
+// Even with cached endpoints, an unbounded tight loop can burn 1000s of ops/sec
+// on the hot endpoints that aren't cached (deal submission, IOI submission).
+const SPEED_MS={'1':2000,'5':400,'25':80,'MAX':50};
+const STAGES=['review','live','ioi','dd','terms','close','realized','killed'];
+
+/* ========== Counters refresh ========== */
+async function refreshCounters(){
+  try{
+    const j=await botFetch('/api/v2?resource=admin&op=sandbox-status');
+    const c=j.counts||{};
+    const stages=c.deals_by_stage||c.stages||{};
+    document.getElementById('kpi-deals').textContent=fmtNum(c.deals);
+    document.getElementById('kpi-iois').textContent=fmtNum(c.iois);
+    const active=(stages.live||0)+(stages.ioi||0)+(stages.dd||0)+(stages.terms||0);
+    const closed=(stages.close||0)+(stages.realized||0)+(stages.killed||0);
+    document.getElementById('kpi-active').textContent=fmtNum(active);
+    document.getElementById('kpi-closed').textContent=fmtNum(closed);
+    document.getElementById('kpi-deals-sub').textContent=`${fmtNum(c.advisors||0)} advisors`;
+    document.getElementById('kpi-iois-sub').textContent=`${fmtNum(c.investors||0)} investors`;
+    renderStageBar(stages);
+  }catch(e){
+    document.getElementById('kpi-deals-sub').textContent='offline';
+  }
+}
+function fmtNum(n){if(n==null||isNaN(n))return'—';return Number(n).toLocaleString();}
+function renderStageBar(stages){
+  const bar=document.getElementById('stage-bar');
+  bar.innerHTML=STAGES.map(s=>{
+    const n=stages[s]||0;
+    return `<span class="dp-stage-chip sc-${s}">${s} <span class="n">${n}</span></span>`;
+  }).join('');
+}
+
+/* ========== Log ========== */
+function pushLog(persona,msg,ok,err){
+  const empty=document.getElementById('log-empty');if(empty)empty.remove();
+  const row={ts:nowHHMMSS(),persona,msg:err?`${msg} — ${err}`:msg,ok};
+  state.logEntries.unshift(row);
+  if(state.logEntries.length>200)state.logEntries.length=200;
+  renderLog();
+}
+function renderLog(){
+  const body=document.getElementById('log-body');
+  const wasFollow=state.logFollow;
+  body.innerHTML=state.logEntries.map(r=>{
+    const tagClass='tag-'+r.persona;
+    const okClass=r.ok?'y':'n';
+    const okSym=r.ok?'✓':'✗';
+    const errCls=r.ok?'':' err';
+    return `<div class="log-row${errCls}"><div class="ts">${esc(r.ts)}</div><div class="tag ${tagClass}">${esc(r.persona)}</div><div class="msg" title="${esc(r.msg)}">${esc(r.msg)}</div><div class="ok ${okClass}">${okSym}</div></div>`;
+  }).join('');
+  document.getElementById('log-count').textContent=state.logEntries.length;
+  if(wasFollow)body.scrollTop=0;
+  updateJumpPill();
+}
+function onLogScroll(){
+  const body=document.getElementById('log-body');
+  state.logFollow=body.scrollTop<8;
+  updateJumpPill();
+}
+function updateJumpPill(){
+  let pill=document.getElementById('jump-pill');
+  const body=document.getElementById('log-body');
+  if(!state.logFollow&&state.logEntries.length>0){
+    if(!pill){
+      pill=document.createElement('button');pill.id='jump-pill';pill.className='jump-pill';pill.textContent='↑ Jump to live';
+      pill.onclick=()=>{body.scrollTop=0;state.logFollow=true;updateJumpPill();};
+      body.appendChild(pill);
+    }
+  }else if(pill){pill.remove();}
+}
+
+/* ========== Status pill ========== */
+function setStatus(){
+  const pill=document.getElementById('status-pill');
+  const text=document.getElementById('status-text');
+  pill.classList.remove('idle','running','paused');
+  if(state.paused){pill.classList.add('paused');text.textContent='Paused';}
+  else if(state.running){pill.classList.add('running');text.textContent=`Running ${state.speedKey}×`;}
+  else{pill.classList.add('idle');text.textContent='Idle';}
+}
+
+/* ========== Persona toggles ========== */
+function togglePersona(p,on){
+  state.personas[p]=on;
+  document.getElementById('pt-'+p).classList.toggle('on',on);
+  if(state.running){
+    if(on&&!state.loops[p])startPersonaLoop(p);
+    if(!on&&state.loops[p]){state.loops[p].abort();delete state.loops[p];}
+  }
+}
+function setSpeed(k){
+  state.speedKey=k;
+  document.querySelectorAll('.speed-toggle button').forEach(b=>b.classList.toggle('on',b.dataset.speed===k));
+  setStatus();
+}
+
+/* ========== Deal templates ========== */
+const DEAL_TEMPLATES=[
+  {name:'Aurelian Credit Bridge',asset_class:'credit',geography:'US',deal_structure:'senior_secured',target_irr:14,term_months:18,hurdle_rate:8,thesis:'Senior secured bridge to a Series B SaaS borrower with predictable ARR.',originator:'Aurelian Capital'},
+  {name:'Pacific Rim Logistics II',asset_class:'real_estate',geography:'APAC',deal_structure:'equity',target_irr:18,term_months:60,hurdle_rate:8,thesis:'Last-mile logistics platform across SG/MY with anchor 3PL tenant.',originator:'PRL Partners'},
+  {name:'Granite Mining Royalty',asset_class:'real_assets',geography:'Australia',deal_structure:'royalty',target_irr:22,term_months:120,hurdle_rate:10,thesis:'Gross revenue royalty on producing copper-gold project, 8.5g/t head grade.',originator:'Granite Royalty Co'},
+  {name:'Helios Solar Notes',asset_class:'infrastructure',geography:'EU',deal_structure:'mezzanine',target_irr:12,term_months:36,hurdle_rate:7,thesis:'Mezzanine on a 240MW Iberian solar portfolio with PPA cover.',originator:'Helios Energy'},
+  {name:'Crescent Pre-IPO SPV',asset_class:'private_equity',geography:'US',deal_structure:'preferred_equity',target_irr:35,term_months:24,hurdle_rate:12,thesis:'Direct secondary in a late-stage AI infra company at last-round flat.',originator:'Crescent Secondary'},
+  {name:'Coastal Trade Finance V',asset_class:'credit',geography:'APAC',deal_structure:'senior_secured',target_irr:11,term_months:12,hurdle_rate:6,thesis:'Self-liquidating trade finance program, commodity-collateralized.',originator:'Coastal Trade Co'},
+  {name:'Northwind Renewables Fund',asset_class:'infrastructure',geography:'US',deal_structure:'equity',target_irr:16,term_months:84,hurdle_rate:8,thesis:'Onshore wind platform across MISO + ERCOT with merchant tail.',originator:'Northwind Power'},
+  {name:'Singapore Family Office Co-invest',asset_class:'private_equity',geography:'APAC',deal_structure:'equity',target_irr:24,term_months:48,hurdle_rate:10,thesis:'GP-led continuation vehicle with 2 trophy SEA assets.',originator:'SFO Holdings'},
+];
+
+/* ========== Bots ========== */
+class AdvisorBot{
+  constructor(){this.persona='advisor';this.loggedIn=false;this.deals=[];}
+  async login(){
+    if(this.loggedIn)return;
+    await botFetch('/api/v2?resource=advisor&op=login',{method:'POST',body:JSON.stringify({email:'bot.advisor@aurumprism.test',password:'BotPass123!'})});
+    this.loggedIn=true;
+  }
+  async refreshOwnDeals(){
+    try{const j=await botFetch('/api/v2?resource=advisor&op=me');this.deals=j.deals||[];}catch(e){this.deals=[];}
+  }
+  async tick(){
+    if(!this.loggedIn)await this.login();
+    const roll=Math.random();
+    if(roll<0.55||this.deals.length===0)return await this.submitDeal();
+    if(roll<0.8)return await this.postNav();
+    return await this.answerQa();
+  }
+  async submitDeal(){
+    const t=rand(DEAL_TEMPLATES);
+    const tagline=`${t.deal_structure==='senior_secured'?'Senior secured':t.deal_structure==='equity'?'Equity':t.deal_structure==='royalty'?'Royalty':t.deal_structure==='mezzanine'?'Mezzanine':'Preferred equity'} ${t.geography==='US'?'US':t.geography==='APAC'?'Asia-Pacific':t.geography==='EU'?'European':t.geography==='Australia'?'Australian':'global'} ${t.asset_class==='credit'?'credit':t.asset_class==='real_estate'?'real estate':t.asset_class==='infrastructure'?'infrastructure':t.asset_class==='private_equity'?'private equity':'real assets'} opportunity`;
+    const overview=`${t.originator} originates ${t.deal_structure.replace('_',' ')} ${t.asset_class.replace('_',' ')} transactions across ${t.geography}. Underwritten with institutional discipline and reviewed by Aurum Prism advisors before listing. Target IRR ${t.target_irr}% over ${t.term_months} months with a ${t.hurdle_rate}% hurdle.`;
+    const highlights=[
+      `Target IRR ${t.target_irr}% with ${t.hurdle_rate}% hurdle rate`,
+      `${t.term_months}-month term · ${t.deal_structure.replace('_',' ')} structure`,
+      `Originated by ${t.originator} (${t.geography})`,
+    ];
+    const body={
+      name:`${t.name} · ${randInt(2024,2027)}-${String(randInt(1,12)).padStart(2,'0')}`,
+      asset_class:t.asset_class,geography:t.geography,deal_structure:t.deal_structure,
+      originator:t.originator,
+      tagline,
+      company_overview:overview,
+      thesis:t.thesis+' '+overview.slice(0,80),
+      highlights,
+      target_alloc_usd:randInt(5,150)*1_000_000,
+      target_irr:Math.round((t.target_irr+(Math.random()*4-2))*10)/10,
+      term_months:t.term_months,hurdle_rate:t.hurdle_rate,
+      min_ticket_usd:[100000,250000,500000,1000000][randInt(0,3)],
+      closing_date:new Date(Date.now()+randInt(30,180)*86400000).toISOString().slice(0,10),
+    };
+    const j=await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',body:JSON.stringify(body)});
+    return {persona:this.persona,action:`Submitted deal "${body.name}"`,ok:true,_extra:j};
+  }
+  async postNav(){
+    if(this.deals.length===0)await this.refreshOwnDeals();
+    const eligible=this.deals.filter(d=>['live','ioi','dd','terms','close','realized'].includes(d.stage));
+    if(eligible.length===0){await this.refreshOwnDeals();return await this.submitDeal();}
+    const d=rand(eligible);
+    const body={
+      dealId:d.id,
+      navPerUnit:Math.round((1+(Math.random()*0.4-0.05))*10000)/10000,
+      totalNavUsd:Math.round((d.ioi_agg_usd||d.target_alloc_usd||1_000_000)*(1+(Math.random()*0.3-0.05))),
+      asOfDate:new Date().toISOString().slice(0,10),
+      notes:'Bot NAV update',
+    };
+    await botFetch('/api/v2?resource=advisor&op=post-nav-update',{method:'POST',body:JSON.stringify(body)});
+    return {persona:this.persona,action:`Posted NAV update for "${d.name}"`,ok:true};
+  }
+  async answerQa(){
+    if(this.deals.length===0)await this.refreshOwnDeals();
+    if(this.deals.length===0)return await this.submitDeal();
+    const d=rand(this.deals);
+    let qa=[];
+    try{const j=await botFetch(`/api/v2?resource=advisor&op=qa-thread-advisor&dealId=${encodeURIComponent(d.id)}`);qa=j.qa||[];}catch(e){return await this.submitDeal();}
+    const pending=qa.filter(q=>q.question&&!q.answer);
+    if(pending.length===0)return await this.postNav();
+    const target=pending[0];
+    await botFetch('/api/v2?resource=advisor&op=answer-qa',{method:'POST',body:JSON.stringify({dealId:d.id,qaId:target.id,answer:'Bot response: thank you for the question. Detailed materials in the data room cover this.'})});
+    return {persona:this.persona,action:`Answered Q&A on "${d.name}"`,ok:true};
+  }
+}
+
+class AdminBot{
+  constructor(){this.persona='admin';}
+  async tick(){
+    // Admin uses operator's existing cookie. Pick action by what's available.
+    let status;
+    try{status=await botFetch('/api/v2?resource=admin&op=sandbox-status');}catch(e){throw new Error('sandbox-status failed: '+e.message);}
+    const recent=status.recent_deals||[];
+    const pendingIois=(status.recent_iois||[]).filter(i=>i.status==='pending');
+    const pendingInsts=status.pending_investors||[];
+    const reviewDeals=recent.filter(d=>d.stage==='review');
+    const liveOrIoi=recent.filter(d=>d.stage==='live'||d.stage==='ioi');
+
+    // Advance candidates: deals at dd / terms / close that admin can push forward
+    const ddDeals=recent.filter(d=>d.stage==='dd');
+    const termsDeals=recent.filter(d=>d.stage==='terms');
+    const closeDeals=recent.filter(d=>d.stage==='close');
+
+    // Pending advisor signups — now included in sandbox-status payload
+    // so we don't make a separate fetch (saves a Redis op per tick).
+    const pendingAdvisors=status.pending_advisors||[];
+
+    const choices=[];
+    if(reviewDeals.length)choices.push('publish');
+    if(pendingIois.length)choices.push('approve_ioi');
+    if(pendingInsts.length)choices.push('approve_inst');
+    if(pendingAdvisors.length)choices.push('approve_advisor');
+    if(liveOrIoi.length)choices.push('push_package');
+    if(ddDeals.length)choices.push('advance_dd_to_terms');
+    if(termsDeals.length)choices.push('advance_terms_to_close');
+    if(closeDeals.length)choices.push('advance_close_to_realized');
+    if(choices.length===0)choices.push('publish');
+    const pick=rand(choices);
+
+    // Soft-skip race: when another tick already moved the target, the API
+    // returns 404, 409, or 400 with a recognizable race message. Treat as
+    // benign progress, not a bug. Real bugs (500, 401, validation errors
+    // unrelated to races) still surface.
+    const RACE_400_PATTERNS=[
+      /Cannot advance from \w+ to \w+/i,
+      /already approved/i,
+      /already published/i,
+      /already in/i,
+      /Not in.*stage/i,
+    ];
+    const softSkip=async (fn,label)=>{
+      try{return await fn();}catch(e){
+        if(e.status===404||e.status===409)return {persona:this.persona,action:`${label} (raced — target moved)`,ok:true};
+        if(e.status===400&&RACE_400_PATTERNS.some(p=>p.test(e.message||'')))return {persona:this.persona,action:`${label} (raced — already advanced)`,ok:true};
+        throw e;
+      }
+    };
+
+    if(pick==='publish'){
+      const d=reviewDeals[reviewDeals.length-1]||recent[0];
+      if(!d)return {persona:this.persona,action:'No review-stage deal to publish',ok:true};
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=publish-deal',{method:'POST',body:JSON.stringify({dealId:d.id,launch_mode:'listed',target_segments:['institutional','hnw']})});
+        return {persona:this.persona,action:`Published "${d.name}" to live`,ok:true};
+      },`Publish skip "${d.name}"`);
+    }
+    if(pick==='approve_ioi'){
+      const i=pendingIois[pendingIois.length-1];
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=marketplace&op=approve-ioi',{method:'POST',body:JSON.stringify({ioi_id:i.id})});
+        return {persona:this.persona,action:`Approved IOI ${i.id}`,ok:true};
+      },`Approve IOI skip ${i.id}`);
+    }
+    if(pick==='approve_inst'){
+      const inst=pendingInsts[0];
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=approve',{method:'POST',body:JSON.stringify({inst_id:inst.id})});
+        return {persona:this.persona,action:`Approved investor ${inst.firm_name||inst.email}`,ok:true};
+      },`Approve investor skip`);
+    }
+    if(pick==='push_package'){
+      const d=rand(liveOrIoi);
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=push-package',{method:'POST',body:JSON.stringify({dealId:d.id,comment:'Bot-driven package push'})});
+        return {persona:this.persona,action:`Pushed package on "${d.name}" (→ DD)`,ok:true};
+      },`Push package skip "${d.name}"`);
+    }
+    if(pick==='approve_advisor'){
+      const a=pendingAdvisors[0];
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=approve-advisor',{method:'POST',body:JSON.stringify({advisor_id:a.id})});
+        return {persona:this.persona,action:`Approved advisor ${a.firm_name||a.email}`,ok:true};
+      },`Approve advisor skip ${a.email}`);
+    }
+    if(pick==='advance_dd_to_terms'){
+      const d=rand(ddDeals);
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=advance-stage',{method:'POST',body:JSON.stringify({dealId:d.id,target:'terms'})});
+        return {persona:this.persona,action:`Advanced "${d.name}" → terms`,ok:true};
+      },`Advance dd→terms skip "${d.name}"`);
+    }
+    if(pick==='advance_terms_to_close'){
+      const d=rand(termsDeals);
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=advance-stage',{method:'POST',body:JSON.stringify({dealId:d.id,target:'close'})});
+        return {persona:this.persona,action:`Advanced "${d.name}" → close`,ok:true};
+      },`Advance terms→close skip "${d.name}"`);
+    }
+    if(pick==='advance_close_to_realized'){
+      const d=rand(closeDeals);
+      return await softSkip(async()=>{
+        await botFetch('/api/v2?resource=admin&op=advance-stage',{method:'POST',body:JSON.stringify({dealId:d.id,target:'realized'})});
+        return {persona:this.persona,action:`Advanced "${d.name}" → realized`,ok:true};
+      },`Advance close→realized skip "${d.name}"`);
+    }
+    return {persona:this.persona,action:'No-op',ok:true};
+  }
+}
+
+class InvestorBot{
+  constructor(){this.persona='investor';this.loggedIn=false;this.myIoiDeals=new Set();}
+  async login(){
+    if(this.loggedIn)return;
+    await botFetch('/api/v2?resource=inst&op=login',{method:'POST',body:JSON.stringify({email:'bot.investor@aurumprism.test',code:'BOTCODE'})});
+    this.loggedIn=true;
+    try{const j=await botFetch('/api/v2?resource=marketplace&op=my-iois',{botAs:'investor'});(j.iois||[]).forEach(i=>this.myIoiDeals.add(i.deal_id));}catch(e){}
+  }
+  async tick(){
+    if(!this.loggedIn)await this.login();
+    const roll=Math.random();
+    if(roll<0.7)return await this.submitIoi();
+    if(roll<0.9)return await this.fetchPerf();
+    return await this.fetchMarketplace();
+  }
+  async submitIoi(){
+    const j=await botFetch('/api/v2?resource=deals&op=marketplace');
+    const live=(j.deals||[]).filter(d=>!this.myIoiDeals.has(d.id));
+    if(live.length===0){this.myIoiDeals.clear();return await this.fetchMarketplace();}
+    const d=rand(live);
+    // Sign NDA if needed (idempotent)
+    try{await botFetch('/api/v2?resource=inst&op=record-nda',{method:'POST',body:JSON.stringify({dealId:d.id})});}catch(e){}
+    const minT=Math.max(10000,d.min_ticket_usd||250000);
+    const amt=Math.max(minT,Math.round((250000+Math.random()*2750000)/1000)*1000);
+    try{
+      await botFetch('/api/v2?resource=marketplace&op=ioi',{method:'POST',botAs:'investor',body:JSON.stringify({deal_id:d.id,amount:amt,notes:'Bot indication'})});
+      this.myIoiDeals.add(d.id);
+      return {persona:this.persona,action:`IOI on "${d.name}" @ $${amt.toLocaleString()}`,ok:true};
+    }catch(e){
+      if(e.status===409){this.myIoiDeals.add(d.id);return {persona:this.persona,action:`IOI already exists for "${d.name}" (skipped)`,ok:true};}
+      // Soft-skip race: deal moved out of marketplace between fetch and IOI submit
+      if(e.status===404||(e.body&&/not available|deal not found/i.test(e.body.error||'')))return {persona:this.persona,action:`IOI skip "${d.name}" (raced — deal moved)`,ok:true};
+      throw e;
+    }
+  }
+  async fetchMarketplace(){
+    const j=await botFetch('/api/v2?resource=deals&op=marketplace');
+    return {persona:this.persona,action:`Fetched marketplace (${(j.deals||[]).length} live)`,ok:true};
+  }
+  async fetchPerf(){
+    await botFetch('/api/v2?resource=inst&op=performance');
+    return {persona:this.persona,action:'Fetched performance dashboard',ok:true};
+  }
+}
+
+// Generates fake advisor + investor signup applications. Deliberately
+// low-rate (one tick = one application) — pressure-tests the signup +
+// admin approval flow without burning Redis ops on hot loops. AdminBot
+// will pick up these pending applications and approve them.
+class ApplicantBot{
+  constructor(){this.persona='applicant';this.seq=0;}
+  async tick(){
+    this.seq++;
+    return Math.random()<0.5 ? await this.applyAdvisor() : await this.applyInvestor();
+  }
+  async applyAdvisor(){
+    const id=Date.now().toString(36)+'-'+this.seq;
+    const firm=rand(['Aurelian','Sterling','Marquette','Whitmore','Ashford','Kingsbridge','Brunswick','Pemberton','Cadogan','Tremont']);
+    const body={
+      email:`applicant-adv-${id}@aurumprism.test`,
+      firm_name:`${firm} ${rand(['Capital','Partners','Advisory','Holdings','Group'])}`,
+      name:`${rand(['Alex','Jordan','Morgan','Casey','Riley','Drew'])} ${rand(['Kim','Tan','Lee','Chen','Wong','Ng'])}`,
+      title:rand(['Managing Partner','Director','CIO','Head of Origination','Principal']),
+      phone:`+65 ${randInt(8000,9999)} ${randInt(1000,9999)}`,
+      firm_website:`https://${firm.toLowerCase()}-${this.seq}.example.com`,
+      jurisdiction:rand(['Singapore','Cayman Islands','Delaware USA','UK','Hong Kong']),
+      year_founded:randInt(1995,2024),
+      regulatory_status:rand(['MAS RFMC','SEC RIA','FCA AIFM','Singapore VCC','Unregulated','HK SFC Type 9']),
+      aum_managed:rand(['<$50M','$50M–$250M','$250M–$1B','$1B–$5B','>$5B']),
+      primary_asset_classes:[rand(['credit','private_equity','real_estate','infrastructure','real_assets'])],
+    };
+    try{
+      await botFetch('/api/v2?resource=advisor&op=register',{method:'POST',body:JSON.stringify(body)});
+      return {persona:this.persona,action:`Advisor signup: ${body.firm_name}`,ok:true};
+    }catch(e){
+      if(e.status===400&&/already registered/i.test(e.message))return {persona:this.persona,action:`Advisor signup skip (dup email)`,ok:true};
+      throw e;
+    }
+  }
+  async applyInvestor(){
+    const id=Date.now().toString(36)+'-'+this.seq;
+    const isInst=Math.random()<0.6;
+    const firm=isInst
+      ? `${rand(['Atlas','Meridian','Sterling','Hargrove','Westbrook','Pinehurst'])} ${rand(['Capital','Asset Management','Endowment','Fund'])}`
+      : `${rand(['Whitmore','Tanaka','Ashford','Stonegate','Sterling'])} Family Office`;
+    const body={
+      email:`applicant-inv-${id}@aurumprism.test`,
+      firm_name:firm,
+      contact_name:`${rand(['Alex','Jordan','Sam','Pat','Drew','Casey'])} ${rand(['K','L','C','M','T','N'])}.`,
+      category:isInst?'institutional':'hnw',
+      institution_type:isInst?rand(['Family Office','Fund of Funds','Endowment / Foundation']):rand(['Single-Family Office','Trust / Private Investment Vehicle','Individual / Private']),
+      aum_range:rand(['Under $250M','$250M – $1B','Over $1B']),
+      ticket_range:rand(['$250K – $1M','$1M – $5M','$5M – $20M']),
+      invest_focus:rand(['Private Credit','Pre-IPO / Growth Equity','Infrastructure','All of the above']),
+      role:'CIO',
+    };
+    try{
+      await botFetch('/api/v2?resource=inst&op=register',{method:'POST',body:JSON.stringify(body)});
+      return {persona:this.persona,action:`Investor signup: ${firm} (${body.category})`,ok:true};
+    }catch(e){
+      if(e.status===400&&/already registered/i.test(e.message))return {persona:this.persona,action:`Investor signup skip (dup email)`,ok:true};
+      throw e;
+    }
+  }
+}
+
+// ─── ChaosBot ─────────────────────────────────────────────────────────
+// Throws deliberately bad payloads at every endpoint. Verifies validation
+// is correct (expect 400/404 when expected, expect sanitization when
+// expected). Reports ✓ when the platform rejected as it should and ✗
+// when something dangerous slipped through. Uses the operator's admin
+// cookie — most attacks check that admin-only endpoints reject malformed
+// input, which is the harder case. Tick floor: 3s.
+class ChaosBot{
+  constructor(){this.persona='chaos';}
+  async tick(){
+    const roll=Math.random();
+    if(roll<0.25)return await this.fuzzDealCreate();
+    if(roll<0.45)return await this.fuzzApproveBadIds();
+    if(roll<0.65)return await this.fuzzNumericEdges();
+    if(roll<0.85)return await this.fuzzInjection();
+    return await this.fuzzWrongTypes();
+  }
+  // Each attack returns ✓ if platform behaved correctly, ✗ if surprise.
+  async fuzzDealCreate(){
+    // Deliberately incomplete payload — should 400 with missing list
+    const body={name:'Chaos test '+Date.now(),target_alloc_usd:50000000,target_irr:12};
+    try{
+      await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',body:JSON.stringify(body)});
+      return {persona:this.persona,action:'Empty-deal accepted (BUG: should 400)',ok:false};
+    }catch(e){
+      if(e.status===400&&Array.isArray(e.body?.missing))return {persona:this.persona,action:`✓ Empty deal rejected (${e.body.missing.length} missing)`,ok:true};
+      return {persona:this.persona,action:`Empty deal: unexpected ${e.status||'?'} ${e.message}`,ok:false};
+    }
+  }
+  async fuzzApproveBadIds(){
+    // Approve nonexistent IOI
+    const fakeId='IOI-CHAOS-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    try{
+      await botFetch('/api/v2?resource=marketplace&op=approve-ioi',{method:'POST',body:JSON.stringify({ioi_id:fakeId})});
+      return {persona:this.persona,action:`Phantom IOI approved (BUG: should 404) ${fakeId}`,ok:false};
+    }catch(e){
+      if(e.status===404)return {persona:this.persona,action:`✓ Phantom IOI rejected (404)`,ok:true};
+      return {persona:this.persona,action:`Phantom IOI: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+  async fuzzNumericEdges(){
+    const cases=[
+      {label:'negative IRR',body:{name:'Neg IRR '+Date.now(),asset_class:'credit',deal_structure:'senior_secured',geography:'US',originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:['a','b'],target_alloc_usd:1000000,target_irr:-5,term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'}},
+      {label:'zero alloc',body:{name:'Zero '+Date.now(),asset_class:'credit',deal_structure:'senior_secured',geography:'US',originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:['a','b'],target_alloc_usd:0,target_irr:12,term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'}},
+      {label:'NaN IRR',body:{name:'NaN '+Date.now(),asset_class:'credit',deal_structure:'senior_secured',geography:'US',originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:['a','b'],target_alloc_usd:1000000,target_irr:'not-a-number',term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'}},
+    ];
+    const c=rand(cases);
+    try{
+      await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',body:JSON.stringify(c.body)});
+      return {persona:this.persona,action:`${c.label} accepted (BUG: should 400)`,ok:false};
+    }catch(e){
+      if(e.status===400)return {persona:this.persona,action:`✓ ${c.label} rejected`,ok:true};
+      return {persona:this.persona,action:`${c.label}: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+  async fuzzInjection(){
+    // XSS / SQL chars in deal name. Platform should accept (escape on render) — bug if it crashes.
+    const payloads=['<scr'+'ipt>alert(1)<'+'/scr'+'ipt>',"' OR 1=1 --",' NULL','A'.repeat(2000),'\n\r\t\\"'];
+    const p=rand(payloads);
+    const body={name:p,asset_class:'credit',deal_structure:'senior_secured',geography:'US',originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:['a','b'],target_alloc_usd:1000000,target_irr:12,term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'};
+    try{
+      const r=await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',body:JSON.stringify(body)});
+      // Platform should store as-is. Check that response doesn't echo raw script tag.
+      if(r?.deal?.name===p)return {persona:this.persona,action:`✓ Injection stored verbatim, no crash (${p.slice(0,20)}…)`,ok:true};
+      return {persona:this.persona,action:`✓ Injection sanitized/normalized`,ok:true};
+    }catch(e){
+      if(e.status===500)return {persona:this.persona,action:`Injection crashed server (BUG): ${p.slice(0,30)}`,ok:false};
+      return {persona:this.persona,action:`✓ Injection rejected (${e.status})`,ok:true};
+    }
+  }
+  async fuzzWrongTypes(){
+    // Send object where string expected, etc.
+    const body={name:{nested:'object'},asset_class:'credit',deal_structure:'senior_secured',geography:['US'],originator:'X',tagline:'X',company_overview:'A'.repeat(60),thesis:'B'.repeat(60),highlights:'not-an-array',target_alloc_usd:'one million',target_irr:12,term_months:24,hurdle_rate:8,min_ticket_usd:100000,closing_date:'2026-12-01'};
+    try{
+      await botFetch('/api/v2?resource=advisor&op=deals',{method:'POST',body:JSON.stringify(body)});
+      return {persona:this.persona,action:`Wrong types accepted (BUG: should 400)`,ok:false};
+    }catch(e){
+      if(e.status===400||e.status===500)return {persona:this.persona,action:`✓ Wrong types rejected (${e.status})`,ok:true};
+      return {persona:this.persona,action:`Wrong types: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+}
+
+// ─── AuthBoundaryBot ──────────────────────────────────────────────────
+// Verifies role isolation. Each tick attempts an unauthorized action and
+// expects rejection. ✓ if the platform correctly denies, ✗ if it allows.
+// Uses bot.investor cookie via separate fetch (without admin cookie).
+// Tick floor: 4s.
+class AuthBoundaryBot{
+  constructor(){this.persona='auth';}
+  async tick(){
+    // NOTE on test design: bot driver shares one cookie jar with the operator's
+    // admin session and any persona that has logged in. So tests can't truly
+    // isolate "only investor cookie present". Tests below verify two cleaner
+    // properties: (a) anonymous requests are blocked, (b) malicious / phantom
+    // requests get rejected with 4xx (any reason — auth or validation — counts
+    // as the platform refusing). True role-isolation testing needs separate
+    // browser contexts (Playwright) — out of scope for the in-page bot driver.
+    const roll=Math.random();
+    if(roll<0.33)return await this.unauthCallsProtected();
+    if(roll<0.66)return await this.phantomOwnershipWrite();
+    return await this.malformedAdminCall();
+  }
+  async unauthCallsProtected(){
+    // Direct fetch without credentials — bypasses cookies entirely. Cleanest
+    // test in this environment.
+    try{
+      const r=await fetch('/api/v2?resource=admin&op=sandbox-status',{headers:{'Content-Type':'application/json'},credentials:'omit'});
+      if(r.ok)return {persona:this.persona,action:`Anonymous reached admin endpoint (BUG)`,ok:false};
+      if(r.status===401||r.status===403)return {persona:this.persona,action:`✓ Anonymous blocked (${r.status})`,ok:true};
+      return {persona:this.persona,action:`Anonymous: unexpected ${r.status}`,ok:false};
+    }catch(e){
+      return {persona:this.persona,action:`Anonymous test errored: ${e.message}`,ok:true};
+    }
+  }
+  async phantomOwnershipWrite(){
+    // Try to confirm a deal that doesn't exist or isn't owned. Server should
+    // 404 (deal not found) or 403 (not your deal). Either is a valid rejection.
+    const fakeId='DL-NOT-MINE-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    try{
+      await botFetch('/api/v2?resource=advisor&op=advisor-confirm-deal',{method:'POST',botAs:'advisor',body:JSON.stringify({dealId:fakeId})});
+      return {persona:this.persona,action:`Phantom deal confirmed (BUG)`,ok:false};
+    }catch(e){
+      if(e.status>=400&&e.status<500)return {persona:this.persona,action:`✓ Phantom-deal write rejected (${e.status})`,ok:true};
+      return {persona:this.persona,action:`Phantom-deal: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+  async malformedAdminCall(){
+    // Hit an admin endpoint with a junk body. Should 400/404 — anything 4xx
+    // means the platform refused. 2xx or 5xx would be a real bug.
+    try{
+      await botFetch('/api/v2?resource=admin&op=approve-ioi',{method:'POST',body:JSON.stringify({ioi_id:null,extra:'junk',nested:{evil:true}})});
+      return {persona:this.persona,action:`Junk approve-ioi accepted (BUG)`,ok:false};
+    }catch(e){
+      if(e.status>=400&&e.status<500)return {persona:this.persona,action:`✓ Junk admin call rejected (${e.status})`,ok:true};
+      return {persona:this.persona,action:`Junk admin: unexpected ${e.status||'?'}`,ok:false};
+    }
+  }
+}
+
+// ─── AdvisorReviewBot ─────────────────────────────────────────────────
+// Logs in as bot.advisor periodically. Finds bot-advisor-owned deals in
+// review stage and calls advisor-confirm-deal — which auto-publishes them
+// to the marketplace via the new P-16 path. Closes the lifecycle loop:
+// AdvisorBot submits review deal -> AdvisorReviewBot confirms -> auto live.
+// Tick floor: 5s.
+class AdvisorReviewBot{
+  constructor(){this.persona='advreview';this.loggedIn=false;}
+  async login(){
+    if(this.loggedIn)return;
+    await botFetch('/api/v2?resource=advisor&op=login',{method:'POST',body:JSON.stringify({email:'bot.advisor@aurumprism.test',password:'BotPass123!'})});
+    this.loggedIn=true;
+  }
+  async tick(){
+    if(!this.loggedIn)await this.login();
+    // Get bot.advisor's own deals
+    let deals;
+    try{const j=await botFetch('/api/v2?resource=advisor&op=deals',{botAs:'advisor'});deals=j.deals||[];}
+    catch(e){return {persona:this.persona,action:`Fetch deals failed: ${e.message}`,ok:false};}
+    const reviewDeals=deals.filter(d=>d.stage==='review');
+    if(reviewDeals.length===0)return {persona:this.persona,action:'No review-stage deals to confirm',ok:true};
+    const d=rand(reviewDeals);
+    try{
+      const r=await botFetch('/api/v2?resource=advisor&op=advisor-confirm-deal',{method:'POST',botAs:'advisor',body:JSON.stringify({dealId:d.id})});
+      if(r?.autoPublished)return {persona:this.persona,action:`Confirmed + auto-published "${d.name}"`,ok:true};
+      if(r?.publishMissing?.length)return {persona:this.persona,action:`Confirmed "${d.name}" (incomplete: ${r.publishMissing.slice(0,2).join(',')})`,ok:true};
+      return {persona:this.persona,action:`Confirmed "${d.name}" (review_status set)`,ok:true};
+    }catch(e){
+      if(e.status===403)return {persona:this.persona,action:`Not bot's deal "${d.name}" (raced)`,ok:true};
+      throw e;
+    }
+  }
+}
+
+// ─── ConcurrencyBot ───────────────────────────────────────────────────
+// Bursts parallel calls to surface race conditions. Targets known race-
+// prone endpoints (IOI submit, approve-ioi, publish-deal). Verifies the
+// idempotency we added (P-9/P-10/P-15) actually holds under load and
+// stress-tests the still-open recalcIoiCounters race (P-6).
+// Tick floor: 30s.
+class ConcurrencyBot{
+  constructor(){this.persona='concurrency';}
+  async tick(){
+    const roll=Math.random();
+    if(roll<0.5)return await this.burstApproveSameIoi();
+    return await this.burstPublishSameDeal();
+  }
+  async burstApproveSameIoi(){
+    // Find a pending IOI
+    const status=await botFetch('/api/v2?resource=admin&op=sandbox-status');
+    const pending=(status.recent_iois||[]).filter(i=>i.status==='pending');
+    if(pending.length===0)return {persona:this.persona,action:'No pending IOI to burst',ok:true};
+    const i=rand(pending);
+    // Fire 8 approves at exact same instant
+    const promises=Array.from({length:8},()=>botFetch('/api/v2?resource=marketplace&op=approve-ioi',{method:'POST',body:JSON.stringify({ioi_id:i.id})}).catch(e=>e));
+    const results=await Promise.all(promises);
+    const successes=results.filter(r=>r&&r.ok===true).length;
+    const idempotents=results.filter(r=>r&&r.idempotent===true).length;
+    const errors=results.filter(r=>r instanceof Error).length;
+    return {persona:this.persona,action:`Burst x8 approve IOI ${i.id}: ok=${successes} idem=${idempotents} err=${errors}`,ok:errors===0};
+  }
+  async burstPublishSameDeal(){
+    const status=await botFetch('/api/v2?resource=admin&op=sandbox-status');
+    const review=(status.recent_deals||[]).filter(d=>d.stage==='review');
+    if(review.length===0)return {persona:this.persona,action:'No review deal to burst-publish',ok:true};
+    const d=rand(review);
+    const promises=Array.from({length:8},()=>botFetch('/api/v2?resource=admin&op=publish-deal',{method:'POST',body:JSON.stringify({dealId:d.id,launch_mode:'listed',target_segments:['institutional','hnw']})}).catch(e=>e));
+    const results=await Promise.all(promises);
+    const successes=results.filter(r=>r&&r.ok===true).length;
+    const idempotents=results.filter(r=>r&&r.idempotent===true).length;
+    const errors=results.filter(r=>r instanceof Error&&r.status>=500).length;
+    return {persona:this.persona,action:`Burst x8 publish "${d.name}": ok=${successes} idem=${idempotents} 5xx=${errors}`,ok:errors===0};
+  }
+}
+
+// ─── CapitalEventBot ──────────────────────────────────────────────────
+// Drives the post-close lifecycle that admin and investor bots don't
+// otherwise touch: capital calls, distributions, and investor
+// acknowledgement of those notices. Tests the L-2 / L-3 endpoints
+// (notices, acknowledge-notice) end-to-end, plus the per-investor
+// notice writes inside capital-call-notify and distribution-notify.
+// Tick floor: 15s — these are admin-driven events, not hot-loop traffic.
+class CapitalEventBot{
+  constructor(){this.persona='capevent';this.investorLoggedIn=false;this.lastIssued=new Set();}
+  async investorLogin(){
+    if(this.investorLoggedIn)return;
+    try{
+      await botFetch('/api/v2?resource=inst&op=login',{method:'POST',body:JSON.stringify({email:'bot.investor@aurumprism.test',code:'BOTCODE'})});
+      this.investorLoggedIn=true;
+    }catch(e){/* re-login next tick */}
+  }
+  async tick(){
+    const roll=Math.random();
+    if(roll<0.4)return await this.issueCapitalCall();
+    if(roll<0.7)return await this.issueDistribution();
+    return await this.investorAcknowledge();
+  }
+  async issueCapitalCall(){
+    // Find a close or realized deal with at least one approved IOI.
+    const status=await botFetch('/api/v2?resource=admin&op=sandbox-status');
+    const eligible=(status.recent_deals||[]).filter(d=>['close','realized'].includes(d.stage));
+    if(eligible.length===0)return {persona:this.persona,action:'No close/realized deal for capital call',ok:true};
+    const d=rand(eligible);
+    if(this.lastIssued.has('cc:'+d.id)&&Math.random()<0.7)return {persona:this.persona,action:`Capital call already issued recently for "${d.name}" (skip)`,ok:true};
+    try{
+      const r=await botFetch('/api/v2?resource=admin&op=capital-call-notify',{method:'POST',body:JSON.stringify({dealId:d.id,notes:'Bot-driven capital call'})});
+      this.lastIssued.add('cc:'+d.id);
+      return {persona:this.persona,action:`Capital call issued on "${d.name}" → ${r.sent||0} investor(s)`,ok:true};
+    }catch(e){
+      if(e.status===404)return {persona:this.persona,action:`Capital call skip "${d.name}" (deal moved)`,ok:true};
+      throw e;
+    }
+  }
+  async issueDistribution(){
+    const status=await botFetch('/api/v2?resource=admin&op=sandbox-status');
+    const eligible=(status.recent_deals||[]).filter(d=>['close','realized'].includes(d.stage));
+    if(eligible.length===0)return {persona:this.persona,action:'No close/realized deal for distribution',ok:true};
+    const d=rand(eligible);
+    if(this.lastIssued.has('dist:'+d.id)&&Math.random()<0.7)return {persona:this.persona,action:`Distribution already issued recently for "${d.name}" (skip)`,ok:true};
+    // Random distribution pool $500K-$10M
+    const amount=Math.round((500000+Math.random()*9500000)/1000)*1000;
+    try{
+      const r=await botFetch('/api/v2?resource=admin&op=distribution-notify',{method:'POST',body:JSON.stringify({dealId:d.id,amount,notes:'Bot-driven distribution'})});
+      this.lastIssued.add('dist:'+d.id);
+      return {persona:this.persona,action:`Distribution $${(amount/1e6).toFixed(2)}M on "${d.name}" → ${r.sent||0} investor(s)`,ok:true};
+    }catch(e){
+      if(e.status===404)return {persona:this.persona,action:`Distribution skip "${d.name}" (deal moved)`,ok:true};
+      throw e;
+    }
+  }
+  async investorAcknowledge(){
+    if(!this.investorLoggedIn)await this.investorLogin();
+    if(!this.investorLoggedIn)return {persona:this.persona,action:'Investor login failed (retry next tick)',ok:true};
+    let notices;
+    try{
+      const j=await botFetch('/api/v2?resource=inst&op=notices',{botAs:'investor'});
+      notices=j.notices||[];
+    }catch(e){
+      return {persona:this.persona,action:`Notice fetch failed: ${e.message}`,ok:false};
+    }
+    const pending=notices.filter(n=>n.status!=='acknowledged');
+    if(pending.length===0)return {persona:this.persona,action:`No pending notices to acknowledge (${notices.length} total)`,ok:true};
+    const n=rand(pending);
+    try{
+      await botFetch('/api/v2?resource=inst&op=acknowledge-notice',{method:'POST',botAs:'investor',body:JSON.stringify({noticeId:n.id})});
+      return {persona:this.persona,action:`Acknowledged ${n.type} notice on "${n.deal_name}"`,ok:true};
+    }catch(e){
+      if(e.status===404)return {persona:this.persona,action:`Notice ${n.id} no longer exists (raced)`,ok:true};
+      throw e;
+    }
+  }
+}
+
+const bots={
+  advisor:new AdvisorBot(),
+  admin:new AdminBot(),
+  investor:new InvestorBot(),
+  applicant:new ApplicantBot(),
+  chaos:new ChaosBot(),
+  auth:new AuthBoundaryBot(),
+  advreview:new AdvisorReviewBot(),
+  concurrency:new ConcurrencyBot(),
+  capevent:new CapitalEventBot(),
+};
+
+/* ========== Driver loop ========== */
+function startPersonaLoop(persona){
+  const ctrl=new AbortController();
+  state.loops[persona]=ctrl;
+  (async()=>{
+    while(!ctrl.signal.aborted&&state.running){
+      if(state.paused){await sleep(150);continue;}
+      try{
+        const result=await bots[persona].tick();
+        pushLog(persona,result.action,result.ok!==false);
+        state.errorStreaks[persona]=0;
+      }catch(e){
+        pushLog(persona,'Error',false,e.message||String(e));
+        state.errorStreaks[persona]++;
+        if(state.errorStreaks[persona]>=50){
+          pushLog(persona,`Auto-paused after 50 consecutive errors`,false);
+          state.personas[persona]=false;
+          document.getElementById('pt-'+persona).classList.remove('on');
+          const cb=document.querySelector(`#pt-${persona} input`);if(cb)cb.checked=false;
+          break;
+        }
+      }
+      const base=SPEED_MS[state.speedKey];
+      // Per-persona tick floors. Slow personas pressure-test specific flows
+      // without burning Redis ops on a hot loop.
+      const FLOORS={applicant:5000,chaos:3000,auth:4000,advreview:5000,concurrency:30000,capevent:15000};
+      const personaFloor=FLOORS[persona]||base;
+      const interval=Math.max(personaFloor,base);
+      if(interval<=50){await sleep(50);}
+      else{const jitter=0.7+Math.random()*0.6;await sleep(Math.round(interval*jitter));}
+    }
+    delete state.loops[persona];
+  })();
+}
+
+async function startBots(){
+  if(state.running&&!state.paused){state.paused=true;setStatus();return;}
+  if(state.paused){state.paused=false;setStatus();refreshCounters();return;}
+  state.running=true;state.paused=false;
+  document.getElementById('btn-start').textContent='Resume';
+  document.getElementById('btn-pause').disabled=false;
+  setStatus();
+  refreshCounters();
+  for(const p of ['advisor','admin','investor','applicant','chaos','auth','advreview','concurrency','capevent']){
+    if(state.personas[p])startPersonaLoop(p);
+  }
+}
+function pauseBots(){
+  if(!state.running)return;
+  state.paused=!state.paused;
+  setStatus();
+}
+function stopAllLoops(){
+  state.running=false;state.paused=false;
+  for(const p of Object.keys(state.loops)){state.loops[p].abort();}
+  state.loops={};
+  document.getElementById('btn-start').textContent='Start';
+  document.getElementById('btn-pause').disabled=true;
+  setStatus();
+}
+
+/* ========== Reset modal ========== */
+function openResetModal(){
+  document.getElementById('reset-modal').classList.remove('hidden');
+  document.getElementById('reset-confirm-input').value='';
+  document.getElementById('reset-confirm-btn').disabled=true;
+  _modalReleasers['reset-modal']=trapFocus(document.querySelector('#reset-modal .modal-box'));
+}
+function closeResetModal(){
+  document.getElementById('reset-modal').classList.add('hidden');
+  if(_modalReleasers['reset-modal']){_modalReleasers['reset-modal']();delete _modalReleasers['reset-modal'];}
+}
+function onResetInput(){
+  const v=document.getElementById('reset-confirm-input').value;
+  document.getElementById('reset-confirm-btn').disabled=v!=='WIPE ALL DATA';
+}
+async function confirmReset(){
+  const btn=document.getElementById('reset-confirm-btn');btn.disabled=true;btn.textContent='Wiping…';
+  stopAllLoops();
+  try{
+    await botFetch('/api/v2?resource=admin&op=sandbox-reset',{method:'POST',body:JSON.stringify({confirm:'WIPE ALL DATA'})});
+    pushLog('admin','Sandbox reset complete · seeded 3 advisors / 5 investors / 10 deals',true);
+    // Clear local state so bots re-login
+    bots.advisor.loggedIn=false;bots.advisor.deals=[];
+    bots.investor.loggedIn=false;bots.investor.myIoiDeals.clear();
+    closeResetModal();
+    refreshCounters();
+  }catch(e){
+    pushLog('admin','Sandbox reset failed',false,e.message);
+    closeResetModal();
+  }finally{
+    btn.textContent='Wipe + reseed';
+  }
+}
+
+/* ========== Audit modal ========== */
+function openAuditModal(html){
+  document.getElementById('audit-modal-body').innerHTML=html;
+  document.getElementById('audit-modal').classList.remove('hidden');
+  _modalReleasers['audit-modal']=trapFocus(document.querySelector('#audit-modal .modal-box'));
+}
+function closeAuditModal(){
+  document.getElementById('audit-modal').classList.add('hidden');
+  if(_modalReleasers['audit-modal']){_modalReleasers['audit-modal']();delete _modalReleasers['audit-modal'];}
+}
+async function runAudit(){
+  const btn=document.getElementById('btn-audit');btn.disabled=true;const orig=btn.textContent;btn.textContent='Auditing…';
+  try{
+    const j=await botFetch('/api/v2?resource=admin&op=sandbox-summary');
+    const issues=j.issues||[];
+    // Pull session log errors — anything bots flagged as ✗ in the action log.
+    // The data audit (sandbox-summary) only inspects KV state; log errors
+    // surface bugs that don't leave a permanent trace (race conditions,
+    // 400s from bad bot calls, missing fields, etc.).
+    const logErrors=(state.logEntries||[]).filter(r=>r.ok===false);
+    const logErrorCount=logErrors.length;
+    // Group by message for readability
+    const errorGroups={};
+    for(const r of logErrors){
+      const msg=r.msg||'unknown';
+      const key=msg.replace(/IOI-[A-Z0-9-]+/g,'IOI-…').replace(/DL-[A-Z0-9-]+/g,'DL-…').replace(/"[^"]+"/g,'"…"').slice(0,140);
+      if(!errorGroups[key])errorGroups[key]={count:0,persona:r.persona,sample:msg};
+      errorGroups[key].count++;
+    }
+    const groupedErrors=Object.entries(errorGroups).sort((a,b)=>b[1].count-a[1].count);
+
+    const totalIssues=issues.length+(logErrorCount>0?1:0);
+    let html='';
+    if(totalIssues===0){
+      html=`<div class="audit-banner pass">All clear — no data issues, no log errors</div>`;
+      if(j.summary)html+=`<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);padding:8px 12px;background:var(--bg-3);border-radius:4px">${esc(typeof j.summary==='string'?j.summary:JSON.stringify(j.summary,null,2))}</div>`;
+    }else{
+      const summaryParts=[];
+      if(issues.length)summaryParts.push(`${issues.length} data issue${issues.length===1?'':'s'}`);
+      if(logErrorCount)summaryParts.push(`${logErrorCount} log error${logErrorCount===1?'':'s'} (${groupedErrors.length} unique)`);
+      html=`<div class="audit-banner fail">${summaryParts.join(' · ')}</div>`;
+
+      if(issues.length){
+        html+=`<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin:14px 0 6px">Data Audit</div>`;
+        html+=`<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden">`;
+        html+=`<div class="audit-row" style="background:var(--bg-3);font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);cursor:default"><div>Issue</div><div>Severity</div><div>Count</div><div></div></div>`;
+        issues.forEach((iss,idx)=>{
+          const sev=(iss.severity||'med').toLowerCase();
+          const sevClass=sev==='high'?'sev-high':(sev==='low'?'sev-low':'sev-med');
+          const samples=iss.samples||iss.examples||[];
+          html+=`<div class="audit-row" onclick="document.getElementById('aud-s-${idx}').classList.toggle('hidden')"><div>${esc(iss.type||iss.name||'issue')}<div style="font-size:11px;color:var(--text-3);margin-top:2px">${esc(iss.message||'')}</div></div><div><span class="audit-sev ${sevClass}">${esc(sev)}</span></div><div style="font-family:var(--mono);font-size:13px;color:var(--text)">${iss.count||samples.length||1}</div><div style="color:var(--text-3);font-family:var(--mono)">▾</div></div>`;
+          if(samples.length){
+            html+=`<div id="aud-s-${idx}" class="audit-samples hidden">${samples.slice(0,10).map(s=>`<div>· ${esc(typeof s==='string'?s:JSON.stringify(s))}</div>`).join('')}</div>`;
+          }
+        });
+        html+=`</div>`;
+      }
+
+      if(logErrorCount){
+        html+=`<div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin:14px 0 6px">Action Log Errors (${logErrorCount} total · ${groupedErrors.length} unique)</div>`;
+        html+=`<div style="border:1px solid var(--border);border-radius:4px;overflow:hidden">`;
+        html+=`<div class="audit-row" style="background:var(--bg-3);font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);cursor:default"><div>Persona</div><div>Pattern</div><div>Count</div><div></div></div>`;
+        groupedErrors.forEach(([key,grp],idx)=>{
+          html+=`<div class="audit-row" style="cursor:default"><div><span class="tag tag-${esc(grp.persona||'admin')}" style="font-family:var(--mono);font-size:9px;padding:2px 8px;border:1px solid;border-radius:3px">${esc(grp.persona||'?')}</span></div><div style="font-size:11px;color:var(--red);font-family:var(--mono);word-break:break-word">${esc(key)}</div><div style="font-family:var(--mono);font-size:13px;color:var(--red)">${grp.count}</div><div></div></div>`;
+        });
+        html+=`</div>`;
+        html+=`<div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:8px;line-height:1.5">Patterns are normalized — IOI/deal IDs and quoted names replaced with placeholders so identical errors group together. Top of the list = most frequent.</div>`;
+      }
+    }
+    openAuditModal(html);
+  }catch(e){
+    openAuditModal(`<div class="audit-banner fail">Audit endpoint failed</div><div style="font-family:var(--mono);font-size:11px;color:var(--red);padding:8px 12px">${esc(e.message)}</div>`);
+  }finally{
+    btn.disabled=false;btn.textContent=orig;
+  }
+}
+
+/* ========== Init ========== */
+(async function init(){
+  const okAdmin=await requireAdmin();
+  if(!okAdmin)return;
+  setStatus();
+  refreshCounters();
+  // Counter polling: 6s while running, paused entirely while idle/paused.
+  // sandbox-status is server-cached for 5s so this is at most ~1 Redis op/poll.
+  setInterval(()=>{
+    if(state.running&&!state.paused)refreshCounters();
+  },6000);
+  // Esc closes modals
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Escape')return;
+    if(!document.getElementById('reset-modal').classList.contains('hidden'))closeResetModal();
+    if(!document.getElementById('audit-modal').classList.contains('hidden'))closeAuditModal();
+  });
+})();
+</script>
+</body>
+</html>

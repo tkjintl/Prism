@@ -2810,11 +2810,13 @@ async function logout(){
 async function runWipe(){
   if(!confirm('WIPE DATABASE — this permanently deletes ALL data. Are you sure?')) return;
   if(!confirm('Second confirmation: there is no undo. Wipe now?')) return;
+  const phrase = prompt('Type exactly: WIPE ALL DATA');
+  if(phrase !== 'WIPE ALL DATA'){ alert('Cancelled — phrase did not match.'); return; }
   const btn=document.getElementById('wipe-btn');
   const status=document.getElementById('wipe-status');
   btn.disabled=true; btn.textContent='Wiping…'; status.textContent='';
   try{
-    const r=await fetch('/api/v2?resource=admin&op=production-wipe',{method:'POST',credentials:'include'});
+    const r=await fetch('/api/v2?resource=admin&op=production-wipe',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({confirm:'WIPE ALL DATA'})});
     const d=await r.json();
     if(d.ok){ status.style.color='#4ade80'; status.textContent='Done — database wiped. All data deleted.'; }
     else { status.style.color='#f87171'; status.textContent='Error: '+(d.error||'Unknown'); }

@@ -4,6 +4,23 @@ All website and platform changes are logged here in reverse-chronological order.
 
 ---
 
+## [2026-05-16] — Pre-launch hardening pt. 2: production-wipe gate + ops/ subdirectory
+
+### api/v2.js
+- `op=production-wipe` now requires body `{ confirm: "WIPE ALL DATA" }` (matches `sandbox-reset`). Without it returns 400. Prior state: admin role alone could wipe with a single POST. Closes the dangerous-button gap flagged in the 2026-05-16 audit.
+
+### admin-portal.html
+- `runWipe()` now prompts for the literal phrase `WIPE ALL DATA` and sends it in the body. Three confirmations total: two `confirm()` dialogs + the phrase prompt.
+
+### ops/ subdirectory
+- Moved bot-driver + bot-viewer to `ops/bd7x3k.html` and `ops/bv7x3k.html`. cleanUrls serves them naturally at `/ops/bd7x3k` and `/ops/bv7x3k`. The prior `/ops/...` rewrites pointed at root files which cleanUrls converted to a 308 → caught by the new redirect → 404 chain. This eliminates the chain.
+- Originals at root (`bot-driver.html`, `bot-viewer.html`) remain in place but are unreachable due to the redirect added in the previous commit.
+
+### vercel.json
+- Removed redundant `/ops/bd7x3k` and `/ops/bv7x3k` rewrites — files now live at the matching paths and resolve via cleanUrls.
+
+---
+
 ## [2026-05-16] — Pre-launch hardening: bot pages gated, Blob installed, gitignore tightened
 
 ### vercel.json

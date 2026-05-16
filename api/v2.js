@@ -4007,6 +4007,8 @@ Rules:
     if (op === 'production-wipe') {
       const admin = await getAdmin();
       if (!admin) return unauth(res);
+      const { confirm } = req.body || {};
+      if (confirm !== 'WIPE ALL DATA') return bad(res, 'Confirmation phrase required: pass body { confirm: "WIPE ALL DATA" }');
       try {
         const wiped = await wipeAll();
         return ok(res, { wiped });
